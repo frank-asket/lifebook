@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
+    "dev:livingword": "tsx watch src/microservices/livingWord.ts",
+    "start:livingword": "tsx src/microservices/livingWord.ts",
+    "dev:voice": "tsx watch src/microservices/voice.ts",
+    "start:voice": "tsx src/microservices/voice.ts",
     "build": "tsc -p .",
     "typecheck": "tsc --noEmit"
   },

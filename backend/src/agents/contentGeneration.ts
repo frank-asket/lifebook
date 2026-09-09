@@ -56,7 +56,7 @@ export async function generateContent(mood: Mood, verse: Verse, note?: string): 
     });
 
     if (!response.ok) throw new Error(`Anthropic API returned ${response.status}`);
-    const data = await response.json();
+      const data: any = await response.json();
     const text = (data.content || []).map((b: any) => b.text || '').join('\n');
     const cleaned = text.replace(/```json|```/g, '').trim();
     const match = cleaned.match(/\{[\s\S]*\}/);

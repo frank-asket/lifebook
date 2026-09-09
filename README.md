@@ -161,6 +161,9 @@ The backend uses a zero-dependency JSON store for development. Production should
 | Payments | Mocked; processor integration pending |
 | Licensed audio and video | Pending real recordings and distribution agreements |
 
+The backend also includes independently runnable LivingWord and Voice services
+on ports `8788` and `8789`; see [`backend/src/microservices/README.md`](backend/src/microservices/README.md).
+
 ## Development principles
 
 - **Scripture first:** generated guidance should point back to approved Scripture and remain transparent about its source.

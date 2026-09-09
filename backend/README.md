@@ -43,6 +43,19 @@ Matches the agent pipeline in the TRD:
 - `GET /api/health` — status + current mode (live vs dev-fallback)
 - `POST /api/checkin` — `{ deviceId, mood, note? }` → generated content + updated streak
 - `GET /api/streak?deviceId=...` — current streak record
+
+## Microservices
+
+The web features can also run as independent services:
+
+```bash
+npm run dev:livingword  # http://localhost:8788
+npm run dev:voice       # http://localhost:8789
+```
+
+LivingWord provides teaching catalog, detail data, and moderated comments.
+Voice provides the Scripture-grounded conversation contract. See
+`src/microservices/README.md` for routes and production boundaries.
 - `POST /api/flag` — `{ contentId, deviceId, reason? }` → files a review-queue entry
 - `GET /api/badges?deviceId=...` — badges computed from real streak history
 

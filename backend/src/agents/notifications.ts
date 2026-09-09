@@ -61,7 +61,7 @@ export async function sendPushNotification(userId: string, title: string, body: 
       return { sent: false, reason: `Expo push service returned HTTP ${response.status}: ${text.slice(0, 200)}` };
     }
 
-    const data = await response.json().catch(() => null);
+      const data: any = await response.json().catch(() => null);
     const ticket = data?.data;
     if (!ticket) {
       return { sent: false, reason: 'Expo push service returned an unexpected response shape' };

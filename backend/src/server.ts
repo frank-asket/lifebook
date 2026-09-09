@@ -28,7 +28,7 @@ function clientKey(req: IncomingMessage): string {
   // Render/Railway/most PaaS put the backend behind a reverse proxy, so
   // the real client IP arrives via X-Forwarded-For, not the raw socket.
   const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) return forwarded.split(',')[0].trim();
+    if (forwarded) return (Array.isArray(forwarded) ? forwarded[0] : forwarded).split(',')[0].trim();
   return (req.socket as any)?.remoteAddress || 'unknown';
 }
 

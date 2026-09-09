@@ -26,7 +26,7 @@ function emptyDb(): Database {
     groups: [], groupMembers: [], prayerRequests: [], discussions: [], discussionReplies: [],
     libraryProgress: {}, subscriptions: {},
     journalEntries: [], favorites: [], preferences: {}, pushTokens: {},
-    journeyProgress: {},
+    journeyProgress: {}, livingWordComments: [],
   };
 }
 

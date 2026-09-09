@@ -63,6 +63,17 @@ export interface Database {
   preferences: Record<string, UserPreferences>;
   pushTokens: Record<string, PushToken>;
   journeyProgress: Record<string, UserJourneyProgress[]>;
+  livingWordComments: LivingWordComment[];
+}
+
+export interface LivingWordComment {
+  id: string;
+  teachingSlug: string;
+  userId: string;
+  authorName: string;
+  text: string;
+  moderationStatus: 'approved' | 'pending' | 'rejected';
+  createdAt: string;
 }
 
 export interface Journey {
