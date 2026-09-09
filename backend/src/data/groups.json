@@ -1,0 +1,8 @@
+{
+  "groups": [
+    { "id": "grp-peace-seekers", "name": "Peace Seekers", "description": "For anyone navigating anxiety and looking for a steady, daily rhythm.", "meetingFrequency": "Weekly, Thursdays" },
+    { "id": "grp-young-adults", "name": "Young Adults Faith Circle", "description": "Scripture and prayer for 18-30s figuring out life and faith together.", "meetingFrequency": "Weekly, Sundays" },
+    { "id": "grp-morning-prayer", "name": "Morning Prayer Collective", "description": "A quiet, async prayer thread — read and pray whenever your morning starts.", "meetingFrequency": "Daily, async" },
+    { "id": "grp-new-believers", "name": "New Believers Table", "description": "No question too basic — a supportive space for people early in their faith.", "meetingFrequency": "Bi-weekly" }
+  ]
+}

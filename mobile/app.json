@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "LifeBook",
+    "slug": "lifebook",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/lifebook-logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/lifebook-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E1B2E"
+    },
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.lifebook.app" },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/lifebook-logo.png",
+        "backgroundColor": "#1E1B2E"
+      },
+      "package": "com.lifebook.app"
+    }
+  }
+}

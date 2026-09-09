@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: lifebook-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8787
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: DATA_DIR
+        value: /data
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 60000
+      - key: RATE_LIMIT_MAX
+        value: 60
+      - key: RATE_LIMIT_CHECKIN_MAX
+        value: 10
+    disk:
+      name: lifebook-data
+      mountPath: /data
+      sizeGB: 1
