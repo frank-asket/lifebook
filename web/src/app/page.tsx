@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -33,10 +34,14 @@ export default function Home() {
   const [joined, setJoined] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (email.trim()) setJoined(true);
+    if (email.trim()) {
+      setJoined(true);
+      router.push("/thank-you");
+    }
   }
 
   return (
@@ -66,6 +71,10 @@ export default function Home() {
 
       <LivingWord />
 
+      <section className="community-proof-section page-shell"><div><p className="showcase-eyebrow">Built with people, not assumptions</p><h2>The first reviews<br /><em>will be honest.</em></h2></div><div className="proof-copy"><p>LifeBook is still gathering its first real user stories. We will publish customer reflections only after people have used the product and given permission to share their experience.</p><div className="proof-note"><span>✦</span><strong>Real voices soon</strong><small>We are recruiting the first 5–10 pilot users now.</small></div><Link className="underlined-link" href="#join">Join the pilot circle <ArrowIcon /></Link></div></section>
+
+      <section className="team-section page-shell"><div className="team-heading"><p className="showcase-eyebrow">The people behind the practice</p><h2>Faith is<br /><em>shared.</em></h2><p>LifeBook is being shaped by Christian teaching, product care, and the wisdom of people who know that faith includes both confidence and questions.</p></div><div className="team-portraits"><div><Image src="/AsketOfficialPic (1).png" alt="LifeBook teaching contributor" width={180} height={220} /><span>Teaching contributor</span></div><div><Image src="/myself.jpeg" alt="LifeBook project contributor" width={180} height={220} /><span>LifeBook contributor</span></div></div></section>
+
       <section className="questions-section page-shell" id="questions"><div className="questions-heading"><p className="showcase-eyebrow">Questions for the journey</p><h2>Can this help<br /><em>my faith?</em></h2><span className="question-mark">?</span></div><div className="faq-list">{faqs.map(([question, answer], index) => <div className={`faq-row ${openFaq === index ? "faq-open" : ""}`} key={question}><button type="button" onClick={() => setOpenFaq(openFaq === index ? -1 : index)}><span>{question}</span><b>{openFaq === index ? "−" : "+"}</b></button>{openFaq === index && <p>{answer}</p>}</div>)}</div></section>
 
       <section className="closing-section" id="join"><div className="closing-band page-shell"><div><p className="showcase-eyebrow">Come and see</p><h2>Make room for<br /><em>the presence of God.</em></h2></div><div className="closing-form"><p>Join the early circle and help shape a place where Christians can return to Scripture, prayer, and the faithful presence of one another.</p>{joined ? <div className="success-message">You’re on the list. We’ll be in touch soon. <span>✦</span></div> : <form onSubmit={handleSubmit}><label htmlFor="email">Your email address</label><div><input id="email" type="email" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required /><button type="submit" aria-label="Join the LifeBook waitlist"><ArrowIcon /></button></div></form>}<small>No noise. Just a note when LifeBook is ready for you.</small></div></div></section>
@@ -78,9 +87,10 @@ export default function Home() {
             <div className="footer-column"><h3>Community</h3><a href="#questions">Prayer requests</a><a href="#questions">Groups</a><a href="#questions">Pastoral care</a><a href="#questions">Questions</a><a href="#living-word">Teaching conversations</a></div>
             <div className="footer-column"><h3>Follow along</h3><a href="#top">Instagram ↗</a><a href="#top">YouTube ↗</a><a href="#top">Email us ↗</a><span className="footer-note">A quieter way to walk<br />with Jesus, together.</span></div>
           </div>
-          <div className="footer-bottom"><span>© 2026 LifeBook</span><span>Made for the journey of faith</span><div><a href="#top">Privacy</a><a href="#top">Terms</a><a href="#top">Accessibility</a></div></div>
+          <div className="footer-bottom"><span>© 2026 LifeBook</span><span>Made for the journey of faith</span><div><Link href="/privacy">Privacy</Link><a href="#top">Terms</a><a href="#top">Accessibility</a></div></div>
         </div>
       </footer>
+      <Link className="sticky-mobile-cta" href="#join">Begin your journey <ArrowIcon /></Link>
     </main>
   );
 }
