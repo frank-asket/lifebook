@@ -11,14 +11,14 @@ services:
         value: 8787
       - key: ANTHROPIC_API_KEY
         sync: false
-      - key: FIREBASE_PROJECT_ID
+      - key: CLERK_PUBLISHABLE_KEY
         sync: false
-      - key: FIREBASE_CLIENT_EMAIL
+      - key: CLERK_SECRET_KEY
         sync: false
-      - key: FIREBASE_PRIVATE_KEY
+      - key: SUPABASE_URL
         sync: false
-      - key: DATA_DIR
-        value: /data
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: ALLOWED_ORIGINS
         sync: false
       - key: RATE_LIMIT_WINDOW_MS
@@ -27,7 +27,3 @@ services:
         value: 60
       - key: RATE_LIMIT_CHECKIN_MAX
         value: 10
-    disk:
-      name: lifebook-data
-      mountPath: /data
-      sizeGB: 1

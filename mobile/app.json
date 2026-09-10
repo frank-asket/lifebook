@@ -11,13 +11,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#1E1B2E"
     },
-    "ios": { "supportsTablet": true, "bundleIdentifier": "com.lifebook.app" },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lifebook.app"
+    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/lifebook-logo.png",
         "backgroundColor": "#1E1B2E"
       },
       "package": "com.lifebook.app"
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

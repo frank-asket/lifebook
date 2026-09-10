@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Switch, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 import { fetchSubscription, upgradeSubscription, sendTestNotification, Subscription } from '../api/client';
-import { isFirebaseConfigured } from '../firebase/firebaseConfig';
-import { signOut } from '../firebase/auth';
+import { useClerk } from '@clerk/clerk-expo';
 import { registerForPushNotifications } from '../notifications/push';
 
 export function SettingsScreen({ deviceId }: { deviceId: string }) {
+  const { signOut } = useClerk();
   const [sub, setSub] = useState<Subscription | null>(null);
   const [dailyReminder, setDailyReminder] = useState(false);
   const [communityUpdates, setCommunityUpdates] = useState(true);
@@ -106,16 +106,12 @@ export function SettingsScreen({ deviceId }: { deviceId: string }) {
         <Text style={styles.rowLabel}>LifeBook v0.1.0 (development build)</Text>
       </View>
 
-      {isFirebaseConfigured() && (
-        <>
-          <Text style={styles.sectionTitle}>ACCOUNT</Text>
-          <View style={styles.card}>
-            <Pressable onPress={() => signOut()}>
-              <Text style={styles.signOut}>Sign out</Text>
-            </Pressable>
-          </View>
-        </>
-      )}
+      <Text style={styles.sectionTitle}>ACCOUNT</Text>
+      <View style={styles.card}>
+        <Pressable onPress={() => signOut()}>
+          <Text style={styles.signOut}>Sign out</Text>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-expo';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -14,20 +15,14 @@ import { BookDetailScreen } from './src/screens/BookDetailScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { CheckinResponse, LibraryBook, ActiveJourney, completeJourneyDay } from './src/api/client';
 import { colors } from './src/theme/colors';
-import { isFirebaseConfigured } from './src/firebase/firebaseConfig';
-import { subscribeToAuthState } from './src/firebase/auth';
+import { setTokenProvider, tokenCache } from './src/auth/clerk';
 
-const DEVICE_ID_KEY = 'lifebook.deviceId';
 const ONBOARDED_KEY = 'lifebook.onboarded';
 
 type Tab = 'home' | 'explore' | 'practice' | 'community' | 'profile';
 type HomeStage = 'mood' | 'flow';
 type ProfileView = 'settings' | 'progress';
 type FlowContext = { type: 'checkin' } | { type: 'journey'; journeyId: string };
-
-function generateId(): string {
-  return 'device-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
 
 function sessionFromCheckin(result: CheckinResponse): GuidedSession {
   return {
@@ -50,9 +45,10 @@ function sessionFromJourney(active: ActiveJourney): GuidedSession {
   };
 }
 
-export default function App() {
+function LifeBookApp() {
+  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { user } = useUser();
   const [userId, setUserId] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
   const [tab, setTab] = useState<Tab>('home');
   const [homeStage, setHomeStage] = useState<HomeStage>('mood');
@@ -65,33 +61,19 @@ export default function App() {
   const [journeyRefreshKey, setJourneyRefreshKey] = useState(0);
 
   useEffect(() => {
-    if (isFirebaseConfigured()) {
-      const unsubscribe = subscribeToAuthState(user => {
-        setUserId(user ? user.uid : null);
-        setAuthChecked(true);
-      });
-      return unsubscribe;
-    } else {
-      (async () => {
-        let id = await AsyncStorage.getItem(DEVICE_ID_KEY);
-        if (!id) {
-          id = generateId();
-          await AsyncStorage.setItem(DEVICE_ID_KEY, id);
-        }
-        setUserId(id);
-        setAuthChecked(true);
-      })();
-    }
-  }, []);
+    setTokenProvider(isSignedIn ? getToken : null);
+    setUserId(user?.id ?? null);
+    return () => setTokenProvider(null);
+  }, [getToken, isSignedIn, user?.id]);
 
   useEffect(() => {
     if (!userId) return;
     AsyncStorage.getItem(`${ONBOARDED_KEY}.${userId}`).then(done => setOnboarded(done === 'true'));
   }, [userId]);
 
-  if (!authChecked) return <View style={styles.root} />;
+  if (!isLoaded) return <View style={styles.root} />;
 
-  if (isFirebaseConfigured() && !userId) {
+  if (!isSignedIn || !userId) {
     return (
       <View style={styles.root}>
         <StatusBar style="light" />
@@ -278,6 +260,14 @@ export default function App() {
   );
 }
 
+export default function App() {
+  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  if (!publishableKey) {
+    return <View style={styles.root}><Text style={styles.configError}>Set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY to start LifeBook.</Text></View>;
+  }
+  return <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}><LifeBookApp /></ClerkProvider>;
+}
+
 function TabButton({ icon, label, active, onPress, emphasized }: { icon: string; label: string; active: boolean; onPress: () => void; emphasized?: boolean }) {
   return (
     <Pressable onPress={onPress} style={styles.tabButton}>
@@ -291,6 +281,7 @@ function TabButton({ icon, label, active, onPress, emphasized }: { icon: string;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgDeep },
+  configError: { color: colors.white, padding: 32, textAlign: 'center', marginTop: 120 },
   screenArea: { flex: 1 },
   tabBar: {
     flexDirection: 'row',

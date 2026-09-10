@@ -12,7 +12,8 @@ import { savePreferences, getPreferences } from './agents/preferences';
 import { registerPushToken, sendPushNotification } from './agents/notifications';
 import { listJourneys, getJourney, startJourney, getActiveJourney, completeDay, listUserJourneys, getRecommendedJourney } from './agents/journeys';
 import { resolveIdentity } from './auth/verifyToken';
-import { isFirebaseConfigured } from './auth/firebaseAdmin';
+import { isClerkConfigured } from './auth/verifyToken';
+import { getSupabaseAdmin, isSupabaseConfigured } from './supabase';
 import { isOriginAllowed, corsOriginHeader } from './security/cors';
 import { checkRateLimit } from './security/rateLimit';
 import { Mood } from './types';
@@ -47,7 +48,10 @@ function send(res: ServerResponse, status: number, body: unknown, origin?: strin
 function readBody(req: IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
     let raw = '';
-    req.on('data', (chunk: any) => (raw += chunk));
+    req.on('data', (chunk: any) => {
+      raw += chunk;
+      if (raw.length > 100_000) req.destroy(new Error('request body too large'));
+    });
     req.on('end', () => {
       if (!raw) return resolve({});
       try { resolve(JSON.parse(raw)); } catch (e) { reject(e); }
@@ -55,10 +59,8 @@ function readBody(req: IncomingMessage): Promise<any> {
   });
 }
 
-// Every authenticated route goes through this. `fallback` is whatever
-// deviceId the client sent (body or query) — it's only actually used when
-// Firebase isn't configured. Once Firebase is live, the verified token's
-// uid always wins and the client's deviceId is ignored.
+// Every protected route goes through this. The legacy deviceId argument is
+// ignored; the Clerk token is the sole authority for the user ID.
 async function requireUser(req: IncomingMessage, res: ServerResponse, fallback?: string): Promise<string | null> {
   try {
     const identity = await resolveIdentity(req, fallback);
@@ -92,8 +94,21 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, {
       status: 'ok',
       aiMode: process.env.ANTHROPIC_API_KEY ? 'live' : 'dev-fallback (no ANTHROPIC_API_KEY set)',
-      authMode: isFirebaseConfigured() ? 'firebase' : 'dev-fallback (no Firebase configured)',
+      authMode: isClerkConfigured() ? 'clerk' : 'unconfigured',
+      databaseMode: isSupabaseConfigured() ? 'supabase' : 'migration-required',
     });
+  }
+
+  // A small, authenticated Supabase-backed endpoint used by both clients to
+  // establish a profile row without relying on eventually-consistent webhooks.
+  if (req.method === 'GET' && url.pathname === '/api/me') {
+    const userId = await requireUser(req, res);
+    if (!userId) return;
+    if (!isSupabaseConfigured()) return send(res, 503, { error: 'Supabase is not configured' });
+    const client = getSupabaseAdmin();
+    const { data, error } = await client.from('profiles').upsert({ user_id: userId, updated_at: new Date().toISOString() }, { onConflict: 'user_id' }).select().single();
+    if (error) return send(res, 500, { error: 'profile lookup failed' });
+    return send(res, 200, { profile: data });
   }
 
   // General rate limit — applies to everything past this point.
@@ -374,5 +389,5 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`LifeBook backend listening on http://localhost:${PORT}`);
   console.log(`AI mode: ${process.env.ANTHROPIC_API_KEY ? 'LIVE' : 'DEV-FALLBACK (no ANTHROPIC_API_KEY set)'}`);
-  console.log(`Auth mode: ${isFirebaseConfigured() ? 'FIREBASE' : 'DEV-FALLBACK (no Firebase configured, using client-supplied deviceId)'}`);
+  console.log(`Auth mode: ${isClerkConfigured() ? 'CLERK' : 'UNCONFIGURED'}`);
 });

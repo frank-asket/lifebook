@@ -105,35 +105,15 @@ possibly fail with an "ExperienceId not found" or similar error until the
 mobile app has been run at least once with a real Expo project — see
 Expo's push notification docs if that happens.
 
-## Setting up real Firebase Auth
+## Clerk + Supabase setup
 
-Auth follows the same dev-fallback pattern as the AI generation: with no
-Firebase env vars set, every route trusts a client-supplied `deviceId`
-(unauthenticated — fine for local dev, not for anything public). Set the
-three service-account env vars below and every route instead requires and
-verifies a real Firebase ID token, ignoring any deviceId the client sends.
-
-**This has not been tested against a real Firebase project** — there's no
-network access or Google account in the environment this was built in.
-The code follows Firebase's documented Admin SDK pattern, but verify it
-against your own project before trusting it in production.
-
-1. **Create a Firebase project** at https://console.firebase.google.com
-2. **Enable Email/Password sign-in**: Authentication → Sign-in method → enable "Email/Password"
-3. **Generate a service account key** (for this backend):
-   Project settings → Service accounts → "Generate new private key" → downloads a JSON file
-4. **Copy three fields from that JSON into `backend/.env`**:
-   ```
-   FIREBASE_PROJECT_ID=<the "project_id" field>
-   FIREBASE_CLIENT_EMAIL=<the "client_email" field>
-   FIREBASE_PRIVATE_KEY=<the "private_key" field, keep the quotes and \n sequences as-is>
-   ```
-5. **Restart the backend.** `/api/health` should now report `"authMode": "firebase"`.
-6. **Configure the mobile app to match** — see `mobile/src/firebase/firebaseConfig.ts`.
-
-Once both sides are configured, every request must include a real
-`Authorization: Bearer <idToken>` header or it gets a 401 — the deviceId
-fallback is completely disabled.
+Clerk is the identity authority and Supabase is the Postgres database. Apply
+`supabase/migrations/20260909160000_lifebook.sql`, then configure Clerk's
+native Supabase integration so session tokens carry the authenticated role.
+Set `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `SUPABASE_URL`, and the
+server-only `SUPABASE_SERVICE_ROLE_KEY` in `backend/.env`. Every protected
+request must include `Authorization: Bearer <Clerk session token>`; the API
+never accepts a client-provided device ID as identity.
 
 ## Deploying to production hosting
 
@@ -158,10 +138,10 @@ wipes local disk on every restart or redeploy. Two options:
 
 1. Push this repo to GitHub (Render deploys from a Git repo, not a zip upload).
 2. At https://dashboard.render.com, click **New** → **Blueprint**, and point it at your repo. Render will read `render.yaml` at the repo root and configure the service automatically — including a 1GB persistent disk mounted at `/data`.
-3. Render will ask for the env vars marked `sync: false` in `render.yaml` — paste in `ANTHROPIC_API_KEY` and, if you've set up Firebase, the three `FIREBASE_*` values. Leave any of them blank to stay in dev-fallback mode.
+3. Render will ask for the env vars marked `sync: false` in `render.yaml` — set `ANTHROPIC_API_KEY`, the two Clerk keys, and the two Supabase keys.
 4. Deploy. Render builds the Dockerfile and gives you a URL like `https://lifebook-backend.onrender.com`.
 5. Test it: `curl https://lifebook-backend.onrender.com/api/health` should return the same JSON you've seen locally.
-6. Update `API_BASE_URL` in `mobile/src/api/client.ts` to that URL.
+6. Set `EXPO_PUBLIC_API_URL` in the mobile environment to that URL.
 
 **Note on `render.yaml`'s persistent disk:** Render's disk feature requires
 a paid plan (the Blueprint sets `plan: starter`), not the free tier. If you
@@ -182,7 +162,7 @@ back to ephemeral storage, which is fine for a first demo.
 ### Before this is public, not just deployed
 
 - **CORS and rate limiting are now built in** (see "Security" below) — set `ALLOWED_ORIGINS` before going public; the defaults are intentionally wide open for local dev.
-- Set real secrets (API keys, Firebase credentials) through the platform's dashboard, never committed to the repo.
+- Set real secrets (API keys, Clerk, and Supabase credentials) through the platform's dashboard, never committed to the repo.
 
 ## Security
 
@@ -217,10 +197,10 @@ to a shared store (Redis) or lean on your platform's own rate limiting
 This is a real, runnable backend — not a mock — scoped for local development
 and a small pilot. Before a public launch, per the TRD and Backend Schema:
 
-1. **Swap `db.ts`'s JSON file for Postgres (via Prisma) or Firestore.** The table
-   shapes in `LifeBook_Backend_Schema.docx` map directly onto the interfaces
-   in `src/types.ts`.
-2. **Add real authentication** (Firebase Auth) instead of a client-supplied `deviceId`.
+1. **Migrate existing endpoint repositories from `db.ts` to the new Supabase tables.** The
+   SQL migration and Clerk-aware RLS are in `supabase/migrations/`; the legacy JSON
+   repository remains only while those endpoint-level data migrations are completed.
+2. **Configure Clerk and Supabase in production** before accepting real user traffic.
 3. **Move `safetyReview.ts` from a keyword heuristic to a real model-based review agent**
    — the function signature is already shaped to make that a drop-in change.
 4. **Put the server behind a real host** (not `localhost`) and restrict CORS

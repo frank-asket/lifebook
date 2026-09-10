@@ -1,10 +1,10 @@
 import { MoodId } from '../theme/colors';
-import { getIdToken } from '../firebase/auth';
+import { getIdToken } from '../auth/clerk';
 
 // When testing on a physical device or the Expo Go app, `localhost` refers
 // to the phone itself, not your computer. Replace this with your machine's
 // LAN IP (e.g. "http://192.168.1.23:8787") — the Expo CLI prints it on start.
-export const API_BASE_URL = 'http://localhost:8787';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8787';
 
 export interface GeneratedContent {
   id: string;

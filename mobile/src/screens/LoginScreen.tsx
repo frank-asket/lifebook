@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { colors } from '../theme/colors';
-import { signIn, signUp } from '../firebase/auth';
+import { useSignIn, useSignUp } from '@clerk/clerk-expo';
 
 export function LoginScreen() {
+  const { isLoaded: signInLoaded, signIn, setActive } = useSignIn();
+  const { isLoaded: signUpLoaded, signUp } = useSignUp();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // No onLoginSuccess prop needed — App.tsx listens to Firebase's own
-  // auth-state stream and reacts automatically once sign-in succeeds here.
 
   async function handleSubmit() {
     setError(null);
@@ -21,10 +20,15 @@ export function LoginScreen() {
     }
     setLoading(true);
     try {
+      if (!signInLoaded || !signUpLoaded) return;
       if (mode === 'signin') {
-        await signIn(email.trim(), password);
+        const attempt = await signIn.create({ identifier: email.trim(), password });
+        if (attempt.status !== 'complete') throw new Error('Sign-in needs an additional verification step.');
+        await setActive({ session: attempt.createdSessionId });
       } else {
-        await signUp(email.trim(), password);
+        const attempt = await signUp.create({ emailAddress: email.trim(), password });
+        if (attempt.status !== 'complete') throw new Error('Please complete the verification sent to your email, then sign in.');
+        await setActive({ session: attempt.createdSessionId });
       }
     } catch (e: any) {
       setError(readableAuthError(e?.code) || e?.message || 'Something went wrong.');
@@ -76,8 +80,7 @@ export function LoginScreen() {
       </View>
 
       <Text style={styles.note}>
-        Uses real Firebase Authentication — this needs your own Firebase project's config filled into
-        mobile/src/firebase/firebaseConfig.ts before sign-in will actually work.
+        Your account is secured by Clerk.
       </Text>
     </View>
   );
@@ -90,7 +93,7 @@ function readableAuthError(code?: string): string | null {
     case 'auth/wrong-password': return 'That password doesn\u2019t match.';
     case 'auth/email-already-in-use': return 'An account already exists with that email.';
     case 'auth/weak-password': return 'Please use at least 6 characters.';
-    case 'auth/network-request-failed': return 'Network error \u2014 check your connection and Firebase config.';
+    case 'auth/network-request-failed': return 'Network error \u2014 check your connection and try again.';
     default: return null;
   }
 }
