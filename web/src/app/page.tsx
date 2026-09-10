@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -50,10 +51,16 @@ export default function Home() {
         <nav className="showcase-nav page-shell" aria-label="Main navigation">
           <a className="wordmark" href="#top" aria-label="LifeBook home"><Mark /><span>LifeBook</span></a>
           <div className="showcase-links"><a href="#features">Bible & prayer</a><Link href="/voice">LifeBook Voice</Link><Link href="/living-word">LivingWord</Link><a href="#questions">Questions</a></div>
-          <a className="pill-button pill-dark" href="#join">Join the early circle</a>
+          <div className="auth-actions">
+            <Show when="signed-out">
+              <SignInButton mode="modal"><button className="nav-sign-in" type="button">Sign in</button></SignInButton>
+              <SignUpButton mode="modal"><button className="pill-button pill-dark" type="button">Begin your journey</button></SignUpButton>
+            </Show>
+            <Show when="signed-in"><UserButton appearance={{ elements: { avatarBox: "lifebook-user-avatar" } }} /></Show>
+          </div>
           <button className={`mobile-menu-button ${menuOpen ? "menu-open" : ""}`} type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(!menuOpen)}><span /><span /><span /><b>{menuOpen ? "Close" : "Menu"}</b></button>
         </nav>
-        {menuOpen && <div className="mobile-navigation page-shell" id="mobile-navigation"><a href="#features" onClick={() => setMenuOpen(false)}>Bible & prayer</a><Link href="/voice" onClick={() => setMenuOpen(false)}>LifeBook Voice</Link><Link href="/living-word" onClick={() => setMenuOpen(false)}>LivingWord</Link><a href="#questions" onClick={() => setMenuOpen(false)}>Questions</a><a className="mobile-join" href="#join" onClick={() => setMenuOpen(false)}>Join the early circle ↗</a></div>}
+        {menuOpen && <div className="mobile-navigation page-shell" id="mobile-navigation"><a href="#features" onClick={() => setMenuOpen(false)}>Bible & prayer</a><Link href="/voice" onClick={() => setMenuOpen(false)}>LifeBook Voice</Link><Link href="/living-word" onClick={() => setMenuOpen(false)}>LivingWord</Link><a href="#questions" onClick={() => setMenuOpen(false)}>Questions</a><Show when="signed-out"><SignUpButton mode="modal"><button className="mobile-join" type="button" onClick={() => setMenuOpen(false)}>Begin your journey ↗</button></SignUpButton></Show><Show when="signed-in"><div className="mobile-account"><UserButton /></div></Show></div>}
         <div className="showcase-hero-grid page-shell">
           <div className="showcase-hero-copy"><p className="showcase-eyebrow">A daily place to walk with Jesus</p><h1>Make room for <em>God</em> in the middle of real life.</h1><p>LifeBook helps you slow down with Scripture, tell the truth in prayer, and take the next faithful step, whether today feels full of peace or full of questions.</p><div className="showcase-actions"><a className="pill-button pill-dark" href="#join">Begin your journey <ArrowIcon /></a><span className="rating-note"><b>✦</b> “Abide in me.”<br /><small>John 15:4 · A quiet place to remain in Christ.</small></span></div></div>
           <div className="preview-stage" aria-label="LifeBook app preview"><div className="preview-glow" /><div className="preview-card preview-card-back"><span>Continue your journey</span><strong>Growing in Faith</strong><small>Day 3 of 5</small><div className="progress-track"><i /></div></div><div className="preview-phone"><div className="preview-status"><span>9:41</span><span>•••</span></div><div className="preview-heading"><small>Good morning, Maya</small><strong>How is your soul today?</strong></div><div className="preview-moods"><span className="mood-peace">◌<b>Peaceful</b><small>Resting in God’s presence</small></span><span className="mood-seek">⌕<b>Seeking</b><small>Searching for direction</small></span><span className="mood-grateful">✦<b>Grateful</b><small>Thankful for God’s care</small></span><span className="mood-doubt">?<b>Doubting</b><small>Wrestling with questions</small></span></div><div className="preview-tabbar"><span>Home</span><span>Library</span><b>Practice</b><span>Community</span></div></div><div className="preview-card preview-card-front"><b>Today’s Scripture</b><p>“The Lord is my shepherd.”</p><small>Psalm 23:1</small></div></div>

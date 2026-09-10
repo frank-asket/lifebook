@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## LifeBook web
 
-## Getting Started
+The Next.js web experience is the public LifeBook site, LivingWord library,
+and LifeBook Voice interface. Clerk owns authentication; durable user data and
+server-side operations go through the LifeBook backend.
 
-First, run the development server:
+## Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Clerk CLI links the development instance and writes these variables to
+`.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+LIFEBOOK_API_URL=http://localhost:8787
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Never expose the backend's Supabase service-role key in this app. The
+authenticated catch-all API route at `/api/lifebook/*` forwards requests to
+the backend with the current Clerk session token.
 
-## Learn More
+## Authentication
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/sign-in` and `/sign-up` provide Clerk-hosted account routes.
+- The homepage navigation presents sign-in/sign-up actions while signed out
+  and an account button after sign-in.
+- `src/proxy.ts` establishes Clerk request context. Public pages remain public;
+  protect sensitive server routes with `await auth()`.
