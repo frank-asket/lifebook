@@ -1,91 +1,71 @@
-import { randomUUID } from 'node:crypto';
-import { db } from '../db';
+import { getSupabaseAdmin } from '../supabase';
 import { Mood, GeneratedContent, StreakRecord } from '../types';
 import { retrieveVerse } from './verseRetrieval';
 import { generateContent } from './contentGeneration';
 import { reviewContent } from './safetyReview';
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+export interface CheckinResult { content: GeneratedContent; streak: StreakRecord; supportNoteNeeded: boolean; }
+
+type CheckinRow = { id: string; created_at: string; mood: Mood };
+type StreakRow = { current: number; longest: number; last_checkin: string };
+
+function toDate(value: string) { return value.slice(0, 10); }
+
+async function historyFor(userId: string, days = 30): Promise<StreakRecord['history']> {
+  const since = new Date(); since.setUTCDate(since.getUTCDate() - days + 1);
+  const { data, error } = await getSupabaseAdmin().from('checkins').select('created_at,mood')
+    .eq('user_id', userId).gte('created_at', since.toISOString()).order('created_at', { ascending: true });
+  if (error) throw new Error(`could not load check-in history: ${error.message}`);
+  const byDay = new Map<string, Mood>();
+  for (const row of (data ?? []) as CheckinRow[]) byDay.set(toDate(row.created_at), row.mood);
+  return [...byDay.entries()].map(([date, mood]) => ({ date, mood }));
 }
-function daysBetween(a: string, b: string) {
-  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
-}
 
-export interface CheckinResult {
-  content: GeneratedContent;
-  streak: StreakRecord;
-  supportNoteNeeded: boolean;
-}
-
-export async function runCheckin(deviceId: string, mood: Mood, note?: string): Promise<CheckinResult> {
-  const database = db.read();
-
-  // 1. Log the check-in (mood_checkins)
-  const checkinId = randomUUID();
-  database.checkins.push({ id: checkinId, deviceId, mood, note, createdAt: new Date().toISOString() });
-
-  // 2. Verse retrieval agent
-  const verse = retrieveVerse(deviceId, mood);
-
-  // 3. Content generation agent
+export async function runCheckin(userId: string, mood: Mood, note?: string): Promise<CheckinResult> {
+  // Run the expensive AI work before creating durable records so provider
+  // failures do not leave a check-in with no devotional response.
+  const verse = retrieveVerse(userId, mood);
   const pieces = await generateContent(mood, verse, note);
-
-  // 4. Theology & safety review agent
   const review = reviewContent(note, pieces);
+  const client = getSupabaseAdmin();
+  const { data: checkin, error: checkinError } = await client.from('checkins')
+    .insert({ user_id: userId, mood, note: note || null }).select('id,created_at,mood').single();
+  if (checkinError) throw new Error(`could not save check-in: ${checkinError.message}`);
 
-  // 5. Assemble + persist generated_content
-  const content: GeneratedContent = {
-    id: randomUUID(),
-    checkinId,
-    verseText: verse.text,
-    verseReference: verse.reference,
-    whyThisVerse: pieces.whyThisVerse,
-    meditation: pieces.meditation,
-    reflectionQuestion: pieces.reflectionQuestion,
-    prayer: pieces.prayer,
-    actionStep: pieces.actionStep,
-    reviewVerdict: review.verdict,
-    modelMode: pieces.mode,
-    createdAt: new Date().toISOString(),
+  const { data: savedContent, error: contentError } = await client.from('generated_content').insert({
+    checkin_id: (checkin as CheckinRow).id, user_id: userId, verse_text: verse.text,
+    verse_reference: verse.reference, why_this_verse: pieces.whyThisVerse, meditation: pieces.meditation,
+    reflection_question: pieces.reflectionQuestion, prayer: pieces.prayer, action_step: pieces.actionStep,
+    review_verdict: review.verdict, model_mode: pieces.mode,
+  }).select().single();
+  if (contentError) throw new Error(`could not save generated content: ${contentError.message}`);
+
+  const day = toDate((checkin as CheckinRow).created_at);
+  const { data: streakRows, error: streakError } = await client.rpc('record_user_streak', { p_user_id: userId, p_day: day });
+  if (streakError) throw new Error(`could not update streak: ${streakError.message}`);
+  const streakRow = (streakRows as StreakRow[])[0];
+  const history = await historyFor(userId);
+  const content = savedContent as Record<string, string>;
+  return {
+    content: { id: content.id, checkinId: content.checkin_id, verseText: content.verse_text,
+      verseReference: content.verse_reference, whyThisVerse: content.why_this_verse,
+      meditation: content.meditation, reflectionQuestion: content.reflection_question,
+      prayer: content.prayer, actionStep: content.action_step,
+      reviewVerdict: content.review_verdict as GeneratedContent['reviewVerdict'],
+      modelMode: content.model_mode as GeneratedContent['modelMode'], createdAt: content.created_at },
+    streak: { deviceId: userId, current: streakRow.current, longest: streakRow.longest,
+      lastCheckIn: streakRow.last_checkin, history }, supportNoteNeeded: review.supportNoteNeeded,
   };
-  database.content.push(content);
-
-  // 6. Update streak
-  const today = todayStr();
-  let streak = database.streaks[deviceId];
-  if (!streak) {
-    streak = { deviceId, current: 1, longest: 1, lastCheckIn: today, history: [] };
-  } else if (streak.lastCheckIn !== today) {
-    const gap = daysBetween(streak.lastCheckIn, today);
-    streak.current = gap === 1 ? streak.current + 1 : 1;
-    streak.longest = Math.max(streak.longest, streak.current);
-    streak.lastCheckIn = today;
-  }
-  streak.history = [...streak.history.filter(h => h.date !== today), { date: today, mood }].slice(-30);
-  database.streaks[deviceId] = streak;
-
-  db.write(database);
-
-  return { content, streak, supportNoteNeeded: review.supportNoteNeeded };
 }
 
-export function getStreak(deviceId: string): StreakRecord | null {
-  const database = db.read();
-  return database.streaks[deviceId] || null;
+export async function getStreak(userId: string): Promise<StreakRecord | null> {
+  const { data, error } = await getSupabaseAdmin().from('streaks').select('*').eq('user_id', userId).maybeSingle();
+  if (error) throw new Error(`could not load streak: ${error.message}`);
+  if (!data) return null;
+  const row = data as StreakRow;
+  return { deviceId: userId, current: row.current, longest: row.longest, lastCheckIn: row.last_checkin, history: await historyFor(userId) };
 }
 
-export function fileFlag(contentId: string, deviceId: string, reason?: string) {
-  const database = db.read();
-  const flag = {
-    id: randomUUID(),
-    contentId,
-    deviceId,
-    reason,
-    status: 'pending' as const,
-    createdAt: new Date().toISOString(),
-  };
-  database.flags.push(flag);
-  db.write(database);
-  return flag;
-}
+// Flags remain on the legacy repository until the community/moderation slice
+// migrates. They are deliberately not mixed into the Supabase user-data path.
+export { fileFlag } from './legacyFlags';

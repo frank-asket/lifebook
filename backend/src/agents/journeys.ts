@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { db } from '../db';
+import { getSupabaseAdmin } from '../supabase';
 import { Journey, JourneyDay, UserJourneyProgress, Mood } from '../types';
 import { moodHistory } from './journal';
 
@@ -20,36 +20,37 @@ export function getJourneyDay(journeyId: string, dayNumber: number): JourneyDay 
   return CATALOG.days.find(d => d.journeyId === journeyId && d.dayNumber === dayNumber) || null;
 }
 
-export function listUserJourneys(userId: string): UserJourneyProgress[] {
-  const database = db.read();
-  return database.journeyProgress[userId] || [];
+function progressFromRow(row: any): UserJourneyProgress {
+  return { journeyId: row.journey_id, currentDay: row.current_day, completedDays: row.completed_days || [], startedAt: row.started_at, completedAt: row.completed_at || undefined };
 }
 
-export function startJourney(userId: string, journeyId: string): UserJourneyProgress {
+export async function listUserJourneys(userId: string): Promise<UserJourneyProgress[]> {
+  const { data, error } = await getSupabaseAdmin().from('user_journey_progress').select('*').eq('user_id', userId).order('started_at', { ascending: true });
+  if (error) throw new Error(`could not load journeys: ${error.message}`);
+  return (data ?? []).map(progressFromRow);
+}
+
+export async function startJourney(userId: string, journeyId: string): Promise<UserJourneyProgress> {
   const journey = getJourney(journeyId);
   if (!journey) throw new Error('Journey not found');
-
-  const database = db.read();
-  if (!database.journeyProgress[userId]) database.journeyProgress[userId] = [];
-  const existing = database.journeyProgress[userId].find(p => p.journeyId === journeyId);
-  if (existing) return existing; // already started — don't reset progress
-
-  const progress: UserJourneyProgress = {
-    journeyId,
-    currentDay: 1,
-    completedDays: [],
-    startedAt: new Date().toISOString(),
-  };
-  database.journeyProgress[userId].push(progress);
-  db.write(database);
-  return progress;
+  const client = getSupabaseAdmin();
+  const { data, error } = await client.from('user_journey_progress').upsert(
+    { user_id: userId, journey_id: journeyId, current_day: 1, completed_days: [] },
+    { onConflict: 'user_id,journey_id', ignoreDuplicates: true },
+  ).select().maybeSingle();
+  if (error) throw new Error(`could not start journey: ${error.message}`);
+  if (data) return progressFromRow(data);
+  const { data: existing, error: existingError } = await client.from('user_journey_progress').select('*')
+    .eq('user_id', userId).eq('journey_id', journeyId).single();
+  if (existingError) throw new Error(`could not load started journey: ${existingError.message}`);
+  return progressFromRow(existing);
 }
 
 // The "active" journey shown on Home is the most recently started one that
 // isn't finished yet — if the user has multiple in progress, the newest
 // takes priority for the home screen's Continue card.
-export function getActiveJourney(userId: string): { journey: Journey; progress: UserJourneyProgress; day: JourneyDay } | null {
-  const list = listUserJourneys(userId).filter(p => !p.completedAt);
+export async function getActiveJourney(userId: string): Promise<{ journey: Journey; progress: UserJourneyProgress; day: JourneyDay } | null> {
+  const list = (await listUserJourneys(userId)).filter(p => !p.completedAt);
   if (list.length === 0) return null;
   const progress = list[list.length - 1];
   const journey = getJourney(progress.journeyId);
@@ -58,27 +59,15 @@ export function getActiveJourney(userId: string): { journey: Journey; progress: 
   return { journey, progress, day };
 }
 
-export function completeDay(userId: string, journeyId: string): UserJourneyProgress {
-  const database = db.read();
-  const list = database.journeyProgress[userId] || [];
-  const progress = list.find(p => p.journeyId === journeyId);
-  if (!progress) throw new Error('Journey not started for this user');
-
+export async function completeDay(userId: string, journeyId: string): Promise<UserJourneyProgress> {
   const journey = getJourney(journeyId);
   if (!journey) throw new Error('Journey not found');
 
-  if (!progress.completedDays.includes(progress.currentDay)) {
-    progress.completedDays.push(progress.currentDay);
-  }
-
-  if (progress.currentDay >= journey.totalDays) {
-    progress.completedAt = new Date().toISOString();
-  } else {
-    progress.currentDay += 1;
-  }
-
-  db.write(database);
-  return progress;
+  const { data, error } = await getSupabaseAdmin().rpc('complete_user_journey_day', {
+    p_user_id: userId, p_journey_id: journeyId, p_total_days: journey.totalDays,
+  });
+  if (error) throw new Error(`could not complete journey day: ${error.message}`);
+  return progressFromRow((data as any[])[0]);
 }
 
 export interface JourneyRecommendation {
@@ -112,13 +101,12 @@ const MOOD_STATE: Record<Mood, string> = {
   convicted: 'feeling convicted',
 };
 
-export function getRecommendedJourney(userId: string): JourneyRecommendation | null {
-  const database = db.read();
-  const started = new Set((database.journeyProgress[userId] || []).map(p => p.journeyId));
+export async function getRecommendedJourney(userId: string): Promise<JourneyRecommendation | null> {
+  const started = new Set((await listUserJourneys(userId)).map(p => p.journeyId));
   const candidates = CATALOG.journeys.filter(j => !started.has(j.id));
   if (candidates.length === 0) return null;
 
-  const history = moodHistory(userId, 7);
+  const history = await moodHistory(userId, 7);
   const counts: Partial<Record<Mood, number>> = {};
   for (const entry of history) {
     if (entry.mood) counts[entry.mood as Mood] = (counts[entry.mood as Mood] || 0) + 1;

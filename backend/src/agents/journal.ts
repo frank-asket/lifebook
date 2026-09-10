@@ -1,55 +1,50 @@
-import { randomUUID } from 'node:crypto';
-import { db } from '../db';
-import { JournalEntry, FavoriteVerse } from '../types';
+import { getSupabaseAdmin } from '../supabase';
+import { JournalEntry, FavoriteVerse, Mood } from '../types';
 
-export function addJournalEntry(deviceId: string, text: string, relatedContentId?: string): JournalEntry {
-  const entry: JournalEntry = { id: randomUUID(), deviceId, text, relatedContentId, createdAt: new Date().toISOString() };
-  const database = db.read();
-  database.journalEntries.push(entry);
-  db.write(database);
-  return entry;
+function journalEntry(row: any): JournalEntry {
+  return { id: row.id, deviceId: row.user_id, text: row.text, relatedContentId: row.related_content_id || undefined, createdAt: row.created_at };
+}
+function favorite(row: any): FavoriteVerse {
+  return { id: row.id, deviceId: row.user_id, contentId: row.content_id, verseText: row.verse_text, verseReference: row.verse_reference, createdAt: row.created_at };
 }
 
-export function listJournalEntries(deviceId: string): JournalEntry[] {
-  const database = db.read();
-  return database.journalEntries
-    .filter(e => e.deviceId === deviceId)
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+export async function addJournalEntry(userId: string, text: string, relatedContentId?: string): Promise<JournalEntry> {
+  const { data, error } = await getSupabaseAdmin().from('journal_entries')
+    .insert({ user_id: userId, text, related_content_id: relatedContentId || null }).select().single();
+  if (error) throw new Error(`could not save journal entry: ${error.message}`);
+  return journalEntry(data);
 }
 
-export function addFavorite(deviceId: string, contentId: string, verseText: string, verseReference: string): FavoriteVerse {
-  const database = db.read();
-  const existing = database.favorites.find(f => f.deviceId === deviceId && f.contentId === contentId);
-  if (existing) return existing;
-
-  const favorite: FavoriteVerse = { id: randomUUID(), deviceId, contentId, verseText, verseReference, createdAt: new Date().toISOString() };
-  database.favorites.push(favorite);
-  db.write(database);
-  return favorite;
+export async function listJournalEntries(userId: string): Promise<JournalEntry[]> {
+  const { data, error } = await getSupabaseAdmin().from('journal_entries').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+  if (error) throw new Error(`could not load journal entries: ${error.message}`);
+  return (data ?? []).map(journalEntry);
 }
 
-export function listFavorites(deviceId: string): FavoriteVerse[] {
-  const database = db.read();
-  return database.favorites
-    .filter(f => f.deviceId === deviceId)
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+export async function addFavorite(userId: string, contentId: string, verseText: string, verseReference: string): Promise<FavoriteVerse> {
+  const { data, error } = await getSupabaseAdmin().from('favorite_verses').upsert({
+    user_id: userId, content_id: contentId, verse_text: verseText, verse_reference: verseReference,
+  }, { onConflict: 'user_id,content_id' }).select().single();
+  if (error) throw new Error(`could not save favorite: ${error.message}`);
+  return favorite(data);
 }
 
-// Mood history is derived straight from real check-ins — this is the data
-// backing the Progress screen's heatmap. Nothing separate to keep in sync.
-export function moodHistory(deviceId: string, days = 30): { date: string; mood: string | null }[] {
-  const database = db.read();
-  const byDate = new Map<string, string>();
-  database.checkins
-    .filter(c => c.deviceId === deviceId)
-    .forEach(c => byDate.set(c.createdAt.slice(0, 10), c.mood));
+export async function listFavorites(userId: string): Promise<FavoriteVerse[]> {
+  const { data, error } = await getSupabaseAdmin().from('favorite_verses').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+  if (error) throw new Error(`could not load favorites: ${error.message}`);
+  return (data ?? []).map(favorite);
+}
 
-  const result: { date: string; mood: string | null }[] = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    result.push({ date: key, mood: byDate.get(key) || null });
-  }
-  return result;
+export async function moodHistory(userId: string, days = 30): Promise<{ date: string; mood: Mood | null }[]> {
+  const start = new Date(); start.setUTCDate(start.getUTCDate() - days + 1);
+  const { data, error } = await getSupabaseAdmin().from('checkins').select('created_at,mood').eq('user_id', userId)
+    .gte('created_at', start.toISOString()).order('created_at', { ascending: true });
+  if (error) throw new Error(`could not load mood history: ${error.message}`);
+  const byDate = new Map<string, Mood>();
+  for (const row of data ?? []) byDate.set((row as any).created_at.slice(0, 10), (row as any).mood as Mood);
+  return Array.from({ length: days }, (_, index) => {
+    const day = new Date(); day.setUTCDate(day.getUTCDate() - (days - index - 1));
+    const date = day.toISOString().slice(0, 10);
+    return { date, mood: byDate.get(date) || null };
+  });
 }
