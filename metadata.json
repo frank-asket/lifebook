@@ -1,0 +1,10 @@
+{
+  "name": "LifeBook",
+  "description": "A Christian devotional companion for Scripture, reflection, prayer, and community.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

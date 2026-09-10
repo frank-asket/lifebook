@@ -1,12 +1,31 @@
 import { auth } from '@clerk/nextjs/server';
 
 const API_URL = process.env.LIFEBOOK_API_URL;
+const hasClerkKey = Boolean(
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+  process.env.CLERK_PUBLISHABLE_KEY
+);
 
 async function forward(request: Request, path: string[]) {
   if (!API_URL) return Response.json({ error: 'LIFEBOOK_API_URL is not configured' }, { status: 503 });
-  const { getToken, userId } = await auth();
-  if (!userId) return Response.json({ error: 'unauthorized' }, { status: 401 });
-  const token = await getToken();
+  
+  let token: string | null = null;
+  let userId: string | null = null;
+
+  if (hasClerkKey) {
+    try {
+      const authResult = await auth();
+      userId = authResult.userId;
+      token = await authResult.getToken();
+    } catch {
+      // In development or when Clerk credentials are not provisioned
+    }
+  }
+
+  if (hasClerkKey && !userId) {
+    return Response.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
   const headers = new Headers();
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('content-type', contentType);

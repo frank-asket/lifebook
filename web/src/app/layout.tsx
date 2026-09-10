@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import type { ReactNode } from "react";
 import "./globals.css";
 import "./seo.css";
 import Analytics from "./Analytics";
@@ -16,26 +17,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3002"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "LifeBook — Meet yourself where you are",
-  description: "A quieter way forward through Scripture, reflection, prayer, and growth.",
+  description: "A Christian devotional companion for Scripture, reflection, prayer, and community.",
   applicationName: "LifeBook",
   keywords: ["Christian devotional", "Scripture reflection", "Christian prayer", "faith journey"],
   openGraph: {
     title: "LifeBook — Meet yourself where you are",
-    description: "A quieter way forward through Scripture, reflection, prayer, and growth.",
+    description: "A Christian devotional companion for Scripture, reflection, prayer, and community.",
     type: "website",
     images: [{ url: "/lifebookbanner.png", width: 1200, height: 420, alt: "LifeBook" }],
   },
   twitter: { card: "summary_large_image", images: ["/lifebookbanner.png"] },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: ReactNode;
+}>) {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "LifeBook",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3002",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
     description: "A Christian devotional companion for Scripture, reflection, prayer, and community.",
     sameAs: [],
   };
@@ -45,7 +50,23 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><ClerkProvider dynamic><Analytics /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />{children}</ClerkProvider></body>
+      <body className="min-h-full flex flex-col">
+        <ClerkProvider
+          dynamic
+          publishableKey={
+            process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+            process.env.CLERK_PUBLISHABLE_KEY ||
+            "pk_test_Y2xlcmsuZHVtbXkuYWNjb3VudHMuZGV2JA=="
+          }
+        >
+          <Analytics />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }
