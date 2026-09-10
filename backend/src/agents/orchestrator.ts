@@ -67,6 +67,25 @@ export async function runCheckin(deviceId: string, mood: Mood, note?: string): P
 
   db.write(database);
 
+  // Durable sync to Supabase when configured
+  try {
+    const { CheckinRepository, ProfileRepository } = await import('../repositories');
+    await CheckinRepository.create({
+      id: checkinId,
+      userId: deviceId,
+      mood,
+      note,
+    });
+    await ProfileRepository.upsert({
+      id: deviceId,
+      currentStreak: streak.current,
+      longestStreak: streak.longest,
+      lastCheckinDate: today,
+    });
+  } catch (syncErr) {
+    // Non-blocking: local store remains primary if offline or during provisioning
+  }
+
   return { content, streak, supportNoteNeeded: review.supportNoteNeeded };
 }
 

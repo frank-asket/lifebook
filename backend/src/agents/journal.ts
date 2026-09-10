@@ -7,6 +7,17 @@ export function addJournalEntry(deviceId: string, text: string, relatedContentId
   const database = db.read();
   database.journalEntries.push(entry);
   db.write(database);
+
+  // Durable sync to Supabase when configured
+  import('../repositories').then(({ JournalRepository }) => {
+    JournalRepository.create({
+      id: entry.id,
+      userId: deviceId,
+      body: text,
+      passageReference: relatedContentId,
+    }).catch(() => {});
+  }).catch(() => {});
+
   return entry;
 }
 

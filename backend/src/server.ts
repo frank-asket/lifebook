@@ -17,6 +17,8 @@ import { getSupabaseAdmin, isSupabaseConfigured } from './supabase';
 import { isOriginAllowed, corsOriginHeader } from './security/cors';
 import { checkRateLimit } from './security/rateLimit';
 import { Mood } from './types';
+import { generateCheckin, answerVoiceQuestion, moderateCommunityPost, classifySafetyRisk } from './ai/gateway';
+import { ProfileRepository, CheckinRepository, JournalRepository } from './repositories';
 
 const PORT = Number(process.env.PORT) || 8787;
 const VALID_MOODS: Mood[] = ['grateful', 'peaceful', 'seeking', 'doubting', 'distant', 'convicted'];
@@ -367,6 +369,34 @@ const server = http.createServer(async (req, res) => {
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     return send(res, 200, { entry: toggleBookmark(userId, bookId) });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/voice/answer') {
+    try {
+      const body = await readBody(req);
+      const question = typeof body.question === 'string' ? body.question.trim() : '';
+      if (!question || question.length > 2_000) {
+        return send(res, 400, { error: 'question is required and must be under 2,000 characters' });
+      }
+      const userId = await requireUser(req, res, body.deviceId);
+      const answer = await answerVoiceQuestion(question, userId || undefined);
+      return send(res, 200, { response: answer });
+    } catch (err: any) {
+      return send(res, 500, { error: 'voice answering failed', detail: String(err?.message || err) });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/ai/moderate') {
+    try {
+      const body = await readBody(req);
+      const content = typeof body.content === 'string' ? body.content.trim() : '';
+      if (!content) return send(res, 400, { error: 'content is required' });
+      const userId = await requireUser(req, res, body.deviceId);
+      const modResult = await moderateCommunityPost(content, userId || undefined);
+      return send(res, 200, modResult);
+    } catch (err: any) {
+      return send(res, 500, { error: 'moderation failed', detail: String(err?.message || err) });
+    }
   }
 
   // ---- Subscription ----

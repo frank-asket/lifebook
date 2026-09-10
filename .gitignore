@@ -1,7 +1,10 @@
 node_modules/
 dist/
+.next/
+web/.next/
 .env
 backend/data/db.json
 .expo/
 *.log
 .DS_Store
+.vercel
