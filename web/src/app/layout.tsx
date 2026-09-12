@@ -58,6 +58,10 @@ export default function RootLayout({
             process.env.CLERK_PUBLISHABLE_KEY ||
             "pk_test_Y2xlcmsuZHVtbXkuYWNjb3VudHMuZGV2JA=="
           }
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          signInFallbackRedirectUrl="/"
+          signUpFallbackRedirectUrl="/"
         >
           <Analytics />
           <script

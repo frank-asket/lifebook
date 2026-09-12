@@ -231,3 +231,290 @@ export const JournalRepository = {
     }
   },
 };
+
+// --------------------------------------------------------------------------
+// 4. Prayer Requests Repository (Grounded with Moderation staging)
+// --------------------------------------------------------------------------
+export const PrayerRepository = {
+  async listApproved(): Promise<any[]> {
+    if (!isSupabaseConfigured()) {
+      const local = db.read();
+      return local.prayerRequests
+        .filter((r) => r.moderationStatus === 'approved')
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('prayer_requests')
+      .select('*')
+      .eq('moderation_status', 'approved')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data.map((row) => ({
+      id: row.id,
+      deviceId: row.user_id,
+      authorName: 'A LifeBook user',
+      text: row.text,
+      category: row.category || undefined,
+      prayerCount: row.prayer_count || 0,
+      moderationStatus: row.moderation_status,
+      createdAt: row.created_at,
+    }));
+  },
+
+  async create(item: {
+    id: string;
+    userId: string;
+    text: string;
+    category?: string;
+    moderationStatus: 'approved' | 'pending' | 'rejected';
+    aiFlaggedReason?: string;
+  }): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      await supabase.from('prayer_requests').insert({
+        id: item.id,
+        user_id: item.userId,
+        text: item.text,
+        category: item.category || null,
+        moderation_status: item.moderationStatus,
+        prayer_count: 0,
+        created_at: new Date().toISOString(),
+      });
+
+      // If pending or rejected, stage in moderation reviews for pastoral oversight
+      if (item.moderationStatus !== 'approved') {
+        await supabase.from('moderation_reviews').insert({
+          content_type: 'prayer_request',
+          content_id: item.id,
+          submitted_by: item.userId,
+          content_text: item.text,
+          ai_flagged_reason: item.aiFlaggedReason || 'Flagged by safety policy',
+          status: item.moderationStatus === 'rejected' ? 'rejected' : 'pending',
+          created_at: new Date().toISOString(),
+        });
+      }
+    }
+  },
+
+  async pray(requestId: string): Promise<number> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      const { data } = await supabase
+        .from('prayer_requests')
+        .select('prayer_count')
+        .eq('id', requestId)
+        .single();
+      const newCount = (data?.prayer_count || 0) + 1;
+      await supabase
+        .from('prayer_requests')
+        .update({ prayer_count: newCount })
+        .eq('id', requestId);
+      return newCount;
+    }
+    return 1;
+  },
+};
+
+// --------------------------------------------------------------------------
+// 5. Discussions Repository (Curated community boards)
+// --------------------------------------------------------------------------
+export const DiscussionRepository = {
+  async listApproved(): Promise<any[]> {
+    if (!isSupabaseConfigured()) {
+      const local = db.read();
+      return local.discussions
+        .filter((d) => d.moderationStatus === 'approved')
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('discussions')
+      .select('*')
+      .eq('moderation_status', 'approved')
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data.map((row) => ({
+      id: row.id,
+      deviceId: row.user_id,
+      authorName: 'A LifeBook user',
+      title: row.title,
+      body: row.body,
+      tags: row.tags || [],
+      likeCount: row.like_count || 0,
+      replyCount: row.reply_count || 0,
+      moderationStatus: row.moderation_status,
+      createdAt: row.created_at,
+    }));
+  },
+
+  async create(item: {
+    id: string;
+    userId: string;
+    title: string;
+    body: string;
+    tags?: string[];
+    moderationStatus: 'approved' | 'pending' | 'rejected';
+    aiFlaggedReason?: string;
+  }): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      await supabase.from('discussions').insert({
+        id: item.id,
+        user_id: item.userId,
+        title: item.title,
+        body: item.body,
+        tags: item.tags || [],
+        moderation_status: item.moderationStatus,
+        like_count: 0,
+        reply_count: 0,
+        created_at: new Date().toISOString(),
+      });
+
+      if (item.moderationStatus !== 'approved') {
+        await supabase.from('moderation_reviews').insert({
+          content_type: 'discussion',
+          content_id: item.id,
+          submitted_by: item.userId,
+          content_text: `${item.title}: ${item.body}`,
+          ai_flagged_reason: item.aiFlaggedReason || 'Community standard check',
+          status: item.moderationStatus === 'rejected' ? 'rejected' : 'pending',
+          created_at: new Date().toISOString(),
+        });
+      }
+    }
+  },
+};
+
+// --------------------------------------------------------------------------
+// 6. Curated Journeys Repository
+// --------------------------------------------------------------------------
+export const JourneyRepository = {
+  async listAll(): Promise<any[]> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      const { data } = await supabase
+        .from('journeys')
+        .select('*')
+        .eq('is_published', true);
+      if (data && data.length > 0) {
+        return data.map((j) => ({
+          id: j.id,
+          title: j.title,
+          description: j.description,
+          category: j.category,
+          totalDays: j.total_days,
+          recommendedMoods: j.recommended_moods || [],
+        }));
+      }
+    }
+    return [];
+  },
+
+  async getDay(journeyId: string, dayNumber: number): Promise<any | null> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      const { data } = await supabase
+        .from('journey_days')
+        .select('*')
+        .eq('journey_id', journeyId)
+        .eq('day_number', dayNumber)
+        .single();
+      if (data) {
+        return {
+          journeyId: data.journey_id,
+          dayNumber: data.day_number,
+          title: data.title,
+          verseReference: data.verse_reference,
+          verseText: data.verse_text,
+          reflection: data.reflection,
+          prayer: data.prayer,
+        };
+      }
+    }
+    return null;
+  },
+
+  async syncUserProgress(progress: {
+    userId: string;
+    journeyId: string;
+    currentDay: number;
+    completedDays: number[];
+    completedAt?: string;
+  }): Promise<void> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      await supabase.from('user_journey_progress').upsert({
+        user_id: progress.userId,
+        journey_id: progress.journeyId,
+        current_day: progress.currentDay,
+        completed_days: progress.completedDays,
+        completed_at: progress.completedAt || null,
+      });
+    }
+  },
+};
+
+// --------------------------------------------------------------------------
+// 7. LivingWord Teachings Repository
+// --------------------------------------------------------------------------
+export const TeachingRepository = {
+  async listPublished(): Promise<any[]> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      const { data } = await supabase
+        .from('living_word_teachings')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+      if (data && data.length > 0) {
+        return data.map((t) => ({
+          slug: t.slug,
+          title: t.title,
+          teacher: t.teacher,
+          teacherRole: t.teacher_role,
+          category: t.category,
+          duration: t.duration,
+          scriptureReference: t.scripture_reference,
+          excerpt: t.excerpt,
+          audioUrl: t.audio_url || undefined,
+          videoUrl: t.video_url || undefined,
+        }));
+      }
+    }
+    return [];
+  },
+
+  async getBySlug(slug: string): Promise<any | null> {
+    if (isSupabaseConfigured()) {
+      const supabase = getSupabaseAdmin();
+      const { data } = await supabase
+        .from('living_word_teachings')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      if (data) {
+        return {
+          slug: data.slug,
+          title: data.title,
+          teacher: data.teacher,
+          teacherRole: data.teacher_role,
+          category: data.category,
+          duration: data.duration,
+          scriptureReference: data.scripture_reference,
+          excerpt: data.excerpt,
+          fullTranscript: data.full_transcript || undefined,
+          audioUrl: data.audio_url || undefined,
+          videoUrl: data.video_url || undefined,
+        };
+      }
+    }
+    return null;
+  },
+};
+
+

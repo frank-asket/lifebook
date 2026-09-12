@@ -62,6 +62,19 @@ export function submitPrayerRequest(deviceId: string, text: string, category?: s
   const database = db.read();
   database.prayerRequests.push(request);
   db.write(database);
+
+  // Durable sync to Supabase with moderation queue staging
+  import('../repositories').then(({ PrayerRepository }) => {
+    PrayerRepository.create({
+      id: request.id,
+      userId: deviceId,
+      text,
+      category,
+      moderationStatus: status,
+      aiFlaggedReason: needsSupportNote ? 'Distress or escalation keywords flagged' : undefined,
+    }).catch(() => {});
+  }).catch(() => {});
+
   return { request, needsSupportNote };
 }
 
@@ -71,6 +84,11 @@ export function prayFor(requestId: string) {
   if (!request) throw new Error('Prayer request not found');
   request.prayerCount += 1;
   db.write(database);
+
+  import('../repositories').then(({ PrayerRepository }) => {
+    PrayerRepository.pray(requestId).catch(() => {});
+  }).catch(() => {});
+
   return request;
 }
 
@@ -132,5 +150,18 @@ export function createDiscussion(deviceId: string, title: string, body: string, 
   const database = db.read();
   database.discussions.push(discussion);
   db.write(database);
+
+  import('../repositories').then(({ DiscussionRepository }) => {
+    DiscussionRepository.create({
+      id: discussion.id,
+      userId: deviceId,
+      title,
+      body,
+      tags,
+      moderationStatus: status,
+      aiFlaggedReason: needsSupportNote ? 'Distress or escalation keywords flagged' : undefined,
+    }).catch(() => {});
+  }).catch(() => {});
+
   return { discussion, needsSupportNote };
 }

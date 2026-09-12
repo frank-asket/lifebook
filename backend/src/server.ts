@@ -399,6 +399,69 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // ---- Moderation Queue Review (Careful Oversight Dashboard) ----
+  if (req.method === 'GET' && url.pathname === '/api/moderation/reviews') {
+    const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
+    if (!userId) return;
+    if (!isSupabaseConfigured()) {
+      return send(res, 200, { reviews: [] });
+    }
+    const client = getSupabaseAdmin();
+    const { data, error } = await client
+      .from('moderation_reviews')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) return send(res, 500, { error: 'failed to fetch moderation reviews' });
+    return send(res, 200, { reviews: data || [] });
+  }
+
+  if (req.method === 'POST' && url.pathname.match(/^\/api\/moderation\/reviews\/[^/]+\/resolve$/)) {
+    const reviewId = url.pathname.split('/')[4];
+    const body = await readBody(req);
+    const userId = await requireUser(req, res, body.deviceId);
+    if (!userId) return;
+    const { status, resolutionNotes } = body;
+    if (!['approved', 'rejected'].includes(status)) {
+      return send(res, 400, { error: 'status must be approved or rejected' });
+    }
+    if (!isSupabaseConfigured()) {
+      return send(res, 200, { success: true });
+    }
+    const client = getSupabaseAdmin();
+    const { data: review, error: fetchErr } = await client
+      .from('moderation_reviews')
+      .select('*')
+      .eq('id', reviewId)
+      .single();
+    if (fetchErr || !review) return send(res, 404, { error: 'review not found' });
+
+    await client
+      .from('moderation_reviews')
+      .update({
+        status,
+        reviewer_id: userId,
+        reviewed_at: new Date().toISOString(),
+        resolution_notes: resolutionNotes || null,
+      })
+      .eq('id', reviewId);
+
+    // Update target item moderation status
+    if (review.content_type === 'prayer_request') {
+      await client
+        .from('prayer_requests')
+        .update({ moderation_status: status })
+        .eq('id', review.content_id);
+    } else if (review.content_type === 'discussion') {
+      await client
+        .from('discussions')
+        .update({ moderation_status: status })
+        .eq('id', review.content_id);
+    }
+
+    return send(res, 200, { success: true, status });
+  }
+
   // ---- Subscription ----
   if (req.method === 'GET' && url.pathname === '/api/subscription') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);

@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from 'recharts';
 import { colors, MOODS } from '../theme/colors';
 import {
   fetchStreak, fetchBadges, fetchMoodHistory, fetchJournal, addJournalEntry, fetchFavorites,
@@ -7,6 +16,68 @@ import {
 } from '../api/client';
 
 const MOOD_COLOR: Record<string, string> = Object.fromEntries(MOODS.map(m => [m.id, m.color]));
+
+const MOOD_LEVELS: Record<string, { value: number; label: string; emoji: string; color: string }> = {
+  grateful: { value: 6, label: 'Grateful', emoji: '🙏', color: '#E3B15E' },
+  peaceful: { value: 5, label: 'Peaceful', emoji: '🕊', color: '#37C6C2' },
+  seeking: { value: 4, label: 'Seeking', emoji: '🔍', color: '#7B62B8' },
+  convicted: { value: 3, label: 'Convicted', emoji: '🕯', color: '#B8746B' },
+  doubting: { value: 2, label: 'Doubting', emoji: '🤔', color: '#6B8CAE' },
+  distant: { value: 1, label: 'Distant', emoji: '🌫', color: '#5B5580' },
+};
+
+function CustomChartTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        style={{
+          backgroundColor: '#241E3B',
+          border: '1px solid rgba(255,255,255,0.15)',
+          borderRadius: 8,
+          padding: '8px 12px',
+          color: '#FFFFFF',
+          fontSize: 12,
+          boxShadow: '0 4px 14px rgba(0,0,0,0.35)',
+        }}
+      >
+        <p style={{ margin: 0, fontWeight: 600, color: '#B6ABCF', fontSize: 11 }}>
+          {data.dayLabel} ({data.date})
+        </p>
+        <p style={{ margin: '4px 0 0 0', color: data.color || '#1FB6B0', fontWeight: 700, fontSize: 13 }}>
+          {data.emoji ? `${data.emoji} ` : ''}{data.moodLabel}
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomDot(props: any) {
+  const { cx, cy, payload } = props;
+  if (!payload || payload.moodScore == null || cx == null || cy == null) return null;
+  return (
+    <circle
+      key={payload.date}
+      cx={cx}
+      cy={cy}
+      r={4.5}
+      fill={payload.color || colors.teal}
+      stroke="#1E1B2E"
+      strokeWidth={2}
+    />
+  );
+}
+
+const STREAK_MILESTONES = [
+  { days: 3, title: 'First Spark', icon: '🌱' },
+  { days: 7, title: '7-Day Rhythm', icon: '🌿' },
+  { days: 14, title: '14-Day Walk', icon: '🔥' },
+  { days: 30, title: '30-Day Pillar', icon: '🏛️' },
+  { days: 60, title: '60-Day Deep Roots', icon: '🌳' },
+  { days: 100, title: '100-Day Centered Heart', icon: '💎' },
+  { days: 365, title: '365-Day Perpetual Flame', icon: '👑' },
+];
 
 export function ProgressScreen({ deviceId }: { deviceId: string }) {
   const [tab, setTab] = useState<'overview' | 'journal'>('overview');
@@ -16,8 +87,11 @@ export function ProgressScreen({ deviceId }: { deviceId: string }) {
   const [entries, setEntries] = useState<{ id: string; text: string; createdAt: string }[]>([]);
   const [favorites, setFavorites] = useState<FavoriteVerse[]>([]);
   const [newEntry, setNewEntry] = useState('');
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const selectedHistoryDay = history.find(h => h.date === selectedDay) || (history.length > 0 ? history[history.length - 1] : null);
 
   function load() {
     setLoading(true);
@@ -44,6 +118,23 @@ export function ProgressScreen({ deviceId }: { deviceId: string }) {
       setSaving(false);
     }
   }
+
+  const chartData = history.map(h => {
+    const info = h.mood ? MOOD_LEVELS[h.mood] : null;
+    const d = new Date(h.date);
+    const dayLabel = !isNaN(d.getTime())
+      ? d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+      : h.date.slice(5);
+    return {
+      date: h.date,
+      dayLabel,
+      mood: h.mood,
+      moodScore: info ? info.value : null,
+      moodLabel: info ? info.label : 'No check-in',
+      emoji: info ? info.emoji : '',
+      color: info ? info.color : '#8A7DAD',
+    };
+  });
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -73,14 +164,189 @@ export function ProgressScreen({ deviceId }: { deviceId: string }) {
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>MOOD HISTORY (30 DAYS)</Text>
-          <View style={styles.heatmap}>
-            {history.map(h => (
-              <View
-                key={h.date}
-                style={[styles.heatCell, { backgroundColor: h.mood ? MOOD_COLOR[h.mood] : 'rgba(255,255,255,0.06)' }]}
-              />
-            ))}
+          <Text style={styles.sectionTitle}>MOOD TRENDS (PAST 30 DAYS)</Text>
+          <View style={styles.chartCard}>
+            <View style={styles.chartWrap}>
+              <ResponsiveContainer width="100%" height={210}>
+                <LineChart data={chartData} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" vertical={false} />
+                  <XAxis
+                    dataKey="dayLabel"
+                    tick={{ fill: '#8A7DAD', fontSize: 9 }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                    interval={4}
+                  />
+                  <YAxis
+                    domain={[0.5, 6.5]}
+                    ticks={[1, 2, 3, 4, 5, 6]}
+                    tickFormatter={(val: number) => {
+                      const icons: Record<number, string> = {
+                        6: '🙏',
+                        5: '🕊',
+                        4: '🔍',
+                        3: '🕯',
+                        2: '🤔',
+                        1: '🌫',
+                      };
+                      return icons[val] || '';
+                    }}
+                    tick={{ fill: '#B6ABCF', fontSize: 11 }}
+                    tickLine={false}
+                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                  />
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="moodScore"
+                    stroke={colors.teal}
+                    strokeWidth={2.5}
+                    dot={<CustomDot />}
+                    activeDot={{ r: 6, stroke: '#FFFFFF', strokeWidth: 2, fill: colors.teal }}
+                    connectNulls
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </View>
+
+            <View style={styles.legendRow}>
+              {MOODS.map(m => (
+                <View key={m.id} style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: m.color }]} />
+                  <Text style={styles.legendText}>{m.emoji} {m.label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle}>STREAK CALENDAR & INTENSITY</Text>
+          <View style={styles.calendarCard}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarMonth}>Daily Rhythm & Streaks</Text>
+              <View style={styles.streakPill}>
+                <Text style={styles.streakPillText}>🔥 {streak?.current ?? 0}d streak</Text>
+              </View>
+            </View>
+
+            <View style={styles.calGrid}>
+              {history.map((h, idx) => {
+                const info = h.mood ? MOOD_LEVELS[h.mood] : null;
+                const intensity = !h.mood ? 0 : info && info.value >= 5 ? 4 : info && info.value >= 4 ? 3 : info && info.value >= 3 ? 2 : 1;
+                const isSelected = selectedDay === h.date;
+                const isStreakDay = idx >= Math.max(0, history.length - (streak?.current || 0));
+
+                let tileBg = 'rgba(255,255,255,0.06)';
+                let tileBorder = 'rgba(255,255,255,0.1)';
+                if (intensity === 1) {
+                  tileBg = 'rgba(55, 198, 194, 0.25)';
+                  tileBorder = 'rgba(55, 198, 194, 0.5)';
+                } else if (intensity === 2) {
+                  tileBg = 'rgba(55, 198, 194, 0.5)';
+                  tileBorder = 'rgba(55, 198, 194, 0.8)';
+                } else if (intensity === 3) {
+                  tileBg = '#1FB6B0';
+                  tileBorder = '#169B96';
+                } else if (intensity === 4) {
+                  tileBg = '#E3B15E';
+                  tileBorder = '#F28C38';
+                }
+
+                return (
+                  <Pressable
+                    key={h.date}
+                    onPress={() => setSelectedDay(h.date)}
+                    style={[
+                      styles.calCell,
+                      { backgroundColor: tileBg, borderColor: tileBorder },
+                      isSelected && styles.calCellSelected,
+                    ]}
+                  >
+                    <Text style={[styles.calDayNum, intensity >= 3 && { color: '#17132B' }]}>
+                      {h.date.slice(8)}
+                    </Text>
+                    {isStreakDay && intensity > 0 ? (
+                      <Text style={styles.calFlame}>🔥</Text>
+                    ) : info ? (
+                      <Text style={styles.calEmoji}>{info.emoji}</Text>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Intensity Legend */}
+            <View style={styles.legendBar}>
+              <Text style={styles.legendLabel}>Less</Text>
+              <View style={[styles.legendBox, { backgroundColor: 'rgba(255,255,255,0.06)' }]} />
+              <View style={[styles.legendBox, { backgroundColor: 'rgba(55, 198, 194, 0.25)' }]} />
+              <View style={[styles.legendBox, { backgroundColor: 'rgba(55, 198, 194, 0.5)' }]} />
+              <View style={[styles.legendBox, { backgroundColor: '#1FB6B0' }]} />
+              <View style={[styles.legendBox, { backgroundColor: '#E3B15E' }]} />
+              <Text style={styles.legendLabel}>More (🔥)</Text>
+            </View>
+
+            {/* Selected day inspect */}
+            {selectedHistoryDay && (
+              <View style={styles.dayInspectBox}>
+                <Text style={styles.inspectDate}>{selectedHistoryDay.date}</Text>
+                <Text style={styles.inspectMood}>
+                  {selectedHistoryDay.mood
+                    ? `${MOOD_LEVELS[selectedHistoryDay.mood]?.emoji || ''} ${MOOD_LEVELS[selectedHistoryDay.mood]?.label || selectedHistoryDay.mood}`
+                    : 'No check-in recorded on this day'}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* CONSECUTIVE STREAK MILESTONES */}
+          <Text style={styles.sectionTitle}>CONSECUTIVE STREAK MILESTONES</Text>
+          <View style={styles.milestonesCard}>
+            <View style={styles.milestonesHeader}>
+              <View>
+                <Text style={styles.milestonesTitle}>Streak Trophy Badges</Text>
+                <Text style={styles.milestonesSubtitle}>Earn badges for 7, 30, and 100 consecutive days</Text>
+              </View>
+              <Text style={styles.milestonesCount}>
+                {STREAK_MILESTONES.filter(m => (streak?.current || 0) >= m.days).length} of {STREAK_MILESTONES.length}
+              </Text>
+            </View>
+
+            <View style={styles.milestonesGrid}>
+              {STREAK_MILESTONES.map(m => {
+                const current = streak?.current || 0;
+                const isUnlocked = current >= m.days;
+                const progress = Math.min(100, Math.round((current / m.days) * 100));
+
+                return (
+                  <View key={m.days} style={[styles.milestoneItem, isUnlocked && styles.milestoneItemUnlocked]}>
+                    <View style={[styles.milestoneIconWrap, isUnlocked && styles.milestoneIconWrapUnlocked]}>
+                      <Text style={styles.milestoneIcon}>{m.icon}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Text style={styles.milestoneDays}>{m.days} Days Streak</Text>
+                        <Text style={[styles.milestoneStatus, isUnlocked ? styles.milestoneStatusUnlocked : styles.milestoneStatusLocked]}>
+                          {isUnlocked ? '✓ Unlocked' : `${Math.max(0, m.days - current)}d left`}
+                        </Text>
+                      </View>
+                      <Text style={styles.milestoneItemTitle}>{m.title}</Text>
+                      <View style={styles.milestoneProgressTrack}>
+                        <View
+                          style={[
+                            styles.milestoneProgressBar,
+                            {
+                              width: `${progress}%`,
+                              backgroundColor: isUnlocked ? '#1FB6B0' : '#E3B15E',
+                            },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
           </View>
 
           <Text style={styles.sectionTitle}>FAITH BADGES</Text>
@@ -147,8 +413,49 @@ const styles = StyleSheet.create({
   statNumber: { color: colors.teal, fontSize: 30, fontWeight: '800' },
   statLabel: { color: '#B6ABCF', fontSize: 12, marginTop: 4 },
   sectionTitle: { color: '#9C8FBB', fontSize: 11, letterSpacing: 1.2, marginBottom: 12, marginTop: 6 },
+  chartCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, marginBottom: 20 },
+  chartWrap: { width: '100%', height: 210 },
+  legendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { color: '#B6ABCF', fontSize: 10.5 },
+  calendarCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, marginBottom: 20 },
+  calendarHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  calendarMonth: { color: colors.white, fontSize: 14, fontWeight: '700' },
+  streakPill: { backgroundColor: 'rgba(242, 140, 56, 0.2)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12, borderWidth: 1, borderColor: '#F28C38' },
+  streakPillText: { color: '#E3B15E', fontSize: 11, fontWeight: '700' },
+  calGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  calCell: { width: '12%', aspectRatio: 1, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center', padding: 2 },
+  calCellSelected: { borderColor: '#FFFFFF', borderWidth: 2 },
+  calDayNum: { color: '#EAE5F3', fontSize: 10, fontWeight: '600' },
+  calFlame: { fontSize: 8 },
+  calEmoji: { fontSize: 8 },
+  legendBar: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
+  legendLabel: { color: '#8A7DAD', fontSize: 10 },
+  legendBox: { width: 14, height: 14, borderRadius: 3 },
+  dayInspectBox: { marginTop: 10, padding: 10, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.2)' },
+  inspectDate: { color: '#A89EC0', fontSize: 11, fontWeight: '600' },
+  inspectMood: { color: colors.white, fontSize: 13, fontWeight: '700', marginTop: 2 },
   heatmap: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: 24 },
   heatCell: { width: 18, height: 18, borderRadius: 4 },
+  milestonesCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 16, marginBottom: 20 },
+  milestonesHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
+  milestonesTitle: { color: colors.white, fontSize: 16, fontWeight: '700' },
+  milestonesSubtitle: { color: '#8A7DAD', fontSize: 11, marginTop: 2 },
+  milestonesCount: { color: '#E3B15E', fontSize: 12, fontWeight: '700', backgroundColor: 'rgba(227, 177, 94, 0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  milestonesGrid: { gap: 10 },
+  milestoneItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  milestoneItemUnlocked: { backgroundColor: 'rgba(31, 182, 176, 0.08)', borderColor: 'rgba(31, 182, 176, 0.3)' },
+  milestoneIconWrap: { width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  milestoneIconWrapUnlocked: { backgroundColor: 'rgba(227, 177, 94, 0.2)' },
+  milestoneIcon: { fontSize: 20 },
+  milestoneDays: { color: '#A89EC0', fontSize: 10.5, fontWeight: '700', textTransform: 'uppercase' },
+  milestoneStatus: { fontSize: 10, fontWeight: '700', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  milestoneStatusUnlocked: { color: '#1FB6B0', backgroundColor: 'rgba(31, 182, 176, 0.2)' },
+  milestoneStatusLocked: { color: '#8A7DAD', backgroundColor: 'rgba(255,255,255,0.08)' },
+  milestoneItemTitle: { color: colors.white, fontSize: 13, fontWeight: '700', marginTop: 1 },
+  milestoneProgressTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, marginTop: 6, overflow: 'hidden' },
+  milestoneProgressBar: { height: '100%', borderRadius: 2 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 10 },
   badgeRowUnearned: { opacity: 0.5 },
   badgeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.2)' },
