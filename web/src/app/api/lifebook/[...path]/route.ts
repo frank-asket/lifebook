@@ -1,9 +1,11 @@
 import { auth } from '@clerk/nextjs/server';
 
 const API_URL = process.env.LIFEBOOK_API_URL;
-const hasClerkKey = Boolean(
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
-  process.env.CLERK_PUBLISHABLE_KEY
+const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.CLERK_PUBLISHABLE_KEY;
+const isRealClerkConfigured = Boolean(
+  process.env.CLERK_SECRET_KEY &&
+  pubKey &&
+  !pubKey.includes("dummy")
 );
 
 async function forward(request: Request, path: string[]) {
@@ -12,7 +14,7 @@ async function forward(request: Request, path: string[]) {
   let token: string | null = null;
   let userId: string | null = null;
 
-  if (hasClerkKey) {
+  if (isRealClerkConfigured) {
     try {
       const authResult = await auth();
       userId = authResult.userId;
@@ -22,7 +24,7 @@ async function forward(request: Request, path: string[]) {
     }
   }
 
-  if (hasClerkKey && !userId) {
+  if (isRealClerkConfigured && !userId) {
     return Response.json({ error: 'unauthorized' }, { status: 401 });
   }
 

@@ -2,6 +2,9 @@
 
 import React, { useState, useMemo, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
+import type { PulseDaySummary, SpiritualPulseData } from '../app/api/spiritual-pulse/send/route';
+import { BurnoutPreventionCard } from './BurnoutPreventionCard';
 import {
   ResponsiveContainer,
   LineChart,
@@ -50,6 +53,8 @@ export interface DayActivityRecord {
   prayerCompleted: boolean;
   stillnessPractice: boolean;
   journalWritten: boolean;
+  isSabbathRest?: boolean;
+  sabbathNote?: string;
   scriptureRef?: string;
   reflectionSnippet?: string;
 }
@@ -261,6 +266,7 @@ const DEFAULT_BADGES: Badge[] = [
   { id: 'b3', title: 'Honest Heart', description: 'Brought seeking and doubt openly before the Lord', earned: true, icon: '♡' },
   { id: 'b4', title: 'Psalm 23 Abider', description: 'Completed the 5-day Finding Peace journey', earned: true, icon: '🕊' },
   { id: 'b5', title: '30-Day Pillar', description: 'Maintained spiritual attentiveness over a full month', earned: false, icon: '👑' },
+  { id: 'b_sabbath', title: 'Sabbath Peace', description: 'Observed intentional Sabbath rest, trading striving for holy abiding', earned: false, icon: '🕊️' },
 ];
 
 const DEFAULT_JOURNAL: JournalEntry[] = [
@@ -366,9 +372,41 @@ const INTENSITY_COLORS = [
 
 export function ProgressScreen({ deviceId }: { deviceId?: string }) {
   const isMounted = useIsMounted();
-  const [tab, setTab] = useState<'calendar' | 'milestones' | 'trends' | 'journal'>('calendar');
+  const { user } = useUser();
+  const [tab, setTab] = useState<'calendar' | 'milestones' | 'trends' | 'journal' | 'pulse'>('calendar');
   const [selectedMilestone, setSelectedMilestone] = useState<StreakMilestone | null>(null);
   const [milestoneFilter, setMilestoneFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
+
+  // Weekly Spiritual Pulse email state
+  const defaultUserEmail = user?.primaryEmailAddress?.emailAddress || 'asketfranckolivieralex@gmail.com';
+  const [customRecipientEmail, setCustomRecipientEmail] = useState<string | null>(null);
+  const recipientEmail = customRecipientEmail ?? defaultUserEmail;
+  const setRecipientEmail = (val: string) => setCustomRecipientEmail(val);
+
+  const [isSendingPulse, setIsSendingPulse] = useState(false);
+  const [pulseSentResult, setPulseSentResult] = useState<{
+    success: boolean;
+    message: string;
+    previewHtml?: string;
+    provider?: string;
+    timestamp?: string;
+    messageId?: string;
+  } | null>(null);
+  const [showHtmlPreview, setShowHtmlPreview] = useState(false);
+  const [autoEmailEnabled, setAutoEmailEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('lifebook.spiritualPulse.autoEmail') === 'true';
+    }
+    return false;
+  });
+
+  const handleToggleAutoEmail = () => {
+    const nextVal = !autoEmailEnabled;
+    setAutoEmailEnabled(nextVal);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.spiritualPulse.autoEmail', String(nextVal));
+    }
+  };
 
   // Calendar state
   const [calendarViewDate, setCalendarViewDate] = useState(() => new Date());
@@ -388,29 +426,65 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     return generateDefaultCalendarRecords();
   });
 
-  const [badges] = useState<Badge[]>(DEFAULT_BADGES);
-  const [journal, setJournal] = useState<JournalEntry[]>(DEFAULT_JOURNAL);
+  const [badges, setBadges] = useState<Badge[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('lifebook.badges');
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_BADGES;
+  });
+
+  const [gracePoints, setGracePoints] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('lifebook.gracePoints');
+        if (saved) return parseInt(saved, 10);
+      } catch {
+        // fallback
+      }
+    }
+    return 150;
+  });
+
+  const [journal, setJournal] = useState<JournalEntry[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('lifebook.journal');
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_JOURNAL;
+  });
+
   const [favorites] = useState<FavoriteVerse[]>(DEFAULT_FAVORITES);
   const [newEntryText, setNewEntryText] = useState('');
   const [selectedMoodFilter, setSelectedMoodFilter] = useState<string | null>(null);
 
-  // Calculate current active streak dynamically
+  // Calculate current active streak dynamically (Sabbath Rest explicitly preserves continuous streak)
   const { currentStreak, longestStreak, activeStreakDates } = useMemo(() => {
     let streak = 0;
     const streakDates = new Set<string>();
     const d = new Date();
 
-    // Check if today has activity; if not, check from yesterday to preserve continuous streak
+    const isDayActive = (rec?: DayActivityRecord) => Boolean(rec && (rec.intensity > 0 || rec.isSabbathRest));
+
+    // Check if today has activity or intentional Sabbath rest; if not, check from yesterday to preserve continuous streak
     const todayKey = d.toISOString().slice(0, 10);
     const todayRec = calendarRecords[todayKey];
     let startOffset = 0;
-    if (!todayRec || todayRec.intensity === 0) {
+    if (!isDayActive(todayRec)) {
       // check yesterday
       const yDate = new Date();
       yDate.setDate(yDate.getDate() - 1);
       const yKey = yDate.toISOString().slice(0, 10);
       const yRec = calendarRecords[yKey];
-      if (yRec && yRec.intensity > 0) {
+      if (isDayActive(yRec)) {
         startOffset = 1;
       } else {
         return { currentStreak: 0, longestStreak: 24, activeStreakDates: streakDates };
@@ -422,7 +496,7 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
       checkD.setDate(checkD.getDate() - i);
       const k = checkD.toISOString().slice(0, 10);
       const rec = calendarRecords[k];
-      if (rec && rec.intensity > 0) {
+      if (isDayActive(rec)) {
         streak++;
         streakDates.add(k);
       } else {
@@ -464,6 +538,191 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
       return true;
     });
   }, [milestoneFilter, currentStreak, longestStreak]);
+
+  // Seven-Day Spiritual Pulse calculation (mood patterns, milestones, practices, scripture)
+  const weeklyPulseData = useMemo<SpiritualPulseData>(() => {
+    const days: PulseDaySummary[] = [];
+    const moodCounts: Record<string, { label: string; emoji: string; count: number; color: string }> = {
+      grateful: { label: 'Grateful', emoji: '🙏', count: 0, color: '#E3B15E' },
+      peaceful: { label: 'Peaceful', emoji: '🕊', count: 0, color: '#37C6C2' },
+      seeking: { label: 'Seeking', emoji: '🔍', count: 0, color: '#7B62B8' },
+      convicted: { label: 'Convicted', emoji: '🕯', count: 0, color: '#B8746B' },
+      doubting: { label: 'Doubting', emoji: '🤔', count: 0, color: '#6B8CAE' },
+      distant: { label: 'Distant', emoji: '🌫', count: 0, color: '#5B5580' },
+    };
+
+    let totalCheckIns = 0;
+    let scriptureDays = 0;
+    let stillnessMinutes = 0;
+    let prayersOffered = 0;
+    let journalEntries = 0;
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().slice(0, 10);
+      const dayName = d.toLocaleDateString(undefined, { weekday: 'long' });
+      const formattedDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const rec = calendarRecords[dateKey];
+
+      const moodId = rec?.mood || null;
+      const moodObj = moodId ? MOOD_MAP[moodId] : null;
+
+      if (moodId && moodCounts[moodId]) {
+        moodCounts[moodId].count += 1;
+      }
+
+      const hasActivity = Boolean(rec && (rec.intensity > 0 || rec.mood != null));
+      if (hasActivity) totalCheckIns += 1;
+
+      if (rec?.scriptureRead) scriptureDays += 1;
+      if (rec?.stillnessPractice) stillnessMinutes += 10;
+      if (rec?.prayerCompleted) prayersOffered += 1;
+      if (rec?.journalWritten) journalEntries += 1;
+
+      days.push({
+        date: dateKey,
+        dayName,
+        formattedDate,
+        mood: moodId,
+        moodLabel: moodObj ? moodObj.label : (hasActivity ? 'Active Practice' : 'Rest / Missed'),
+        moodEmoji: moodObj ? moodObj.emoji : (hasActivity ? '✨' : '·'),
+        moodColor: moodObj ? moodObj.color : (hasActivity ? '#1FB6B0' : '#8A7DAD'),
+        intensity: rec?.intensity || 0,
+        practices: {
+          scriptureRead: Boolean(rec?.scriptureRead),
+          stillnessMinutes: rec?.stillnessPractice ? 10 : 0,
+          prayerOffered: Boolean(rec?.prayerCompleted),
+          journalWritten: Boolean(rec?.journalWritten),
+        },
+      });
+    }
+
+    let dominantMoodKey = 'peaceful';
+    let maxMoodCount = -1;
+    for (const [key, obj] of Object.entries(moodCounts)) {
+      if (obj.count > maxMoodCount) {
+        maxMoodCount = obj.count;
+        dominantMoodKey = key;
+      }
+    }
+
+    if (maxMoodCount <= 0) {
+      dominantMoodKey = 'grateful';
+    }
+
+    const dominantObj = MOOD_MAP[dominantMoodKey] || MOOD_MAP['grateful'];
+
+    const moodInsights: Record<string, string> = {
+      grateful: 'Your heart has been attuned to God’s daily gifts and providence. Overflowing gratitude strengthens trust in future unseen blessings.',
+      peaceful: 'A quiet stillness has anchored your soul this week. Guard this Christ-centered peace against the world’s noise and hurry.',
+      seeking: 'You have been leaning in with a posture of holy curiosity and longing for wisdom. God rewards the heart that seeks Him earnestly.',
+      convicted: 'Conviction is divine tenderness, guiding you out of lesser paths into His freedom and alignment. There is no condemnation in Christ Jesus.',
+      doubting: 'Wrestling and honest questions are safe in God’s hands. Biblical faith is not the absence of questions, but clinging to Jesus in the midst of them.',
+      distant: 'Even when feelings are dry, God’s covenant love is unwavering. He draws nearest precisely when we feel least capable of finding Him.',
+    };
+
+    const moodScriptures: Record<string, { text: string; reference: string }> = {
+      grateful: { text: 'Give thanks to the Lord, for he is good; his love endures forever.', reference: 'Psalm 107:1' },
+      peaceful: { text: 'Peace I leave with you; my peace I give you. I do not give to you as the world gives. Do not let your hearts be troubled and do not be afraid.', reference: 'John 14:27' },
+      seeking: { text: 'You will seek me and find me when you seek me with all your heart.', reference: 'Jeremiah 29:13' },
+      convicted: { text: 'If we confess our sins, he is faithful and just and will forgive us our sins and purify us from all unrighteousness.', reference: '1 John 1:9' },
+      doubting: { text: 'Immediately the boy’s father exclaimed, “I do believe; help me overcome my unbelief!”', reference: 'Mark 9:24' },
+      distant: { text: 'Where can I go from your Spirit? Where can I flee from your presence? If I rise on the wings of the dawn, even there your hand will guide me.', reference: 'Psalm 139:7, 9-10' },
+    };
+
+    const startDateFormatted = days[0].formattedDate;
+    const endDateFormatted = days[days.length - 1].formattedDate;
+    const dateRangeFormatted = `${startDateFormatted} – ${endDateFormatted}, ${new Date().getFullYear()}`;
+
+    const unlockedList = STREAK_MILESTONES.filter(m => currentStreak >= m.days || longestStreak >= m.days).map(m => ({
+      days: m.days,
+      title: m.title,
+      icon: m.icon,
+      tier: m.tier,
+    }));
+
+    const nextMilestoneObj = nextMilestone ? {
+      days: nextMilestone.days,
+      title: nextMilestone.title,
+      icon: nextMilestone.icon,
+      tier: nextMilestone.tier,
+      daysRemaining: nextMilestoneDaysLeft,
+      progressPercentage: nextMilestoneProgress,
+    } : null;
+
+    return {
+      startDate: days[0].date,
+      endDate: days[days.length - 1].date,
+      dateRangeFormatted,
+      totalCheckIns,
+      consistencyRate: Math.round((totalCheckIns / 7) * 100),
+      currentStreak,
+      longestStreak,
+      dominantMood: {
+        id: dominantMoodKey,
+        label: dominantObj.label,
+        emoji: dominantObj.emoji,
+        color: dominantObj.color,
+        count: moodCounts[dominantMoodKey]?.count || 0,
+        percentage: Math.round(((moodCounts[dominantMoodKey]?.count || 0) / Math.max(1, totalCheckIns)) * 100),
+        insight: moodInsights[dominantMoodKey] || moodInsights['grateful'],
+      },
+      moodCounts,
+      days,
+      milestonesUnlocked: unlockedList,
+      nextMilestone: nextMilestoneObj,
+      practicesTotals: {
+        scriptureDays,
+        stillnessMinutes,
+        prayersOffered,
+        journalEntries,
+      },
+      weeklyScripture: moodScriptures[dominantMoodKey] || moodScriptures['grateful'],
+      pastoralEncouragement: 'Hold fast to Christ’s steady grace. Take one quiet, faithful step with Him tomorrow.',
+    };
+  }, [calendarRecords, currentStreak, longestStreak, nextMilestone, nextMilestoneDaysLeft, nextMilestoneProgress]);
+
+  async function handleSendSpiritualPulse(emailTarget?: string) {
+    const target = (emailTarget || recipientEmail).trim();
+    if (!target || !target.includes('@')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+    setIsSendingPulse(true);
+    setPulseSentResult(null);
+    try {
+      const res = await fetch('/api/spiritual-pulse/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: target,
+          name: user?.fullName || user?.firstName || 'Pilgrim',
+          pulseData: weeklyPulseData,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send weekly pulse');
+      }
+      setPulseSentResult({
+        success: true,
+        message: data.message || `Weekly Spiritual Pulse emailed to ${target}!`,
+        previewHtml: data.previewHtml,
+        provider: data.provider,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        messageId: data.messageId,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not dispatch Weekly Spiritual Pulse email.';
+      setPulseSentResult({
+        success: false,
+        message,
+      });
+    } finally {
+      setIsSendingPulse(false);
+    }
+  }
 
   // Transform past 30 days for the Recharts line chart
   const chartData = useMemo(() => {
@@ -647,6 +906,85 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     setNewEntryText('');
   }
 
+  // Handle honoring intentional Sabbath Day rest: safeguards streak, awards +50 grace points & badge
+  function handleHonorSabbath(targetDateStr?: string) {
+    const target = targetDateStr || todayStr;
+    const existing = calendarRecords[target] || {
+      date: target,
+      dayLabel: new Date(target + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      mood: 'peaceful',
+      intensity: 1,
+      scriptureRead: false,
+      prayerCompleted: false,
+      stillnessPractice: true,
+      journalWritten: true,
+    };
+
+    const updated: DayActivityRecord = {
+      ...existing,
+      isSabbathRest: true,
+      mood: 'peaceful',
+      intensity: 1,
+      stillnessPractice: true,
+      journalWritten: true,
+      scriptureRef: 'Matthew 11:28',
+      reflectionSnippet: 'Observed holy Sabbath rest. Ceased striving to abide in God’s unfailing grace.',
+    };
+
+    const newMap = { ...calendarRecords, [target]: updated };
+    setCalendarRecords(newMap);
+
+    const newPoints = gracePoints + 50;
+    setGracePoints(newPoints);
+
+    // Persist records and grace points
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.calendar.streakHistory', JSON.stringify(newMap));
+      localStorage.setItem('lifebook.gracePoints', String(newPoints));
+    }
+
+    // Award Sabbath Peace badge
+    setBadges(prev => {
+      const nextBadges = prev.map(b => (b.id === 'b_sabbath' ? { ...b, earned: true } : b));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lifebook.badges', JSON.stringify(nextBadges));
+      }
+      return nextBadges;
+    });
+
+    // Auto-record Sabbath reflection to spiritual journal
+    const sabbathJournalEntry: JournalEntry = {
+      id: 'j_sabbath_' + Date.now(),
+      date: 'Today · Sabbath Rest',
+      text: '“Come to me, all who labor and are heavy laden, and I will give you rest.” Observed intentional Sabbath rest today. Laid down striving to abide quietly in God’s unfailing grace.',
+    };
+    setJournal(prev => {
+      const nextJournal = [sabbathJournalEntry, ...prev];
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lifebook.journal', JSON.stringify(nextJournal));
+      }
+      return nextJournal;
+    });
+  }
+
+  // Handle undoing/canceling Sabbath rest in case user desires regular activity logging
+  function handleCancelSabbath(targetDateStr?: string) {
+    const target = targetDateStr || todayStr;
+    const existing = calendarRecords[target];
+    if (!existing) return;
+
+    const updated: DayActivityRecord = {
+      ...existing,
+      isSabbathRest: false,
+    };
+
+    const newMap = { ...calendarRecords, [target]: updated };
+    setCalendarRecords(newMap);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.calendar.streakHistory', JSON.stringify(newMap));
+    }
+  }
+
   // Monthly stats
   const currentMonthCells = calendarGrid.filter(c => c.isCurrentMonth);
   const activeDaysThisMonth = currentMonthCells.filter(c => c.record && c.record.intensity > 0).length;
@@ -744,6 +1082,19 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             <span>✍️</span>
             <span>Journal & Scripture</span>
           </button>
+          <button
+            id="tab-pulse"
+            type="button"
+            onClick={() => setTab('pulse')}
+            className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
+              tab === 'pulse'
+                ? 'bg-[#2A2146] text-white shadow'
+                : 'text-[#65597C] hover:text-[#1E1835]'
+            }`}
+          >
+            <span>🕊️</span>
+            <span>Weekly Pulse</span>
+          </button>
         </div>
       </div>
 
@@ -776,20 +1127,51 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-white/10 p-3.5 rounded-2xl border border-white/10 shrink-0 self-start md:self-auto">
-          <div className="text-center px-2">
-            <span className="text-[10px] uppercase font-semibold text-[#A89EC0]">Longest</span>
-            <p className="text-xl font-bold font-serif text-[#E3B15E]">{longestStreak}d</p>
-          </div>
-          <div className="w-[1px] h-8 bg-white/20" />
-          <div className="text-center px-2">
-            <span className="text-[10px] uppercase font-semibold text-[#A89EC0]">Consistency</span>
-            <p className="text-xl font-bold font-serif text-[#37C6C2]">{consistencyRate}%</p>
-          </div>
-          <div className="w-[1px] h-8 bg-white/20" />
-          <div className="text-center px-2">
-            <span className="text-[10px] uppercase font-semibold text-[#A89EC0]">Active Days</span>
-            <p className="text-xl font-bold font-serif text-white">{activeDaysThisMonth}d</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            id="banner-sabbath-btn"
+            type="button"
+            onClick={() => {
+              setTab('calendar');
+              setTimeout(() => {
+                document.getElementById('burnout-prevention-card')?.scrollIntoView({ behavior: 'smooth' });
+              }, 50);
+            }}
+            className={`px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center gap-2 shadow-xs ${
+              calendarRecords[todayStr]?.isSabbathRest
+                ? 'bg-[#1FB6B0]/30 hover:bg-[#1FB6B0]/40 border-[#1FB6B0]/60 text-[#43E4DC]'
+                : 'bg-white/15 hover:bg-white/25 border-white/20 text-white'
+            }`}
+          >
+            <span className="text-base">🕊️</span>
+            <span>{calendarRecords[todayStr]?.isSabbathRest ? 'Sabbath Shield Active' : 'Burnout Check · Rest'}</span>
+          </button>
+
+          <button
+            id="banner-weekly-pulse-btn"
+            type="button"
+            onClick={() => setTab('pulse')}
+            className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-xs"
+          >
+            <span className="text-base">📊</span>
+            <span>Weekly Pulse</span>
+          </button>
+
+          <div className="flex items-center gap-4 bg-white/10 p-3.5 rounded-2xl border border-white/10 shrink-0">
+            <div className="text-center px-2">
+              <span className="text-[10px] uppercase font-semibold text-[#A89EC0]">Longest</span>
+              <p className="text-xl font-bold font-serif text-[#E3B15E]">{longestStreak}d</p>
+            </div>
+            <div className="w-[1px] h-8 bg-white/20" />
+            <div className="text-center px-2">
+              <span className="text-[10px] uppercase font-semibold text-[#A89EC0]">Consistency</span>
+              <p className="text-xl font-bold font-serif text-[#37C6C2]">{consistencyRate}%</p>
+            </div>
+            <div className="w-[1px] h-8 bg-white/20" />
+            <div className="text-center px-2">
+              <span className="text-[10px] uppercase font-semibold text-[#A89EC0]">Active Days</span>
+              <p className="text-xl font-bold font-serif text-white">{activeDaysThisMonth}d</p>
+            </div>
           </div>
         </div>
       </div>
@@ -797,6 +1179,63 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
       {/* TAB 1: CALENDAR VIEW WITH COLOR-CODED INTENSITY TILES */}
       {tab === 'calendar' && (
         <div className="mt-8 space-y-8">
+          {/* Burnout Prevention & Sabbath Resting Sanctuary Component */}
+          <BurnoutPreventionCard
+            calendarRecords={calendarRecords}
+            todayStr={todayStr}
+            currentStreak={currentStreak}
+            gracePoints={gracePoints}
+            onHonorSabbath={handleHonorSabbath}
+            onCancelSabbath={handleCancelSabbath}
+            onOpenJournal={() => setTab('journal')}
+          />
+
+          {/* Quick Weekly Spiritual Pulse Teaser Card */}
+          <div
+            id="calendar-weekly-pulse-card"
+            className="rounded-3xl bg-gradient-to-r from-[#FAF8FC] via-[#F4F1FA] to-[#EDFAF9] border border-[#D8CFEC] p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#2A2146] text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                🕊️
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1FB6B0]">
+                    Weekly Spiritual Pulse
+                  </span>
+                  <span className="text-[10px] text-[#7B6E96]">
+                    · {weeklyPulseData.dateRangeFormatted}
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-[#1E1835] mt-0.5">
+                  7-Day Heart Patterns & Streak Milestones
+                </h4>
+                <p className="text-xs text-[#6B5F84]">
+                  Dominant state: <strong>{weeklyPulseData.dominantMood.emoji} {weeklyPulseData.dominantMood.label}</strong> ({weeklyPulseData.dominantMood.count} days) · {weeklyPulseData.milestonesUnlocked.length} streak badges unlocked.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setTab('pulse')}
+                className="px-4 py-2 rounded-full bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all shadow-xs"
+              >
+                View Full Pulse →
+              </button>
+              <button
+                type="button"
+                disabled={isSendingPulse}
+                onClick={() => handleSendSpiritualPulse()}
+                className="px-4 py-2 rounded-full bg-[#1FB6B0] hover:bg-[#189b96] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              >
+                <span>✉️</span>
+                <span>Email</span>
+              </button>
+            </div>
+          </div>
           <section
             id="streak-calendar-section"
             className="rounded-3xl bg-white border border-gray-200/80 p-6 sm:p-8 shadow-sm"
@@ -857,81 +1296,115 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
               ))}
             </div>
 
-            {/* 7-column Calendar Matrix of Color-Coded Intensity Tiles */}
-            <div className="mt-2 grid grid-cols-7 gap-2 sm:gap-3">
-              {calendarGrid.map((cell) => {
+            {/* 7-column Calendar Matrix of Color-Coded Intensity Tiles with Entry and Hover Animations */}
+            <div
+              key={`${calendarViewDate.getFullYear()}-${calendarViewDate.getMonth()}`}
+              className="mt-2 grid grid-cols-7 gap-2 sm:gap-3"
+            >
+              {calendarGrid.map((cell, cellIdx) => {
                 const intensity = cell.record?.intensity || 0;
                 const isSelected = cell.dateStr === selectedDateStr;
                 const isToday = cell.isToday;
                 const moodObj = cell.record?.mood ? MOOD_MAP[cell.record.mood] : null;
 
-                // Color-coded intensity styling
-                let tileClass = 'bg-[#F9F7F4] border-gray-200 text-gray-400 hover:border-gray-400';
-                if (intensity === 1) {
-                  tileClass = 'bg-[#C5EFEA] border-[#81DBD5] text-[#0C615D] font-semibold hover:brightness-95';
+                const isSabbath = Boolean(cell.record?.isSabbathRest);
+
+                // Color-coded intensity styling with dynamic hover glow shadows
+                let tileClass = 'bg-[#F9F7F4] border-gray-200 text-gray-400 hover:border-[#1FB6B0]/50 hover:bg-white hover:shadow-md';
+                if (isSabbath) {
+                  tileClass = 'bg-gradient-to-br from-[#F6F3FC] via-[#EEFAF8] to-[#FFF9F0] border-[#BCAFE0] text-[#36275C] font-bold shadow-md hover:border-[#8E7BB7] hover:brightness-105 hover:shadow-[0_12px_24px_-4px_rgba(142,123,183,0.48)]';
+                } else if (intensity === 1) {
+                  tileClass = 'bg-[#C5EFEA] border-[#81DBD5] text-[#0C615D] font-semibold hover:border-[#1FB6B0] hover:brightness-105 hover:shadow-[0_10px_22px_-4px_rgba(31,182,176,0.38)]';
                 } else if (intensity === 2) {
-                  tileClass = 'bg-[#5CD2CC] border-[#2EB2AB] text-[#084845] font-semibold hover:brightness-95';
+                  tileClass = 'bg-[#5CD2CC] border-[#2EB2AB] text-[#084845] font-semibold hover:border-[#16948F] hover:brightness-105 hover:shadow-[0_12px_24px_-4px_rgba(31,182,176,0.52)]';
                 } else if (intensity === 3) {
-                  tileClass = 'bg-[#1FB6B0] border-[#16948F] text-white font-bold hover:brightness-105 shadow-xs';
+                  tileClass = 'bg-[#1FB6B0] border-[#16948F] text-white font-bold hover:border-[#0B5C58] hover:brightness-110 hover:shadow-[0_14px_28px_-3px_rgba(22,148,143,0.62)]';
                 } else if (intensity === 4) {
-                  tileClass = 'bg-gradient-to-br from-[#E3B15E] via-[#F28C38] to-[#1FB6B0] border-[#E3B15E] text-white font-bold shadow-md hover:brightness-105';
+                  tileClass = 'bg-gradient-to-br from-[#E3B15E] via-[#F28C38] to-[#1FB6B0] border-[#E3B15E] text-white font-bold shadow-md hover:border-[#FFD066] hover:brightness-110 hover:shadow-[0_16px_32px_-3px_rgba(242,140,56,0.68)]';
                 }
+
+                // Staggered entry animation delay
+                const entryDelayMs = Math.min(cellIdx * 14, 450);
 
                 return (
                   <button
                     key={cell.dateStr}
                     type="button"
+                    style={{ animationDelay: `${entryDelayMs}ms` }}
                     onClick={() => setSelectedDateStr(cell.dateStr)}
-                    className={`group relative flex flex-col justify-between p-2 sm:p-2.5 rounded-2xl border transition-all duration-150 min-h-[64px] sm:min-h-[82px] text-left ${tileClass} ${
-                      !cell.isCurrentMonth ? 'opacity-35' : 'opacity-100'
+                    title={`${cell.dateStr} · ${isSabbath ? 'Holy Sabbath Rest (Protected Streak)' : `Intensity ${intensity}/4`}${moodObj ? ` · Mood: ${moodObj.label}` : ''}${cell.isPartOfActiveStreak && (intensity > 0 || isSabbath) ? ' · Active Streak 🔥' : ''}`}
+                    className={`calendar-tile-entry group relative flex flex-col justify-between p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 ease-out min-h-[66px] sm:min-h-[86px] text-left overflow-hidden cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FB6B0] ${tileClass} ${
+                      !cell.isCurrentMonth ? 'opacity-35 hover:opacity-90' : 'opacity-100'
                     } ${
                       isSelected
-                        ? 'ring-3 ring-[#2A2146] ring-offset-2 scale-[1.03] z-10 shadow-lg'
-                        : 'hover:scale-[1.02]'
+                        ? 'ring-3 ring-[#2A2146] ring-offset-2 scale-[1.05] -translate-y-1 z-20 shadow-xl tile-glow-selected'
+                        : 'hover:scale-[1.06] hover:-translate-y-1.5 hover:z-20'
                     }`}
                   >
+                    {/* Subtle Sheen Highlight Sweep on Hover */}
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    />
+
                     {/* Top row: day number & today / streak pill */}
-                    <div className="flex items-center justify-between w-full">
+                    <div className="relative z-10 flex items-center justify-between w-full">
                       <span
-                        className={`text-xs sm:text-sm font-serif ${
-                          isToday ? 'px-1.5 py-0.5 rounded-md bg-[#2A2146] text-white font-sans font-bold text-[10px]' : ''
+                        className={`text-xs sm:text-sm font-serif transition-transform duration-200 group-hover:scale-110 ${
+                          isToday
+                            ? 'px-1.5 py-0.5 rounded-md bg-[#2A2146] text-white font-sans font-bold text-[10px] shadow-xs'
+                            : intensity === 0 && !isSabbath ? 'group-hover:text-[#2A2146] group-hover:font-bold' : ''
                         }`}
                       >
                         {cell.dayNumber}
                       </span>
 
-                      {/* Flame indicator for active streak days */}
-                      {cell.isPartOfActiveStreak && intensity > 0 && (
+                      {/* Sabbath indicator or flame indicator for active streak days */}
+                      {isSabbath ? (
+                        <span
+                          title="Sabbath Rest Day · Streak Sheltered by Grace"
+                          className="sabbath-float text-xs sm:text-sm select-none drop-shadow-xs"
+                        >
+                          🕊️
+                        </span>
+                      ) : cell.isPartOfActiveStreak && intensity > 0 ? (
                         <span
                           title="Part of active unbroken streak!"
-                          className="text-xs sm:text-sm select-none drop-shadow-xs"
+                          className="flame-streak-indicator text-xs sm:text-sm select-none drop-shadow-xs transform group-hover:scale-135 group-hover:-rotate-12 transition-transform duration-200"
                         >
                           🔥
                         </span>
-                      )}
+                      ) : null}
                     </div>
 
                     {/* Bottom row: Mood or practice icon dots */}
-                    <div className="flex items-end justify-between w-full mt-1">
+                    <div className="relative z-10 flex items-end justify-between w-full mt-1">
                       <div className="flex items-center gap-0.5">
-                        {intensity > 0 ? (
-                          <div className="flex gap-0.5">
+                        {isSabbath ? (
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#735DA3] bg-[#735DA3]/15 px-1.5 py-0.5 rounded-md">
+                            Sabbath
+                          </span>
+                        ) : intensity > 0 ? (
+                          <div className="flex gap-0.5 transition-transform duration-200 group-hover:scale-125 origin-bottom-left">
                             {Array.from({ length: intensity }).map((_, idx) => (
                               <span
                                 key={idx}
-                                className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${
-                                  intensity >= 3 ? 'bg-white' : 'bg-[#0E6C68]'
+                                className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full transition-all duration-200 ${
+                                  intensity >= 3 ? 'bg-white shadow-xs' : 'bg-[#0E6C68]'
                                 }`}
                               />
                             ))}
                           </div>
                         ) : (
-                          <span className="text-[10px] text-gray-300">·</span>
+                          <span className="text-[10px] text-gray-300 group-hover:text-[#1FB6B0] transition-colors">·</span>
                         )}
                       </div>
 
                       {moodObj && (
-                        <span className="text-xs sm:text-sm select-none" title={moodObj.label}>
+                        <span
+                          className="text-xs sm:text-sm select-none transform transition-transform duration-200 group-hover:scale-130 group-hover:rotate-6 origin-bottom-right drop-shadow-xs"
+                          title={moodObj.label}
+                        >
                           {moodObj.emoji}
                         </span>
                       )}
@@ -941,9 +1414,9 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
               })}
             </div>
 
-            {/* Intensity Legend */}
+            {/* Intensity Legend with Sabbath Badge */}
             <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[11px] font-semibold text-[#706782]">Streak Intensity:</span>
                 <span className="text-gray-400 text-[11px]">Less</span>
                 <div className="flex items-center gap-1.5">
@@ -951,13 +1424,24 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
                     <div
                       key={item.level}
                       title={`Level ${item.level}: ${item.label}`}
-                      className={`w-6 h-6 rounded-lg border flex items-center justify-center text-[10px] font-bold cursor-default ${item.bg} ${item.border} ${item.text}`}
+                      className={`w-6 h-6 rounded-lg border flex items-center justify-center text-[10px] font-bold cursor-default transition-all duration-150 hover:scale-120 hover:-translate-y-0.5 hover:shadow-sm ${item.bg} ${item.border} ${item.text}`}
                     >
                       {item.level === 4 ? '🔥' : item.level}
                     </div>
                   ))}
                 </div>
                 <span className="text-gray-400 text-[11px]">More</span>
+
+                {/* Holy Sabbath Rest Legend Badge */}
+                <div className="ml-3 pl-3 border-l border-gray-200 flex items-center gap-1.5 group cursor-default">
+                  <div
+                    title="Sabbath Rest Day: Protects your streak and rewards intentional rest"
+                    className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#F6F3FC] via-[#EEFAF8] to-[#FFF9F0] border border-[#BCAFE0] flex items-center justify-center text-[10px] shadow-xs transition-transform group-hover:scale-115"
+                  >
+                    🕊️
+                  </div>
+                  <span className="text-[#554A70] text-[11px] font-bold">Sabbath Rest</span>
+                </div>
               </div>
 
               <div className="text-[#65597C] text-xs">
@@ -1003,16 +1487,32 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
                   {selectedRecord.intensity} / 4
                 </span>
                 {selectedRecord.intensity === 4 && <span>🔥</span>}
+                {selectedRecord.isSabbathRest && <span className="text-sm">🕊️</span>}
               </div>
 
               {/* Active streak status */}
               <p className="text-xs text-[#C5BCD9] leading-relaxed">
-                {activeStreakDates.has(selectedDateStr)
+                {selectedRecord.isSabbathRest
+                  ? '🕊️ Consecrated Sabbath Rest Day: Ceasing striving to abide peacefully in the Lord. Streak fully preserved!'
+                  : activeStreakDates.has(selectedDateStr)
                   ? '✓ Part of your continuous unbroken daily walking streak with the Lord!'
                   : selectedRecord.intensity > 0
                   ? 'Devotional engagement completed on this day.'
                   : 'Rest day or no recorded practice on this day.'}
               </p>
+
+              {/* Dedicated Sabbath Rest Badge Banner in Inspector */}
+              {selectedRecord.isSabbathRest && (
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-[#1FB6B0]/25 via-[#8E7BB7]/25 to-[#E3B15E]/20 border border-[#3ED1C8]/40">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#45D6D0]">
+                    <span>🕊️</span>
+                    <span>Sabbath Day · Consecrated Rest</span>
+                  </div>
+                  <p className="text-[11px] text-[#E5DCF6] mt-0.5">
+                    Consciously consecrated for soul restoration. Your streak is shielded by grace!
+                  </p>
+                </div>
+              )}
 
               {/* Scripture quote if available */}
               {selectedRecord.scriptureRef && (
@@ -1121,6 +1621,42 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
                     <h6 className="text-xs font-bold text-white">Journal Reflection</h6>
                     <p className="text-[11px] text-[#A89EC0] mt-0.5">Recorded what God is teaching you</p>
                   </div>
+                </button>
+
+                {/* 5. Sabbath Rest Day Toggle */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedRecord.isSabbathRest) {
+                      handleCancelSabbath(selectedDateStr);
+                    } else {
+                      handleHonorSabbath(selectedDateStr);
+                    }
+                  }}
+                  className={`sm:col-span-2 flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all ${
+                    selectedRecord.isSabbathRest
+                      ? 'bg-gradient-to-r from-[#1FB6B0]/30 to-[#8E7BB7]/30 border-[#45D6D0] text-white shadow-md'
+                      : 'bg-white/5 border-white/10 hover:border-[#1FB6B0]/50 text-white/80'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-[#1FB6B0]/20 flex items-center justify-center text-base border border-[#1FB6B0]/30">
+                      🕊️
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-white">
+                        {selectedRecord.isSabbathRest ? 'Sabbath Rest Day Consecrated' : 'Designate as Sabbath Rest Day'}
+                      </div>
+                      <div className="text-[10px] text-[#A89EC0]">
+                        {selectedRecord.isSabbathRest ? 'Rest honors God · Streak protected by grace' : 'Safeguards your streak & awards +50 Grace Points'}
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all ${
+                    selectedRecord.isSabbathRest ? 'bg-[#1FB6B0] text-white border-white/20' : 'bg-white/10 text-[#C5BCD9] border-white/15'
+                  }`}>
+                    {selectedRecord.isSabbathRest ? 'Active 🕊️' : 'Set Rest'}
+                  </span>
                 </button>
               </div>
 
@@ -1762,6 +2298,546 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
                 </div>
               ))}
             </div>
+          </section>
+        </div>
+      )}
+
+      {/* TAB 5: WEEKLY SPIRITUAL PULSE */}
+      {tab === 'pulse' && (
+        <div id="weekly-spiritual-pulse-view" className="mt-8 space-y-8 animate-fade-in">
+          {/* Header & Date Range Card */}
+          <div className="rounded-3xl bg-gradient-to-r from-[#211B3B] via-[#2F2353] to-[#16424D] p-6 sm:p-8 text-white shadow-xl">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-extrabold uppercase tracking-widest text-[#37C6C2]">
+                  <span>✦</span>
+                  <span>Weekly Spiritual Pulse</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-serif text-white mt-2">
+                  Past Seven Days Heart Summary
+                </h2>
+                <p className="text-sm text-[#D8CFEA] mt-1 max-w-xl">
+                  A personalized reflection of your soul’s journey, mood patterns, and consecutive streak milestone achievements for <strong>{weeklyPulseData.dateRangeFormatted}</strong>.
+                </p>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  id="pulse-jump-to-email-btn"
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('pulse-email-dispatch-card');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="px-5 py-2.5 rounded-full bg-[#1FB6B0] hover:bg-[#189b96] text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                >
+                  <span>✉️</span>
+                  <span>Email This Summary</span>
+                </button>
+                <button
+                  id="pulse-preview-html-toggle-btn"
+                  type="button"
+                  onClick={() => setShowHtmlPreview(!showHtmlPreview)}
+                  className="px-4 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all border border-white/20 flex items-center gap-2 cursor-pointer"
+                >
+                  <span>👁️</span>
+                  <span>{showHtmlPreview ? 'Hide HTML Preview' : 'Preview Email Layout'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10">
+              <div className="bg-white/10 rounded-2xl p-4 border border-white/10">
+                <div className="text-2xl">🔥</div>
+                <div className="text-xl sm:text-2xl font-bold font-serif text-white mt-1">
+                  {weeklyPulseData.currentStreak} Days
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#37C6C2] mt-0.5">
+                  Consecutive Streak
+                </div>
+              </div>
+
+              <div className="bg-white/10 rounded-2xl p-4 border border-white/10">
+                <div className="text-2xl">{weeklyPulseData.dominantMood.emoji}</div>
+                <div className="text-xl sm:text-2xl font-bold font-serif text-white mt-1">
+                  {weeklyPulseData.dominantMood.label}
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#E3B15E] mt-0.5">
+                  Dominant Soul State
+                </div>
+              </div>
+
+              <div className="bg-white/10 rounded-2xl p-4 border border-white/10">
+                <div className="text-2xl">🌱</div>
+                <div className="text-xl sm:text-2xl font-bold font-serif text-white mt-1">
+                  {weeklyPulseData.consistencyRate}%
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#37C6C2] mt-0.5">
+                  7-Day Consistency ({weeklyPulseData.totalCheckIns}/7)
+                </div>
+              </div>
+
+              <div className="bg-white/10 rounded-2xl p-4 border border-white/10">
+                <div className="text-2xl">🏆</div>
+                <div className="text-xl sm:text-2xl font-bold font-serif text-white mt-1">
+                  {weeklyPulseData.milestonesUnlocked.length} Badges
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#C4B7E0] mt-0.5">
+                  Milestones Earned
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 1: 7-Day Soul Rhythm & Mood Patterns */}
+          <section id="pulse-mood-patterns-section" className="rounded-3xl bg-white border border-gray-200/80 p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b border-gray-100">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#705E8C]">
+                  1. Seven-Day Soul Rhythm
+                </span>
+                <h3 className="text-2xl font-serif text-[#1E1835] mt-0.5">
+                  Mood Patterns & Emotional Distribution
+                </h3>
+              </div>
+              <div className="text-xs text-[#705E8C] font-semibold bg-[#F5F2F9] px-3 py-1.5 rounded-full self-start">
+                Daily Check-ins from {weeklyPulseData.dateRangeFormatted}
+              </div>
+            </div>
+
+            {/* 7-Day Timeline Badges */}
+            <div className="mt-6">
+              <div className="text-xs font-bold uppercase tracking-wider text-[#705E8C] mb-3">
+                Daily Check-in Timeline
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 sm:gap-3">
+                {weeklyPulseData.days.map((d) => (
+                  <div
+                    key={d.date}
+                    className={`rounded-2xl p-3 text-center border transition-all ${
+                      d.intensity > 0 || d.mood
+                        ? 'bg-[#FAF8FC] border-[#D8CFEC] shadow-xs hover:border-[#1FB6B0]'
+                        : 'bg-[#F4F2F7] border-[#E8E4EE] opacity-75'
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold uppercase text-[#7B6E96] block">
+                      {d.dayName.slice(0, 3)}
+                    </span>
+                    <span className="text-xs font-semibold text-[#352B4E] block mt-0.5">
+                      {d.formattedDate}
+                    </span>
+                    <span className="text-2xl my-2 block">
+                      {d.moodEmoji}
+                    </span>
+                    <span
+                      className="text-[10px] font-bold block truncate"
+                      style={{ color: d.moodColor }}
+                    >
+                      {d.moodLabel}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mood Frequency Distribution */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <div className="bg-[#FAF8FC] rounded-2xl p-5 border border-[#ECE7F4]">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-bold text-[#2A2045]">
+                    Soul State Frequency
+                  </h4>
+                  <span className="text-xs text-[#7B6E96] font-medium">
+                    {weeklyPulseData.totalCheckIns} recorded check-ins
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(weeklyPulseData.moodCounts).map(([key, item]) => {
+                    const pct = weeklyPulseData.totalCheckIns > 0
+                      ? Math.round((item.count / weeklyPulseData.totalCheckIns) * 100)
+                      : 0;
+                    return (
+                      <div key={key} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span className="flex items-center gap-1.5 text-[#2A2045]">
+                            <span className="text-sm">{item.emoji}</span>
+                            <span>{item.label}</span>
+                          </span>
+                          <span className="text-[#65597C]">
+                            {item.count} {item.count === 1 ? 'day' : 'days'} ({pct}%)
+                          </span>
+                        </div>
+                        <div className="h-2 rounded-full bg-[#EAE5F2] overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${pct}%`,
+                              backgroundColor: item.color,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Pastoral Rhythm Reflection */}
+              <div className="bg-[#F3FAF9] border border-[#C5EDE8] rounded-2xl p-5">
+                <div className="flex items-center gap-2 text-[#0E7773] text-xs font-extrabold uppercase tracking-wider">
+                  <span>✦</span>
+                  <span>Pastoral Heart Reflection</span>
+                </div>
+                <h4 className="text-lg font-serif font-bold text-[#104845] mt-1">
+                  Walking in {weeklyPulseData.dominantMood.label}
+                </h4>
+                <p className="text-sm text-[#1B5753] mt-2 leading-relaxed">
+                  {weeklyPulseData.dominantMood.insight}
+                </p>
+                <div className="mt-4 pt-4 border-t border-[#C5EDE8] flex items-center gap-3 text-xs text-[#136864]">
+                  <span className="text-base">🕯️</span>
+                  <span>
+                    Dominant posture for <strong>{weeklyPulseData.dominantMood.count} of 7 days</strong> ({weeklyPulseData.dominantMood.percentage}% of your spiritual focus).
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 2: Milestone Achievements for the Week */}
+          <section id="pulse-milestones-section" className="rounded-3xl bg-white border border-gray-200/80 p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b border-gray-100">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#705E8C]">
+                  2. Streak Milestones & Records
+                </span>
+                <h3 className="text-2xl font-serif text-[#1E1835] mt-0.5">
+                  Milestone Achievements
+                </h3>
+              </div>
+              <div className="text-xs text-[#705E8C] font-semibold bg-[#F5F2F9] px-3 py-1.5 rounded-full self-start">
+                Active Streak: {weeklyPulseData.currentStreak} Days
+              </div>
+            </div>
+
+            {/* Unlocked Badges Showcase */}
+            <div className="mt-6">
+              <div className="text-xs font-bold uppercase tracking-wider text-[#705E8C] mb-3">
+                Unlocked Streak Milestones
+              </div>
+              {weeklyPulseData.milestonesUnlocked.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {weeklyPulseData.milestonesUnlocked.map((m) => (
+                    <div
+                      key={m.days}
+                      className="inline-flex items-center gap-3 bg-[#FFFDF7] border border-[#E8CB72] rounded-2xl px-4 py-3 shadow-xs"
+                    >
+                      <span className="text-2xl">{m.icon}</span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-[#4A3A0B]">{m.title}</span>
+                          <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-[#F4E8B0] text-[#59440D]">
+                            {m.days}d
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-[#826F3E] font-medium">{m.tier} · Unlocked</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-[#FAF8FC] border border-[#ECE7F4] text-xs text-[#7B6E96] italic">
+                  Keep walking daily to unlock your first milestone at 3 consecutive days!
+                </div>
+              )}
+            </div>
+
+            {/* Next Milestone Countdown Card */}
+            {weeklyPulseData.nextMilestone && (
+              <div className="mt-6 rounded-2xl bg-gradient-to-r from-[#211B3B] via-[#2D234F] to-[#1E3E4B] p-6 text-white shadow-md">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-3xl shrink-0">
+                      {weeklyPulseData.nextMilestone.icon}
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#37C6C2]">
+                        Next Milestone Target
+                      </div>
+                      <h4 className="text-lg font-bold text-white mt-0.5">
+                        {weeklyPulseData.nextMilestone.title} ({weeklyPulseData.nextMilestone.days} Consecutive Days)
+                      </h4>
+                      <p className="text-xs text-[#C5BCD9]">
+                        {weeklyPulseData.nextMilestone.tier}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right sm:text-right shrink-0">
+                    <span className="text-2xl font-bold font-serif text-[#E3B15E]">
+                      {weeklyPulseData.nextMilestone.daysRemaining} days
+                    </span>
+                    <span className="text-xs text-[#C5BCD9] block">remaining to unlock</span>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <div className="h-2.5 rounded-full bg-white/15 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#1FB6B0] to-[#E3B15E] transition-all"
+                      style={{ width: `${weeklyPulseData.nextMilestone.progressPercentage}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-[#C5BCD9] mt-2">
+                    <span>{weeklyPulseData.currentStreak} of {weeklyPulseData.nextMilestone.days} days completed</span>
+                    <span className="font-bold text-[#37C6C2]">{weeklyPulseData.nextMilestone.progressPercentage}% progress</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Section 3: Faithful Stepping Stones & Scripture Promise */}
+          <section id="pulse-practices-scripture-section" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Practices Stepping Stones */}
+            <div className="rounded-3xl bg-white border border-gray-200/80 p-6 shadow-sm">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#705E8C]">
+                3. Faithful Stepping Stones
+              </span>
+              <h3 className="text-xl font-serif text-[#1E1835] mt-0.5">
+                Practices Completed
+              </h3>
+              <p className="text-xs text-[#7B6E96] mt-1">
+                Small, faithful disciplines over the past 7 days.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mt-5">
+                <div className="bg-[#FAF8FC] border border-[#ECE7F4] rounded-2xl p-4 text-center">
+                  <span className="text-2xl block">📖</span>
+                  <span className="text-2xl font-bold font-serif text-[#211B3B] block mt-1">
+                    {weeklyPulseData.practicesTotals.scriptureDays}
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#7B6E96] block">Scripture Days</span>
+                </div>
+
+                <div className="bg-[#FAF8FC] border border-[#ECE7F4] rounded-2xl p-4 text-center">
+                  <span className="text-2xl block">🕯️</span>
+                  <span className="text-2xl font-bold font-serif text-[#211B3B] block mt-1">
+                    {weeklyPulseData.practicesTotals.stillnessMinutes}m
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#7B6E96] block">Stillness Practiced</span>
+                </div>
+
+                <div className="bg-[#FAF8FC] border border-[#ECE7F4] rounded-2xl p-4 text-center">
+                  <span className="text-2xl block">🙏</span>
+                  <span className="text-2xl font-bold font-serif text-[#211B3B] block mt-1">
+                    {weeklyPulseData.practicesTotals.prayersOffered}
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#7B6E96] block">Prayers Offered</span>
+                </div>
+
+                <div className="bg-[#FAF8FC] border border-[#ECE7F4] rounded-2xl p-4 text-center">
+                  <span className="text-2xl block">✍️</span>
+                  <span className="text-2xl font-bold font-serif text-[#211B3B] block mt-1">
+                    {weeklyPulseData.practicesTotals.journalEntries}
+                  </span>
+                  <span className="text-[11px] font-semibold text-[#7B6E96] block">Journal Entries</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Weekly Scripture Promise */}
+            <div className="rounded-3xl bg-[#FAF8F2] border border-[#EBE4D5] p-6 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#8A7539]">
+                  4. Scripture Promise
+                </span>
+                <h3 className="text-xl font-serif text-[#2B2313] mt-0.5">
+                  Word for Your Soul
+                </h3>
+                <blockquote className="mt-4 font-serif italic text-base sm:text-lg text-[#3A2E19] leading-relaxed border-l-3 border-[#E3B15E] pl-4">
+                  “{weeklyPulseData.weeklyScripture.text}”
+                </blockquote>
+                <p className="mt-2 text-xs font-bold text-[#8A7539] pl-4">
+                  — {weeklyPulseData.weeklyScripture.reference}
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#EAE2D2] text-xs text-[#6B5E43] leading-relaxed">
+                {weeklyPulseData.pastoralEncouragement}
+              </div>
+            </div>
+          </section>
+
+          {/* Section 4: Email Dispatch & Delivery Center */}
+          <section id="pulse-email-dispatch-card" className="rounded-3xl bg-white border border-gray-200/80 p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-gray-100">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#705E8C]">
+                    Email Delivery Center
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF7F6] text-[#0E7773] border border-[#C5EDE8]">
+                    Ready to Send
+                  </span>
+                </div>
+                <h3 className="text-2xl font-serif text-[#1E1835] mt-0.5">
+                  Email Your Weekly Spiritual Pulse
+                </h3>
+                <p className="text-xs text-[#7B6E96] mt-1">
+                  Deliver a beautifully formatted summary of your 7-day mood patterns and milestone achievements directly to your inbox.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  id="toggle-pulse-preview-card-btn"
+                  type="button"
+                  onClick={() => setShowHtmlPreview(!showHtmlPreview)}
+                  className="px-4 py-2 rounded-full border border-gray-300 hover:bg-gray-50 text-xs font-semibold text-[#443860] transition-all cursor-pointer"
+                >
+                  {showHtmlPreview ? 'Hide Preview' : 'Preview Email HTML'}
+                </button>
+              </div>
+            </div>
+
+            {/* Email form & Trigger */}
+            <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-end gap-3">
+              <div className="flex-1">
+                <label htmlFor="spiritual-pulse-email-input" className="block text-xs font-bold text-[#352B4E] mb-1.5">
+                  Recipient Email Address
+                </label>
+                <div className="relative">
+                  <input
+                    id="spiritual-pulse-email-input"
+                    type="email"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    placeholder="Enter email address (e.g. asketfranckolivieralex@gmail.com)"
+                    className="w-full px-4 py-3 rounded-2xl bg-[#FAF8FC] border border-[#D8CFEC] text-sm text-[#1E1835] focus:outline-none focus:ring-2 focus:ring-[#1FB6B0] focus:bg-white transition-all pr-24"
+                  />
+                  {recipientEmail !== 'asketfranckolivieralex@gmail.com' && (
+                    <button
+                      type="button"
+                      onClick={() => setRecipientEmail('asketfranckolivieralex@gmail.com')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#705E8C] hover:text-[#1E1835] font-semibold underline cursor-pointer"
+                    >
+                      Reset default
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <button
+                id="send-spiritual-pulse-now-btn"
+                type="button"
+                disabled={isSendingPulse}
+                onClick={() => handleSendSpiritualPulse()}
+                className="px-6 py-3 rounded-2xl bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+              >
+                {isSendingPulse ? (
+                  <>
+                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Sending Pulse...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✉️</span>
+                    <span>Send Weekly Pulse Now</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Auto-Email Checkbox */}
+            <div className="mt-4 flex items-center gap-2 text-xs text-[#5B4F75]">
+              <input
+                id="auto-email-checkbox"
+                type="checkbox"
+                checked={autoEmailEnabled}
+                onChange={handleToggleAutoEmail}
+                className="w-4 h-4 rounded text-[#1FB6B0] focus:ring-[#1FB6B0] border-gray-300 cursor-pointer"
+              />
+              <label htmlFor="auto-email-checkbox" className="cursor-pointer select-none">
+                Automatically generate and email my Weekly Spiritual Pulse every Sunday evening
+              </label>
+            </div>
+
+            {/* Delivery Result Feedback Banner */}
+            {pulseSentResult && (
+              <div
+                id="pulse-delivery-receipt-banner"
+                className={`mt-5 p-4 rounded-2xl border transition-all ${
+                  pulseSentResult.success
+                    ? 'bg-[#EBF9F8] border-[#92E3DE] text-[#0B5C58]'
+                    : 'bg-red-50 border-red-200 text-red-800'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl mt-0.5">
+                      {pulseSentResult.success ? '✓' : '⚠️'}
+                    </span>
+                    <div>
+                      <p className="text-sm font-bold">
+                        {pulseSentResult.message}
+                      </p>
+                      {pulseSentResult.success && (
+                        <p className="text-xs text-[#136C68] mt-1">
+                          Delivery ID: <code className="bg-white/60 px-1.5 py-0.5 rounded font-mono text-[11px]">{pulseSentResult.messageId || 'pulse_live'}</code>
+                          {' · '}
+                          Dispatched at {pulseSentResult.timestamp}
+                          {pulseSentResult.provider && ` via ${pulseSentResult.provider}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {pulseSentResult.previewHtml && (
+                    <button
+                      type="button"
+                      onClick={() => setShowHtmlPreview(true)}
+                      className="text-xs font-bold underline hover:opacity-80 shrink-0 cursor-pointer"
+                    >
+                      View Live Layout
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* In-App Live HTML Email Preview Drawer */}
+            {showHtmlPreview && (
+              <div id="pulse-html-preview-drawer" className="mt-6 pt-6 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#705E8C]">
+                      Rendered Responsive Email Preview
+                    </h4>
+                    <p className="text-xs text-[#7B6E96]">
+                      Exact HTML email format sent to {recipientEmail}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowHtmlPreview(false)}
+                    className="text-xs font-bold text-[#705E8C] hover:text-[#1E1835] cursor-pointer"
+                  >
+                    ✕ Close Preview
+                  </button>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 overflow-hidden bg-gray-50 shadow-inner">
+                  <iframe
+                    title="Spiritual Pulse Email Preview"
+                    srcDoc={pulseSentResult?.previewHtml || ''}
+                    className="w-full h-[640px] border-0"
+                  />
+                </div>
+              </div>
+            )}
           </section>
         </div>
       )}
