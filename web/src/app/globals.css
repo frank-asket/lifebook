@@ -408,3 +408,65 @@ a { color: inherit; text-decoration: none; }
   animation-delay: 0.28s;
 }
 
+/* Daily Goal Checkoff Subtle Success Toast Animations */
+@keyframes goal-toast-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px) scale(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes goal-toast-pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.2), 0 0 0 1px rgba(16, 185, 129, 0.35);
+  }
+  50% {
+    box-shadow: 0 6px 24px 0 rgba(31, 182, 176, 0.35), 0 0 0 1px rgba(31, 182, 176, 0.55);
+  }
+}
+
+@keyframes goal-check-pop {
+  0% {
+    transform: scale(0.7) rotate(-15deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(4deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes goal-progress-bar-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.goal-toast-enter {
+  animation: goal-toast-slide-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             goal-toast-pulse-glow 3s ease-in-out infinite 0.4s;
+  will-change: transform, opacity;
+}
+
+.goal-check-pop {
+  animation: goal-check-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.goal-toast-progress {
+  animation: goal-progress-bar-shrink 4.5s linear forwards;
+}
+

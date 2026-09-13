@@ -10,6 +10,7 @@ import type { JournalEntry } from './DynamicMoodJournal';
 import { WeeklyInsightChart } from './WeeklyInsightChart';
 import { StreakGamificationCard, SPIRITUAL_LEVELS } from './StreakGamificationCard';
 import { MoodTrendsAnalytics } from './MoodTrendsAnalytics';
+import { DailyGoalCard } from './DailyGoalCard';
 
 export type { JournalEntry };
 
@@ -1287,6 +1288,15 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
           </div>
         </div>
       </div>
+
+      {/* DAILY SPIRITUAL HABIT GOAL COMPONENT */}
+      <DailyGoalCard
+        todayStr={todayStr}
+        gracePoints={gracePoints}
+        onUpdateGracePoints={handleUpdateGracePoints}
+        todayRecord={calendarRecords[todayStr]}
+        onTogglePractice={toggleTodayPractice}
+      />
 
       {/* TAB 1: CALENDAR VIEW WITH COLOR-CODED INTENSITY TILES */}
       {tab === 'calendar' && (
