@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -17,13 +17,90 @@ import {
 import type { SpiritualPulseData } from '../app/api/spiritual-pulse/send/route';
 import type { DayActivityRecord } from './ProgressScreen';
 
-interface WeeklyInsightChartProps {
+export type InsightPeriod = 7 | 14 | 30;
+
+export interface WeeklyInsightChartProps {
   pulseData: SpiritualPulseData;
   calendarRecords: Record<string, DayActivityRecord>;
   onSelectDate?: (dateStr: string) => void;
+  initialPeriod?: InsightPeriod;
 }
 
 type ChartViewMode = 'practices' | 'mood' | 'balance';
+
+export interface MoodDetail {
+  id: string;
+  label: string;
+  emoji: string;
+  color: string;
+  description: string;
+  scriptureText: string;
+  scriptureRef: string;
+  postureNote: string;
+}
+
+export const MOOD_DETAILS: Record<string, MoodDetail> = {
+  grateful: {
+    id: 'grateful',
+    label: 'Grateful',
+    emoji: '🙏',
+    color: '#E3B15E',
+    description: 'Heart overflowing with thanksgiving and awareness of God’s daily gifts.',
+    scriptureText: 'Give thanks to the Lord, for he is good; his love endures forever.',
+    scriptureRef: 'Psalm 107:1',
+    postureNote: 'Your heart has consistently paused to count blessings and praise God.',
+  },
+  peaceful: {
+    id: 'peaceful',
+    label: 'Peaceful',
+    emoji: '🕊️',
+    color: '#37C6C2',
+    description: 'Deep inner stillness anchored in the assurance of Christ’s presence.',
+    scriptureText: 'Peace I leave with you; my peace I give you. Do not let your hearts be troubled.',
+    scriptureRef: 'John 14:27',
+    postureNote: 'You have walked in quiet trust, shielded against hurry, anxiety, and distraction.',
+  },
+  seeking: {
+    id: 'seeking',
+    label: 'Seeking',
+    emoji: '🔍',
+    color: '#9D88CA',
+    description: 'A hunger for divine wisdom, spiritual clarity, and closer fellowship.',
+    scriptureText: 'You will seek me and find me when you seek me with all your heart.',
+    scriptureRef: 'Jeremiah 29:13',
+    postureNote: 'You have actively pressed in for wisdom, discernment, and deeper divine intimacy.',
+  },
+  convicted: {
+    id: 'convicted',
+    label: 'Convicted',
+    emoji: '🕯️',
+    color: '#B8746B',
+    description: 'Humble responsiveness to the Holy Spirit’s refining guidance.',
+    scriptureText: 'Create in me a pure heart, O God, and renew a steadfast spirit within me.',
+    scriptureRef: 'Psalm 51:10',
+    postureNote: 'Your heart remained tender and quick to realign with the Father’s will.',
+  },
+  doubting: {
+    id: 'doubting',
+    label: 'Doubting',
+    emoji: '🤔',
+    color: '#6B8CAE',
+    description: 'Wrestling honestly with questions while choosing to stay before the Lord.',
+    scriptureText: 'I do believe; help me overcome my unbelief!',
+    scriptureRef: 'Mark 9:24',
+    postureNote: 'You brought genuine uncertainties directly into the light of grace.',
+  },
+  distant: {
+    id: 'distant',
+    label: 'Distant',
+    emoji: '🌫️',
+    color: '#8A7DAD',
+    description: 'Enduring spiritual dryness by trusting God’s promise over fluctuating feelings.',
+    scriptureText: 'Where can I go from your Spirit? Where can I flee from your presence?',
+    scriptureRef: 'Psalm 139:7',
+    postureNote: 'You persevered through dryness, standing on covenant faithfulness.',
+  },
+};
 
 interface PracticeDayChartItem {
   date: string;
@@ -120,54 +197,154 @@ export function WeeklyInsightChart({
   pulseData,
   calendarRecords,
   onSelectDate,
+  initialPeriod = 7,
 }: WeeklyInsightChartProps) {
+  const [selectedPeriod, setSelectedPeriod] = useState<InsightPeriod>(initialPeriod);
   const [viewMode, setViewMode] = useState<ChartViewMode>('practices');
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(6); // Default to today (last item in 7 days)
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(initialPeriod - 1);
 
-  // Map 7-day pulse data into structured Recharts dataset
+  // Formatted date range label for the selected period
+  const dateRangeLabel = useMemo(() => {
+    const endD = new Date();
+    const startD = new Date();
+    startD.setDate(startD.getDate() - (selectedPeriod - 1));
+    const startFmt = startD.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const endFmt = endD.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${startFmt} – ${endFmt}`;
+  }, [selectedPeriod]);
+
+  // Aggregate and highlight the user's most frequent mood over the selected period
+  const moodSummary = useMemo(() => {
+    const counts: Record<string, number> = {
+      grateful: 0,
+      peaceful: 0,
+      seeking: 0,
+      convicted: 0,
+      doubting: 0,
+      distant: 0,
+    };
+    let totalLoggedDays = 0;
+
+    for (let i = selectedPeriod - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().slice(0, 10);
+      const rec = calendarRecords[dateKey];
+      if (rec?.mood && counts[rec.mood] !== undefined) {
+        counts[rec.mood] += 1;
+        totalLoggedDays += 1;
+      }
+    }
+
+    let topMoodKey = 'peaceful';
+    let maxCount = -1;
+    for (const [key, count] of Object.entries(counts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        topMoodKey = key;
+      }
+    }
+
+    // Fallback if no records found for mood in local storage
+    if (maxCount <= 0) {
+      const pulseDominantKey = pulseData.dominantMood.label.toLowerCase();
+      topMoodKey = counts[pulseDominantKey] !== undefined ? pulseDominantKey : 'grateful';
+      maxCount = Math.max(1, Math.round((pulseData.dominantMood.percentage / 100) * selectedPeriod));
+      totalLoggedDays = Math.max(totalLoggedDays, maxCount);
+    }
+
+    const topMood = MOOD_DETAILS[topMoodKey] || MOOD_DETAILS['grateful'];
+    const percentageOfLogged = totalLoggedDays > 0 ? Math.round((maxCount / totalLoggedDays) * 100) : 100;
+    const periodPercentage = Math.round((maxCount / selectedPeriod) * 100);
+
+    const distribution = Object.entries(counts)
+      .map(([key, count]) => ({
+        key,
+        count,
+        percentage: totalLoggedDays > 0 ? Math.round((count / totalLoggedDays) * 100) : 0,
+        detail: MOOD_DETAILS[key] || MOOD_DETAILS['grateful'],
+        isTop: key === topMoodKey,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      topMood,
+      topMoodKey,
+      maxCount,
+      totalLoggedDays,
+      percentageOfLogged,
+      periodPercentage,
+      distribution,
+    };
+  }, [selectedPeriod, calendarRecords, pulseData]);
+
+  // Map pulse and calendar records for the selected period into structured Recharts dataset
   const chartData: PracticeDayChartItem[] = useMemo(() => {
-    return pulseData.days.map(d => {
-      const rec = calendarRecords[d.date];
+    const items: PracticeDayChartItem[] = [];
+
+    for (let i = selectedPeriod - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().slice(0, 10);
+      const rec = calendarRecords[dateStr];
       const isSabbath = Boolean(rec?.isSabbathRest);
 
       // Estimated devotional minutes based on deliberate practices
-      const scriptureMins = d.practices.scriptureRead ? 10 : 0;
-      const prayerMins = d.practices.prayerOffered ? 10 : 0;
-      const stillnessMins = d.practices.stillnessMinutes > 0 ? d.practices.stillnessMinutes : 0;
-      const journalMins = d.practices.journalWritten ? 10 : 0;
-      const totalMins = isSabbath ? Math.max(scriptureMins + prayerMins + stillnessMins + journalMins, 25) : (scriptureMins + prayerMins + stillnessMins + journalMins);
+      const scriptureMins = rec?.scriptureRead ? 10 : 0;
+      const prayerMins = rec?.prayerCompleted ? 10 : 0;
+      const stillnessMins = rec?.stillnessPractice ? 10 : 0;
+      const journalMins = rec?.journalWritten ? 10 : 0;
+      const totalMins = isSabbath
+        ? Math.max(scriptureMins + prayerMins + stillnessMins + journalMins, 25)
+        : scriptureMins + prayerMins + stillnessMins + journalMins;
 
       // Numeric mood level: Grateful=6, Peaceful=5, Seeking=4, Convicted=3, Doubting=2, Distant=1, Sabbath=5.5
       let moodLevel = 0;
+      const moodKey = rec?.mood;
       if (isSabbath) moodLevel = 5.5;
-      else if (d.mood === 'grateful') moodLevel = 6;
-      else if (d.mood === 'peaceful') moodLevel = 5;
-      else if (d.mood === 'seeking') moodLevel = 4;
-      else if (d.mood === 'convicted') moodLevel = 3;
-      else if (d.mood === 'doubting') moodLevel = 2;
-      else if (d.mood === 'distant') moodLevel = 1;
-      else if (d.intensity > 0) moodLevel = 4.5;
+      else if (moodKey === 'grateful') moodLevel = 6;
+      else if (moodKey === 'peaceful') moodLevel = 5;
+      else if (moodKey === 'seeking') moodLevel = 4;
+      else if (moodKey === 'convicted') moodLevel = 3;
+      else if (moodKey === 'doubting') moodLevel = 2;
+      else if (moodKey === 'distant') moodLevel = 1;
+      else if (rec && rec.intensity > 0) moodLevel = 4.5;
 
-      return {
-        date: d.date,
-        dayLabel: `${d.dayName.slice(0, 3)} ${d.formattedDate}`,
-        dayShort: d.dayName.slice(0, 3),
+      const moodDetail = moodKey ? MOOD_DETAILS[moodKey] : null;
+
+      const dayShort = selectedPeriod <= 7
+        ? d.toLocaleDateString(undefined, { weekday: 'short' })
+        : `${d.getMonth() + 1}/${d.getDate()}`;
+
+      const dayLabel = `${d.toLocaleDateString(undefined, { weekday: 'short' })} ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+
+      items.push({
+        date: dateStr,
+        dayLabel,
+        dayShort,
         scriptureMins,
         prayerMins,
         stillnessMins,
         journalMins,
         totalMins,
         moodLevel,
-        moodLabel: isSabbath ? 'Sabbath Rest' : d.moodLabel,
-        moodEmoji: isSabbath ? '🕊️' : d.moodEmoji,
-        moodColor: isSabbath ? '#735DA3' : d.moodColor,
+        moodLabel: isSabbath ? 'Sabbath Rest' : (moodDetail?.label || (rec?.intensity ? 'Active Practice' : 'Rest Day')),
+        moodEmoji: isSabbath ? '🕊️' : (moodDetail?.emoji || '✦'),
+        moodColor: isSabbath ? '#735DA3' : (moodDetail?.color || '#37C6C2'),
         isSabbath,
-        intensity: d.intensity,
-      };
-    });
-  }, [pulseData.days, calendarRecords]);
+        intensity: rec?.intensity || 0,
+      });
+    }
 
-  // Aggregate weekly totals
+    return items;
+  }, [selectedPeriod, calendarRecords]);
+
+  // Keep selectedDayIndex in valid range when period shifts
+  useEffect(() => {
+    setSelectedDayIndex(chartData.length - 1);
+  }, [chartData.length]);
+
+  // Aggregate period totals
   const weeklyTotals = useMemo(() => {
     let totalMinutes = 0;
     let scriptureDays = 0;
@@ -189,14 +366,227 @@ export function WeeklyInsightChart({
       prayerDays,
       stillnessMinutes,
       journalDays,
-      avgMinsPerDay: Math.round(totalMinutes / 7),
+      avgMinsPerDay: Math.round(totalMinutes / selectedPeriod),
     };
-  }, [chartData]);
+  }, [chartData, selectedPeriod]);
 
   const selectedDayItem = chartData[selectedDayIndex] || chartData[chartData.length - 1];
 
   return (
     <div id="weekly-insight-chart-container" className="space-y-6">
+      {/* SUMMARY SECTION ABOVE THE WEEKLY INSIGHT CHART: HIGHLIGHTS MOST FREQUENT MOOD OVER SELECTED PERIOD */}
+      <section
+        id="weekly-insight-frequent-mood-summary"
+        aria-label="Most Frequent Mood Summary"
+        className="rounded-3xl bg-gradient-to-br from-[#1B1530] via-[#231A3E] to-[#122A33] p-6 sm:p-8 text-white shadow-xl border border-white/10 relative overflow-hidden"
+      >
+        {/* Subtle ambient light reflecting dominant mood color */}
+        <div
+          className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl pointer-events-none opacity-20 transition-all duration-700"
+          style={{ backgroundColor: moodSummary.topMood.color }}
+        />
+
+        {/* Section Header with Period Range and Period Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/10 relative z-10">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-extrabold uppercase tracking-widest text-[#37C6C2]">
+              <span>✦</span>
+              <span>Soul Atmosphere · Mood Summary</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-serif text-white mt-1.5">
+              Most Frequent Spiritual Mood
+            </h3>
+            <p className="text-xs text-[#C8BFDE] mt-0.5">
+              Highlighting your dominant soul state for{' '}
+              <span className="font-semibold text-white">{dateRangeLabel}</span> ({selectedPeriod} days).
+            </p>
+          </div>
+
+          {/* Period Selector Toggle */}
+          <div
+            id="insight-period-selector"
+            role="group"
+            aria-label="Select insight period"
+            className="flex items-center bg-white/10 p-1.5 rounded-2xl border border-white/15 self-start sm:self-auto shrink-0"
+          >
+            {([7, 14, 30] as const).map(period => (
+              <button
+                key={period}
+                id={`insight-period-btn-${period}`}
+                type="button"
+                onClick={() => setSelectedPeriod(period)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedPeriod === period
+                    ? 'bg-[#1FB6B0] text-[#082021] shadow-md'
+                    : 'text-[#C5BCD9] hover:text-white'
+                }`}
+                aria-pressed={selectedPeriod === period}
+              >
+                {period === 7 ? '7 Days' : period === 14 ? '14 Days' : '30 Days'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Highlight Grid: Top Mood Feature Card + Period Mood Distribution */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 relative z-10">
+          {/* Featured Dominant Mood Spotlight */}
+          <div
+            id="frequent-mood-spotlight-card"
+            className="lg:col-span-7 rounded-2xl p-5 sm:p-6 border transition-all duration-500 flex flex-col justify-between"
+            style={{
+              backgroundColor: `${moodSummary.topMood.color}14`,
+              borderColor: `${moodSummary.topMood.color}45`,
+            }}
+          >
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div
+                    id="frequent-mood-hero-emoji"
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-inner border shrink-0 transition-transform hover:scale-105 duration-300"
+                    style={{
+                      backgroundColor: `${moodSummary.topMood.color}25`,
+                      borderColor: `${moodSummary.topMood.color}65`,
+                    }}
+                  >
+                    <span>{moodSummary.topMood.emoji}</span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#A69DC0]">
+                        Top Soul Posture
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-bold text-white border border-white/15">
+                        <span>★</span> Most Frequent
+                      </span>
+                    </div>
+                    <h4
+                      id="frequent-mood-title"
+                      className="text-2xl sm:text-3xl font-serif font-bold mt-0.5 tracking-tight"
+                      style={{ color: moodSummary.topMood.color }}
+                    >
+                      {moodSummary.topMood.label}
+                    </h4>
+                  </div>
+                </div>
+
+                {/* Primary Metric Pill */}
+                <div className="sm:text-right">
+                  <span
+                    id="frequent-mood-frequency-badge"
+                    className="inline-flex flex-col items-start sm:items-end px-3.5 py-1.5 rounded-xl border font-bold text-xs shadow-sm"
+                    style={{
+                      backgroundColor: `${moodSummary.topMood.color}20`,
+                      borderColor: `${moodSummary.topMood.color}55`,
+                      color: moodSummary.topMood.color,
+                    }}
+                  >
+                    <span className="text-sm font-extrabold">
+                      {moodSummary.maxCount} of {selectedPeriod} days
+                    </span>
+                    <span className="text-[10px] opacity-85 font-medium">
+                      {moodSummary.periodPercentage}% of selected period
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Thoughtful Posture Insight */}
+              <p
+                id="frequent-mood-reflection"
+                className="text-xs sm:text-sm text-[#E2DCF0] mt-4 leading-relaxed font-sans"
+              >
+                {moodSummary.topMood.postureNote}
+              </p>
+            </div>
+
+            {/* Scripture Anchor Quote */}
+            <div
+              id="frequent-mood-scripture-anchor"
+              className="mt-5 pt-3.5 border-t border-white/10 flex items-start gap-2.5 rounded-xl bg-black/25 p-3.5"
+            >
+              <span className="text-xl leading-none select-none text-[#E3B15E]">“</span>
+              <div className="text-xs">
+                <p className="text-[#DCD4EE] italic">
+                  {moodSummary.topMood.scriptureText}
+                </p>
+                <p className="text-[11px] font-bold mt-1" style={{ color: moodSummary.topMood.color }}>
+                  — {moodSummary.topMood.scriptureRef}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Period Mood Distribution Column */}
+          <div
+            id="period-mood-distribution-card"
+            className="lg:col-span-5 rounded-2xl bg-black/25 border border-white/10 p-5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#C5BCD9]">
+                  Period Mood Balance
+                </span>
+                <span className="text-[11px] text-[#37C6C2] font-semibold">
+                  {moodSummary.totalLoggedDays} logged {moodSummary.totalLoggedDays === 1 ? 'day' : 'days'}
+                </span>
+              </div>
+
+              {/* Distribution rows */}
+              <div className="mt-3 space-y-2">
+                {moodSummary.distribution.map(item => (
+                  <div
+                    key={item.key}
+                    id={`mood-dist-row-${item.key}`}
+                    className={`p-2 rounded-xl transition-all ${
+                      item.isTop
+                        ? 'bg-white/10 border border-white/15 shadow-xs'
+                        : 'hover:bg-white/5 border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="flex items-center gap-1.5 font-medium text-white">
+                        <span>{item.detail.emoji}</span>
+                        <span style={{ color: item.isTop ? item.detail.color : '#EDE8F7' }}>
+                          {item.detail.label}
+                        </span>
+                        {item.isTop && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-sm bg-white/15 text-[#E3B15E]">
+                            Top
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className="text-[11px] font-bold"
+                        style={{ color: item.isTop ? item.detail.color : '#A69DC0' }}
+                      >
+                        {item.count}d <span className="font-normal opacity-70">({item.percentage}%)</span>
+                      </span>
+                    </div>
+
+                    <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${item.percentage}%`,
+                          backgroundColor: item.detail.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-white/10 text-[11px] text-[#A69DC0] flex items-center justify-between">
+              <span>Primary focus: <strong style={{ color: moodSummary.topMood.color }}>{moodSummary.topMood.label}</strong></span>
+              <span className="text-[#37C6C2] font-medium">Soul Trajectory</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Visual Chart Header Card */}
       <div className="rounded-3xl bg-gradient-to-r from-[#1C1633] via-[#241B42] to-[#13323B] p-6 sm:p-8 text-white shadow-xl border border-white/10">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-white/10">
@@ -206,10 +596,14 @@ export function WeeklyInsightChart({
               <span>Interactive Weekly Insights</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-serif text-white mt-1.5">
-              Seven-Day Spiritual Rhythm Chart
+              {selectedPeriod === 7
+                ? 'Seven-Day Spiritual Rhythm Chart'
+                : selectedPeriod === 14
+                ? 'Fourteen-Day Spiritual Rhythm Chart'
+                : 'Thirty-Day Spiritual Rhythm Chart'}
             </h3>
             <p className="text-xs text-[#C8BFDE] mt-0.5 max-w-xl">
-              Visualizing the balance between Word, Prayer, Quiet Abiding, and your soul’s emotional trajectory.
+              Visualizing the balance between Word, Prayer, Quiet Abiding, and your soul’s emotional trajectory over the past {selectedPeriod} days.
             </p>
           </div>
 
@@ -303,6 +697,7 @@ export function WeeklyInsightChart({
                     />
                     <XAxis
                       dataKey="dayShort"
+                      interval={selectedPeriod === 30 ? 3 : selectedPeriod === 14 ? 1 : 0}
                       tick={{ fill: '#C5BCD9', fontSize: 11 }}
                       tickLine={false}
                       axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
@@ -397,6 +792,7 @@ export function WeeklyInsightChart({
                     />
                     <XAxis
                       dataKey="dayShort"
+                      interval={selectedPeriod === 30 ? 3 : selectedPeriod === 14 ? 1 : 0}
                       tick={{ fill: '#C5BCD9', fontSize: 11 }}
                       tickLine={false}
                       axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
@@ -478,17 +874,17 @@ export function WeeklyInsightChart({
                       <span className="text-base">📖</span> Word of God (Scripture)
                     </span>
                     <span className="font-bold text-[#E3B15E]">
-                      {weeklyTotals.scriptureDays}/7 Days ({Math.round((weeklyTotals.scriptureDays / 7) * 100)}%)
+                      {weeklyTotals.scriptureDays}/{selectedPeriod} Days ({Math.round((weeklyTotals.scriptureDays / selectedPeriod) * 100)}%)
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
                     <div
                       className="h-full bg-[#E3B15E] rounded-full transition-all duration-500"
-                      style={{ width: `${(weeklyTotals.scriptureDays / 7) * 100}%` }}
+                      style={{ width: `${(weeklyTotals.scriptureDays / selectedPeriod) * 100}%` }}
                     />
                   </div>
                   <p className="mt-2 text-[11px] text-[#C5BCD9]">
-                    {weeklyTotals.scriptureDays >= 5
+                    {weeklyTotals.scriptureDays >= Math.round(selectedPeriod * 0.7)
                       ? 'Thriving in the Word: Strong daily biblical anchoring.'
                       : 'Room to deepen: Aim for 10 minutes of daily gospel abiding.'}
                   </p>
@@ -501,17 +897,17 @@ export function WeeklyInsightChart({
                       <span className="text-base">🙏</span> Prayer & Communion
                     </span>
                     <span className="font-bold text-[#37C6C2]">
-                      {weeklyTotals.prayerDays}/7 Days ({Math.round((weeklyTotals.prayerDays / 7) * 100)}%)
+                      {weeklyTotals.prayerDays}/{selectedPeriod} Days ({Math.round((weeklyTotals.prayerDays / selectedPeriod) * 100)}%)
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
                     <div
                       className="h-full bg-[#37C6C2] rounded-full transition-all duration-500"
-                      style={{ width: `${(weeklyTotals.prayerDays / 7) * 100}%` }}
+                      style={{ width: `${(weeklyTotals.prayerDays / selectedPeriod) * 100}%` }}
                     />
                   </div>
                   <p className="mt-2 text-[11px] text-[#C5BCD9]">
-                    {weeklyTotals.prayerDays >= 5
+                    {weeklyTotals.prayerDays >= Math.round(selectedPeriod * 0.7)
                       ? 'Continual prayer: Heart aligned in active fellowship.'
                       : 'Invite God into daily decisions through short breath prayers.'}
                   </p>
@@ -530,7 +926,7 @@ export function WeeklyInsightChart({
                   <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
                     <div
                       className="h-full bg-[#9D88CA] rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min(100, (weeklyTotals.stillnessMinutes / 60) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (weeklyTotals.stillnessMinutes / (selectedPeriod * 10)) * 100)}%` }}
                     />
                   </div>
                   <p className="mt-2 text-[11px] text-[#C5BCD9]">
@@ -545,13 +941,13 @@ export function WeeklyInsightChart({
                       <span className="text-base">✍️</span> Soul Journaling
                     </span>
                     <span className="font-bold text-[#1FB6B0]">
-                      {weeklyTotals.journalDays}/7 Days ({Math.round((weeklyTotals.journalDays / 7) * 100)}%)
+                      {weeklyTotals.journalDays}/{selectedPeriod} Days ({Math.round((weeklyTotals.journalDays / selectedPeriod) * 100)}%)
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-white/15 overflow-hidden">
                     <div
                       className="h-full bg-[#1FB6B0] rounded-full transition-all duration-500"
-                      style={{ width: `${(weeklyTotals.journalDays / 7) * 100}%` }}
+                      style={{ width: `${(weeklyTotals.journalDays / selectedPeriod) * 100}%` }}
                     />
                   </div>
                   <p className="mt-2 text-[11px] text-[#C5BCD9]">
@@ -589,7 +985,7 @@ export function WeeklyInsightChart({
         )}
       </div>
 
-      {/* 4 Weekly Vitality Summary Metrics */}
+      {/* 4 Vitality Summary Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <div className="p-4 rounded-3xl bg-white border border-gray-200/80 shadow-xs">
           <span className="text-2xl block">⏱️</span>
@@ -607,26 +1003,26 @@ export function WeeklyInsightChart({
         <div className="p-4 rounded-3xl bg-white border border-gray-200/80 shadow-xs">
           <span className="text-2xl block">🌱</span>
           <span className="text-2xl font-serif font-bold text-[#1E1931] mt-1 block">
-            {pulseData.consistencyRate}%
+            {Math.round((chartData.filter(d => d.totalMins > 0).length / selectedPeriod) * 100)}%
           </span>
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#706782]">
-            Weekly Consistency
+            {selectedPeriod}-Day Consistency
           </span>
           <span className="text-[10px] text-[#37C6C2] font-semibold block mt-0.5">
-            {pulseData.totalCheckIns} of 7 days engaged
+            {chartData.filter(d => d.totalMins > 0).length} of {selectedPeriod} days engaged
           </span>
         </div>
 
         <div className="p-4 rounded-3xl bg-white border border-gray-200/80 shadow-xs">
-          <span className="text-2xl block">{pulseData.dominantMood.emoji}</span>
+          <span className="text-2xl block">{moodSummary.topMood.emoji}</span>
           <span className="text-2xl font-serif font-bold text-[#1E1931] mt-1 block truncate">
-            {pulseData.dominantMood.label}
+            {moodSummary.topMood.label}
           </span>
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#706782]">
             Dominant Soul Posture
           </span>
           <span className="text-[10px] text-[#E3B15E] font-semibold block mt-0.5">
-            {pulseData.dominantMood.percentage}% of weekly focus
+            {moodSummary.periodPercentage}% of {selectedPeriod}-day period
           </span>
         </div>
 
