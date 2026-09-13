@@ -173,10 +173,12 @@ export function StreakGamificationCard({
     const bonusPoints = 100;
     const newTotal = gracePoints + bonusPoints;
     onUpdateGracePoints(newTotal);
+    setGraceShields(prev => Math.min(3, prev + 1));
 
     if (typeof window !== 'undefined') {
       localStorage.setItem('lifebook.claimedMilestones', JSON.stringify(newClaimed));
       localStorage.setItem('lifebook.gracePoints', String(newTotal));
+      localStorage.setItem('lifebook.graceShields', String(Math.min(3, graceShields + 1)));
     }
 
     setCelebratingMilestone(m);

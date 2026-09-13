@@ -5,16 +5,13 @@ import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
 import type { PulseDaySummary, SpiritualPulseData } from '../app/api/spiritual-pulse/send/route';
 import { BurnoutPreventionCard } from './BurnoutPreventionCard';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ReferenceLine,
-} from 'recharts';
+import { DynamicMoodJournal } from './DynamicMoodJournal';
+import type { JournalEntry } from './DynamicMoodJournal';
+import { WeeklyInsightChart } from './WeeklyInsightChart';
+import { StreakGamificationCard, SPIRITUAL_LEVELS } from './StreakGamificationCard';
+import { MoodTrendsAnalytics } from './MoodTrendsAnalytics';
+
+export type { JournalEntry };
 
 function useIsMounted() {
   return useSyncExternalStore(
@@ -159,12 +156,6 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
   },
 ];
 
-export interface JournalEntry {
-  id: string;
-  text: string;
-  date: string;
-}
-
 export interface FavoriteVerse {
   id: string;
   verseText: string;
@@ -270,96 +261,49 @@ const DEFAULT_BADGES: Badge[] = [
 ];
 
 const DEFAULT_JOURNAL: JournalEntry[] = [
-  { id: 'j1', date: 'Yesterday', text: '“The Lord is my shepherd, I shall not want.” Learning to let go of the pressure to control tomorrow and simply rest in His goodness.' },
-  { id: 'j2', date: '3 days ago', text: 'Felt unsettled in the morning, but sitting quietly with Psalm 46:10 reminded me that being still before God is not wasted time.' },
-  { id: 'j3', date: 'Last week', text: 'Thankful for clarity on how to respond with patience rather than frustration at work. Small grace, big difference.' },
+  {
+    id: 'j1',
+    date: 'Yesterday · 8:30 AM',
+    timestamp: Date.now() - 86400000,
+    text: '“The Lord is my shepherd, I shall not want.” Learning to let go of the pressure to control tomorrow and simply rest in His goodness and sovereign providence.',
+    mood: 'peaceful',
+    moodEmoji: '🕊',
+    moodLabel: 'Peaceful',
+    moodColor: '#37C6C2',
+    scriptureRef: 'Psalm 23:1-3',
+    scriptureSnippet: 'He restores my soul. He leads me in paths of righteousness for his name’s sake.',
+    tags: ['#Peace', '#Surrender', '#Abiding'],
+    isFavorite: true,
+  },
+  {
+    id: 'j2',
+    date: '3 days ago · 7:15 AM',
+    timestamp: Date.now() - 3 * 86400000,
+    text: 'Felt unsettled in the morning with deadlines, but sitting quietly with Psalm 46:10 reminded me that being still before God is never wasted time.',
+    mood: 'grateful',
+    moodEmoji: '🙏',
+    moodLabel: 'Grateful',
+    moodColor: '#E3B15E',
+    scriptureRef: 'Psalm 46:10',
+    scriptureSnippet: 'Be still, and know that I am God.',
+    tags: ['#Gratitude', '#Stillness'],
+    isFavorite: false,
+  },
+  {
+    id: 'j3',
+    date: '5 days ago · 9:40 PM',
+    timestamp: Date.now() - 5 * 86400000,
+    text: 'Wrestling with direction for my work this season. Asking for wisdom from above and trusting His guidance step-by-step.',
+    mood: 'seeking',
+    moodEmoji: '🔍',
+    moodLabel: 'Seeking',
+    moodColor: '#7B62B8',
+    scriptureRef: 'Proverbs 3:5-6',
+    scriptureSnippet: 'Trust in the Lord with all your heart, and do not lean on your own understanding.',
+    tags: ['#SeekingWisdom', '#Discernment'],
+    isFavorite: true,
+  },
 ];
-
-const DEFAULT_FAVORITES: FavoriteVerse[] = [
-  { id: 'v1', verseText: 'He restores my soul. He leads me in paths of righteousness for his name’s sake.', verseReference: 'Psalm 23:3' },
-  { id: 'v2', verseText: 'Come to me, all who labor and are heavy laden, and I will give you rest.', verseReference: 'Matthew 11:28' },
-  { id: 'v3', verseText: 'Abide in me, and I in you. As the branch cannot bear fruit by itself, unless it abides in the vine, neither can you, unless you abide in me.', verseReference: 'John 15:4' },
-];
-
-interface TooltipPayloadData {
-  date: string;
-  dayLabel: string;
-  mood: MoodItem['id'] | null;
-  moodLevel: number | null;
-  moodLabel: string;
-  emoji: string;
-  desc: string;
-  color: string;
-}
-
-interface CustomChartTooltipProps {
-  active?: boolean;
-  payload?: Array<{ payload: TooltipPayloadData }>;
-}
-
-function CustomChartTooltip({ active, payload }: CustomChartTooltipProps) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    if (data.moodLevel == null) {
-      return (
-        <div
-          id="chart-tooltip-empty"
-          className="rounded-xl border border-white/20 bg-[#1E1835] p-3 text-xs text-white shadow-2xl"
-        >
-          <p className="font-medium text-[#A69DC0]">{data.dayLabel} ({data.date})</p>
-          <p className="mt-1 text-sm text-gray-400 italic">No check-in recorded</p>
-        </div>
-      );
-    }
-    return (
-      <div
-        id="chart-tooltip"
-        className="rounded-xl border border-white/20 bg-[#1E1835] p-3 text-xs text-white shadow-2xl min-w-[170px]"
-      >
-        <p className="font-medium text-[#A69DC0]">{data.dayLabel} ({data.date})</p>
-        <div className="mt-1 flex items-center gap-2">
-          <span className="text-lg">{data.emoji}</span>
-          <span className="text-sm font-bold" style={{ color: data.color }}>
-            {data.moodLabel}
-          </span>
-        </div>
-        <p className="mt-1 text-[11px] text-[#C5BCD9] leading-tight">{data.desc}</p>
-        <div className="mt-2 pt-2 border-t border-white/10 flex justify-between text-[10px] text-[#8E84A6]">
-          <span>Spiritual index:</span>
-          <span className="font-semibold text-white">{data.moodLevel} / 6</span>
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
-interface CustomLineDotProps {
-  cx?: number;
-  cy?: number;
-  payload?: {
-    date: string;
-    moodLevel: number | null;
-    color?: string;
-  };
-}
-
-function CustomLineDot(props: CustomLineDotProps) {
-  const { cx, cy, payload } = props;
-  if (!payload || payload.moodLevel == null || cx == null || cy == null) return null;
-  return (
-    <circle
-      key={payload.date}
-      cx={cx}
-      cy={cy}
-      r={5}
-      fill={payload.color || '#1FB6B0'}
-      stroke="#17132B"
-      strokeWidth={2}
-      className="cursor-pointer transition-all hover:r-7"
-    />
-  );
-}
 
 // Intensity styling helpers
 const INTENSITY_COLORS = [
@@ -371,11 +315,10 @@ const INTENSITY_COLORS = [
 ];
 
 export function ProgressScreen({ deviceId }: { deviceId?: string }) {
-  const isMounted = useIsMounted();
+  useIsMounted();
   const { user } = useUser();
   const [tab, setTab] = useState<'calendar' | 'milestones' | 'trends' | 'journal' | 'pulse'>('calendar');
   const [selectedMilestone, setSelectedMilestone] = useState<StreakMilestone | null>(null);
-  const [milestoneFilter, setMilestoneFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
 
   // Weekly Spiritual Pulse email state
   const defaultUserEmail = user?.primaryEmailAddress?.emailAddress || 'asketfranckolivieralex@gmail.com';
@@ -426,7 +369,7 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     return generateDefaultCalendarRecords();
   });
 
-  const [badges, setBadges] = useState<Badge[]>(() => {
+  const [, setBadges] = useState<Badge[]>(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('lifebook.badges');
@@ -461,10 +404,6 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     }
     return DEFAULT_JOURNAL;
   });
-
-  const [favorites] = useState<FavoriteVerse[]>(DEFAULT_FAVORITES);
-  const [newEntryText, setNewEntryText] = useState('');
-  const [selectedMoodFilter, setSelectedMoodFilter] = useState<string | null>(null);
 
   // Calculate current active streak dynamically (Sabbath Rest explicitly preserves continuous streak)
   const { currentStreak, longestStreak, activeStreakDates } = useMemo(() => {
@@ -529,15 +468,6 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     if (!nextMilestone) return 0;
     return Math.max(0, nextMilestone.days - currentStreak);
   }, [currentStreak, nextMilestone]);
-
-  const filteredMilestones = useMemo(() => {
-    return STREAK_MILESTONES.filter(m => {
-      const isUnlocked = currentStreak >= m.days || longestStreak >= m.days;
-      if (milestoneFilter === 'unlocked') return isUnlocked;
-      if (milestoneFilter === 'locked') return !isUnlocked;
-      return true;
-    });
-  }, [milestoneFilter, currentStreak, longestStreak]);
 
   // Seven-Day Spiritual Pulse calculation (mood patterns, milestones, practices, scripture)
   const weeklyPulseData = useMemo<SpiritualPulseData>(() => {
@@ -724,31 +654,6 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     }
   }
 
-  // Transform past 30 days for the Recharts line chart
-  const chartData = useMemo(() => {
-    const list = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
-      const dayLabel = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      const rec = calendarRecords[dateStr];
-      const moodObj = rec?.mood ? MOOD_MAP[rec.mood] : null;
-      list.push({
-        date: dateStr,
-        dayLabel,
-        mood: rec?.mood || null,
-        moodLevel: moodObj ? moodObj.level : (rec && rec.intensity > 0 ? Math.min(6, rec.intensity + 2) : null),
-        moodLabel: moodObj ? moodObj.label : (rec && rec.intensity > 0 ? 'Practiced' : 'No check-in'),
-        emoji: moodObj ? moodObj.emoji : (rec && rec.intensity > 0 ? '✨' : ''),
-        desc: moodObj ? moodObj.desc : (rec && rec.intensity > 0 ? 'Devotional practice completed' : ''),
-        color: moodObj ? moodObj.color : '#1FB6B0',
-        intensity: rec?.intensity || 0,
-      });
-    }
-    return list;
-  }, [calendarRecords]);
-
   // Calendar month matrix builder
   const calendarGrid = useMemo(() => {
     const year = calendarViewDate.getFullYear();
@@ -890,22 +795,6 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     }
   }
 
-  // Handle adding journal entry
-  function handleAddJournal(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newEntryText.trim()) return;
-    const newEntry: JournalEntry = {
-      id: 'j_' + Date.now(),
-      date: 'Just now',
-      text: newEntryText.trim(),
-    };
-    setJournal([newEntry, ...journal]);
-
-    // Also mark journalWritten for today
-    togglePractice('journalWritten');
-    setNewEntryText('');
-  }
-
   // Handle honoring intentional Sabbath Day rest: safeguards streak, awards +50 grace points & badge
   function handleHonorSabbath(targetDateStr?: string) {
     const target = targetDateStr || todayStr;
@@ -984,6 +873,127 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
       localStorage.setItem('lifebook.calendar.streakHistory', JSON.stringify(newMap));
     }
   }
+
+  // Handle adding an enriched journal entry from DynamicMoodJournal
+  function handleAddJournalEntry(newEntry: JournalEntry) {
+    const nextJournal = [newEntry, ...journal];
+    setJournal(nextJournal);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.journal', JSON.stringify(nextJournal));
+    }
+
+    // Award +20 Grace Points
+    const nextPoints = gracePoints + 20;
+    setGracePoints(nextPoints);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.gracePoints', String(nextPoints));
+    }
+
+    // Also update today's calendar record
+    const existing = calendarRecords[todayStr] || {
+      date: todayStr,
+      dayLabel: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      mood: null,
+      intensity: 0,
+      scriptureRead: false,
+      prayerCompleted: false,
+      stillnessPractice: false,
+      journalWritten: false,
+    };
+
+    const entryMood = (newEntry.mood && newEntry.mood !== 'sabbath') ? (newEntry.mood as MoodItem['id']) : existing.mood;
+    const updated: DayActivityRecord = {
+      ...existing,
+      journalWritten: true,
+      mood: entryMood,
+      isSabbathRest: newEntry.mood === 'sabbath' ? true : existing.isSabbathRest,
+      intensity: Math.max(1, Math.min(4, (existing.intensity || 0) + 1)),
+      reflectionSnippet: newEntry.text.slice(0, 120),
+      scriptureRef: newEntry.scriptureRef || existing.scriptureRef,
+    };
+
+    const newMap = {
+      ...calendarRecords,
+      [todayStr]: updated,
+    };
+    setCalendarRecords(newMap);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.calendar.streakHistory', JSON.stringify(newMap));
+    }
+  }
+
+  function handleDeleteJournalEntry(id: string) {
+    const nextJournal = journal.filter(j => j.id !== id);
+    setJournal(nextJournal);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.journal', JSON.stringify(nextJournal));
+    }
+  }
+
+  function handleToggleFavoriteJournal(id: string) {
+    const nextJournal = journal.map(j => (j.id === id ? { ...j, isFavorite: !j.isFavorite } : j));
+    setJournal(nextJournal);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.journal', JSON.stringify(nextJournal));
+    }
+  }
+
+  function handleUpdateGracePoints(newPoints: number) {
+    setGracePoints(newPoints);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.gracePoints', String(newPoints));
+    }
+  }
+
+  function toggleTodayPractice(key: 'scriptureRead' | 'prayerCompleted' | 'journalWritten') {
+    const existing = calendarRecords[todayStr] || {
+      date: todayStr,
+      dayLabel: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      mood: null,
+      intensity: 0,
+      scriptureRead: false,
+      prayerCompleted: false,
+      stillnessPractice: false,
+      journalWritten: false,
+    };
+
+    const updated = {
+      ...existing,
+      [key]: !existing[key],
+    };
+
+    let score = 0;
+    if (updated.scriptureRead) score++;
+    if (updated.prayerCompleted) score++;
+    if (updated.stillnessPractice) score++;
+    if (updated.journalWritten) score++;
+    if (updated.mood && score === 0) score = 1;
+    updated.intensity = Math.min(4, score);
+
+    const newMap = {
+      ...calendarRecords,
+      [todayStr]: updated,
+    };
+    setCalendarRecords(newMap);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.calendar.streakHistory', JSON.stringify(newMap));
+    }
+
+    if (updated[key]) {
+      const pts = key === 'journalWritten' ? 20 : 10;
+      handleUpdateGracePoints(gracePoints + pts);
+    }
+  }
+
+  // Current spiritual level calculation for top cards
+  const currentLevelNumber = useMemo(() => {
+    for (let i = SPIRITUAL_LEVELS.length - 1; i >= 0; i--) {
+      if (gracePoints >= SPIRITUAL_LEVELS[i].minPoints) {
+        return SPIRITUAL_LEVELS[i].level;
+      }
+    }
+    return 1;
+  }, [gracePoints]);
 
   // Monthly stats
   const currentMonthCells = calendarGrid.filter(c => c.isCurrentMonth);
@@ -1095,6 +1105,108 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             <span>🕊️</span>
             <span>Weekly Pulse</span>
           </button>
+        </div>
+      </div>
+
+      {/* STAGGERED FADE-IN STREAK COUNTER CARDS */}
+      <div id="streak-counter-cards-grid" className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 0: Current Streak */}
+        <div
+          id="streak-card-current"
+          className="streak-card-stagger streak-card-delay-0 rounded-3xl bg-gradient-to-br from-[#271E44] to-[#17132B] p-5 sm:p-6 text-white border border-white/10 shadow-lg flex flex-col justify-between relative overflow-hidden group hover:border-[#1FB6B0]/50 transition-all"
+        >
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-[#1FB6B0]/10 blur-xl group-hover:bg-[#1FB6B0]/25 transition-all" />
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-2xl">🔥</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#1FB6B0]/20 text-[#37C6C2] border border-[#1FB6B0]/30">
+                Active Streak
+              </span>
+            </div>
+            <div className="mt-3">
+              <span className="text-3xl sm:text-4xl font-bold font-serif text-white">
+                {currentStreak}
+              </span>
+              <span className="text-sm text-[#C5BCD9] font-serif ml-1.5">Days</span>
+            </div>
+          </div>
+          <p className="mt-2 text-[11px] text-[#A69BBF] line-clamp-1">
+            {currentStreak > 0 ? 'Unbroken walk with Jesus' : 'Start your day 1 check-in'}
+          </p>
+        </div>
+
+        {/* Card 1: Longest Record */}
+        <div
+          id="streak-card-longest"
+          className="streak-card-stagger streak-card-delay-1 rounded-3xl bg-gradient-to-br from-[#FAF8FC] to-[#F1ECF8] p-5 sm:p-6 text-[#1E1931] border border-[#D9CEEE] shadow-sm flex flex-col justify-between hover:border-[#9B88CA] transition-all"
+        >
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-2xl">👑</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#E3B15E]/20 text-[#8A5B0B] border border-[#E3B15E]/30">
+                Personal Best
+              </span>
+            </div>
+            <div className="mt-3">
+              <span className="text-3xl sm:text-4xl font-bold font-serif text-[#1E1931]">
+                {longestStreak}
+              </span>
+              <span className="text-sm text-[#705E8C] font-serif ml-1.5">Days</span>
+            </div>
+          </div>
+          <p className="mt-2 text-[11px] text-[#706782] line-clamp-1">
+            Longest consecutive walk
+          </p>
+        </div>
+
+        {/* Card 2: 30-Day Consistency */}
+        <div
+          id="streak-card-consistency"
+          className="streak-card-stagger streak-card-delay-2 rounded-3xl bg-gradient-to-br from-[#F4FAF8] to-[#E5F5F3] p-5 sm:p-6 text-[#122423] border border-[#BDE8E4] shadow-sm flex flex-col justify-between hover:border-[#1FB6B0] transition-all"
+        >
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-2xl">🌱</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#1FB6B0]/20 text-[#0F7571] border border-[#1FB6B0]/30">
+                Consistency
+              </span>
+            </div>
+            <div className="mt-3">
+              <span className="text-3xl sm:text-4xl font-bold font-serif text-[#0B4B48]">
+                {consistencyRate}%
+              </span>
+              <span className="text-xs text-[#0F7571] ml-1.5 font-medium">({activeDaysThisMonth}d)</span>
+            </div>
+          </div>
+          <p className="mt-2 text-[11px] text-[#4E7673] line-clamp-1">
+            Active days this month
+          </p>
+        </div>
+
+        {/* Card 3: Grace Points & Spiritual Level */}
+        <div
+          id="streak-card-grace-points"
+          onClick={() => setTab('milestones')}
+          className="streak-card-stagger streak-card-delay-3 rounded-3xl bg-gradient-to-br from-[#FFFDF7] to-[#F7EED5] p-5 sm:p-6 text-[#2B2313] border border-[#E8CB72] shadow-sm flex flex-col justify-between cursor-pointer hover:border-[#D9AE36] hover:shadow-md transition-all group"
+        >
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-2xl">🌟</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#E3B15E]/20 text-[#7C5A14] border border-[#E3B15E]/40 group-hover:bg-[#E3B15E] group-hover:text-white transition-all">
+                Level {currentLevelNumber} ✦
+              </span>
+            </div>
+            <div className="mt-3">
+              <span className="text-3xl sm:text-4xl font-bold font-serif text-[#3D2C0C]">
+                {gracePoints}
+              </span>
+              <span className="text-sm text-[#8A7539] font-serif ml-1.5">GP</span>
+            </div>
+          </div>
+          <p className="mt-2 text-[11px] text-[#7B6E4A] font-medium flex items-center justify-between">
+            <span>Gamification Cabinet</span>
+            <span className="text-xs group-hover:translate-x-0.5 transition-transform">→</span>
+          </p>
         </div>
       </div>
 
@@ -1685,620 +1797,47 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
               </div>
             </div>
           </section>
-
-          {/* GAMIFIED CONSECUTIVE STREAK MILESTONES CARD */}
-          <section id="streak-milestones-card" className="rounded-3xl bg-white p-6 sm:p-8 border border-gray-200/80 shadow-sm">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#705E8C]">Milestones</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#EBDD78]/40 text-[#694E09] border border-[#E8CB72]/60">
-                    Streak Records
-                  </span>
-                </div>
-                <h4 className="text-2xl sm:text-3xl font-serif text-[#1E1931] mt-0.5">Consecutive Streak Badges</h4>
-                <p className="text-xs text-[#706782] mt-1 max-w-xl">
-                  Gamify your spiritual journey with commemorative badges earned for consecutive daily records of Scripture, prayer, and quiet abiding.
-                </p>
-              </div>
-
-              {/* Unlocked Counter Pill */}
-              <div className="flex items-center gap-2">
-                <div className="px-4 py-2 rounded-2xl bg-[#FAF7F2] border border-[#E6E0D4] text-xs font-bold text-[#55492F] flex items-center gap-2 shadow-xs">
-                  <span className="text-base">🏆</span>
-                  <span>{unlockedMilestonesCount} of {STREAK_MILESTONES.length} Badges Unlocked</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Next Milestone Gamification Progress Banner */}
-            {nextMilestone && (
-              <div id="next-milestone-banner" className="mt-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#211B3B] via-[#2D234F] to-[#1E3E4B] text-white shadow-md">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-13 h-13 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-3xl shadow-inner shrink-0">
-                      {nextMilestone.icon}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#37C6C2]">
-                          Next Upcoming Milestone
-                        </span>
-                        <span className="text-[10px] text-[#C5BCD9]">· {nextMilestone.tier}</span>
-                      </div>
-                      <h5 className="text-lg sm:text-xl font-serif font-bold text-white mt-0.5">
-                        {nextMilestone.title} ({nextMilestone.days} Consecutive Days)
-                      </h5>
-                    </div>
-                  </div>
-
-                  <div className="sm:text-right shrink-0">
-                    <span className="text-2xl font-bold font-serif text-[#E3B15E]">
-                      {nextMilestoneDaysLeft} days
-                    </span>
-                    <span className="text-xs text-[#C5BCD9] block sm:inline"> to unlock</span>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs text-[#C5BCD9] mb-1.5 font-medium">
-                    <span>Current Streak: <strong className="text-white">{currentStreak} days</strong></span>
-                    <span>{nextMilestoneProgress}% completed ({currentStreak}/{nextMilestone.days}d)</span>
-                  </div>
-                  <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden p-0.5 border border-white/15">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#1FB6B0] via-[#37C6C2] to-[#E3B15E] transition-all duration-500 shadow-sm"
-                      style={{ width: `${nextMilestoneProgress}%` }}
-                    />
-                  </div>
-                  <p className="mt-2.5 text-xs text-[#EAE5F3] italic flex items-center gap-1.5">
-                    <span>🔥</span>
-                    <span>“{nextMilestone.scripture}”</span>
-                    <strong className="text-[#37C6C2] not-italic">— {nextMilestone.scriptureRef}</strong>
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Filter Pills */}
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5">
-                {(['all', 'unlocked', 'locked'] as const).map(f => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setMilestoneFilter(f)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold capitalize transition-all ${
-                      milestoneFilter === f
-                        ? 'bg-[#2A2146] text-white shadow-xs'
-                        : 'bg-gray-100 text-[#554A70] hover:bg-gray-200'
-                    }`}
-                  >
-                    {f === 'all'
-                      ? `All Badges (${STREAK_MILESTONES.length})`
-                      : f === 'unlocked'
-                      ? `Unlocked (${unlockedMilestonesCount})`
-                      : `Locked (${STREAK_MILESTONES.length - unlockedMilestonesCount})`}
-                  </button>
-                ))}
-              </div>
-              <span className="text-xs text-[#8A7DAD]">
-                Click any badge to view Scripture & reflections
-              </span>
-            </div>
-
-            {/* Grid of Streak Milestone Badges */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredMilestones.map(m => {
-                const isUnlocked = currentStreak >= m.days || longestStreak >= m.days;
-                const progress = Math.min(100, Math.round((currentStreak / m.days) * 100));
-                const daysRemaining = Math.max(0, m.days - currentStreak);
-
-                return (
-                  <div
-                    key={m.id}
-                    id={`milestone-badge-${m.days}`}
-                    onClick={() => setSelectedMilestone(m)}
-                    className={`group relative p-5 rounded-2xl border transition-all cursor-pointer ${
-                      isUnlocked
-                        ? 'bg-gradient-to-br from-[#FAF9F5] via-white to-[#F5EFE3] border-[#E2D5BE] hover:shadow-md hover:border-[#D0BF9D]'
-                        : 'bg-gray-50/70 border-gray-200/80 hover:border-gray-300 opacity-75 hover:opacity-100'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      {/* Medallion Badge Icon */}
-                      <div
-                        className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 transition-transform group-hover:scale-105 shadow-sm border ${
-                          isUnlocked
-                            ? 'bg-gradient-to-br from-white to-[#FFF6E3] border-[#E8CB72] shadow-md ring-2 ring-[#E8CB72]/30'
-                            : 'bg-gray-100 border-gray-200 text-gray-400 grayscale'
-                        }`}
-                      >
-                        {m.icon}
-                      </div>
-
-                      {/* Status Pill */}
-                      <div>
-                        {isUnlocked ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#1FB6B0]/15 text-[#0F7571] border border-[#1FB6B0]/30 shadow-2xs">
-                            <span>✓</span> Unlocked
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200">
-                            <span>🔒</span> {daysRemaining}d left
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A7539]">
-                          {m.tier}
-                        </span>
-                        <span className="text-[10px] text-gray-400">·</span>
-                        <span className="text-[10px] font-bold text-[#1FB6B0]">
-                          {m.days} Days Streak
-                        </span>
-                      </div>
-                      <h5 className="text-base font-bold font-serif text-[#1E1931] mt-0.5 group-hover:text-[#189C97] transition-colors">
-                        {m.title}
-                      </h5>
-                      <p className="text-xs text-[#706782] mt-1 leading-relaxed line-clamp-2">
-                        {m.description}
-                      </p>
-                    </div>
-
-                    {/* Progress Bar inside Card */}
-                    <div className="mt-4 pt-3 border-t border-gray-100">
-                      <div className="flex justify-between text-[11px] mb-1 font-medium">
-                        <span className="text-gray-500">
-                          {isUnlocked ? 'Record achieved' : `${currentStreak} / ${m.days} days`}
-                        </span>
-                        <span className={`font-bold ${isUnlocked ? 'text-[#1FB6B0]' : 'text-[#8A7539]'}`}>
-                          {progress}%
-                        </span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            isUnlocked ? 'bg-[#1FB6B0]' : 'bg-[#E3B15E]'
-                          }`}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Faith Stepping Stones (Secondary Badges) */}
-            <div className="mt-8 pt-6 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#705E8C]">Spiritual Journey</span>
-                  <h5 className="text-lg font-serif text-[#1E1931] mt-0.5">Faith Practice Stepping Stones</h5>
-                </div>
-                <span className="text-xs text-[#706782]">
-                  {badges.filter(b => b.earned).length} of {badges.length} unlocked
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {badges.map(b => (
-                  <div
-                    key={b.id}
-                    className={`flex items-start gap-3 p-3.5 rounded-2xl border transition-all ${
-                      b.earned
-                        ? 'bg-[#F9F7FD] border-[#D6CAED]'
-                        : 'bg-gray-50/70 border-gray-200 opacity-60'
-                    }`}
-                  >
-                    <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 ${
-                        b.earned ? 'bg-[#EBDD78]/40 text-[#6B5A10]' : 'bg-gray-200 text-gray-400'
-                      }`}
-                    >
-                      {b.icon}
-                    </div>
-                    <div>
-                      <h6 className="text-xs font-bold text-[#1E1931]">{b.title}</h6>
-                      <p className="text-[11px] text-[#706782] mt-0.5 leading-relaxed">{b.description}</p>
-                      <span className={`inline-block mt-1.5 text-[9px] font-bold uppercase tracking-wider ${b.earned ? 'text-[#1FB6B0]' : 'text-gray-400'}`}>
-                        {b.earned ? '✓ Unlocked' : 'In Progress'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
         </div>
       )}
 
-      {/* DEDICATED TAB: MILESTONES SHOWCASE */}
+      {/* TAB 2: MILESTONES & STREAK GAMIFICATION */}
       {tab === 'milestones' && (
-        <div className="mt-8 space-y-8">
-          <section id="dedicated-milestones-view" className="rounded-3xl bg-white p-6 sm:p-8 border border-gray-200/80 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#705E8C]">Trophy Cabinet</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1FB6B0]/15 text-[#0F7571] border border-[#1FB6B0]/30">
-                    Consecutive Records
-                  </span>
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-serif text-[#1E1931] mt-0.5">Consecutive Streak Milestones</h3>
-                <p className="text-xs text-[#706782] mt-1 max-w-xl">
-                  Every day of quiet prayer, Scripture, and stillness builds spiritual resilience. Earn badge records for 7, 30, and 100 consecutive days of devotion.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="px-4 py-2 rounded-2xl bg-[#211B3B] text-white text-xs font-bold flex items-center gap-2 shadow-sm">
-                  <span>🔥</span>
-                  <span>Active Streak: {currentStreak} Days</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Next Milestone Hero */}
-            {nextMilestone && (
-              <div className="mt-6 p-6 rounded-3xl bg-gradient-to-r from-[#211B3B] via-[#2A1F4A] to-[#16424D] text-white shadow-xl">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#E3B15E] to-[#F28C38] flex items-center justify-center text-3xl shadow-lg shrink-0 text-white">
-                      {nextMilestone.icon}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#37C6C2]">
-                          Next Trophy Goal
-                        </span>
-                        <span className="text-xs text-[#C5BCD9]">· {nextMilestone.tier}</span>
-                      </div>
-                      <h4 className="text-xl sm:text-2xl font-serif font-bold text-white mt-0.5">
-                        {nextMilestone.title} ({nextMilestone.days} Consecutive Days)
-                      </h4>
-                      <p className="text-xs text-[#DCD4EB] mt-1 max-w-lg">
-                        {nextMilestone.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white/10 p-4 rounded-2xl border border-white/10 text-center shrink-0">
-                    <span className="text-xs uppercase font-semibold text-[#B6ABCF]">Remaining</span>
-                    <p className="text-2xl font-bold font-serif text-[#E3B15E] mt-0.5">
-                      {nextMilestoneDaysLeft} Days
-                    </p>
-                    <span className="text-[11px] text-[#37C6C2] font-semibold">{nextMilestoneProgress}% done</span>
-                  </div>
-                </div>
-
-                <div className="mt-5 pt-4 border-t border-white/10">
-                  <div className="flex justify-between text-xs text-[#C5BCD9] mb-1.5">
-                    <span>Progress to {nextMilestone.days} days</span>
-                    <span>{currentStreak} of {nextMilestone.days} days completed</span>
-                  </div>
-                  <div className="w-full h-3 rounded-full bg-white/10 overflow-hidden p-0.5 border border-white/10">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#1FB6B0] via-[#37C6C2] to-[#E3B15E] transition-all duration-500 shadow-sm"
-                      style={{ width: `${nextMilestoneProgress}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Filter pills */}
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5">
-                {(['all', 'unlocked', 'locked'] as const).map(f => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setMilestoneFilter(f)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold capitalize transition-all ${
-                      milestoneFilter === f
-                        ? 'bg-[#2A2146] text-white shadow-xs'
-                        : 'bg-gray-100 text-[#554A70] hover:bg-gray-200'
-                    }`}
-                  >
-                    {f === 'all'
-                      ? `All Milestones (${STREAK_MILESTONES.length})`
-                      : f === 'unlocked'
-                      ? `Unlocked (${unlockedMilestonesCount})`
-                      : `Locked (${STREAK_MILESTONES.length - unlockedMilestonesCount})`}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Badges List */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredMilestones.map(m => {
-                const isUnlocked = currentStreak >= m.days || longestStreak >= m.days;
-                const progress = Math.min(100, Math.round((currentStreak / m.days) * 100));
-                const daysRemaining = Math.max(0, m.days - currentStreak);
-
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => setSelectedMilestone(m)}
-                    className={`p-5 rounded-2xl border transition-all cursor-pointer ${
-                      isUnlocked
-                        ? 'bg-gradient-to-br from-[#FAF9F5] via-white to-[#F5EFE3] border-[#E2D5BE] hover:shadow-md'
-                        : 'bg-gray-50/70 border-gray-200/80 hover:border-gray-300 opacity-75 hover:opacity-100'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div
-                        className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-sm border ${
-                          isUnlocked
-                            ? 'bg-gradient-to-br from-white to-[#FFF6E3] border-[#E8CB72] ring-2 ring-[#E8CB72]/30'
-                            : 'bg-gray-100 border-gray-200 text-gray-400 grayscale'
-                        }`}
-                      >
-                        {m.icon}
-                      </div>
-
-                      <div>
-                        {isUnlocked ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-[#1FB6B0]/15 text-[#0F7571] border border-[#1FB6B0]/30 shadow-2xs">
-                            <span>✓</span> Unlocked
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200">
-                            <span>🔒</span> {daysRemaining}d left
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#8A7539]">
-                          {m.tier}
-                        </span>
-                        <span className="text-[10px] text-gray-400">·</span>
-                        <span className="text-[10px] font-bold text-[#1FB6B0]">
-                          {m.days} Days Streak
-                        </span>
-                      </div>
-                      <h5 className="text-base font-bold font-serif text-[#1E1931] mt-0.5">
-                        {m.title}
-                      </h5>
-                      <p className="text-xs text-[#706782] mt-1 leading-relaxed line-clamp-2">
-                        {m.description}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-gray-100">
-                      <div className="flex justify-between text-[11px] mb-1 font-medium">
-                        <span className="text-gray-500">
-                          {isUnlocked ? 'Record achieved' : `${currentStreak} / ${m.days} days`}
-                        </span>
-                        <span className={`font-bold ${isUnlocked ? 'text-[#1FB6B0]' : 'text-[#8A7539]'}`}>
-                          {progress}%
-                        </span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            isUnlocked ? 'bg-[#1FB6B0]' : 'bg-[#E3B15E]'
-                          }`}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+        <div className="mt-8">
+          <StreakGamificationCard
+            currentStreak={currentStreak}
+            longestStreak={longestStreak}
+            gracePoints={gracePoints}
+            todayRecord={calendarRecords[todayStr]}
+            onUpdateGracePoints={handleUpdateGracePoints}
+            onTogglePractice={toggleTodayPractice}
+            onOpenJournal={() => setTab('journal')}
+          />
         </div>
       )}
 
-      {/* TAB 2: RECHARTS 30-DAY MOOD TRENDS */}
+      {/* TAB 3: RECHARTS 30-DAY MOOD FREQUENCY & STREAK CORRELATION */}
       {tab === 'trends' && (
-        <div className="mt-8 space-y-8">
-          <section
-            id="recharts-mood-trends-card"
-            className="rounded-3xl bg-[#1C1733] border border-white/10 p-6 sm:p-8 text-white shadow-xl"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#1FB6B0] animate-pulse" />
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#1FB6B0]">
-                    Recharts Visualization
-                  </span>
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-serif font-normal text-white mt-1">
-                  Mood Trends Over the Past 30 Days
-                </h2>
-                <p className="text-xs text-[#A69DC2] mt-1">
-                  Daily spiritual and emotional trajectory across gratitude, peace, seeking, conviction, doubt, and distance.
-                </p>
-              </div>
-
-              {/* Legend preview */}
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                {MOODS.map(m => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setSelectedMoodFilter(selectedMoodFilter === m.id ? null : m.id)}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] transition-all ${
-                      selectedMoodFilter === m.id
-                        ? 'ring-2 ring-white font-bold bg-white/20'
-                        : 'bg-white/5 hover:bg-white/10 text-[#C6BEDC]'
-                    }`}
-                  >
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
-                    <span>{m.emoji}</span>
-                    <span>{m.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* The Line Chart */}
-            <div className="mt-6 w-full h-[280px] sm:h-[340px]">
-              {isMounted ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={chartData}
-                    margin={{ top: 18, right: 18, left: -20, bottom: 6 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="rgba(255, 255, 255, 0.08)"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="dayLabel"
-                      tick={{ fill: '#9D93BA', fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
-                      interval={2}
-                    />
-                    <YAxis
-                      domain={[0.5, 6.5]}
-                      ticks={[1, 2, 3, 4, 5, 6]}
-                      tickFormatter={(val: number) => {
-                        const iconMap: Record<number, string> = {
-                          6: '🙏 Grateful',
-                          5: '🕊 Peaceful',
-                          4: '🔍 Seeking',
-                          3: '🕯 Convicted',
-                          2: '🤔 Doubting',
-                          1: '🌫 Distant',
-                        };
-                        return iconMap[val] || '';
-                      }}
-                      tick={{ fill: '#C6BEDC', fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={{ stroke: 'rgba(255,255,255,0.15)' }}
-                    />
-                    <Tooltip content={<CustomChartTooltip />} />
-                    <ReferenceLine
-                      y={4.5}
-                      stroke="rgba(55, 198, 194, 0.25)"
-                      strokeDasharray="4 4"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="moodLevel"
-                      stroke="#1FB6B0"
-                      strokeWidth={3}
-                      dot={<CustomLineDot />}
-                      activeDot={{
-                        r: 8,
-                        stroke: '#FFFFFF',
-                        strokeWidth: 2.5,
-                        fill: '#1FB6B0',
-                      }}
-                      connectNulls
-                      isAnimationActive={true}
-                      animationDuration={800}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs text-[#8A7DAD]">
-                  Preparing interactive trend chart…
-                </div>
-              )}
-            </div>
-
-            {/* Quick check-in action bar */}
-            <div className="mt-6 pt-5 border-t border-white/10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-[#B6ABCF]">
-                  Log today’s mood to update chart:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {MOODS.map(m => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => handleCheckInMood(m.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white"
-                      style={{ borderLeft: `3px solid ${m.color}` }}
-                    >
-                      <span>{m.emoji}</span>
-                      <span>{m.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
+        <div className="mt-8">
+          <MoodTrendsAnalytics
+            calendarRecords={calendarRecords}
+            onCheckInMood={handleCheckInMood}
+          />
         </div>
       )}
 
-      {/* TAB 3: JOURNAL & SCRIPTURE */}
+      {/* TAB 4: DYNAMIC MOOD JOURNAL & SCRIPTURE REFLECTIONS */}
       {tab === 'journal' && (
-        <div className="mt-8 space-y-8">
-          <section id="journal-input-section" className="rounded-3xl bg-[#211B3B] p-6 sm:p-8 text-white shadow-lg">
-            <h3 className="text-xl font-serif text-white mb-2">Write a Journal Reflection</h3>
-            <p className="text-xs text-[#B6ABCF] mb-4">
-              Bring your thoughts, gratitude, or questions honestly before the Lord.
-            </p>
-            <form onSubmit={handleAddJournal} className="space-y-3">
-              <textarea
-                id="journal-input"
-                rows={3}
-                placeholder="What is God speaking into your heart today?..."
-                value={newEntryText}
-                onChange={e => setNewEntryText(e.target.value)}
-                className="w-full rounded-2xl bg-white/10 border border-white/15 p-4 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1FB6B0]"
-              />
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={!newEntryText.trim()}
-                  className="px-6 py-2.5 rounded-full bg-[#1FB6B0] hover:bg-[#189C97] disabled:opacity-50 text-[#17132B] font-bold text-xs transition-all shadow"
-                >
-                  Save Reflection (+1 Streak)
-                </button>
-              </div>
-            </form>
-          </section>
-
-          <section id="journal-entries-section" className="rounded-3xl bg-white p-6 sm:p-8 border border-gray-200 shadow-sm">
-            <h3 className="text-xl font-serif text-[#1E1931] mb-4">Recent Reflections</h3>
-            <div className="space-y-4">
-              {journal.map(entry => (
-                <div
-                  key={entry.id}
-                  className="p-5 rounded-2xl bg-[#FAF8F5] border border-gray-200/70"
-                >
-                  <span className="text-[11px] font-semibold text-[#8B7FA4]">{entry.date}</span>
-                  <p className="mt-1 text-sm text-[#2F2745] leading-relaxed font-sans">{entry.text}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section id="favorite-verses-section" className="rounded-3xl bg-[#F6F4EB] p-6 sm:p-8 border border-[#E8E1CE] shadow-sm">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#7B6E4A]">Memorized & Cherished</span>
-            <h3 className="text-xl font-serif text-[#2B2313] mt-0.5 mb-4">Favorite Scripture</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {favorites.map(fav => (
-                <div key={fav.id} className="p-5 rounded-2xl bg-white border border-[#DFD7C1] shadow-xs">
-                  <p className="font-serif italic text-base text-[#2E273A] leading-relaxed">
-                    “{fav.verseText}”
-                  </p>
-                  <span className="block mt-3 text-xs font-bold text-[#8A7539]">— {fav.verseReference}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+        <div className="mt-8">
+          <DynamicMoodJournal
+            entries={journal}
+            todayStr={todayStr}
+            todayRecord={calendarRecords[todayStr]}
+            onAddEntry={handleAddJournalEntry}
+            onDeleteEntry={handleDeleteJournalEntry}
+            onToggleFavorite={handleToggleFavoriteJournal}
+            onCheckInMood={handleCheckInMood}
+            onHonorSabbath={handleHonorSabbath}
+          />
         </div>
       )}
 
@@ -2390,6 +1929,16 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
               </div>
             </div>
           </div>
+
+          {/* INTERACTIVE 7-DAY SPIRITUAL INSIGHT CHART */}
+          <WeeklyInsightChart
+            pulseData={weeklyPulseData}
+            calendarRecords={calendarRecords}
+            onSelectDate={(dateStr) => {
+              setSelectedDateStr(dateStr);
+              setTab('calendar');
+            }}
+          />
 
           {/* Section 1: 7-Day Soul Rhythm & Mood Patterns */}
           <section id="pulse-mood-patterns-section" className="rounded-3xl bg-white border border-gray-200/80 p-6 sm:p-8 shadow-sm">

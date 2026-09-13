@@ -173,7 +173,8 @@ export function DynamicMoodJournal({
     const moodColor = selectedMood === 'sabbath' ? '#735DA3' : moodObj?.color || '#E3B15E';
 
     const now = new Date();
-    const formattedDate = `Today · ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    const dateLabel = todayStr ? `${todayStr} · ` : 'Today · ';
+    const formattedDate = `${dateLabel}${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
     const newEntry: JournalEntry = {
       id: `journal_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -534,7 +535,7 @@ export function DynamicMoodJournal({
                 }`}
                 style={{
                   backgroundColor: active ? m.color : undefined,
-                  ringColor: active ? m.color : undefined,
+                  borderColor: active ? m.color : undefined,
                 }}
               >
                 <span>{m.emoji}</span>

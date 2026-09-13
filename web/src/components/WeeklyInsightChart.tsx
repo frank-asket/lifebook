@@ -5,18 +5,16 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  LineChart,
   Line,
   XAxis,
   YAxis,
   Tooltip,
   CartesianGrid,
   ReferenceLine,
-  Legend,
   Area,
   ComposedChart,
 } from 'recharts';
-import type { SpiritualPulseData, PulseDaySummary } from '../app/api/spiritual-pulse/send/route';
+import type { SpiritualPulseData } from '../app/api/spiritual-pulse/send/route';
 import type { DayActivityRecord } from './ProgressScreen';
 
 interface WeeklyInsightChartProps {
@@ -42,6 +40,80 @@ interface PracticeDayChartItem {
   moodColor: string;
   isSabbath: boolean;
   intensity: number;
+}
+
+// Custom Practice Breakdown Tooltip
+function PracticeTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: PracticeDayChartItem }> }) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0].payload;
+  return (
+    <div className="rounded-2xl border border-white/20 bg-[#1C1733] p-4 text-xs text-white shadow-2xl min-w-[200px] backdrop-blur-md">
+      <div className="flex items-center justify-between pb-2 border-b border-white/10">
+        <span className="font-bold text-white text-sm">{data.dayLabel}</span>
+        <span className="text-base">{data.moodEmoji}</span>
+      </div>
+
+      <div className="mt-2.5 space-y-1.5">
+        <div className="flex justify-between items-center text-[#E3B15E]">
+          <span className="flex items-center gap-1.5">
+            <span>📖</span> Scripture:
+          </span>
+          <span className="font-bold">{data.scriptureMins}m</span>
+        </div>
+        <div className="flex justify-between items-center text-[#37C6C2]">
+          <span className="flex items-center gap-1.5">
+            <span>🙏</span> Prayer:
+          </span>
+          <span className="font-bold">{data.prayerMins}m</span>
+        </div>
+        <div className="flex justify-between items-center text-[#9D88CA]">
+          <span className="flex items-center gap-1.5">
+            <span>🕯️</span> Stillness:
+          </span>
+          <span className="font-bold">{data.stillnessMins}m</span>
+        </div>
+        <div className="flex justify-between items-center text-[#1FB6B0]">
+          <span className="flex items-center gap-1.5">
+            <span>✍️</span> Reflection:
+          </span>
+          <span className="font-bold">{data.journalMins}m</span>
+        </div>
+      </div>
+
+      <div className="mt-3 pt-2 border-t border-white/10 flex justify-between font-bold text-white">
+        <span>Total Devotional Time:</span>
+        <span className="text-[#37C6C2]">{data.totalMins} mins</span>
+      </div>
+
+      {data.isSabbath && (
+        <div className="mt-2 px-2 py-1 rounded-lg bg-[#735DA3]/30 text-[#D1C5EB] text-[10px] font-bold border border-[#735DA3]/50 text-center">
+          🕊️ Holy Sabbath Rest Day
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Custom Mood Trajectory Tooltip
+function MoodTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: PracticeDayChartItem }> }) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0].payload;
+  return (
+    <div className="rounded-2xl border border-white/20 bg-[#1C1733] p-4 text-xs text-white shadow-2xl min-w-[190px]">
+      <div className="text-[#A69DC0] font-medium">{data.dayLabel}</div>
+      <div className="mt-1.5 flex items-center gap-2">
+        <span className="text-2xl">{data.moodEmoji}</span>
+        <div>
+          <div className="font-bold text-sm" style={{ color: data.moodColor }}>
+            {data.moodLabel}
+          </div>
+          <div className="text-[10px] text-gray-300">
+            {data.intensity > 0 ? `Spiritual Intensity: ${data.intensity}/4` : 'Rest Day'}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function WeeklyInsightChart({
@@ -122,80 +194,6 @@ export function WeeklyInsightChart({
   }, [chartData]);
 
   const selectedDayItem = chartData[selectedDayIndex] || chartData[chartData.length - 1];
-
-  // Custom Practice Breakdown Tooltip
-  const PracticeTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: PracticeDayChartItem }> }) => {
-    if (!active || !payload || !payload.length) return null;
-    const data = payload[0].payload;
-    return (
-      <div className="rounded-2xl border border-white/20 bg-[#1C1733] p-4 text-xs text-white shadow-2xl min-w-[200px] backdrop-blur-md">
-        <div className="flex items-center justify-between pb-2 border-b border-white/10">
-          <span className="font-bold text-white text-sm">{data.dayLabel}</span>
-          <span className="text-base">{data.moodEmoji}</span>
-        </div>
-
-        <div className="mt-2.5 space-y-1.5">
-          <div className="flex justify-between items-center text-[#E3B15E]">
-            <span className="flex items-center gap-1.5">
-              <span>📖</span> Scripture:
-            </span>
-            <span className="font-bold">{data.scriptureMins}m</span>
-          </div>
-          <div className="flex justify-between items-center text-[#37C6C2]">
-            <span className="flex items-center gap-1.5">
-              <span>🙏</span> Prayer:
-            </span>
-            <span className="font-bold">{data.prayerMins}m</span>
-          </div>
-          <div className="flex justify-between items-center text-[#9D88CA]">
-            <span className="flex items-center gap-1.5">
-              <span>🕯️</span> Stillness:
-            </span>
-            <span className="font-bold">{data.stillnessMins}m</span>
-          </div>
-          <div className="flex justify-between items-center text-[#1FB6B0]">
-            <span className="flex items-center gap-1.5">
-              <span>✍️</span> Reflection:
-            </span>
-            <span className="font-bold">{data.journalMins}m</span>
-          </div>
-        </div>
-
-        <div className="mt-3 pt-2 border-t border-white/10 flex justify-between font-bold text-white">
-          <span>Total Devotional Time:</span>
-          <span className="text-[#37C6C2]">{data.totalMins} mins</span>
-        </div>
-
-        {data.isSabbath && (
-          <div className="mt-2 px-2 py-1 rounded-lg bg-[#735DA3]/30 text-[#D1C5EB] text-[10px] font-bold border border-[#735DA3]/50 text-center">
-            🕊️ Holy Sabbath Rest Day
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Custom Mood Trajectory Tooltip
-  const MoodTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: PracticeDayChartItem }> }) => {
-    if (!active || !payload || !payload.length) return null;
-    const data = payload[0].payload;
-    return (
-      <div className="rounded-2xl border border-white/20 bg-[#1C1733] p-4 text-xs text-white shadow-2xl min-w-[190px]">
-        <div className="text-[#A69DC0] font-medium">{data.dayLabel}</div>
-        <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-2xl">{data.moodEmoji}</span>
-          <div>
-            <div className="font-bold text-sm" style={{ color: data.moodColor }}>
-              {data.moodLabel}
-            </div>
-            <div className="text-[10px] text-gray-300">
-              {data.intensity > 0 ? `Spiritual Intensity: ${data.intensity}/4` : 'Rest Day'}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div id="weekly-insight-chart-container" className="space-y-6">
@@ -291,7 +289,7 @@ export function WeeklyInsightChart({
                     data={chartData}
                     margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                     onClick={(state) => {
-                      if (state && state.activeTooltipIndex !== undefined) {
+                      if (state && typeof state.activeTooltipIndex === 'number') {
                         setSelectedDayIndex(state.activeTooltipIndex);
                         const selectedDate = chartData[state.activeTooltipIndex]?.date;
                         if (selectedDate && onSelectDate) onSelectDate(selectedDate);
@@ -379,7 +377,7 @@ export function WeeklyInsightChart({
                     data={chartData}
                     margin={{ top: 15, right: 15, left: -20, bottom: 0 }}
                     onClick={(state) => {
-                      if (state && state.activeTooltipIndex !== undefined) {
+                      if (state && typeof state.activeTooltipIndex === 'number') {
                         setSelectedDayIndex(state.activeTooltipIndex);
                         const selectedDate = chartData[state.activeTooltipIndex]?.date;
                         if (selectedDate && onSelectDate) onSelectDate(selectedDate);
