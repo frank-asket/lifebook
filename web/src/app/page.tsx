@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { useUser, useClerk, UserButton, SignInButton, SignUpButton } from "@clerk/nextjs";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -36,6 +36,26 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
+  const { isSignedIn } = useUser();
+  const clerk = useClerk();
+
+  const handleSignIn = (event?: React.MouseEvent) => {
+    if (event) event.preventDefault();
+    if (clerk && clerk.loaded) {
+      clerk.openSignIn({ fallbackRedirectUrl: "/" });
+    } else {
+      router.push("/sign-in");
+    }
+  };
+
+  const handleSignUp = (event?: React.MouseEvent) => {
+    if (event) event.preventDefault();
+    if (clerk && clerk.loaded) {
+      clerk.openSignUp({ fallbackRedirectUrl: "/progress" });
+    } else {
+      router.push("/sign-up");
+    }
+  };
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,15 +72,22 @@ export default function Home() {
           <a className="wordmark" href="#top" aria-label="LifeBook home"><Mark /><span>LifeBook</span></a>
           <div className="showcase-links"><a href="#features">Bible & prayer</a><Link href="/voice">LifeBook Voice</Link><Link href="/living-word">LivingWord</Link><Link href="/progress">Progress</Link><a href="#questions">Questions</a></div>
           <div className="auth-actions">
-            <Show when="signed-out">
-              <SignInButton fallbackRedirectUrl="/">
-                <button className="nav-sign-in" type="button">Sign in</button>
-              </SignInButton>
-              <SignUpButton fallbackRedirectUrl="/progress">
-                <button className="pill-button pill-dark" type="button">Begin your journey</button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in"><UserButton appearance={{ elements: { avatarBox: "lifebook-user-avatar" } }} /></Show>
+            {isSignedIn ? (
+              <UserButton appearance={{ elements: { avatarBox: "lifebook-user-avatar" } }} />
+            ) : (
+              <>
+                <SignInButton mode="modal" fallbackRedirectUrl="/">
+                  <button className="nav-sign-in" type="button" onClick={handleSignIn}>
+                    Sign in
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
+                  <button className="pill-button pill-dark" type="button" onClick={handleSignUp}>
+                    Begin your journey
+                  </button>
+                </SignUpButton>
+              </>
+            )}
           </div>
           <button className={`mobile-menu-button ${menuOpen ? "menu-open" : ""}`} type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(!menuOpen)}><span /><span /><span /><b>{menuOpen ? "Close" : "Menu"}</b></button>
         </nav>
@@ -71,28 +98,41 @@ export default function Home() {
             <Link href="/living-word" onClick={() => setMenuOpen(false)}>LivingWord</Link>
             <Link href="/progress" onClick={() => setMenuOpen(false)}>Progress</Link>
             <a href="#questions" onClick={() => setMenuOpen(false)}>Questions</a>
-            <Show when="signed-out">
-              <div className="flex flex-col gap-2 pt-2 border-t border-white/10 w-full">
-                <SignInButton fallbackRedirectUrl="/">
-                  <button className="nav-sign-in w-full text-center py-2" type="button" onClick={() => setMenuOpen(false)}>
-                    Sign in
-                  </button>
-                </SignInButton>
-                <SignUpButton fallbackRedirectUrl="/progress">
-                  <button className="mobile-join w-full" type="button" onClick={() => setMenuOpen(false)}>
-                    Begin your journey ↗
-                  </button>
-                </SignUpButton>
-              </div>
-            </Show>
-            <Show when="signed-in">
+            {isSignedIn ? (
               <div className="mobile-account flex items-center justify-between pt-2">
                 <Link href="/progress" onClick={() => setMenuOpen(false)} className="text-xs font-semibold text-white">
                   My Progress & Streaks →
                 </Link>
                 <UserButton />
               </div>
-            </Show>
+            ) : (
+              <div className="flex flex-col gap-2 pt-2 border-t border-white/10 w-full">
+                <SignInButton mode="modal" fallbackRedirectUrl="/">
+                  <button
+                    className="nav-sign-in w-full text-center py-2"
+                    type="button"
+                    onClick={(e) => {
+                      setMenuOpen(false);
+                      handleSignIn(e);
+                    }}
+                  >
+                    Sign in
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
+                  <button
+                    className="mobile-join w-full"
+                    type="button"
+                    onClick={(e) => {
+                      setMenuOpen(false);
+                      handleSignUp(e);
+                    }}
+                  >
+                    Begin your journey ↗
+                  </button>
+                </SignUpButton>
+              </div>
+            )}
           </div>
         )}
         <div className="showcase-hero-grid page-shell">
@@ -101,18 +141,17 @@ export default function Home() {
             <h1>Make room for <em>God</em> in the middle of real life.</h1>
             <p>LifeBook helps you slow down with Scripture, tell the truth in prayer, and take the next faithful step, whether today feels full of peace or full of questions.</p>
             <div className="showcase-actions">
-              <Show when="signed-out">
-                <SignUpButton fallbackRedirectUrl="/progress">
-                  <button className="pill-button pill-dark" type="button">
-                    Begin your journey <ArrowIcon />
-                  </button>
-                </SignUpButton>
-              </Show>
-              <Show when="signed-in">
+              {isSignedIn ? (
                 <Link className="pill-button pill-dark" href="/progress">
                   Continue your journey <ArrowIcon />
                 </Link>
-              </Show>
+              ) : (
+                <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
+                  <button className="pill-button pill-dark" type="button" onClick={handleSignUp}>
+                    Begin your journey <ArrowIcon />
+                  </button>
+                </SignUpButton>
+              )}
               <span className="rating-note"><b>✦</b> “Abide in me.”<br /><small>John 15:4 · A quiet place to remain in Christ.</small></span>
             </div>
           </div>
@@ -150,18 +189,17 @@ export default function Home() {
           <div className="footer-bottom"><span>© 2026 LifeBook</span><span>Made for the journey of faith</span><div><Link href="/privacy">Privacy</Link><a href="#top">Terms</a><a href="#top">Accessibility</a></div></div>
         </div>
       </footer>
-      <Show when="signed-out">
-        <SignUpButton fallbackRedirectUrl="/progress">
-          <button className="sticky-mobile-cta" type="button">
-            Begin your journey <ArrowIcon />
-          </button>
-        </SignUpButton>
-      </Show>
-      <Show when="signed-in">
+      {isSignedIn ? (
         <Link className="sticky-mobile-cta" href="/progress">
           Continue your journey <ArrowIcon />
         </Link>
-      </Show>
+      ) : (
+        <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
+          <button className="sticky-mobile-cta" type="button" onClick={handleSignUp}>
+            Begin your journey <ArrowIcon />
+          </button>
+        </SignUpButton>
+      )}
     </main>
   );
 }

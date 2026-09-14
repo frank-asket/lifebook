@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -201,7 +201,7 @@ export function WeeklyInsightChart({
 }: WeeklyInsightChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<InsightPeriod>(initialPeriod);
   const [viewMode, setViewMode] = useState<ChartViewMode>('practices');
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number>(initialPeriod - 1);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
   // Formatted date range label for the selected period
   const dateRangeLabel = useMemo(() => {
@@ -339,10 +339,9 @@ export function WeeklyInsightChart({
     return items;
   }, [selectedPeriod, calendarRecords]);
 
-  // Keep selectedDayIndex in valid range when period shifts
-  useEffect(() => {
-    setSelectedDayIndex(chartData.length - 1);
-  }, [chartData.length]);
+  const activeDayIndex = selectedDayIndex !== null && selectedDayIndex >= 0 && selectedDayIndex < chartData.length
+    ? selectedDayIndex
+    : chartData.length - 1;
 
   // Aggregate period totals
   const weeklyTotals = useMemo(() => {
@@ -370,7 +369,7 @@ export function WeeklyInsightChart({
     };
   }, [chartData, selectedPeriod]);
 
-  const selectedDayItem = chartData[selectedDayIndex] || chartData[chartData.length - 1];
+  const selectedDayItem = chartData[activeDayIndex] || chartData[chartData.length - 1];
 
   return (
     <div id="weekly-insight-chart-container" className="space-y-6">
@@ -680,6 +679,7 @@ export function WeeklyInsightChart({
               <div className="h-[280px] sm:h-[320px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
+                    key={`practice-barchart-${selectedPeriod}-${viewMode}`}
                     data={chartData}
                     margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                     onClick={(state) => {
@@ -729,6 +729,10 @@ export function WeeklyInsightChart({
                       stackId="a"
                       fill="#E3B15E"
                       radius={[0, 0, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                      animationBegin={100}
                     />
                     <Bar
                       dataKey="prayerMins"
@@ -736,6 +740,10 @@ export function WeeklyInsightChart({
                       stackId="a"
                       fill="#37C6C2"
                       radius={[0, 0, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                      animationBegin={200}
                     />
                     <Bar
                       dataKey="stillnessMins"
@@ -743,6 +751,10 @@ export function WeeklyInsightChart({
                       stackId="a"
                       fill="#9D88CA"
                       radius={[0, 0, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                      animationBegin={300}
                     />
                     <Bar
                       dataKey="journalMins"
@@ -750,6 +762,10 @@ export function WeeklyInsightChart({
                       stackId="a"
                       fill="#1FB6B0"
                       radius={[6, 6, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1000}
+                      animationEasing="ease-out"
+                      animationBegin={400}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -769,6 +785,7 @@ export function WeeklyInsightChart({
               <div className="h-[280px] sm:h-[320px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart
+                    key={`mood-composedchart-${selectedPeriod}-${viewMode}`}
                     data={chartData}
                     margin={{ top: 15, right: 15, left: -20, bottom: 0 }}
                     onClick={(state) => {
@@ -826,12 +843,20 @@ export function WeeklyInsightChart({
                       dataKey="moodLevel"
                       fill="url(#weeklyMoodGrad)"
                       stroke="transparent"
+                      isAnimationActive={true}
+                      animationDuration={1500}
+                      animationEasing="ease-in-out"
+                      animationBegin={150}
                     />
                     <Line
                       type="monotone"
                       dataKey="moodLevel"
                       stroke="#37C6C2"
                       strokeWidth={3}
+                      isAnimationActive={true}
+                      animationDuration={1500}
+                      animationEasing="ease-in-out"
+                      animationBegin={150}
                       dot={(props: { cx?: number; cy?: number; index?: number }) => {
                         const item = chartData[props.index || 0];
                         if (!props.cx || !props.cy) return <g key={props.index} />;
