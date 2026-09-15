@@ -470,3 +470,90 @@ a { color: inherit; text-decoration: none; }
   animation: goal-progress-bar-shrink 4.5s linear forwards;
 }
 
+/* ProgressScreen: Heatmap Calendar & Recharts Container Responsive Layout (< 760px) */
+.progress-heatmap-recharts-row,
+#heatmap-recharts-layout-container,
+[data-testid="heatmap-recharts-container"],
+[data-testid="progress-calendar-recharts-row"] {
+  display: flex;
+  flex-direction: row;
+  gap: 1.75rem;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.progress-heatmap-recharts-row > .heatmap-calendar-container,
+.progress-heatmap-recharts-row > .recharts-container,
+#heatmap-recharts-layout-container > div {
+  width: 50%;
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .progress-heatmap-recharts-row,
+  #heatmap-recharts-layout-container,
+  [data-testid="heatmap-recharts-container"],
+  [data-testid="progress-calendar-recharts-row"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+
+  .progress-heatmap-recharts-row > .heatmap-calendar-container,
+  .progress-heatmap-recharts-row > .recharts-container,
+  .progress-heatmap-recharts-row > div,
+  #heatmap-recharts-layout-container > div {
+    width: 100% !important;
+    flex: none !important;
+  }
+}
+
+/* Streak Milestone Celebration Animations */
+@keyframes milestone-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(24px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.03) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes celestial-halo-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sacred-glow-pulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.12);
+  }
+}
+
+.animate-milestone-pop {
+  animation: milestone-pop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-celestial-halo {
+  animation: celestial-halo-rotate 35s linear infinite;
+}
+
+.animate-sacred-pulse {
+  animation: sacred-glow-pulse 3s ease-in-out infinite;
+}
+

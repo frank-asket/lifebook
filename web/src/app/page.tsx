@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, useClerk, UserButton, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useChristianAuth } from "@/lib/christian-auth";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -36,26 +36,7 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
-  const { isSignedIn } = useUser();
-  const clerk = useClerk();
-
-  const handleSignIn = (event?: React.MouseEvent) => {
-    if (event) event.preventDefault();
-    if (clerk && clerk.loaded) {
-      clerk.openSignIn({ fallbackRedirectUrl: "/" });
-    } else {
-      router.push("/sign-in");
-    }
-  };
-
-  const handleSignUp = (event?: React.MouseEvent) => {
-    if (event) event.preventDefault();
-    if (clerk && clerk.loaded) {
-      clerk.openSignUp({ fallbackRedirectUrl: "/progress" });
-    } else {
-      router.push("/sign-up");
-    }
-  };
+  const { user, isSignedIn, signOut } = useChristianAuth();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,19 +54,35 @@ export default function Home() {
           <div className="showcase-links"><a href="#features">Bible & prayer</a><Link href="/voice">LifeBook Voice</Link><Link href="/living-word">LivingWord</Link><Link href="/progress">Progress</Link><a href="#questions">Questions</a></div>
           <div className="auth-actions">
             {isSignedIn ? (
-              <UserButton appearance={{ elements: { avatarBox: "lifebook-user-avatar" } }} />
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/progress"
+                  id="user-profile-nav-pill"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FAF8F5] border border-[#EADBFC] hover:bg-[#F2ECE1] transition-colors text-xs font-semibold text-[#2A2146]"
+                  title="View your devotional progress & streaks"
+                >
+                  <span className="w-6 h-6 rounded-full bg-[#2A2146] text-white flex items-center justify-center text-xs font-bold">
+                    {user?.avatarInitial || "LB"}
+                  </span>
+                  <span>{user?.firstName || "Pilgrim"}</span>
+                </Link>
+                <button
+                  type="button"
+                  id="nav-sign-out-btn"
+                  onClick={() => signOut()}
+                  className="text-xs text-[#8A7E9F] hover:text-[#2A2146] transition-colors cursor-pointer"
+                >
+                  Sign out
+                </button>
+              </div>
             ) : (
               <>
-                <SignInButton mode="modal" fallbackRedirectUrl="/">
-                  <button className="nav-sign-in" type="button" onClick={handleSignIn}>
-                    Sign in
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
-                  <button className="pill-button pill-dark" type="button" onClick={handleSignUp}>
-                    Begin your journey
-                  </button>
-                </SignUpButton>
+                <Link href="/sign-in" className="nav-sign-in" id="nav-sign-in-btn">
+                  Sign in
+                </Link>
+                <Link href="/sign-up" className="pill-button pill-dark" id="nav-begin-journey-btn">
+                  Begin your journey
+                </Link>
               </>
             )}
           </div>
@@ -99,38 +96,46 @@ export default function Home() {
             <Link href="/progress" onClick={() => setMenuOpen(false)}>Progress</Link>
             <a href="#questions" onClick={() => setMenuOpen(false)}>Questions</a>
             {isSignedIn ? (
-              <div className="mobile-account flex items-center justify-between pt-2">
-                <Link href="/progress" onClick={() => setMenuOpen(false)} className="text-xs font-semibold text-white">
-                  My Progress & Streaks →
+              <div className="mobile-account flex items-center justify-between pt-2 border-t border-white/10 w-full">
+                <Link
+                  href="/progress"
+                  onClick={() => setMenuOpen(false)}
+                  className="text-xs font-semibold text-white flex items-center gap-2"
+                >
+                  <span className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-bold">
+                    {user?.avatarInitial || "LB"}
+                  </span>
+                  <span>{user?.fullName || "My Progress & Streaks"} →</span>
                 </Link>
-                <UserButton />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    signOut();
+                  }}
+                  className="text-xs text-white/70 hover:text-white"
+                >
+                  Sign out
+                </button>
               </div>
             ) : (
               <div className="flex flex-col gap-2 pt-2 border-t border-white/10 w-full">
-                <SignInButton mode="modal" fallbackRedirectUrl="/">
-                  <button
-                    className="nav-sign-in w-full text-center py-2"
-                    type="button"
-                    onClick={(e) => {
-                      setMenuOpen(false);
-                      handleSignIn(e);
-                    }}
-                  >
-                    Sign in
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
-                  <button
-                    className="mobile-join w-full"
-                    type="button"
-                    onClick={(e) => {
-                      setMenuOpen(false);
-                      handleSignUp(e);
-                    }}
-                  >
-                    Begin your journey ↗
-                  </button>
-                </SignUpButton>
+                <Link
+                  href="/sign-in"
+                  className="nav-sign-in w-full text-center py-2.5 block text-white/90 hover:text-white"
+                  id="mobile-sign-in-btn"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="mobile-join w-full text-center block"
+                  id="mobile-begin-journey-btn"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Begin your journey ↗
+                </Link>
               </div>
             )}
           </div>
@@ -142,15 +147,17 @@ export default function Home() {
             <p>LifeBook helps you slow down with Scripture, tell the truth in prayer, and take the next faithful step, whether today feels full of peace or full of questions.</p>
             <div className="showcase-actions">
               {isSignedIn ? (
-                <Link className="pill-button pill-dark" href="/progress">
+                <Link className="pill-button pill-dark" href="/progress" id="hero-continue-journey-btn">
                   Continue your journey <ArrowIcon />
                 </Link>
               ) : (
-                <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
-                  <button className="pill-button pill-dark" type="button" onClick={handleSignUp}>
-                    Begin your journey <ArrowIcon />
-                  </button>
-                </SignUpButton>
+                <Link
+                  href="/sign-up"
+                  className="pill-button pill-dark"
+                  id="hero-begin-journey-btn"
+                >
+                  Begin your journey <ArrowIcon />
+                </Link>
               )}
               <span className="rating-note"><b>✦</b> “Abide in me.”<br /><small>John 15:4 · A quiet place to remain in Christ.</small></span>
             </div>
@@ -190,15 +197,17 @@ export default function Home() {
         </div>
       </footer>
       {isSignedIn ? (
-        <Link className="sticky-mobile-cta" href="/progress">
+        <Link className="sticky-mobile-cta" href="/progress" id="sticky-continue-journey-btn">
           Continue your journey <ArrowIcon />
         </Link>
       ) : (
-        <SignUpButton mode="modal" fallbackRedirectUrl="/progress">
-          <button className="sticky-mobile-cta" type="button" onClick={handleSignUp}>
-            Begin your journey <ArrowIcon />
-          </button>
-        </SignUpButton>
+        <Link
+          href="/sign-up"
+          className="sticky-mobile-cta"
+          id="sticky-begin-journey-btn"
+        >
+          Begin your journey <ArrowIcon />
+        </Link>
       )}
     </main>
   );

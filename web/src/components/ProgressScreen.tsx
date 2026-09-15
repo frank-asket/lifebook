@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useMemo, useSyncExternalStore } from 'react';
+import React, { useState, useMemo, useSyncExternalStore, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
+import { useChristianAuth } from '../lib/christian-auth';
 import type { PulseDaySummary, SpiritualPulseData } from '../app/api/spiritual-pulse/send/route';
 import { BurnoutPreventionCard } from './BurnoutPreventionCard';
 import { DynamicMoodJournal } from './DynamicMoodJournal';
@@ -11,6 +12,13 @@ import { WeeklyInsightChart } from './WeeklyInsightChart';
 import { StreakGamificationCard, SPIRITUAL_LEVELS } from './StreakGamificationCard';
 import { MoodTrendsAnalytics } from './MoodTrendsAnalytics';
 import { DailyGoalCard } from './DailyGoalCard';
+import { MonthlyMoodHeatmap } from './MonthlyMoodHeatmap';
+import { StreakMilestoneAnimation } from './StreakMilestoneAnimation';
+import { RecurringEmotionalPatternsSummary } from './RecurringEmotionalPatternsSummary';
+import { NotificationSettingsModal, DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettings } from './NotificationSettingsModal';
+import { BadgeCelebrationModal, type BadgeCelebrationData } from './BadgeCelebrationModal';
+import { VisualMoodUpdateCard } from './VisualMoodUpdateCard';
+import { VisualRewardsBadgesCard } from './VisualRewardsBadgesCard';
 
 export type { JournalEntry };
 
@@ -60,9 +68,23 @@ export interface DayActivityRecord {
 export interface Badge {
   id: string;
   title: string;
+  subtitle?: string;
   description: string;
+  category?: 'streak' | 'reflection' | 'faith' | 'grace';
   earned: boolean;
+  earnedDate?: string;
   icon: string;
+  tier?: 'bronze' | 'silver' | 'gold' | 'diamond';
+  tierLabel?: string;
+  tierColor?: string;
+  requirement?: string;
+  currentProgress?: number;
+  targetProgress?: number;
+  rewardPoints?: number;
+  scripture?: string;
+  scriptureRef?: string;
+  reflection?: string;
+  unlockedPerks?: string[];
 }
 
 export interface StreakMilestone {
@@ -253,12 +275,178 @@ function generateDefaultCalendarRecords(): Record<string, DayActivityRecord> {
 }
 
 const DEFAULT_BADGES: Badge[] = [
-  { id: 'b1', title: 'First Step', description: 'Began your first Scripture check-in with God', earned: true, icon: '✦' },
-  { id: 'b2', title: '7-Day Rhythm', description: 'Walked in daily prayer and abiding for 7 days', earned: true, icon: '🌿' },
-  { id: 'b3', title: 'Honest Heart', description: 'Brought seeking and doubt openly before the Lord', earned: true, icon: '♡' },
-  { id: 'b4', title: 'Psalm 23 Abider', description: 'Completed the 5-day Finding Peace journey', earned: true, icon: '🕊' },
-  { id: 'b5', title: '30-Day Pillar', description: 'Maintained spiritual attentiveness over a full month', earned: false, icon: '👑' },
-  { id: 'b_sabbath', title: 'Sabbath Peace', description: 'Observed intentional Sabbath rest, trading striving for holy abiding', earned: false, icon: '🕊️' },
+  {
+    id: 'b_faithful_week',
+    title: 'Faithful Week',
+    subtitle: '7 Consecutive Days of Holy Devotion',
+    description: 'Maintained an unbroken 7-day walk of daily prayer, Scripture reading, and sacred quiet time.',
+    category: 'streak',
+    earned: true,
+    earnedDate: 'Unlocked',
+    icon: '🌿',
+    tier: 'silver',
+    tierLabel: 'Silver Cadence',
+    tierColor: '#1FB6B0',
+    requirement: 'Maintain a 7-day continuous devotion streak',
+    currentProgress: 7,
+    targetProgress: 7,
+    rewardPoints: 75,
+    scripture: 'By the seventh day God had finished the work he had been doing; so on the seventh day he rested from all his work.',
+    scriptureRef: 'Genesis 2:2',
+    reflection: 'Seven continuous days walking with God. You have traded anxious hurry for a sacred cadence of daily Scripture, prayer, and holy rest.',
+    unlockedPerks: [
+      '+75 Grace Points awarded to your Sanctuary',
+      'Silver Cadence Seal in Trophy Cabinet',
+      'Weekly Sabbath Peace Shield protection',
+    ],
+  },
+  {
+    id: 'b_monthly_reflection',
+    title: 'Monthly Reflection',
+    subtitle: '30-Day Spiritual Pillar & Soul Review',
+    description: 'Attentive spiritual rhythm maintained over 30 days with deep monthly reflection before God.',
+    category: 'reflection',
+    earned: false,
+    icon: '👑',
+    tier: 'gold',
+    tierLabel: 'Gold Anchor',
+    tierColor: '#E3B15E',
+    requirement: 'Complete 30 days of quiet time check-ins and monthly soul review',
+    currentProgress: 28,
+    targetProgress: 30,
+    rewardPoints: 150,
+    scripture: 'He is like a tree planted by streams of water that yields its fruit in its season, and its leaf does not wither.',
+    scriptureRef: 'Psalm 1:3',
+    reflection: 'Thirty days of steadfast daily communion. What began as a mustard-seed step has grown into a deep-rooted spiritual pillar in your life.',
+    unlockedPerks: [
+      '+150 Grace Points awarded to your Sanctuary',
+      'Gold Anchor Seal in Trophy Cabinet',
+      'Golden Pillar Glow badge for your profile',
+    ],
+  },
+  {
+    id: 'b1',
+    title: 'First Step',
+    subtitle: 'Dawn of a Daily Sacred Walk',
+    description: 'Began your first Scripture check-in and opened your heart before God',
+    category: 'faith',
+    earned: true,
+    earnedDate: 'Unlocked',
+    icon: '✦',
+    tier: 'bronze',
+    tierLabel: 'Bronze Spark',
+    tierColor: '#CD7F32',
+    requirement: 'Log your first daily quiet time check-in',
+    currentProgress: 1,
+    targetProgress: 1,
+    rewardPoints: 25,
+    scripture: 'Your word is a lamp to my feet and a light to my path.',
+    scriptureRef: 'Psalm 119:105',
+    reflection: 'Every great spiritual journey begins with a single humble step into the presence of God.',
+    unlockedPerks: ['+25 Grace Points', 'Pilgrim Compass Seal'],
+  },
+  {
+    id: 'b3',
+    title: 'Honest Heart',
+    subtitle: 'Vulnerable Prayer Before the Lord',
+    description: 'Brought seeking, questions, or doubt openly before the Lord in honest prayer',
+    category: 'reflection',
+    earned: true,
+    earnedDate: 'Unlocked',
+    icon: '♡',
+    tier: 'bronze',
+    tierLabel: 'Tender Gold',
+    tierColor: '#B8746B',
+    requirement: 'Log an honest emotional check-in with God',
+    currentProgress: 1,
+    targetProgress: 1,
+    rewardPoints: 50,
+    scripture: 'Trust in him at all times, O people; pour out your heart before him; God is a refuge for us.',
+    scriptureRef: 'Psalm 62:8',
+    reflection: 'God loves genuine vulnerability. In holding nothing back, you encounter His profound comfort.',
+    unlockedPerks: ['+50 Grace Points', 'Honest Heart Seal'],
+  },
+  {
+    id: 'b_sabbath',
+    title: 'Sabbath Peace',
+    subtitle: 'Honoring Holy Rest',
+    description: 'Observed intentional Sabbath rest, trading striving for holy abiding in Christ’s grace',
+    category: 'grace',
+    earned: false,
+    icon: '🕊️',
+    tier: 'silver',
+    tierLabel: 'Silver Rest',
+    tierColor: '#37C6C2',
+    requirement: 'Observe an intentional Sabbath day of rest',
+    currentProgress: 0,
+    targetProgress: 1,
+    rewardPoints: 50,
+    scripture: 'Come to me, all who labor and are heavy laden, and I will give you rest.',
+    scriptureRef: 'Matthew 11:28',
+    reflection: 'Sabbath rest is an act of holy trust—believing God rules the world even when our striving ceases.',
+    unlockedPerks: ['+50 Grace Points', 'Streak Preservation Shield'],
+  },
+  {
+    id: 'b4',
+    title: 'Psalm 23 Abider',
+    subtitle: 'Resting by Quiet Waters',
+    description: 'Completed 5 peaceful abiding reflections in God’s restorative presence',
+    category: 'faith',
+    earned: true,
+    earnedDate: 'Unlocked',
+    icon: '💧',
+    tier: 'silver',
+    tierLabel: 'Living Waters',
+    tierColor: '#6B8CAE',
+    requirement: 'Log 5 Peaceful quiet time check-ins',
+    currentProgress: 5,
+    targetProgress: 5,
+    rewardPoints: 60,
+    scripture: 'He makes me lie down in green pastures. He leads me beside still waters. He restores my soul.',
+    scriptureRef: 'Psalm 23:2-3',
+    reflection: 'You have lingered beside still waters and allowed the Good Shepherd to restore your soul.',
+    unlockedPerks: ['+60 Grace Points', 'Quiet Waters Icon'],
+  },
+  {
+    id: 'b_living_word',
+    title: 'Living Word Rooted',
+    subtitle: 'Deep Abiding in Holy Scripture',
+    description: 'Consecrated 14 days of reading and meditating upon God’s Word',
+    category: 'streak',
+    earned: false,
+    icon: '📖',
+    tier: 'gold',
+    tierLabel: 'Golden Scroll',
+    tierColor: '#E3B15E',
+    requirement: 'Complete 14 days of daily scripture reading',
+    currentProgress: 11,
+    targetProgress: 14,
+    rewardPoints: 100,
+    scripture: 'Let the word of Christ dwell in you richly, teaching and admonishing one another in all wisdom.',
+    scriptureRef: 'Colossians 3:16',
+    reflection: 'Feeding on God’s Word daily trains your ears to recognize the Shepherd’s voice above the noise.',
+    unlockedPerks: ['+100 Grace Points', 'Living Word Seal'],
+  },
+  {
+    id: 'b_sanctuary_pillar',
+    title: 'Sanctuary Pillar',
+    subtitle: 'Diamond Crown of Devotion',
+    description: 'Accumulated over 500 Grace Points through faithful devotions and holy habits',
+    category: 'grace',
+    earned: false,
+    icon: '💎',
+    tier: 'diamond',
+    tierLabel: 'Diamond Crown',
+    tierColor: '#9C74E8',
+    requirement: 'Earn 500 Grace Points in your Sanctuary',
+    currentProgress: 150,
+    targetProgress: 500,
+    rewardPoints: 200,
+    scripture: 'The one who conquers, I will make him a pillar in the temple of my God.',
+    scriptureRef: 'Revelation 3:12',
+    reflection: 'A steadfast pillar standing tall in faith, anchored in Christ through all seasons.',
+    unlockedPerks: ['+200 Grace Points', 'Diamond Sanctuary Halo'],
+  },
 ];
 
 const DEFAULT_JOURNAL: JournalEntry[] = [
@@ -307,7 +495,7 @@ const DEFAULT_JOURNAL: JournalEntry[] = [
 ];
 
 // Intensity styling helpers
-const INTENSITY_COLORS = [
+export const INTENSITY_COLORS = [
   { level: 0, label: 'Rest / Missed', bg: 'bg-[#F2EDF8]', border: 'border-gray-200', text: 'text-gray-400', badge: 'bg-gray-100 text-gray-600' },
   { level: 1, label: 'Light (Check-in)', bg: 'bg-[#BCEBE7]', border: 'border-[#72D5CF]', text: 'text-[#0E6C68]', badge: 'bg-[#BCEBE7] text-[#0E6C68]' },
   { level: 2, label: 'Moderate (Scripture)', bg: 'bg-[#5DD1CC]', border: 'border-[#2EAEA8]', text: 'text-[#094F4C]', badge: 'bg-[#5DD1CC] text-[#094F4C]' },
@@ -318,11 +506,12 @@ const INTENSITY_COLORS = [
 export function ProgressScreen({ deviceId }: { deviceId?: string }) {
   useIsMounted();
   const { user } = useUser();
+  const { user: christianUser } = useChristianAuth();
   const [tab, setTab] = useState<'calendar' | 'milestones' | 'trends' | 'journal' | 'pulse'>('calendar');
   const [selectedMilestone, setSelectedMilestone] = useState<StreakMilestone | null>(null);
 
   // Weekly Spiritual Pulse email state
-  const defaultUserEmail = user?.primaryEmailAddress?.emailAddress || 'asketfranckolivieralex@gmail.com';
+  const defaultUserEmail = christianUser?.email || user?.primaryEmailAddress?.emailAddress || 'asketfranckolivieralex@gmail.com';
   const [customRecipientEmail, setCustomRecipientEmail] = useState<string | null>(null);
   const recipientEmail = customRecipientEmail ?? defaultUserEmail;
   const setRecipientEmail = (val: string) => setCustomRecipientEmail(val);
@@ -352,8 +541,41 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     }
   };
 
+  // Daily Notification Reminder Settings state
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('lifebook.dailyReminderSettings');
+        if (saved) return JSON.parse(saved);
+      } catch {
+        // fallback
+      }
+    }
+    return DEFAULT_NOTIFICATION_SETTINGS;
+  });
+
+  const [isNotificationSettingsOpen, setIsNotificationSettingsOpen] = useState(false);
+
+  const handleSaveNotificationSettings = (newSettings: NotificationSettings) => {
+    setNotificationSettings(newSettings);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.dailyReminderSettings', JSON.stringify(newSettings));
+    }
+  };
+
+  // Format 24h time to 12h for UI badges
+  const formatReminderTime12h = (time24: string) => {
+    const [hStr, mStr] = time24.split(':');
+    const h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+    if (isNaN(h) || isNaN(m)) return time24;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+  };
+
   // Calendar state
-  const [calendarViewDate, setCalendarViewDate] = useState(() => new Date());
+  const [calendarViewDate] = useState(() => new Date());
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [selectedDateStr, setSelectedDateStr] = useState<string>(todayStr);
 
@@ -370,17 +592,104 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     return generateDefaultCalendarRecords();
   });
 
-  const [, setBadges] = useState<Badge[]>(() => {
+  const [badges, setBadges] = useState<Badge[]>(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('lifebook.badges');
-        if (saved) return JSON.parse(saved);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const existingMap = new Map(parsed.map((b: Badge) => [b.id, b]));
+            return DEFAULT_BADGES.map((def) => {
+              const ex = existingMap.get(def.id);
+              return ex ? { ...def, ...ex } : def;
+            });
+          }
+        }
       } catch {
         // fallback
       }
     }
     return DEFAULT_BADGES;
   });
+
+  // Active badge celebration animation modal state
+  const [activeBadgeCelebration, setActiveBadgeCelebration] = useState<BadgeCelebrationData | null>(null);
+
+  // Helper to convert badge to celebration modal format
+  const badgeToCelebrationData = (badge: Badge): BadgeCelebrationData => {
+    return {
+      id: badge.id,
+      title: badge.title,
+      subtitle: badge.subtitle || badge.description,
+      tier: badge.tierLabel || badge.tier || 'Spiritual Milestone',
+      tierColor: badge.tierColor,
+      icon: badge.icon,
+      badgeEmoji: badge.tier === 'gold' ? '👑' : badge.tier === 'diamond' ? '💎' : '🌿',
+      primaryColor: badge.tierColor || '#1FB6B0',
+      accentColor: badge.tier === 'gold' ? '#FFD700' : '#72D5CF',
+      rewardPoints: badge.rewardPoints || 50,
+      scripture: badge.scripture || 'Let us run with endurance the race that is set before us.',
+      scriptureRef: badge.scriptureRef || 'Hebrews 12:1',
+      reflection: badge.reflection || badge.description,
+      unlockedPerks: badge.unlockedPerks || [
+        `+${badge.rewardPoints || 50} Grace Points awarded to your Sanctuary`,
+        `${badge.title} Seal unlocked in Trophy Cabinet`,
+      ],
+    };
+  };
+
+  // Inspect or replay celebration animation for an earned badge
+  const handleTriggerBadgeCelebration = (badge: Badge) => {
+    setActiveBadgeCelebration(badgeToCelebrationData(badge));
+  };
+
+  // Direct unlock action (e.g. testing or immediate achievement)
+  const handleUnlockBadgeDirectly = (badgeId: string) => {
+    setBadges((prev) => {
+      let newlyUnlocked: Badge | null = null;
+      const nextBadges = prev.map((b) => {
+        if (b.id === badgeId) {
+          newlyUnlocked = {
+            ...b,
+            earned: true,
+            earnedDate: 'Just now',
+            currentProgress: b.targetProgress || b.currentProgress || 1,
+          };
+          return newlyUnlocked;
+        }
+        return b;
+      });
+
+      if (newlyUnlocked) {
+        const reward = (newlyUnlocked as Badge).rewardPoints || 50;
+        setGracePoints((pts) => {
+          const newPts = pts + reward;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('lifebook.gracePoints', String(newPts));
+          }
+          return newPts;
+        });
+        setActiveBadgeCelebration(badgeToCelebrationData(newlyUnlocked));
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lifebook.badges', JSON.stringify(nextBadges));
+      }
+      return nextBadges;
+    });
+  };
+
+  // Claim reward handler from celebration modal
+  const handleClaimBadgeReward = (badgeId: string, points: number) => {
+    setGracePoints((prev) => {
+      const next = prev + points;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lifebook.gracePoints', String(next));
+      }
+      return next;
+    });
+  };
 
   const [gracePoints, setGracePoints] = useState<number>(() => {
     if (typeof window !== 'undefined') {
@@ -469,6 +778,69 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     if (!nextMilestone) return 0;
     return Math.max(0, nextMilestone.days - currentStreak);
   }, [currentStreak, nextMilestone]);
+
+  // STREAK MILESTONE CELEBRATION ANIMATION (7-Day & 30-Day Triggers)
+  const [activeCelebrationMilestone, setActiveCelebrationMilestone] = useState<7 | 30 | null>(null);
+  const prevStreakRef = useRef<number | null>(null);
+
+  // Trigger celebration animation whenever the user reaches a 7-day or 30-day streak
+  useEffect(() => {
+    if (prevStreakRef.current !== null && prevStreakRef.current !== currentStreak) {
+      if (
+        (currentStreak === 7 && prevStreakRef.current < 7) ||
+        (currentStreak === 30 && prevStreakRef.current < 30)
+      ) {
+        setActiveCelebrationMilestone(currentStreak as 7 | 30);
+      }
+    }
+    prevStreakRef.current = currentStreak;
+  }, [currentStreak]);
+
+  // First-load check: If user's current active streak is 7 or 30 and has not yet been celebrated in this browser
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const celebrated = JSON.parse(localStorage.getItem('lifebook.streakMilestones.celebrated') || '[]');
+      if (
+        (currentStreak === 7 || currentStreak === 30) &&
+        !celebrated.includes(currentStreak)
+      ) {
+        const timer = setTimeout(() => {
+          setActiveCelebrationMilestone(currentStreak as 7 | 30);
+        }, 900);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // fallback
+    }
+  }, [currentStreak]);
+
+  const handleClaimMilestoneReward = (points: number, milestoneDays: 7 | 30) => {
+    setGracePoints((prev) => {
+      const updated = prev + points;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lifebook.gracePoints', String(updated));
+      }
+      return updated;
+    });
+
+    if (typeof window !== 'undefined') {
+      try {
+        const celebrated = JSON.parse(localStorage.getItem('lifebook.streakMilestones.celebrated') || '[]');
+        if (!celebrated.includes(milestoneDays)) {
+          localStorage.setItem('lifebook.streakMilestones.celebrated', JSON.stringify([...celebrated, milestoneDays]));
+        }
+
+        const claimed = JSON.parse(localStorage.getItem('lifebook.claimedMilestones') || '[]');
+        const milestoneId = `streak-${milestoneDays}`;
+        if (!claimed.includes(milestoneId)) {
+          localStorage.setItem('lifebook.claimedMilestones', JSON.stringify([...claimed, milestoneId]));
+        }
+      } catch {
+        // fallback
+      }
+    }
+  };
 
   // Seven-Day Spiritual Pulse calculation (mood patterns, milestones, practices, scripture)
   const weeklyPulseData = useMemo<SpiritualPulseData>(() => {
@@ -723,46 +1095,6 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     return cells;
   }, [calendarViewDate, calendarRecords, todayStr, activeStreakDates]);
 
-  // Selected date record
-  const selectedRecord = calendarRecords[selectedDateStr] || {
-    date: selectedDateStr,
-    dayLabel: new Date(selectedDateStr + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-    mood: null,
-    intensity: 0,
-    scriptureRead: false,
-    prayerCompleted: false,
-    stillnessPractice: false,
-    journalWritten: false,
-  };
-
-  // Quick action: toggle or log devotional practice on selected date
-  function togglePractice(key: 'scriptureRead' | 'prayerCompleted' | 'stillnessPractice' | 'journalWritten') {
-    const cur = selectedRecord;
-    const updated = {
-      ...cur,
-      [key]: !cur[key],
-    };
-
-    // Recalculate intensity based on 4 practices
-    let score = 0;
-    if (updated.scriptureRead) score++;
-    if (updated.prayerCompleted) score++;
-    if (updated.stillnessPractice) score++;
-    if (updated.journalWritten) score++;
-    if (updated.mood && score === 0) score = 1;
-
-    updated.intensity = Math.min(4, score);
-
-    const newMap = {
-      ...calendarRecords,
-      [selectedDateStr]: updated,
-    };
-    setCalendarRecords(newMap);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('lifebook.calendar.streakHistory', JSON.stringify(newMap));
-    }
-  }
-
   // Handle logging a mood today
   function handleCheckInMood(moodId: MoodItem['id']) {
     const todayLabel = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -1003,24 +1335,104 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     ? Math.round((activeDaysThisMonth / currentMonthCells.length) * 100)
     : 0;
 
-  // Next/Prev month controls
-  function handlePrevMonth() {
-    setCalendarViewDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-  }
+  // Update and persist a calendar record + evaluate milestone badges
+  const handleUpdateCalendarRecord = (dateStr: string, updated: DayActivityRecord) => {
+    const newMap = {
+      ...calendarRecords,
+      [dateStr]: updated,
+    };
+    setCalendarRecords(newMap);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lifebook.calendar.streakHistory', JSON.stringify(newMap));
+    }
 
-  function handleNextMonth() {
-    setCalendarViewDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  }
+    // Evaluate if any milestone badge is unlocked for the first time
+    const activeCount = Object.values(newMap).filter(
+      (r) => (r.intensity > 0 || r.isSabbathRest) && r.mood
+    ).length;
 
-  function handleTodayJump() {
-    setCalendarViewDate(new Date());
-    setSelectedDateStr(todayStr);
-  }
+    setBadges((prev) => {
+      let newlyEarned: Badge | null = null;
+      const nextBadges = prev.map((b) => {
+        // Faithful Week: 7 days streak
+        if (b.id === 'b_faithful_week' && !b.earned && currentStreak >= 7) {
+          newlyEarned = {
+            ...b,
+            earned: true,
+            earnedDate: 'Just now',
+            currentProgress: 7,
+          };
+          return newlyEarned;
+        }
 
-  const monthName = calendarViewDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+        // Monthly Reflection: 30 days active reflection
+        if (b.id === 'b_monthly_reflection' && !b.earned && activeCount >= 30) {
+          newlyEarned = {
+            ...b,
+            earned: true,
+            earnedDate: 'Just now',
+            currentProgress: 30,
+          };
+          return newlyEarned;
+        }
+
+        // Honest Heart: seeking or doubting openly brought to the Lord
+        if (b.id === 'b3' && !b.earned && (updated.mood === 'seeking' || updated.mood === 'doubting')) {
+          newlyEarned = {
+            ...b,
+            earned: true,
+            earnedDate: 'Just now',
+            currentProgress: 1,
+          };
+          return newlyEarned;
+        }
+
+        // Sabbath Peace: intentional rest
+        if (b.id === 'b_sabbath' && !b.earned && updated.isSabbathRest) {
+          newlyEarned = {
+            ...b,
+            earned: true,
+            earnedDate: 'Just now',
+            currentProgress: 1,
+          };
+          return newlyEarned;
+        }
+
+        // First Step: logged mood or check-in
+        if (b.id === 'b1' && !b.earned && updated.mood) {
+          newlyEarned = {
+            ...b,
+            earned: true,
+            earnedDate: 'Just now',
+            currentProgress: 1,
+          };
+          return newlyEarned;
+        }
+
+        return b;
+      });
+
+      if (newlyEarned) {
+        const reward = (newlyEarned as Badge).rewardPoints || 50;
+        setGracePoints((pts) => {
+          const nPts = pts + reward;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('lifebook.gracePoints', String(nPts));
+          }
+          return nPts;
+        });
+        setActiveBadgeCelebration(badgeToCelebrationData(newlyEarned));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('lifebook.badges', JSON.stringify(nextBadges));
+        }
+        return nextBadges;
+      }
+      return prev;
+    });
+  };
 
   return (
-    <div id="progress-screen" className="w-full max-w-5xl mx-auto px-4 py-8 text-[#1E1931]">
+    <div id="progress-screen" className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 text-[#1E1931]">
       {deviceId && <div className="sr-only">Device: {deviceId}</div>}
 
       {/* Header bar */}
@@ -1033,78 +1445,99 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             <span>·</span>
             <span>Spiritual Rhythm & Consistency</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-serif text-[#1E1835] mt-1">Your Progress</h1>
+          <h1 className="text-3xl sm:text-4xl font-serif text-[#1E1835] mt-1">
+            {christianUser?.fullName ? `${christianUser.fullName}’s Progress` : "Your Progress"}
+          </h1>
           <p className="text-sm text-[#776E82] mt-1">
-            Build a faithful rhythm of daily Scripture, stillness, prayer, and soul reflections with God.
+            {christianUser?.faithSeason
+              ? `Faith Season: ${christianUser.faithSeason} · Translation: ${christianUser.translation}`
+              : "Build a faithful rhythm of daily Scripture, stillness, prayer, and soul reflections with God."}
           </p>
         </div>
 
-        {/* Tab switcher */}
-        <div id="progress-tabs" className="inline-flex rounded-full bg-[#EAE4F2] p-1 self-start md:self-auto shadow-inner">
+        {/* Tab switcher & Settings Tool */}
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+          <div id="progress-tabs" className="inline-flex rounded-full bg-[#EAE4F2] p-1 shadow-inner">
+            <button
+              id="tab-calendar"
+              type="button"
+              onClick={() => setTab('calendar')}
+              className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
+                tab === 'calendar'
+                  ? 'bg-[#2A2146] text-white shadow'
+                  : 'text-[#65597C] hover:text-[#1E1835]'
+              }`}
+            >
+              <span>📅</span>
+              <span>Monthly Mood Heatmap</span>
+            </button>
+            <button
+              id="tab-milestones"
+              type="button"
+              onClick={() => setTab('milestones')}
+              className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
+                tab === 'milestones'
+                  ? 'bg-[#2A2146] text-white shadow'
+                  : 'text-[#65597C] hover:text-[#1E1835]'
+              }`}
+            >
+              <span>🏆</span>
+              <span>Milestones ({unlockedMilestonesCount}/{STREAK_MILESTONES.length})</span>
+            </button>
+            <button
+              id="tab-trends"
+              type="button"
+              onClick={() => setTab('trends')}
+              className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
+                tab === 'trends'
+                  ? 'bg-[#2A2146] text-white shadow'
+                  : 'text-[#65597C] hover:text-[#1E1835]'
+              }`}
+            >
+              <span>📈</span>
+              <span>30-Day Trends</span>
+            </button>
+            <button
+              id="tab-journal"
+              type="button"
+              onClick={() => setTab('journal')}
+              className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
+                tab === 'journal'
+                  ? 'bg-[#2A2146] text-white shadow'
+                  : 'text-[#65597C] hover:text-[#1E1835]'
+              }`}
+            >
+              <span>✍️</span>
+              <span>Journal & Scripture</span>
+            </button>
+            <button
+              id="tab-pulse"
+              type="button"
+              onClick={() => setTab('pulse')}
+              className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
+                tab === 'pulse'
+                  ? 'bg-[#2A2146] text-white shadow'
+                  : 'text-[#65597C] hover:text-[#1E1835]'
+              }`}
+            >
+              <span>🕊️</span>
+              <span>Weekly Pulse</span>
+            </button>
+          </div>
+
+          {/* Quick Notification Settings Tool Button in Header */}
           <button
-            id="tab-calendar"
+            id="header-notification-settings-btn"
             type="button"
-            onClick={() => setTab('calendar')}
-            className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
-              tab === 'calendar'
-                ? 'bg-[#2A2146] text-white shadow'
-                : 'text-[#65597C] hover:text-[#1E1835]'
-            }`}
+            onClick={() => setIsNotificationSettingsOpen(true)}
+            className="px-4 py-2 text-xs font-bold rounded-full border border-[#D5CBE7] bg-white hover:bg-[#F7F4FB] text-[#2C214A] transition-all flex items-center gap-1.5 shadow-xs cursor-pointer group"
+            title="Configure daily reminder time and mood check-in flow"
           >
-            <span>📅</span>
-            <span>Streak Calendar</span>
-          </button>
-          <button
-            id="tab-milestones"
-            type="button"
-            onClick={() => setTab('milestones')}
-            className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
-              tab === 'milestones'
-                ? 'bg-[#2A2146] text-white shadow'
-                : 'text-[#65597C] hover:text-[#1E1835]'
-            }`}
-          >
-            <span>🏆</span>
-            <span>Milestones ({unlockedMilestonesCount}/{STREAK_MILESTONES.length})</span>
-          </button>
-          <button
-            id="tab-trends"
-            type="button"
-            onClick={() => setTab('trends')}
-            className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
-              tab === 'trends'
-                ? 'bg-[#2A2146] text-white shadow'
-                : 'text-[#65597C] hover:text-[#1E1835]'
-            }`}
-          >
-            <span>📈</span>
-            <span>30-Day Trends</span>
-          </button>
-          <button
-            id="tab-journal"
-            type="button"
-            onClick={() => setTab('journal')}
-            className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
-              tab === 'journal'
-                ? 'bg-[#2A2146] text-white shadow'
-                : 'text-[#65597C] hover:text-[#1E1835]'
-            }`}
-          >
-            <span>✍️</span>
-            <span>Journal & Scripture</span>
-          </button>
-          <button
-            id="tab-pulse"
-            type="button"
-            onClick={() => setTab('pulse')}
-            className={`px-5 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${
-              tab === 'pulse'
-                ? 'bg-[#2A2146] text-white shadow'
-                : 'text-[#65597C] hover:text-[#1E1835]'
-            }`}
-          >
-            <span>🕊️</span>
-            <span>Weekly Pulse</span>
+            <span className="text-sm group-hover:rotate-12 transition-transform">🔔</span>
+            <span className="hidden sm:inline">Daily Reminder:</span>
+            <span className="font-mono text-[#0E716D] font-extrabold bg-[#E7F7F6] px-2 py-0.5 rounded-full border border-[#9DE1DD]">
+              {notificationSettings.enabled ? formatReminderTime12h(notificationSettings.time) : 'Off'}
+            </span>
           </button>
         </div>
       </div>
@@ -1134,6 +1567,39 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
           <p className="mt-2 text-[11px] text-[#A69BBF] line-clamp-1">
             {currentStreak > 0 ? 'Unbroken walk with Jesus' : 'Start your day 1 check-in'}
           </p>
+
+          {/* Quick Streak Milestone Animation Triggers */}
+          <div className="mt-3 pt-2.5 border-t border-white/10 flex flex-col gap-1.5">
+            <button
+              type="button"
+              id="card-celebrate-7day-milestone-btn"
+              onClick={() => setActiveCelebrationMilestone(7)}
+              className="text-left text-[11px] font-bold text-[#37C6C2] hover:text-white flex items-center justify-between px-2.5 py-1 rounded-xl bg-[#1FB6B0]/20 hover:bg-[#1FB6B0]/30 border border-[#1FB6B0]/40 transition-all cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                <span>🌿</span>
+                <span>{currentStreak >= 7 ? '7-Day Rhythm Unlocked' : '7-Day Milestone'}</span>
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-white/90">
+                {currentStreak >= 7 ? 'Celebrate 🎉' : 'Preview ✦'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              id="card-celebrate-30day-milestone-btn"
+              onClick={() => setActiveCelebrationMilestone(30)}
+              className="text-left text-[11px] font-bold text-[#FFD700] hover:text-white flex items-center justify-between px-2.5 py-1 rounded-xl bg-[#E3B15E]/20 hover:bg-[#E3B15E]/30 border border-[#E3B15E]/40 transition-all cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                <span>👑</span>
+                <span>{currentStreak >= 30 ? '30-Day Pillar Unlocked' : '30-Day Milestone'}</span>
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-white/90">
+                {currentStreak >= 30 ? 'Celebrate 🎉' : 'Preview ✦'}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Card 1: Longest Record */}
@@ -1241,6 +1707,31 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {/* Milestone Celebration Banner Triggers */}
+          <button
+            id="banner-celebrate-7day-milestone"
+            type="button"
+            onClick={() => setActiveCelebrationMilestone(7)}
+            className="px-4 py-2.5 rounded-2xl bg-[#1FB6B0]/30 hover:bg-[#1FB6B0]/40 border border-[#1FB6B0]/50 text-[#37C6C2] text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+            title="Celebrate 7-Day Consistent Streak"
+          >
+            <span>🌿</span>
+            <span>7-Day Celebration</span>
+            <span className="text-amber-300">✦</span>
+          </button>
+
+          <button
+            id="banner-celebrate-30day-milestone"
+            type="button"
+            onClick={() => setActiveCelebrationMilestone(30)}
+            className="px-4 py-2.5 rounded-2xl bg-[#E3B15E]/25 hover:bg-[#E3B15E]/35 border border-[#E3B15E]/50 text-[#FFD700] text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+            title="Celebrate 30-Day Consistent Streak"
+          >
+            <span>👑</span>
+            <span>30-Day Celebration</span>
+            <span className="text-amber-200">✦</span>
+          </button>
+
           <button
             id="banner-sabbath-btn"
             type="button"
@@ -1264,10 +1755,36 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             id="banner-weekly-pulse-btn"
             type="button"
             onClick={() => setTab('pulse')}
-            className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-xs"
+            className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
           >
             <span className="text-base">📊</span>
             <span>Weekly Pulse</span>
+          </button>
+
+          <button
+            id="banner-recurring-patterns-btn"
+            type="button"
+            onClick={() => {
+              setTab('calendar');
+              setTimeout(() => {
+                document.getElementById('recurring-emotional-patterns-section')?.scrollIntoView({ behavior: 'smooth' });
+              }, 50);
+            }}
+            className="px-4 py-2.5 rounded-2xl bg-[#1FB6B0]/20 hover:bg-[#1FB6B0]/35 border border-[#1FB6B0]/40 text-[#43E4DC] text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+          >
+            <span className="text-base">✦</span>
+            <span>Soul Patterns</span>
+          </button>
+
+          <button
+            id="banner-notification-reminder-btn"
+            type="button"
+            onClick={() => setIsNotificationSettingsOpen(true)}
+            className="px-4 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-xs cursor-pointer"
+            title="Set daily notification time for mood check-in"
+          >
+            <span className="text-base">🔔</span>
+            <span>Daily Reminder ({notificationSettings.enabled ? formatReminderTime12h(notificationSettings.time) : 'Off'})</span>
           </button>
 
           <div className="flex items-center gap-4 bg-white/10 p-3.5 rounded-2xl border border-white/10 shrink-0">
@@ -1301,6 +1818,56 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
       {/* TAB 1: CALENDAR VIEW WITH COLOR-CODED INTENSITY TILES */}
       {tab === 'calendar' && (
         <div className="mt-8 space-y-8">
+          {/* VISUAL MOOD UPDATE & SOUL POSTURE TRACKER */}
+          <VisualMoodUpdateCard
+            todayStr={todayStr}
+            selectedDateStr={selectedDateStr}
+            calendarRecords={calendarRecords}
+            onUpdateRecord={handleUpdateCalendarRecord}
+            onOpenJournal={() => setTab('journal')}
+            onSelectDate={setSelectedDateStr}
+          />
+
+          {/* Quick Rewards Cabinet Teaser */}
+          <div
+            id="calendar-rewards-teaser"
+            className="rounded-3xl bg-gradient-to-r from-[#FAF8FC] via-[#F6F2FB] to-[#EDFAF9] border border-[#D8CFEC] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E3B15E] to-[#B38018] text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                👑
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9E6F12]">
+                    Sanctuary Rewards
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E3B15E]/20 text-[#6B4E0E] font-bold">
+                    {badges.filter(b => b.earned).length} of {badges.length} Badges Unlocked
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-[#1E1835] mt-0.5">
+                  Milestones: Faithful Week & Monthly Reflection
+                </h4>
+                <p className="text-xs text-[#6B5F84]">
+                  Celebrate your spiritual consistency. Unlock sacred seals and experience celebratory animations as you walk with Christ.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                id="view-rewards-cabinet-btn"
+                onClick={() => setTab('milestones')}
+                className="px-4 py-2 rounded-full bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <span>🏆</span>
+                <span>Open Rewards Cabinet</span>
+              </button>
+            </div>
+          </div>
+
           {/* Burnout Prevention & Sabbath Resting Sanctuary Component */}
           <BurnoutPreventionCard
             calendarRecords={calendarRecords}
@@ -1312,6 +1879,68 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             onOpenJournal={() => setTab('journal')}
           />
 
+          {/* Daily Notification Reminder & Consistent Check-In Card */}
+          <div
+            id="calendar-notification-reminder-card"
+            className="rounded-3xl bg-gradient-to-r from-[#FAF8FC] via-[#F6F3FA] to-[#EDFAF9] border border-[#D8CFEC] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#2A2146] text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
+                🔔
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1FB6B0]">
+                    Rhythm & Habit Cue
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#1FB6B0]/15 text-[#0E716D] font-mono font-bold">
+                    {notificationSettings.enabled ? `Alert: ${formatReminderTime12h(notificationSettings.time)}` : 'Reminders Paused'}
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-[#1E1835] mt-0.5">
+                  Daily Check-In Reminder
+                </h4>
+                <p className="text-xs text-[#6B5F84]">
+                  {calendarRecords[todayStr]?.mood ? (
+                    <span>
+                      Today’s mood is logged (<strong className="capitalize text-[#1FB6B0]">{calendarRecords[todayStr].mood}</strong>). Next reminder at <strong>{formatReminderTime12h(notificationSettings.time)}</strong>.
+                    </span>
+                  ) : (
+                    <span>
+                      Consistent data entry fuels meaningful trends. Log today’s soul posture to protect your {currentStreak}-day streak!
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-auto">
+              <button
+                id="edit-notification-reminder-settings-btn"
+                type="button"
+                onClick={() => setIsNotificationSettingsOpen(true)}
+                className="px-4 py-2 rounded-full border border-gray-300 hover:bg-white text-xs font-bold text-[#3E3458] transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+              >
+                <span>⚙️</span>
+                <span>Set Time ({formatReminderTime12h(notificationSettings.time)})</span>
+              </button>
+
+              <button
+                id="jump-to-mood-checkin-btn"
+                type="button"
+                onClick={() => {
+                  setSelectedDateStr(todayStr);
+                  setTimeout(() => {
+                    document.getElementById('monthly-mood-heatmap-panel')?.scrollIntoView({ behavior: 'smooth' });
+                  }, 50);
+                }}
+                className="px-4 py-2 rounded-full bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>🕊️</span>
+                <span>Check In Mood</span>
+              </button>
+            </div>
+          </div>
           {/* Quick Weekly Spiritual Pulse Teaser Card */}
           <div
             id="calendar-weekly-pulse-card"
@@ -1358,461 +1987,107 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
               </button>
             </div>
           </div>
-          <section
-            id="streak-calendar-section"
-            className="rounded-3xl bg-white border border-gray-200/80 p-6 sm:p-8 shadow-sm"
+          {/* RESPONSIVE ROW/STACK CONTAINER: HEATMAP CALENDAR & RECHARTS CONTAINER (< 760px STACKED, >= 760px ROW) */}
+          <div
+            id="heatmap-recharts-layout-container"
+            data-testid="heatmap-recharts-container"
+            className="progress-heatmap-recharts-row flex flex-col min-[760px]:flex-row gap-8 w-full items-start"
           >
-            {/* Calendar Controls & Title */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#705E8C]">
-                    Streak Calendar
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1FB6B0]">
-                    <span>●</span> Intensity tiles
-                  </span>
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-serif text-[#1E1931] mt-0.5">
-                  {monthName}
-                </h3>
-              </div>
-
-              {/* Month navigation buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  id="calendar-prev-month"
-                  type="button"
-                  onClick={handlePrevMonth}
-                  aria-label="Previous Month"
-                  className="px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-bold text-[#4E4466] hover:bg-gray-50 active:scale-95 transition-all"
-                >
-                  ← Previous
-                </button>
-                <button
-                  id="calendar-today-btn"
-                  type="button"
-                  onClick={handleTodayJump}
-                  className="px-4 py-1.5 rounded-full bg-[#2A2146] text-white text-xs font-bold hover:bg-[#1E1835] active:scale-95 transition-all shadow-xs"
-                >
-                  Today
-                </button>
-                <button
-                  id="calendar-next-month"
-                  type="button"
-                  onClick={handleNextMonth}
-                  aria-label="Next Month"
-                  className="px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-bold text-[#4E4466] hover:bg-gray-50 active:scale-95 transition-all"
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-
-            {/* Day of week headers */}
-            <div className="mt-6 grid grid-cols-7 gap-2 sm:gap-3 text-center">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <span key={day} className="text-xs font-bold uppercase tracking-wider text-[#8A7E9F] py-1">
-                  {day}
-                </span>
-              ))}
-            </div>
-
-            {/* 7-column Calendar Matrix of Color-Coded Intensity Tiles with Entry and Hover Animations */}
+            {/* 1. Heatmap Calendar Container */}
             <div
-              key={`${calendarViewDate.getFullYear()}-${calendarViewDate.getMonth()}`}
-              className="mt-2 grid grid-cols-7 gap-2 sm:gap-3"
+              id="heatmap-calendar-container"
+              data-testid="heatmap-calendar-container"
+              className="heatmap-calendar-container w-full min-[760px]:w-1/2 min-[760px]:flex-1 min-w-0"
             >
-              {calendarGrid.map((cell, cellIdx) => {
-                const intensity = cell.record?.intensity || 0;
-                const isSelected = cell.dateStr === selectedDateStr;
-                const isToday = cell.isToday;
-                const moodObj = cell.record?.mood ? MOOD_MAP[cell.record.mood] : null;
-
-                const isSabbath = Boolean(cell.record?.isSabbathRest);
-
-                // Color-coded intensity styling with dynamic hover glow shadows
-                let tileClass = 'bg-[#F9F7F4] border-gray-200 text-gray-400 hover:border-[#1FB6B0]/50 hover:bg-white hover:shadow-md';
-                if (isSabbath) {
-                  tileClass = 'bg-gradient-to-br from-[#F6F3FC] via-[#EEFAF8] to-[#FFF9F0] border-[#BCAFE0] text-[#36275C] font-bold shadow-md hover:border-[#8E7BB7] hover:brightness-105 hover:shadow-[0_12px_24px_-4px_rgba(142,123,183,0.48)]';
-                } else if (intensity === 1) {
-                  tileClass = 'bg-[#C5EFEA] border-[#81DBD5] text-[#0C615D] font-semibold hover:border-[#1FB6B0] hover:brightness-105 hover:shadow-[0_10px_22px_-4px_rgba(31,182,176,0.38)]';
-                } else if (intensity === 2) {
-                  tileClass = 'bg-[#5CD2CC] border-[#2EB2AB] text-[#084845] font-semibold hover:border-[#16948F] hover:brightness-105 hover:shadow-[0_12px_24px_-4px_rgba(31,182,176,0.52)]';
-                } else if (intensity === 3) {
-                  tileClass = 'bg-[#1FB6B0] border-[#16948F] text-white font-bold hover:border-[#0B5C58] hover:brightness-110 hover:shadow-[0_14px_28px_-3px_rgba(22,148,143,0.62)]';
-                } else if (intensity === 4) {
-                  tileClass = 'bg-gradient-to-br from-[#E3B15E] via-[#F28C38] to-[#1FB6B0] border-[#E3B15E] text-white font-bold shadow-md hover:border-[#FFD066] hover:brightness-110 hover:shadow-[0_16px_32px_-3px_rgba(242,140,56,0.68)]';
-                }
-
-                // Staggered entry animation delay
-                const entryDelayMs = Math.min(cellIdx * 14, 450);
-
-                return (
-                  <button
-                    key={cell.dateStr}
-                    type="button"
-                    style={{ animationDelay: `${entryDelayMs}ms` }}
-                    onClick={() => setSelectedDateStr(cell.dateStr)}
-                    title={`${cell.dateStr} · ${isSabbath ? 'Holy Sabbath Rest (Protected Streak)' : `Intensity ${intensity}/4`}${moodObj ? ` · Mood: ${moodObj.label}` : ''}${cell.isPartOfActiveStreak && (intensity > 0 || isSabbath) ? ' · Active Streak 🔥' : ''}`}
-                    className={`calendar-tile-entry group relative flex flex-col justify-between p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 ease-out min-h-[66px] sm:min-h-[86px] text-left overflow-hidden cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1FB6B0] ${tileClass} ${
-                      !cell.isCurrentMonth ? 'opacity-35 hover:opacity-90' : 'opacity-100'
-                    } ${
-                      isSelected
-                        ? 'ring-3 ring-[#2A2146] ring-offset-2 scale-[1.05] -translate-y-1 z-20 shadow-xl tile-glow-selected'
-                        : 'hover:scale-[1.06] hover:-translate-y-1.5 hover:z-20'
-                    }`}
-                  >
-                    {/* Subtle Sheen Highlight Sweep on Hover */}
-                    <span
-                      aria-hidden="true"
-                      className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    />
-
-                    {/* Top row: day number & today / streak pill */}
-                    <div className="relative z-10 flex items-center justify-between w-full">
-                      <span
-                        className={`text-xs sm:text-sm font-serif transition-transform duration-200 group-hover:scale-110 ${
-                          isToday
-                            ? 'px-1.5 py-0.5 rounded-md bg-[#2A2146] text-white font-sans font-bold text-[10px] shadow-xs'
-                            : intensity === 0 && !isSabbath ? 'group-hover:text-[#2A2146] group-hover:font-bold' : ''
-                        }`}
-                      >
-                        {cell.dayNumber}
-                      </span>
-
-                      {/* Sabbath indicator or flame indicator for active streak days */}
-                      {isSabbath ? (
-                        <span
-                          title="Sabbath Rest Day · Streak Sheltered by Grace"
-                          className="sabbath-float text-xs sm:text-sm select-none drop-shadow-xs"
-                        >
-                          🕊️
-                        </span>
-                      ) : cell.isPartOfActiveStreak && intensity > 0 ? (
-                        <span
-                          title="Part of active unbroken streak!"
-                          className="flame-streak-indicator text-xs sm:text-sm select-none drop-shadow-xs transform group-hover:scale-135 group-hover:-rotate-12 transition-transform duration-200"
-                        >
-                          🔥
-                        </span>
-                      ) : null}
-                    </div>
-
-                    {/* Bottom row: Mood or practice icon dots */}
-                    <div className="relative z-10 flex items-end justify-between w-full mt-1">
-                      <div className="flex items-center gap-0.5">
-                        {isSabbath ? (
-                          <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#735DA3] bg-[#735DA3]/15 px-1.5 py-0.5 rounded-md">
-                            Sabbath
-                          </span>
-                        ) : intensity > 0 ? (
-                          <div className="flex gap-0.5 transition-transform duration-200 group-hover:scale-125 origin-bottom-left">
-                            {Array.from({ length: intensity }).map((_, idx) => (
-                              <span
-                                key={idx}
-                                className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full transition-all duration-200 ${
-                                  intensity >= 3 ? 'bg-white shadow-xs' : 'bg-[#0E6C68]'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-gray-300 group-hover:text-[#1FB6B0] transition-colors">·</span>
-                        )}
-                      </div>
-
-                      {moodObj && (
-                        <span
-                          className="text-xs sm:text-sm select-none transform transition-transform duration-200 group-hover:scale-130 group-hover:rotate-6 origin-bottom-right drop-shadow-xs"
-                          title={moodObj.label}
-                        >
-                          {moodObj.emoji}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+              <MonthlyMoodHeatmap
+                calendarRecords={calendarRecords}
+                onUpdateRecord={handleUpdateCalendarRecord}
+                selectedDateStr={selectedDateStr}
+                onSelectDate={setSelectedDateStr}
+                todayStr={todayStr}
+                activeStreakDates={activeStreakDates}
+                onOpenJournal={() => setTab("journal")}
+                onOpenPulse={() => setTab("pulse")}
+                onOpenNotificationSettings={() => setIsNotificationSettingsOpen(true)}
+                notificationReminderTime={notificationSettings.enabled ? formatReminderTime12h(notificationSettings.time) : undefined}
+              />
             </div>
 
-            {/* Intensity Legend with Sabbath Badge */}
-            <div className="mt-6 pt-5 border-t border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-semibold text-[#706782]">Streak Intensity:</span>
-                <span className="text-gray-400 text-[11px]">Less</span>
-                <div className="flex items-center gap-1.5">
-                  {INTENSITY_COLORS.map(item => (
-                    <div
-                      key={item.level}
-                      title={`Level ${item.level}: ${item.label}`}
-                      className={`w-6 h-6 rounded-lg border flex items-center justify-center text-[10px] font-bold cursor-default transition-all duration-150 hover:scale-120 hover:-translate-y-0.5 hover:shadow-sm ${item.bg} ${item.border} ${item.text}`}
-                    >
-                      {item.level === 4 ? '🔥' : item.level}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-gray-400 text-[11px]">More</span>
-
-                {/* Holy Sabbath Rest Legend Badge */}
-                <div className="ml-3 pl-3 border-l border-gray-200 flex items-center gap-1.5 group cursor-default">
-                  <div
-                    title="Sabbath Rest Day: Protects your streak and rewards intentional rest"
-                    className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#F6F3FC] via-[#EEFAF8] to-[#FFF9F0] border border-[#BCAFE0] flex items-center justify-center text-[10px] shadow-xs transition-transform group-hover:scale-115"
-                  >
-                    🕊️
-                  </div>
-                  <span className="text-[#554A70] text-[11px] font-bold">Sabbath Rest</span>
-                </div>
-              </div>
-
-              <div className="text-[#65597C] text-xs">
-                <span>Selected: </span>
-                <strong className="text-[#1E1931]">
-                  {new Date(selectedDateStr + 'T12:00:00').toLocaleDateString(undefined, {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </strong>
-                {selectedDateStr === todayStr && (
-                  <span className="ml-2 px-2 py-0.5 rounded-full bg-[#1FB6B0]/20 text-[#14837F] font-bold text-[10px]">
-                    Today
-                  </span>
-                )}
-              </div>
+            {/* 2. Recharts Visualization Container */}
+            <div
+              id="recharts-container"
+              data-testid="recharts-container"
+              className="recharts-container w-full min-[760px]:w-1/2 min-[760px]:flex-1 min-w-0"
+            >
+              <WeeklyInsightChart
+                pulseData={weeklyPulseData}
+                calendarRecords={calendarRecords}
+                onSelectDate={(dateStr) => {
+                  setSelectedDateStr(dateStr);
+                }}
+              />
             </div>
-          </section>
+          </div>
 
-          {/* Interactive Day Inspector & Devotional Practice Logger */}
-          <section
-            id="day-inspector-card"
-            className="rounded-3xl bg-[#211B3B] p-6 sm:p-8 text-white shadow-xl grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            {/* Left: Summary for selected date */}
-            <div className="md:col-span-1 space-y-3 border-b md:border-b-0 md:border-r border-white/10 pb-5 md:pb-0 md:pr-6">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#37C6C2]">
-                Day Inspection
-              </span>
-              <h4 className="text-2xl font-serif text-white">
-                {new Date(selectedDateStr + 'T12:00:00').toLocaleDateString(undefined, {
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </h4>
-
-              {/* Intensity level pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 border border-white/15">
-                <span>Intensity Level:</span>
-                <span className="text-[#37C6C2] font-bold">
-                  {selectedRecord.intensity} / 4
-                </span>
-                {selectedRecord.intensity === 4 && <span>🔥</span>}
-                {selectedRecord.isSabbathRest && <span className="text-sm">🕊️</span>}
-              </div>
-
-              {/* Active streak status */}
-              <p className="text-xs text-[#C5BCD9] leading-relaxed">
-                {selectedRecord.isSabbathRest
-                  ? '🕊️ Consecrated Sabbath Rest Day: Ceasing striving to abide peacefully in the Lord. Streak fully preserved!'
-                  : activeStreakDates.has(selectedDateStr)
-                  ? '✓ Part of your continuous unbroken daily walking streak with the Lord!'
-                  : selectedRecord.intensity > 0
-                  ? 'Devotional engagement completed on this day.'
-                  : 'Rest day or no recorded practice on this day.'}
-              </p>
-
-              {/* Dedicated Sabbath Rest Badge Banner in Inspector */}
-              {selectedRecord.isSabbathRest && (
-                <div className="p-3 rounded-2xl bg-gradient-to-r from-[#1FB6B0]/25 via-[#8E7BB7]/25 to-[#E3B15E]/20 border border-[#3ED1C8]/40">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#45D6D0]">
-                    <span>🕊️</span>
-                    <span>Sabbath Day · Consecrated Rest</span>
-                  </div>
-                  <p className="text-[11px] text-[#E5DCF6] mt-0.5">
-                    Consciously consecrated for soul restoration. Your streak is shielded by grace!
-                  </p>
-                </div>
-              )}
-
-              {/* Scripture quote if available */}
-              {selectedRecord.scriptureRef && (
-                <div className="mt-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#E3B15E]">
-                    {selectedRecord.scriptureRef}
-                  </span>
-                  <p className="text-xs italic text-[#EAE5F3] mt-1">
-                    “{selectedRecord.reflectionSnippet || 'He restores my soul.'}”
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Middle & Right: Interactive practice toggles to update streak & intensity */}
-            <div className="md:col-span-2 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h5 className="text-sm font-bold uppercase tracking-wider text-white">
-                  Devotional Rhythm Checkpoints
-                </h5>
-                <span className="text-xs text-[#A89EC0]">
-                  Click to log or toggle practices (+ intensity)
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* 1. Scripture */}
-                <button
-                  type="button"
-                  onClick={() => togglePractice('scriptureRead')}
-                  className={`flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedRecord.scriptureRead
-                      ? 'bg-[#1FB6B0]/20 border-[#1FB6B0] text-white'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                  }`}
-                >
-                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                    selectedRecord.scriptureRead ? 'bg-[#1FB6B0] text-white' : 'bg-white/10 text-gray-400'
-                  }`}>
-                    {selectedRecord.scriptureRead ? '✓' : '📖'}
-                  </span>
-                  <div>
-                    <h6 className="text-xs font-bold text-white">Scripture Reading</h6>
-                    <p className="text-[11px] text-[#A89EC0] mt-0.5">Read & meditated on God’s Word</p>
-                  </div>
-                </button>
-
-                {/* 2. Prayer */}
-                <button
-                  type="button"
-                  onClick={() => togglePractice('prayerCompleted')}
-                  className={`flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedRecord.prayerCompleted
-                      ? 'bg-[#1FB6B0]/20 border-[#1FB6B0] text-white'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                  }`}
-                >
-                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                    selectedRecord.prayerCompleted ? 'bg-[#1FB6B0] text-white' : 'bg-white/10 text-gray-400'
-                  }`}>
-                    {selectedRecord.prayerCompleted ? '✓' : '🙏'}
-                  </span>
-                  <div>
-                    <h6 className="text-xs font-bold text-white">Honest Prayer</h6>
-                    <p className="text-[11px] text-[#A89EC0] mt-0.5">Brought heart & petitions to God</p>
-                  </div>
-                </button>
-
-                {/* 3. Stillness */}
-                <button
-                  type="button"
-                  onClick={() => togglePractice('stillnessPractice')}
-                  className={`flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedRecord.stillnessPractice
-                      ? 'bg-[#1FB6B0]/20 border-[#1FB6B0] text-white'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                  }`}
-                >
-                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                    selectedRecord.stillnessPractice ? 'bg-[#1FB6B0] text-white' : 'bg-white/10 text-gray-400'
-                  }`}>
-                    {selectedRecord.stillnessPractice ? '✓' : '🕊'}
-                  </span>
-                  <div>
-                    <h6 className="text-xs font-bold text-white">Abiding Stillness</h6>
-                    <p className="text-[11px] text-[#A89EC0] mt-0.5">Quiet presence before the Lord</p>
-                  </div>
-                </button>
-
-                {/* 4. Journal */}
-                <button
-                  type="button"
-                  onClick={() => togglePractice('journalWritten')}
-                  className={`flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedRecord.journalWritten
-                      ? 'bg-[#1FB6B0]/20 border-[#1FB6B0] text-white'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                  }`}
-                >
-                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                    selectedRecord.journalWritten ? 'bg-[#1FB6B0] text-white' : 'bg-white/10 text-gray-400'
-                  }`}>
-                    {selectedRecord.journalWritten ? '✓' : '✍️'}
-                  </span>
-                  <div>
-                    <h6 className="text-xs font-bold text-white">Journal Reflection</h6>
-                    <p className="text-[11px] text-[#A89EC0] mt-0.5">Recorded what God is teaching you</p>
-                  </div>
-                </button>
-
-                {/* 5. Sabbath Rest Day Toggle */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (selectedRecord.isSabbathRest) {
-                      handleCancelSabbath(selectedDateStr);
-                    } else {
-                      handleHonorSabbath(selectedDateStr);
-                    }
-                  }}
-                  className={`sm:col-span-2 flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedRecord.isSabbathRest
-                      ? 'bg-gradient-to-r from-[#1FB6B0]/30 to-[#8E7BB7]/30 border-[#45D6D0] text-white shadow-md'
-                      : 'bg-white/5 border-white/10 hover:border-[#1FB6B0]/50 text-white/80'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-[#1FB6B0]/20 flex items-center justify-center text-base border border-[#1FB6B0]/30">
-                      🕊️
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">
-                        {selectedRecord.isSabbathRest ? 'Sabbath Rest Day Consecrated' : 'Designate as Sabbath Rest Day'}
-                      </div>
-                      <div className="text-[10px] text-[#A89EC0]">
-                        {selectedRecord.isSabbathRest ? 'Rest honors God · Streak protected by grace' : 'Safeguards your streak & awards +50 Grace Points'}
-                      </div>
-                    </div>
-                  </div>
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all ${
-                    selectedRecord.isSabbathRest ? 'bg-[#1FB6B0] text-white border-white/20' : 'bg-white/10 text-[#C5BCD9] border-white/15'
-                  }`}>
-                    {selectedRecord.isSabbathRest ? 'Active 🕊️' : 'Set Rest'}
-                  </span>
-                </button>
-              </div>
-
-              {/* Mood bar for selected day */}
-              <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
-                <span className="text-xs font-semibold text-[#B6ABCF]">
-                  Log soul state for this day:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {MOODS.map(m => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => handleCheckInMood(m.id)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-all ${
-                        selectedRecord.mood === m.id
-                          ? 'ring-2 ring-white font-bold bg-white/25 text-white'
-                          : 'bg-white/10 hover:bg-white/20 text-[#D8D0E8]'
-                      }`}
-                    >
-                      <span>{m.emoji}</span>
-                      <span>{m.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
+          {/* 3. Recurring Emotional Patterns & Soul Rhythms Summary Section */}
+          <RecurringEmotionalPatternsSummary
+            calendarRecords={calendarRecords}
+            journalEntries={journal}
+            onSelectDate={(dateStr) => {
+              setSelectedDateStr(dateStr);
+              document.getElementById('heatmap-calendar-container')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            onOpenJournal={() => setTab('journal')}
+          />
         </div>
       )}
 
       {/* TAB 2: MILESTONES & STREAK GAMIFICATION */}
       {tab === 'milestones' && (
-        <div className="mt-8">
+        <div className="mt-8 space-y-6">
+          {/* Interactive Streak Milestone Celebration Showcase Banner */}
+          <div
+            id="streak-milestone-interactive-banner"
+            className="rounded-3xl bg-gradient-to-r from-[#1D1635] via-[#261E47] to-[#122F3A] p-6 text-white border border-white/10 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6"
+          >
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1FB6B0]/20 border border-[#1FB6B0]/40 text-[#37C6C2] text-[11px] font-extrabold uppercase tracking-widest">
+                <span>✦</span>
+                <span>Consistency Milestones Engine</span>
+              </div>
+              <h3 className="text-2xl font-serif font-bold text-white mt-2">
+                7-Day & 30-Day Streak Milestones
+              </h3>
+              <p className="text-xs text-[#C5BCD9] mt-1 max-w-xl">
+                Experience the celebratory fanfare, sacred Scripture illumination, and sacred confetti animation that honors your consistent walk with Christ.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <button
+                type="button"
+                id="milestone-showcase-7day-btn"
+                onClick={() => setActiveCelebrationMilestone(7)}
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#1FB6B0] to-[#0E7773] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
+              >
+                <span>🌿</span>
+                <span>Trigger 7-Day Animation</span>
+                <span className="text-amber-200">✦</span>
+              </button>
+
+              <button
+                type="button"
+                id="milestone-showcase-30day-btn"
+                onClick={() => setActiveCelebrationMilestone(30)}
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#E3B15E] to-[#B88424] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
+              >
+                <span>👑</span>
+                <span>Trigger 30-Day Animation</span>
+                <span className="text-amber-100">✦</span>
+              </button>
+            </div>
+          </div>
+
           <StreakGamificationCard
             currentStreak={currentStreak}
             longestStreak={longestStreak}
@@ -1821,13 +2096,37 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             onUpdateGracePoints={handleUpdateGracePoints}
             onTogglePractice={toggleTodayPractice}
             onOpenJournal={() => setTab('journal')}
+            onTriggerMilestoneCelebration={(days) => setActiveCelebrationMilestone(days)}
+          />
+
+          {/* VISUAL REWARDS SYSTEM: SANCTUARY BADGES & MILESTONES */}
+          <VisualRewardsBadgesCard
+            badges={badges}
+            currentStreak={currentStreak}
+            gracePoints={gracePoints}
+            onTriggerBadgeCelebration={handleTriggerBadgeCelebration}
+            onUnlockBadgeDirectly={handleUnlockBadgeDirectly}
           />
         </div>
       )}
 
       {/* TAB 3: RECHARTS 30-DAY MOOD FREQUENCY & STREAK CORRELATION */}
       {tab === 'trends' && (
-        <div className="mt-8">
+        <div className="mt-8 space-y-8">
+          {/* Recurring Emotional Patterns & Soul Rhythms Summary */}
+          <RecurringEmotionalPatternsSummary
+            calendarRecords={calendarRecords}
+            journalEntries={journal}
+            onSelectDate={(dateStr) => {
+              setSelectedDateStr(dateStr);
+              setTab('calendar');
+              setTimeout(() => {
+                document.getElementById('heatmap-calendar-container')?.scrollIntoView({ behavior: 'smooth' });
+              }, 50);
+            }}
+            onOpenJournal={() => setTab('journal')}
+          />
+
           <MoodTrendsAnalytics
             calendarRecords={calendarRecords}
             onCheckInMood={handleCheckInMood}
@@ -2505,6 +2804,48 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
           </div>
         </div>
       )}
+
+      {/* 7-DAY & 30-DAY STREAK MILESTONE CELEBRATION ANIMATION */}
+      {activeCelebrationMilestone && (
+        <StreakMilestoneAnimation
+          key={`streak-milestone-${activeCelebrationMilestone}`}
+          milestoneDays={activeCelebrationMilestone}
+          isOpen={Boolean(activeCelebrationMilestone)}
+          onClose={() => setActiveCelebrationMilestone(null)}
+          onClaimReward={handleClaimMilestoneReward}
+        />
+      )}
+
+      {/* VISUAL REWARDS BADGE CELEBRATION MODAL ANIMATION */}
+      {activeBadgeCelebration && (
+        <BadgeCelebrationModal
+          key={`badge-celebration-${activeBadgeCelebration.id}`}
+          badge={activeBadgeCelebration}
+          isOpen={Boolean(activeBadgeCelebration)}
+          onClose={() => setActiveBadgeCelebration(null)}
+          onClaimReward={handleClaimBadgeReward}
+        />
+      )}
+
+      {/* DAILY NOTIFICATION TIME SETTINGS MODAL & DIRECT CHECK-IN FLOW */}
+      <NotificationSettingsModal
+        isOpen={isNotificationSettingsOpen}
+        onClose={() => setIsNotificationSettingsOpen(false)}
+        settings={notificationSettings}
+        onSaveSettings={handleSaveNotificationSettings}
+        onStartMoodCheckIn={(moodId) => {
+          if (moodId) {
+            handleCheckInMood(moodId);
+          }
+          setTab('calendar');
+          setSelectedDateStr(todayStr);
+          setTimeout(() => {
+            document.getElementById('monthly-mood-heatmap-panel')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }}
+        todayHasMoodLogged={Boolean(calendarRecords[todayStr]?.mood)}
+        todayMood={calendarRecords[todayStr]?.mood}
+      />
     </div>
   );
 }

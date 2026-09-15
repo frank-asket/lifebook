@@ -5,6 +5,7 @@ import "./globals.css";
 import "./seo.css";
 import Analytics from "./Analytics";
 import { ClerkProvider } from '@clerk/nextjs';
+import { ChristianAuthProvider } from "@/lib/christian-auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,7 +69,9 @@ export default function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
-          {children}
+          <ChristianAuthProvider>
+            {children}
+          </ChristianAuthProvider>
         </ClerkProvider>
       </body>
     </html>

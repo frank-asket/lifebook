@@ -12,6 +12,7 @@ interface StreakGamificationCardProps {
   onUpdateGracePoints: (newPoints: number) => void;
   onTogglePractice: (practiceKey: 'scriptureRead' | 'prayerCompleted' | 'journalWritten') => void;
   onOpenJournal?: () => void;
+  onTriggerMilestoneCelebration?: (days: 7 | 30) => void;
 }
 
 export interface SpiritualLevelInfo {
@@ -77,6 +78,7 @@ export function StreakGamificationCard({
   onUpdateGracePoints,
   onTogglePractice,
   onOpenJournal,
+  onTriggerMilestoneCelebration,
 }: StreakGamificationCardProps) {
   // Claimed milestones state persisted in localStorage
   const [claimedMilestones, setClaimedMilestones] = useState<string[]>(() => {
@@ -641,6 +643,24 @@ export function StreakGamificationCard({
                       style={{ width: `${progress}%` }}
                     />
                   </div>
+
+                  {/* 7-Day & 30-Day Milestone Celebration Trigger Button */}
+                  {(m.days === 7 || m.days === 30) && onTriggerMilestoneCelebration && (
+                    <button
+                      type="button"
+                      id={`milestone-${m.days}-celebration-trigger`}
+                      onClick={() => onTriggerMilestoneCelebration(m.days as 7 | 30)}
+                      className={`mt-3 w-full py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs ${
+                        isUnlocked
+                          ? 'bg-gradient-to-r from-[#17132B] to-[#2B1D4B] hover:to-[#382662] text-white border border-white/20 hover:border-[#37C6C2]/60'
+                          : 'bg-white hover:bg-gray-50 text-[#554A70] border border-gray-200'
+                      }`}
+                    >
+                      <span>🎉</span>
+                      <span>{isUnlocked ? `Celebrate ${m.days}-Day Milestone` : `Preview ${m.days}-Day Animation`}</span>
+                      <span className="text-[#E3B15E]">✦</span>
+                    </button>
+                  )}
                 </div>
               </div>
             );

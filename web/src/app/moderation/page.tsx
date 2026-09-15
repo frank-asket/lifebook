@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { Show, SignInButton, UserButton, useUser, useAuth } from "@clerk/nextjs";
+import { Show, UserButton, useUser, useAuth } from "@clerk/nextjs";
 
 interface ModerationReview {
   id: string;
@@ -122,14 +122,13 @@ export default function ModerationPage() {
             <p className="text-sm text-[#766E65] mt-2 mb-6">
               Please sign in with your pastoral or reviewer credentials to inspect flagged submissions.
             </p>
-            <SignInButton mode="modal">
-              <button
-                type="button"
-                className="w-full py-2.5 px-4 rounded-xl bg-[#1A1816] text-white text-sm font-medium hover:bg-black transition-colors"
-              >
-                Sign In to Review Queue
-              </button>
-            </SignInButton>
+            <Link
+              href="/sign-in"
+              id="moderation-sign-in-link"
+              className="w-full inline-block py-2.5 px-4 rounded-xl bg-[#1A1816] text-white text-sm font-medium hover:bg-black transition-colors"
+            >
+              Sign In to Review Queue
+            </Link>
           </div>
         </Show>
 

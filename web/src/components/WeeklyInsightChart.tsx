@@ -587,7 +587,11 @@ export function WeeklyInsightChart({
       </section>
 
       {/* Visual Chart Header Card */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#1C1633] via-[#241B42] to-[#13323B] p-6 sm:p-8 text-white shadow-xl border border-white/10">
+      <div
+        id="weekly-insight-recharts-card"
+        data-testid="recharts-chart-panel"
+        className="recharts-container-card rounded-3xl bg-gradient-to-r from-[#1C1633] via-[#241B42] to-[#13323B] p-6 sm:p-8 text-white shadow-xl border border-white/10"
+      >
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-white/10">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1FB6B0]/20 border border-[#1FB6B0]/40 text-[#37C6C2] text-[11px] font-extrabold uppercase tracking-widest">
