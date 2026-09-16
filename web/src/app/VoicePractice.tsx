@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useLanguage } from "@/lib/i18n";
 
 type VoiceStatus = "idle" | "listening" | "thinking" | "answered" | "unsupported";
 
@@ -34,23 +35,62 @@ declare global {
   }
 }
 
-function answerQuestion(question: string) {
+function answerQuestion(question: string, isFr: boolean) {
   const normalized = question.toLowerCase();
+
+  if (isFr) {
+    if (normalized.includes("trinit") || normalized.includes("trinité") || normalized.includes("dieu")) {
+      return {
+        title: "Éclairage biblique sur la Trinité",
+        body: "L'Écriture enseigne qu'il existe un seul vrai Dieu qui subsiste éternellement en trois personnes distinctes : le Père, le Fils et le Saint-Esprit (Matthieu 28:19). Chacune possède la plénitude de la divinité et agit en parfaite harmonie pour votre salut et votre sanctification quotidienne.",
+        verse: "Matthieu 28:19 (LSG)",
+      };
+    }
+    if (normalized.includes("anxi") || normalized.includes("peur") || normalized.includes("inquiét") || normalized.includes("stress")) {
+      return {
+        title: "L'Écriture face à l'anxiété et l'inquiétude",
+        body: "Dieu nous invite à ne pas porter seuls nos tourments : « Ne vous inquiétez de rien ; mais en toute chose faites connaître vos besoins à Dieu par des prières et des supplications, avec des actions de grâces. » Déposez dès maintenant ce fardeau entre Ses mains.",
+        verse: "Philippiens 4:6-7 (LSG)",
+      };
+    }
+    if (normalized.includes("gratitude") || normalized.includes("reconn") || normalized.includes("merci")) {
+      return {
+        title: "Cultiver un cœur reconnaissant",
+        body: "La reconnaissance est un bouclier contre l'amertume et le découragement. « Rendez grâces en toutes choses, car c'est à votre égard la volonté de Dieu en Jésus-Christ. » Prenez 30 secondes pour nommer trois grâces reçues aujourd'hui.",
+        verse: "1 Thessaloniciens 5:18 (LSG)",
+      };
+    }
+    return {
+      title: "Écriture pour la sagesse et la direction",
+      body: "Dieu promet d'accorder la sagesse avec générosité à quiconque la lui demande dans la foi (Jacques 1:5). Présentez-lui vos décisions importantes dans la prière et faites le prochain pas dans la confiance.",
+      verse: "Jacques 1:5 (LSG)",
+    };
+  }
+
+  // English default
   if (normalized.includes("trinity")) {
     return {
       title: "Biblical clarity on the Trinity",
       body: "Scripture teaches that there is one God who eternally exists in three persons: the Father, the Son, and the Holy Spirit (Matthew 28:19). Each person is fully God, equal in glory and purpose, working together in your salvation and daily walk.",
-      verse: "Matthew 28:19",
+      verse: "Matthew 28:19 (ESV)",
+    };
+  }
+  if (normalized.includes("anxi") || normalized.includes("worr") || normalized.includes("fear") || normalized.includes("stress")) {
+    return {
+      title: "Scripture for anxiety and peace",
+      body: "God invites us to trade our heavy burdens for His supernatural rest: 'Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God.' (Philippians 4:6-7).",
+      verse: "Philippians 4:6-7 (ESV)",
     };
   }
   return {
     title: "Scripture for wisdom and direction",
     body: "God promises to provide wisdom generously to anyone who asks in faith without second-guessing (James 1:5). Read the surrounding verses in James chapter 1, bring your decision to God in prayer, and take the next obedient step today.",
-    verse: "James 1:5",
+    verse: "James 1:5 (ESV)",
   };
 }
 
 export default function VoicePractice() {
+  const { isFr } = useLanguage();
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [transcript, setTranscript] = useState("");
   const [answer, setAnswer] = useState<ReturnType<typeof answerQuestion> | null>(null);
@@ -72,16 +112,9 @@ export default function VoicePractice() {
 
     const updateIntensity = (now: number) => {
       const elapsed = (now - startTime) / 1000;
-      
-      // Multilayer acoustic modulation mimicking real speech cadence:
-      // 1. Conversational phrase envelope (breathe & flow ~ 1.7s cycle)
       const phrase = Math.sin(elapsed * 1.75) * 0.35 + 0.65;
-      // 2. Syllabic formant dynamics (rapid vocal cord vibrations ~ 4.5Hz & 9Hz)
       const syllables = Math.sin(elapsed * 4.6) * 0.26 + Math.cos(elapsed * 9.2) * 0.14;
-      // 3. Organic micro-fluctuations in breath pressure
       const microTremor = Math.sin(elapsed * 24.3) * 0.06 + Math.cos(elapsed * 38.7) * 0.04;
-
-      // Composite intensity scaled from gentle whisper (~0.35) to articulate crescendo (~1.45)
       const rawIntensity = phrase * (0.85 + syllables) + microTremor;
       const clampedIntensity = Math.max(0.32, Math.min(1.45, rawIntensity));
 
@@ -99,13 +132,15 @@ export default function VoicePractice() {
   function speak(text: string) {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = isFr ? "fr-FR" : "en-US";
+    window.speechSynthesis.speak(utterance);
   }
 
   function respond(question: string) {
     setStatus("thinking");
     window.setTimeout(() => {
-      const nextAnswer = answerQuestion(question);
+      const nextAnswer = answerQuestion(question, isFr);
       setAnswer(nextAnswer);
       setStatus("answered");
       speak(`${nextAnswer.title}. ${nextAnswer.body}`);
@@ -122,10 +157,12 @@ export default function VoicePractice() {
     if (!Constructor) {
       // In sandbox/iframe or browsers without SpeechRecognition, run a simulated speech flow
       window.setTimeout(() => {
-        const sampleSpoken = "Hey LifeBook, how do I stay rooted in Scripture and prayer?";
+        const sampleSpoken = isFr
+          ? "Bonjour LifeBook, comment trouver la paix de Dieu dans mes journées chargées ?"
+          : "Hey LifeBook, how do I stay rooted in Scripture and prayer?";
         setTranscript(sampleSpoken);
         respond(sampleSpoken);
-      }, 3400);
+      }, 2600);
       return;
     }
 
@@ -133,8 +170,8 @@ export default function VoicePractice() {
       const recognition = new Constructor();
       recognition.continuous = false;
       recognition.interimResults = false;
-      recognition.lang = "en-US";
-      
+      recognition.lang = isFr ? "fr-FR" : "en-US";
+
       recognition.onresult = (event) => {
         const spokenText = Array.from(
           { length: event.results.length },
@@ -143,14 +180,16 @@ export default function VoicePractice() {
         setTranscript(spokenText);
         respond(spokenText);
       };
-      
+
       recognition.onerror = () => {
         // Fallback gracefully so the user can still experience the response
-        const fallbackSpoken = "What does it mean to be still and know God?";
+        const fallbackSpoken = isFr
+          ? "Que signifie s'arrêter et savoir que Dieu est là ?"
+          : "What does it mean to be still and know God?";
         setTranscript(fallbackSpoken);
         respond(fallbackSpoken);
       };
-      
+
       recognition.onend = () => {
         setStatus((current) => (current === "listening" ? "idle" : current));
       };
@@ -159,11 +198,18 @@ export default function VoicePractice() {
     } catch {
       // If mic permission blocked, run preview interaction
       window.setTimeout(() => {
-        const sampleSpoken = "Hey LifeBook, I would like to understand the Trinity.";
+        const sampleSpoken = isFr
+          ? "Bonjour LifeBook, j'aimerais comprendre le sens de la Trinité."
+          : "Hey LifeBook, I would like to understand the Trinity.";
         setTranscript(sampleSpoken);
         respond(sampleSpoken);
-      }, 3200);
+      }, 2600);
     }
+  }
+
+  function handlePromptClick(promptText: string) {
+    setTranscript(promptText);
+    respond(promptText);
   }
 
   function saveReflection() {
@@ -175,32 +221,88 @@ export default function VoicePractice() {
   const isActive = status === "listening" || status === "thinking";
   const buttonLabel =
     status === "listening"
-      ? "Listening for your question..."
+      ? (isFr ? "À l'écoute de votre question..." : "Listening for your question...")
       : status === "thinking"
-      ? "Searching Scripture..."
-      : "Ask your Bible question";
+      ? (isFr ? "Recherche dans l'Écriture..." : "Searching Scripture...")
+      : (isFr ? "Poser ma question biblique" : "Ask your Bible question");
 
   return (
     <section className="voice-section" id="voice">
       <div className="page-shell voice-shell">
         <div className="voice-copy">
-          <p className="showcase-eyebrow">Instant Scripture Search</p>
-          <h2>Find Bible verses for your exact situation in seconds.</h2>
-          <p>Speak or type what you are wrestling with today to get relevant Bible passages, contextual explanations, and a guided prayer step immediately.</p>
+          <p className="showcase-eyebrow">{isFr ? "Recherche biblique instantanée" : "Instant Scripture Search"}</p>
+          <h2>{isFr ? "Trouvez des versets bibliques adaptés à votre situation en quelques secondes." : "Find Bible verses for your exact situation in seconds."}</h2>
+          <p>
+            {isFr
+              ? "Exprimez vos questions, doutes ou combats du jour pour obtenir des passages pertinents, des explications contextualisées et une direction de prière immédiate."
+              : "Speak or type what you are wrestling with today to get relevant Bible passages, contextual explanations, and a guided prayer step immediately."}
+          </p>
           <ul className="space-y-2 my-4 text-xs text-[#5D5276] list-disc pl-4">
-            <li><strong>Instant answers:</strong> search Scripture for anxiety, work decisions, burnout, or forgiveness</li>
-            <li><strong>Verified context:</strong> read full passages in ESV, NIV, and CSB with zero cherry-picked fragments</li>
-            <li><strong>Private to your phone:</strong> save reflections straight to your personal journal in one tap</li>
+            <li>
+              <strong>{isFr ? "Réponses instantanées :" : "Instant answers:"}</strong>{" "}
+              {isFr ? "recherchez des Écritures pour l'anxiété, les décisions, la paix ou le pardon" : "search Scripture for anxiety, work decisions, burnout, or forgiveness"}
+            </li>
+            <li>
+              <strong>{isFr ? "Contexte vérifié :" : "Verified context:"}</strong>{" "}
+              {isFr ? "textes complets en version Louis Segond (LSG) et Bible du Semeur sans versets tronqués" : "read full passages in ESV, NIV, and CSB with zero cherry-picked fragments"}
+            </li>
+            <li>
+              <strong>{isFr ? "Confidentialité totale :" : "Private to your phone:"}</strong>{" "}
+              {isFr ? "enregistrez vos méditations directement dans votre journal en un geste" : "save reflections straight to your personal journal in one tap"}
+            </li>
           </ul>
-          <span className="voice-privacy">100% private: audio is processed in your browser and never uploaded or stored.</span>
+          <span className="voice-privacy">
+            {isFr
+              ? "100 % confidentiel : l'audio est traité directement dans votre navigateur sans stockage externe."
+              : "100% private: audio is processed in your browser and never uploaded or stored."}
+          </span>
         </div>
         <div className="voice-console">
-          <div className="voice-console-top"><span>LifeBook Voice</span><span className="voice-live"><i /> interactive preview</span></div>
+          <div className="voice-console-top">
+            <span>LifeBook {isFr ? "Vocal" : "Voice"}</span>
+            <span className="voice-live">
+              <i /> {isFr ? "Aperçu interactif" : "interactive preview"}
+            </span>
+          </div>
           <div className="voice-conversation">
-            <div className="voice-prompt"><small>Try asking aloud or tap below</small><strong>“Hey LifeBook, I would like to understand the Trinity.”</strong></div>
-            {transcript && <div className="voice-transcript"><small>You said</small><p>{transcript}</p></div>}
-            {answer && <div className="voice-answer"><div><small>Scripture context</small><h3>{answer.title}</h3><p>{answer.body}</p><b>{answer.verse}</b></div><button type="button" className="voice-save" onClick={saveReflection}>{saved ? "Saved to Journal" : "Save reflection to journal"}</button></div>}
-            {status === "unsupported" && <p className="voice-error">Voice input is not available in this browser. Try Chrome or Safari with microphone permission enabled.</p>}
+            <div className="voice-prompt">
+              <small>{isFr ? "Essayez de poser à voix haute ou appuyez ci-dessous :" : "Try asking aloud or tap below"}</small>
+              <button
+                type="button"
+                onClick={() => handlePromptClick(isFr ? "Bonjour LifeBook, j'aimerais comprendre le sens de la Trinité." : "Hey LifeBook, I would like to understand the Trinity.")}
+                className="text-left font-bold text-[#1E1931] hover:text-[#705EAA] transition-colors cursor-pointer block mt-1"
+              >
+                {isFr ? "« Bonjour LifeBook, j'aimerais comprendre le sens de la Trinité. »" : "“Hey LifeBook, I would like to understand the Trinity.”"}
+              </button>
+            </div>
+            {transcript && (
+              <div className="voice-transcript">
+                <small>{isFr ? "Vous avez dit" : "You said"}</small>
+                <p>{transcript}</p>
+              </div>
+            )}
+            {answer && (
+              <div className="voice-answer">
+                <div>
+                  <small>{isFr ? "Contexte scripturaire" : "Scripture context"}</small>
+                  <h3>{answer.title}</h3>
+                  <p>{answer.body}</p>
+                  <b>{answer.verse}</b>
+                </div>
+                <button type="button" className="voice-save" onClick={saveReflection}>
+                  {saved
+                    ? (isFr ? "Enregistré dans le journal" : "Saved to Journal")
+                    : (isFr ? "Enregistrer dans mon journal privé" : "Save reflection to journal")}
+                </button>
+              </div>
+            )}
+            {status === "unsupported" && (
+              <p className="voice-error">
+                {isFr
+                  ? "La saisie vocale n'est pas disponible sur ce navigateur. Essayez Chrome ou Safari avec l'autorisation du micro activée."
+                  : "Voice input is not available in this browser. Try Chrome or Safari with microphone permission enabled."}
+              </p>
+            )}
           </div>
           <div className="voice-controls">
             <button
@@ -219,7 +321,34 @@ export default function VoicePractice() {
               </span>
               <span className="voice-button-label">{buttonLabel}</span>
             </button>
-            <span className="voice-hint">Suggested: “What Bible verses help with anxiety at work?”</span>
+            <div className="flex flex-wrap gap-1.5 justify-center mt-2">
+              <button
+                type="button"
+                onClick={() => handlePromptClick(isFr ? "Versets pour apaiser l'anxiété" : "Bible verses for anxiety")}
+                className="text-[11px] px-2.5 py-1 rounded-full bg-white/70 hover:bg-white text-[#4D4560] border border-[#2D2542]/10 transition-all cursor-pointer"
+              >
+                {isFr ? "✦ Anxiété" : "✦ Anxiety"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePromptClick(isFr ? "Sagesse pour un choix difficile" : "Wisdom for decisions")}
+                className="text-[11px] px-2.5 py-1 rounded-full bg-white/70 hover:bg-white text-[#4D4560] border border-[#2D2542]/10 transition-all cursor-pointer"
+              >
+                {isFr ? "✦ Sagesse" : "✦ Wisdom"}
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePromptClick(isFr ? "Rendre grâce aujourd'hui" : "Gratitude in prayer")}
+                className="text-[11px] px-2.5 py-1 rounded-full bg-white/70 hover:bg-white text-[#4D4560] border border-[#2D2542]/10 transition-all cursor-pointer"
+              >
+                {isFr ? "✦ Gratitude" : "✦ Gratitude"}
+              </button>
+            </div>
+            <span className="voice-hint">
+              {isFr
+                ? "Suggestion : « Quels versets bibliques aident face au stress au travail ? »"
+                : "Suggested: “What Bible verses help with anxiety at work?”"}
+            </span>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ProgressScreen from "../../components/ProgressScreen";
+import { LanguageToggle } from "../../components/LanguageToggle";
 
 export const metadata = {
   title: "Progress & Mood Trends | LifeBook",
@@ -16,6 +17,7 @@ export default function ProgressPage() {
           <strong>Progress & Trends</strong>
         </div>
         <div className="flex items-center gap-3">
+          <LanguageToggle />
           <Link href="/voice" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931]">
             Voice
           </Link>

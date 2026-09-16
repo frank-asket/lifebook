@@ -6,6 +6,7 @@ import "./seo.css";
 import Analytics from "./Analytics";
 import { ClerkProvider } from '@clerk/nextjs';
 import { ChristianAuthProvider } from "@/lib/christian-auth";
+import { LanguageProvider } from "@/lib/i18n";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,13 +20,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: "LifeBook | Daily 5-Minute Bible & Prayer Companion",
-  description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
+  title: "LifeBook | Daily 5-Minute Bible & Prayer Companion (Bilingual EN/FR)",
+  description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
   applicationName: "LifeBook",
-  keywords: ["Christian devotional", "daily Bible study", "morning prayer habit", "5-minute devotional"],
+  keywords: ["Christian devotional", "daily Bible study", "morning prayer habit", "5-minute devotional", "méditation chrétienne", "prière du matin"],
   openGraph: {
     title: "LifeBook | Daily 5-Minute Bible & Prayer Companion",
-    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
+    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
     type: "website",
     images: [{ url: "/lifebookbanner.png", width: 1200, height: 420, alt: "LifeBook" }],
   },
@@ -42,7 +43,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: "LifeBook",
     url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
+    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
     sameAs: [],
   };
 
@@ -69,9 +70,11 @@ export default function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
-          <ChristianAuthProvider>
-            {children}
-          </ChristianAuthProvider>
+          <LanguageProvider>
+            <ChristianAuthProvider>
+              {children}
+            </ChristianAuthProvider>
+          </LanguageProvider>
         </ClerkProvider>
       </body>
     </html>

@@ -1,6 +1,6 @@
 {
   "name": "LifeBook",
-  "description": "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
+  "description": "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
   "requestFramePermissions": [
     "microphone"
   ],

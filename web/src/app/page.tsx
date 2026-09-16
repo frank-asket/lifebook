@@ -2,107 +2,137 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useChristianAuth } from "@/lib/christian-auth";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import PhoneMockup from "@/components/PhoneMockup";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
-
-const benefits = [
-  {
-    title: "Read today's verse without searching",
-    text: "Open the app and find today's curated passage ready in your preferred translation (ESV, NIV, CSB, KJV, NLT). Zero flipping or guessing.",
-    tone: "benefit-lilac",
-    icon: "📖",
-  },
-  {
-    title: "Pray with guided reflection prompts",
-    text: "Answer three short, practical questions based on the morning reading to turn biblical truth into real-world action.",
-    tone: "benefit-blue",
-    icon: "✍️",
-  },
-  {
-    title: "Keep your habit without guilt",
-    text: "Missed a hectic day? Sabbath rest and grace protection keep your spiritual rhythm alive without resetting your streak to zero.",
-    tone: "benefit-mint",
-    icon: "🌿",
-  },
-];
-
-const steps = [
-  ["Read the daily passage", "Take 90 seconds to read one focused Scripture text with verified historical context."],
-  ["Answer 3 reflection prompts", "Spend 2 minutes applying the verse directly to your work, family, and relationships."],
-  ["Record a 60-second prayer", "Close your quiet time with an honest prayer stored privately on your device."],
-];
-
-const stepCards = [
-  {
-    step: "01",
-    label: "Step 01 / 03 · Read",
-    quote: "He restores\nmy soul.",
-    ref: "Psalm 23:3 (ESV)",
-    phase: "Read (90s)",
-  },
-  {
-    step: "02",
-    label: "Step 02 / 03 · Reflect",
-    quote: "Where do you need\nGod's peace today?",
-    ref: "Prompt 01 of 03",
-    phase: "Reflect (2m)",
-  },
-  {
-    step: "03",
-    label: "Step 03 / 03 · Pray",
-    quote: "“Lord, guide my steps\nand quiet my worry.”",
-    ref: "Saved securely on device",
-    phase: "Pray (60s)",
-  },
-];
-
-const moodScriptures: Record<string, { mood: string; quote: string; ref: string }> = {
-  peace: {
-    mood: "Peaceful",
-    quote: "“The Lord is my shepherd; I shall not want.”",
-    ref: "Psalm 23:1 (ESV)",
-  },
-  seek: {
-    mood: "Seeking",
-    quote: "“If any of you lacks wisdom, you should ask God, who gives generously.”",
-    ref: "James 1:5 (ESV)",
-  },
-  grateful: {
-    mood: "Grateful",
-    quote: "“Give thanks in all circumstances; for this is God's will in Christ.”",
-    ref: "1 Thessalonians 5:18 (ESV)",
-  },
-  doubt: {
-    mood: "Questions",
-    quote: "“Cast all your anxiety on him because he cares for you.”",
-    ref: "1 Peter 5:7 (ESV)",
-  },
-};
-
-const faqs = [
-  ["How much time does each devotion take?", "Exactly 5 minutes. You read one key passage (90 seconds), answer three reflection prompts (2 minutes), and record a private prayer (90 seconds)."],
-  ["What happens if I miss a day?", "You never get penalized. LifeBook includes built-in Sabbath rest and grace protection, so your momentum stays intact when life gets busy."],
-  ["Which Bible translations do you provide?", "LifeBook includes the English Standard Version (ESV), New International Version (NIV), Christian Standard Bible (CSB), King James Version (KJV), and New Living Translation (NLT)."],
-  ["Are my prayers and notes kept private?", "Yes. Your journal entries and prayers remain securely stored on your own device with local encryption. We never sell your data or serve third-party ads."],
-];
 
 function ArrowIcon() { return <span aria-hidden="true">↗</span>; }
 function Mark() { return <span className="brand-logo" aria-hidden="true"><Image src="/logol.png" alt="" fill unoptimized /></span>; }
 
 export default function Home() {
+  const { isFr, t } = useLanguage();
   const [email, setEmail] = useState("");
   const [joined, setJoined] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("top");
-  const [selectedMood, setSelectedMood] = useState<"peace" | "seek" | "grateful" | "doubt">("peace");
   const [activeStep, setActiveStep] = useState(0);
   const router = useRouter();
   const { user, isSignedIn, signOut } = useChristianAuth();
+
+  const benefits = useMemo(() => isFr ? [
+    {
+      title: "Lire le verset du jour sans chercher",
+      text: "Ouvrez l'application et trouvez le passage du jour prêt dans votre version préférée (Louis Segond, Semeur, etc.). Zéro recherche superflue.",
+      tone: "benefit-lilac",
+      icon: "📖",
+    },
+    {
+      title: "Prier avec des questions guidées",
+      text: "Répondez à trois questions concrètes basées sur la lecture du matin pour ancrer la vérité biblique dans vos actions quotidiennes.",
+      tone: "benefit-blue",
+      icon: "✍️",
+    },
+    {
+      title: "Garder votre habitude sans culpabilité",
+      text: "Une journée chargée ? Le repos du sabbat et la protection de grâce préservent votre élan spirituel sans jamais remettre votre série à zéro.",
+      tone: "benefit-mint",
+      icon: "🌿",
+    },
+  ] : [
+    {
+      title: "Read today's verse without searching",
+      text: "Open the app and find today's curated passage ready in your preferred translation (ESV, NIV, CSB, KJV, NLT). Zero flipping or guessing.",
+      tone: "benefit-lilac",
+      icon: "📖",
+    },
+    {
+      title: "Pray with guided reflection prompts",
+      text: "Answer three short, practical questions based on the morning reading to turn biblical truth into real-world action.",
+      tone: "benefit-blue",
+      icon: "✍️",
+    },
+    {
+      title: "Keep your habit without guilt",
+      text: "Missed a hectic day? Sabbath rest and grace protection keep your spiritual rhythm alive without resetting your streak to zero.",
+      tone: "benefit-mint",
+      icon: "🌿",
+    },
+  ], [isFr]);
+
+  const steps = useMemo(() => isFr ? [
+    ["Lire le passage quotidien", "Prenez 90 secondes pour lire un texte biblique ciblé avec son contexte historique vérifié."],
+    ["Répondre à 3 questions de réflexion", "Passez 2 minutes à relier le verset à votre travail, votre famille et vos défis."],
+    ["Enregistrer une prière de 60 secondes", "Clôturez votre recueillement par une prière sincère conservée en toute intimité sur votre appareil."],
+  ] : [
+    ["Read the daily passage", "Take 90 seconds to read one focused Scripture text with verified historical context."],
+    ["Answer 3 reflection prompts", "Spend 2 minutes applying the verse directly to your work, family, and relationships."],
+    ["Record a 60-second prayer", "Close your quiet time with an honest prayer stored privately on your device."],
+  ], [isFr]);
+
+  const stepCards = useMemo(() => isFr ? [
+    {
+      step: "01",
+      label: "Étape 01 / 03 · Lire",
+      quote: "Il restaure\nmon âme.",
+      ref: "Psaume 23:3 (Louis Segond)",
+      phase: "Lire (90s)",
+    },
+    {
+      step: "02",
+      label: "Étape 02 / 03 · Méditer",
+      quote: "Où avez-vous besoin de\nla paix de Dieu aujourd'hui ?",
+      ref: "Question 01 sur 03",
+      phase: "Méditer (2m)",
+    },
+    {
+      step: "03",
+      label: "Étape 03 / 03 · Prier",
+      quote: "« Seigneur, guide mes pas\net apaise mes inquiétudes. »",
+      ref: "Sauvegardé sur l'appareil",
+      phase: "Prier (60s)",
+    },
+  ] : [
+    {
+      step: "01",
+      label: "Step 01 / 03 · Read",
+      quote: "He restores\nmy soul.",
+      ref: "Psalm 23:3 (ESV)",
+      phase: "Read (90s)",
+    },
+    {
+      step: "02",
+      label: "Step 02 / 03 · Reflect",
+      quote: "Where do you need\nGod's peace today?",
+      ref: "Prompt 01 of 03",
+      phase: "Reflect (2m)",
+    },
+    {
+      step: "03",
+      label: "Step 03 / 03 · Pray",
+      quote: "“Lord, guide my steps\nand quiet my worry.”",
+      ref: "Saved securely on device",
+      phase: "Pray (60s)",
+    },
+  ], [isFr]);
+
+  const faqs = useMemo(() => isFr ? [
+    ["Combien de temps prend chaque méditation ?", "Exactement 5 minutes. Vous lisez un passage clé (90 secondes), répondez à trois questions de réflexion (2 minutes) et enregistrez une prière privée (90 secondes)."],
+    ["Que se passe-t-il si je manque un jour ?", "Vous n'êtes jamais pénalisé. LifeBook intègre le repos du sabbat et la protection de grâce pour préserver votre élan spirituel."],
+    ["Quelles versions de la Bible sont proposées ?", "LifeBook propose la version Louis Segond (LSG) et la Bible du Semeur en français, ainsi que ESV, NIV, CSB, KJV et NLT en anglais."],
+    ["Mes prières et notes restent-elles privées ?", "Oui. Vos réflexions et prières restent exclusivement stockées sur votre appareil avec un chiffrement local."],
+  ] : [
+    ["How much time does each devotion take?", "Exactly 5 minutes. You read one key passage (90 seconds), answer three reflection prompts (2 minutes), and record a private prayer (90 seconds)."],
+    ["What happens if I miss a day?", "You never get penalized. LifeBook includes built-in Sabbath rest and grace protection, so your momentum stays intact when life gets busy."],
+    ["Which Bible translations do you provide?", "LifeBook includes the English Standard Version (ESV), New International Version (NIV), Christian Standard Bible (CSB), King James Version (KJV), and New Living Translation (NLT), as well as Louis Segond (LSG) in French."],
+    ["Are my prayers and notes kept private?", "Yes. Your journal entries and prayers remain securely stored on your own device with local encryption. We never sell your data or serve third-party ads."],
+  ], [isFr]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -148,27 +178,28 @@ export default function Home() {
         <nav className="showcase-nav page-shell" aria-label="Main navigation">
           <a className="wordmark" href="#top" aria-label="LifeBook home"><Mark /><span>LifeBook</span></a>
           <div className="showcase-links">
-            <a href="#features" className={activeSection === "features" ? "active-link" : ""}>Daily Practice</a>
-            <a href="#how-it-works" className={activeSection === "how-it-works" ? "active-link" : ""}>How It Works</a>
-            <a href="#journeys" className={activeSection === "journeys" ? "active-link" : ""}>5-Day Studies</a>
-            <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>Voice Search</Link>
-            <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""}>Audio Teachings</Link>
-            <Link href="/progress">My Progress</Link>
-            <a href="#questions" className={activeSection === "questions" ? "active-link" : ""}>FAQ</a>
+            <a href="#features" className={activeSection === "features" ? "active-link" : ""}>{t("nav_daily_practice")}</a>
+            <a href="#how-it-works" className={activeSection === "how-it-works" ? "active-link" : ""}>{t("nav_how_it_works")}</a>
+            <a href="#journeys" className={activeSection === "journeys" ? "active-link" : ""}>{t("nav_journeys")}</a>
+            <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>{t("nav_voice_search")}</Link>
+            <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""}>{t("nav_audio_teachings")}</Link>
+            <Link href="/progress">{t("nav_my_progress")}</Link>
+            <a href="#questions" className={activeSection === "questions" ? "active-link" : ""}>{t("nav_faq")}</a>
           </div>
-          <div className="auth-actions">
+          <div className="auth-actions flex items-center gap-3">
+            <LanguageToggle />
             {isSignedIn ? (
               <div className="flex items-center gap-3">
                 <Link
                   href="/progress"
                   id="user-profile-nav-pill"
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FAF8F5] border border-[#EADBFC] hover:bg-[#F2ECE1] transition-colors text-xs font-semibold text-[#2A2146]"
-                  title="View your devotional progress and streaks"
+                  title={isFr ? "Voir vos progrès et séries" : "View your devotional progress and streaks"}
                 >
                   <span className="w-6 h-6 rounded-full bg-[#2A2146] text-white flex items-center justify-center text-xs font-bold">
                     {user?.avatarInitial || "LB"}
                   </span>
-                  <span>{user?.firstName || "Pilgrim"}</span>
+                  <span>{user?.firstName || (isFr ? "Pèlerin" : "Pilgrim")}</span>
                 </Link>
                 <button
                   type="button"
@@ -176,16 +207,16 @@ export default function Home() {
                   onClick={() => signOut()}
                   className="text-xs text-[#8A7E9F] hover:text-[#2A2146] transition-colors cursor-pointer"
                 >
-                  Sign out
+                  {t("nav_sign_out")}
                 </button>
               </div>
             ) : (
               <>
                 <Link href="/sign-in" className="nav-sign-in" id="nav-sign-in-btn">
-                  Sign in
+                  {t("nav_sign_in")}
                 </Link>
                 <Link href="/sign-up" className="pill-button pill-dark" id="nav-begin-journey-btn">
-                  Start 5-minute devotion
+                  {t("nav_start_devotion")}
                 </Link>
               </>
             )}
@@ -195,7 +226,7 @@ export default function Home() {
             type="button"
             aria-expanded={menuOpen}
             aria-controls="mobile-navigation"
-            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label={menuOpen ? t("nav_close") : t("nav_menu")}
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <span className="mobile-menu-icon" aria-hidden="true">
@@ -203,7 +234,7 @@ export default function Home() {
               <span />
               <span />
             </span>
-            <b>{menuOpen ? "Close" : "Menu"}</b>
+            <b>{menuOpen ? t("nav_close") : t("nav_menu")}</b>
           </button>
         </nav>
         {menuOpen && (
@@ -214,40 +245,44 @@ export default function Home() {
               aria-hidden="true"
             />
             <div className="mobile-navigation page-shell" id="mobile-navigation" role="dialog" aria-label="Navigation menu">
+              <div className="flex items-center justify-between pb-3 border-b border-[#2d2542]/10 mb-2">
+                <span className="text-xs font-semibold text-[#6a6078]">{isFr ? "Langue :" : "Language:"}</span>
+                <LanguageToggle />
+              </div>
               <div className="mobile-nav-group">
-                <p className="mobile-nav-heading">Daily Devotion</p>
+                <p className="mobile-nav-heading">{t("mobile_nav_devotion")}</p>
                 <a href="#features" className={activeSection === "features" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>Daily Practice</span>
+                  <span>{t("nav_daily_practice")}</span>
                   <span className="text-xs text-[#8c8297]">5 mins</span>
                 </a>
                 <a href="#how-it-works" className={activeSection === "how-it-works" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>How It Works</span>
-                  <span className="text-xs text-[#8c8297]">3 steps</span>
+                  <span>{t("nav_how_it_works")}</span>
+                  <span className="text-xs text-[#8c8297]">3 {isFr ? "étapes" : "steps"}</span>
                 </a>
                 <a href="#journeys" className={activeSection === "journeys" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>5-Day Studies</span>
-                  <span className="text-xs text-[#8c8297]">Topical</span>
+                  <span>{t("nav_journeys")}</span>
+                  <span className="text-xs text-[#8c8297]">{isFr ? "Thématiques" : "Topical"}</span>
                 </a>
               </div>
               <div className="mobile-nav-group">
-                <p className="mobile-nav-heading">Scripture & Audio</p>
+                <p className="mobile-nav-heading">{t("mobile_nav_scripture_audio")}</p>
                 <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>Voice Scripture Search</span>
-                  <span className="text-xs text-[#8c8297]">Instant</span>
+                  <span>{t("nav_voice_search")}</span>
+                  <span className="text-xs text-[#8c8297]">{isFr ? "Instantané" : "Instant"}</span>
                 </Link>
                 <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>Audio Bible Teachings</span>
+                  <span>{t("nav_audio_teachings")}</span>
                   <span className="text-xs text-[#8c8297]">10 mins</span>
                 </Link>
               </div>
               <div className="mobile-nav-group">
-                <p className="mobile-nav-heading">Community & Help</p>
+                <p className="mobile-nav-heading">{t("mobile_nav_community_help")}</p>
                 <Link href="/progress" onClick={() => setMenuOpen(false)}>
-                  <span>My Progress & Streaks</span>
-                  <span className="text-xs text-[#8c8297]">Track</span>
+                  <span>{t("nav_my_progress")}</span>
+                  <span className="text-xs text-[#8c8297]">{isFr ? "Suivi" : "Track"}</span>
                 </Link>
                 <a href="#questions" className={activeSection === "questions" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>Frequently Asked Questions</span>
+                  <span>{t("nav_faq")}</span>
                   <span className="text-xs text-[#8c8297]">FAQ</span>
                 </a>
               </div>
@@ -261,7 +296,7 @@ export default function Home() {
                     <span className="w-6 h-6 rounded-full bg-[#2d2542] text-[#fbfaf7] flex items-center justify-center text-[10px] font-bold">
                       {user?.avatarInitial || "LB"}
                     </span>
-                    <span>{user?.fullName || "My Progress and Streaks"} →</span>
+                    <span>{user?.fullName || (isFr ? "Mes Progrès et Séries" : "My Progress and Streaks")} →</span>
                   </Link>
                   <button
                     type="button"
@@ -271,7 +306,7 @@ export default function Home() {
                     }}
                     className="text-xs text-[#776e82] hover:text-[#1e1931]"
                   >
-                    Sign out
+                    {t("nav_sign_out")}
                   </button>
                 </div>
               ) : (
@@ -282,7 +317,7 @@ export default function Home() {
                     id="mobile-sign-in-btn"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Sign in
+                    {t("nav_sign_in")}
                   </Link>
                   <Link
                     href="/sign-up"
@@ -290,7 +325,7 @@ export default function Home() {
                     id="mobile-begin-journey-btn"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Start 5-minute devotion ↗
+                    {t("nav_start_devotion")} ↗
                   </Link>
                 </div>
               )}
@@ -302,33 +337,48 @@ export default function Home() {
       <section className="showcase-hero" id="top">
         <div className="showcase-hero-grid page-shell">
           <div className="showcase-hero-copy">
-            <p className="showcase-eyebrow">Daily 5-minute quiet time</p>
-            <h1>Build a steady daily Bible and prayer habit in <em>5 minutes a day.</em></h1>
-            <p>Get one daily Scripture passage, three practical reflection prompts, and a private prayer journal delivered every morning.</p>
+            <p className="showcase-eyebrow">{t("hero_eyebrow")}</p>
+            <h1>
+              {t("hero_title_part1")}
+              <em>{t("hero_title_em")}</em>
+              {t("hero_title_part2")}
+            </h1>
+            <p>{t("hero_desc")}</p>
 
             <ul className="space-y-2 mb-6 text-sm text-[#463B5D]">
               <li className="flex items-start gap-2">
                 <span className="text-[#705EAA] font-bold shrink-0">✓</span>
-                <span><strong>Open directly to today&apos;s verse:</strong> zero flipping through long reading plans</span>
+                <span>
+                  <strong>{isFr ? "Directement sur le verset du jour :" : "Open directly to today's verse:"}</strong>{" "}
+                  {isFr ? "aucun temps perdu à chercher dans de longs plans" : "zero flipping through long reading plans"}
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#705EAA] font-bold shrink-0">✓</span>
-                <span><strong>Write honest prayers:</strong> saved securely and privately on your device</span>
+                <span>
+                  <strong>{isFr ? "Prières authentiques :" : "Write honest prayers:"}</strong>{" "}
+                  {isFr ? "sauvegardées en toute sécurité et intimité sur votre appareil" : "saved securely and privately on your device"}
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-[#705EAA] font-bold shrink-0">✓</span>
-                <span><strong>Never lose momentum:</strong> built-in grace days protect your consistency when life gets busy</span>
+                <span>
+                  <strong>{isFr ? "Pas de découragement :" : "Never lose momentum:"}</strong>{" "}
+                  {isFr ? "des jours de grâce intégrés protègent votre régularité" : "built-in grace days protect your consistency when life gets busy"}
+                </span>
               </li>
             </ul>
 
             <p className="text-xs text-[#5D5276] mb-3 font-medium">
-              Free to start. No credit card required. No 50-chapter commitments.
+              {isFr
+                ? "Gratuit pour commencer. Aucune carte bancaire requise. Zéro engagement lourd."
+                : "Free to start. No credit card required. No 50-chapter commitments."}
             </p>
 
             <div className="showcase-actions">
               {isSignedIn ? (
                 <Link className="pill-button pill-dark" href="/progress" id="hero-continue-journey-btn">
-                  Continue your 5-minute devotion <ArrowIcon />
+                  {isFr ? "Continuer votre méditation" : "Continue your 5-minute devotion"} <ArrowIcon />
                 </Link>
               ) : (
                 <Link
@@ -336,95 +386,25 @@ export default function Home() {
                   className="pill-button pill-dark"
                   id="hero-begin-journey-btn"
                 >
-                  Start today&apos;s 5-minute devotion <ArrowIcon />
+                  {t("hero_cta_start")} <ArrowIcon />
                 </Link>
               )}
               <span className="rating-note">
-                <b>5</b> verified translations<br />
-                <small>ESV, NIV, CSB, KJV, NLT · 100% ad-free</small>
+                <b>{isFr ? "Versions bibliques" : "5 verified translations"}:</b><br />
+                <small>{isFr ? "Louis Segond (LSG), Semeur, ESV, NIV, KJV · Sans publicité" : "ESV, NIV, CSB, KJV, NLT · 100% ad-free"}</small>
               </span>
             </div>
           </div>
-          <div className="preview-stage" aria-label="LifeBook app preview">
-            <div className="preview-glow" />
-            <div className="preview-card preview-card-back">
-              <span>Current 5-day study</span>
-              <strong>Peace in Busy Workdays</strong>
-              <small>Day 3 of 5 completed</small>
-              <div className="progress-track"><i /></div>
-            </div>
-            <div className="preview-phone">
-              <div className="preview-status"><span>9:41</span><span>•••</span></div>
-              <div className="preview-heading">
-                <small>Good morning</small>
-                <strong>Today&apos;s 5-minute devotion</strong>
-              </div>
-              <div className="preview-moods" role="group" aria-label="Devotional mood selection">
-                <button
-                  type="button"
-                  onClick={() => setSelectedMood("peace")}
-                  className={`mood-peace ${selectedMood === "peace" ? "active-mood" : ""}`}
-                  aria-pressed={selectedMood === "peace"}
-                  title="Choose Peaceful quiet time"
-                >
-                  <span>◌</span>
-                  <b>Peaceful</b>
-                  <small>Anchor in God&apos;s rest</small>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedMood("seek")}
-                  className={`mood-seek ${selectedMood === "seek" ? "active-mood" : ""}`}
-                  aria-pressed={selectedMood === "seek"}
-                  title="Choose Seeking quiet time"
-                >
-                  <span>⌕</span>
-                  <b>Seeking</b>
-                  <small>Wisdom for decisions</small>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedMood("grateful")}
-                  className={`mood-grateful ${selectedMood === "grateful" ? "active-mood" : ""}`}
-                  aria-pressed={selectedMood === "grateful"}
-                  title="Choose Grateful quiet time"
-                >
-                  <span>✦</span>
-                  <b>Grateful</b>
-                  <small>Give thanks today</small>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedMood("doubt")}
-                  className={`mood-doubt ${selectedMood === "doubt" ? "active-mood" : ""}`}
-                  aria-pressed={selectedMood === "doubt"}
-                  title="Choose Questions quiet time"
-                >
-                  <span>?</span>
-                  <b>Questions</b>
-                  <small>Bring honest burdens</small>
-                </button>
-              </div>
-              <div className="preview-tabbar">
-                <span>Today</span>
-                <span>Studies</span>
-                <b>Practice</b>
-                <span>Journal</span>
-              </div>
-            </div>
-            <div className="preview-card preview-card-front" aria-live="polite">
-              <b>Today&apos;s Scripture ({moodScriptures[selectedMood].mood})</b>
-              <p>{moodScriptures[selectedMood].quote}</p>
-              <small>{moodScriptures[selectedMood].ref}</small>
-            </div>
+          <div className="preview-stage-container w-full max-w-[480px] mx-auto">
+            <PhoneMockup />
           </div>
         </div>
         <a
           href="#how-it-works"
           className="hero-scroll page-shell cursor-pointer hover:opacity-80 transition-opacity inline-flex items-center gap-3"
-          aria-label="See how the 5-minute morning devotion works"
+          aria-label={t("hero_scroll")}
         >
-          <span>See how it works</span>
+          <span>{t("hero_scroll")}</span>
           <i />
         </a>
       </section>
@@ -432,15 +412,33 @@ export default function Home() {
       <section className="benefits-section page-shell" id="features">
         <div className="section-heading">
           <div>
-            <p className="showcase-eyebrow">Core daily practice</p>
-            <h2>Replace distracted mornings with a <em>focused 3-step quiet time.</em></h2>
+            <p className="showcase-eyebrow">{isFr ? "Pratique quotidienne essentielle" : "Core daily practice"}</p>
+            <h2>
+              {isFr
+                ? "Remplacez les matinées dispersées par un "
+                : "Replace distracted mornings with a "}
+              <em>{isFr ? "moment de recueillement en 3 étapes." : "focused 3-step quiet time."}</em>
+            </h2>
           </div>
           <div>
-            <p>Most Christians want to read the Bible daily, but struggle with busy schedules and long reading plans. LifeBook gives you a simple, repeatable morning routine you will actually finish.</p>
+            <p>
+              {isFr
+                ? "Beaucoup de croyants désirent lire la Bible chaque matin, mais se heurtent à des plannings surchargés. LifeBook vous propose un rythme simple et apaisant que vous achèverez chaque jour."
+                : "Most Christians want to read the Bible daily, but struggle with busy schedules and long reading plans. LifeBook gives you a simple, repeatable morning routine you will actually finish."}
+            </p>
             <ul className="mt-4 space-y-1 text-xs text-[#5D5276] list-disc pl-4">
-              <li><strong>Fits into your morning coffee:</strong> exactly 5 minutes from start to finish</li>
-              <li><strong>Zero preparation needed:</strong> Scripture, reflection, and prayer prompt ready when you wake up</li>
-              <li><strong>Guilt-free consistency:</strong> grace days protect your streak when unexpected emergencies hit</li>
+              <li>
+                <strong>{isFr ? "S'intègre à votre café :" : "Fits into your morning coffee:"}</strong>{" "}
+                {isFr ? "exactement 5 minutes du début à la fin" : "exactly 5 minutes from start to finish"}
+              </li>
+              <li>
+                <strong>{isFr ? "Zéro préparation requise :" : "Zero preparation needed:"}</strong>{" "}
+                {isFr ? "passage, question de méditation et prière prêts à votre réveil" : "Scripture, reflection, and prayer prompt ready when you wake up"}
+              </li>
+              <li>
+                <strong>{isFr ? "Régularité bienveillante :" : "Guilt-free consistency:"}</strong>{" "}
+                {isFr ? "des jours de grâce sauvent votre série en cas d'imprévu" : "grace days protect your streak when unexpected emergencies hit"}
+              </li>
             </ul>
           </div>
         </div>
@@ -459,12 +457,12 @@ export default function Home() {
       <section className="how-section" id="how-it-works">
         <div className="page-shell">
           <div className="how-heading">
-            <p className="showcase-eyebrow">Your 5-minute morning routine</p>
-            <h2>How your 5-minute devotion works.</h2>
-            <p>Three straightforward steps designed to give you clarity and peace before your workday begins.</p>
+            <p className="showcase-eyebrow">{t("how_eyebrow")}</p>
+            <h2>{t("how_heading")}</h2>
+            <p>{t("how_sub")}</p>
           </div>
           <div className="how-grid">
-            <div className="step-list" role="tablist" aria-label="Morning routine steps">
+            <div className="step-list" role="tablist" aria-label={isFr ? "Étapes de la routine du matin" : "Morning routine steps"}>
               {steps.map(([title, text], index) => (
                 <div
                   className={`how-step ${index === activeStep ? "selected-step" : ""}`}
@@ -491,7 +489,7 @@ export default function Home() {
             </div>
             <div className="scripture-preview" aria-live="polite">
               <div className="scripture-top">
-                <span>Today&apos;s Reading</span>
+                <span>{isFr ? "Lecture du jour" : "Today's Reading"}</span>
                 <span>{stepCards[activeStep].label}</span>
               </div>
               <div className="scripture-art">
@@ -505,21 +503,21 @@ export default function Home() {
                   onClick={() => setActiveStep(0)}
                   className={`cursor-pointer transition-colors ${activeStep === 0 ? "text-white font-bold underline" : "text-white/60 hover:text-white"}`}
                 >
-                  Read (90s)
+                  {t("phase_read")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveStep(1)}
                   className={`cursor-pointer transition-colors ${activeStep === 1 ? "text-white font-bold underline" : "text-white/60 hover:text-white"}`}
                 >
-                  Reflect (2m)
+                  {t("phase_reflect")}
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveStep(2)}
                   className={`cursor-pointer transition-colors ${activeStep === 2 ? "text-white font-bold underline" : "text-white/60 hover:text-white"}`}
                 >
-                  Pray (60s)
+                  {t("phase_pray")}
                 </button>
               </div>
             </div>
@@ -533,22 +531,31 @@ export default function Home() {
             <span className="journey-orbit" />
             <span className="journey-sun">✦</span>
             <b>05</b>
-            <small>days to<br />complete each track</small>
+            <small>{isFr ? "jours pour\nfinir un parcours" : "days to\ncomplete each track"}</small>
           </div>
           <div className="journey-panel-copy">
-            <p className="showcase-eyebrow">Topical Bible studies</p>
-            <h2>Finish a 5-day topical study without falling behind.</h2>
-            <p>Tackle real-world challenges in short 5-day sprints instead of 6-month commitments you abandon after week two.</p>
+            <p className="showcase-eyebrow">{t("journeys_eyebrow")}</p>
+            <h2>{isFr ? "Terminez une étude biblique de 5 jours sans jamais décrocher." : "Finish a 5-day topical study without falling behind."}</h2>
+            <p>{isFr ? "Traitez les défis concrets de la vie en séries courtes de 5 jours plutôt que dans des plans de 6 mois qu'on abandonne après deux semaines." : "Tackle real-world challenges in short 5-day sprints instead of 6-month commitments you abandon after week two."}</p>
             <ul className="space-y-2 my-4 text-xs text-[#5D5276] list-disc pl-4">
-              <li><strong>Finish what you start:</strong> 5-day tracks give you a clear finish line and real sense of accomplishment</li>
-              <li><strong>Relevant topics:</strong> studies focused on anxiety, career decisions, patience, and family relationships</li>
-              <li><strong>Actionable takeaways:</strong> every track concludes with practical steps for daily obedience</li>
+              <li>
+                <strong>{isFr ? "Allez jusqu'au bout :" : "Finish what you start:"}</strong>{" "}
+                {isFr ? "des parcours de 5 jours offrent une ligne d'arrivée claire et un vrai accomplissement" : "5-day tracks give you a clear finish line and real sense of accomplishment"}
+              </li>
+              <li>
+                <strong>{isFr ? "Sujets ancrés dans la vie :" : "Relevant topics:"}</strong>{" "}
+                {isFr ? "études sur l'anxiété, les décisions pro, la patience et la famille" : "studies focused on anxiety, career decisions, patience, and family relationships"}
+              </li>
+              <li>
+                <strong>{isFr ? "Applications concrètes :" : "Actionable takeaways:"}</strong>{" "}
+                {isFr ? "chaque parcours s'achève par un pas d'obéissance et de prière" : "every track concludes with practical steps for daily obedience"}
+              </li>
             </ul>
             <p className="text-xs text-[#705EAA] font-semibold mb-3">
-              Takes 5 minutes per day. Start or pause anytime without penalty.
+              {isFr ? "5 minutes par jour. Commencez ou suspendez à tout moment sans pénalité." : "Takes 5 minutes per day. Start or pause anytime without penalty."}
             </p>
             <Link className="underlined-link" href="/sign-up">
-              Browse 5-day topical studies <ArrowIcon />
+              {isFr ? "Découvrir les parcours thématiques" : "Browse 5-day topical studies"} <ArrowIcon />
             </Link>
           </div>
         </div>
@@ -560,56 +567,85 @@ export default function Home() {
 
       <section className="community-proof-section page-shell">
         <div>
-          <p className="showcase-eyebrow">Biblical integrity and privacy</p>
-          <h2>Read Scripture with <em>absolute confidence.</em></h2>
+          <p className="showcase-eyebrow">{isFr ? "Intégrité biblique et respect de la vie privée" : "Biblical integrity and privacy"}</p>
+          <h2>
+            {isFr ? "Lisez l'Écriture avec une " : "Read Scripture with "}
+            <em>{isFr ? "totale confiance." : "absolute confidence."}</em>
+          </h2>
         </div>
         <div className="proof-copy">
-          <p>LifeBook is built with orthodox theological grounding, strict data privacy, and zero ad networks so your quiet time stays focused on God.</p>
+          <p>
+            {isFr
+              ? "LifeBook repose sur un ancrage théologique fidèle, une stricte confidentialité des données et l'absence totale de régies publicitaires pour que votre recueillement reste centré sur Dieu."
+              : "LifeBook is built with orthodox theological grounding, strict data privacy, and zero ad networks so your quiet time stays focused on God."}
+          </p>
           <ul className="space-y-2 my-4 text-xs text-[#5D5276] list-disc pl-4">
-            <li><strong>5 major translations:</strong> read and compare passages in ESV, NIV, CSB, KJV, and NLT</li>
-            <li><strong>Local device encryption:</strong> your private prayers and journal notes stay on your phone</li>
-            <li><strong>Zero ads or sponsored interruptions:</strong> no banners, popups, or tracking algorithms</li>
+            <li>
+              <strong>{isFr ? "Traductions reconnues :" : "5 major translations:"}</strong>{" "}
+              {isFr ? "lisez et comparez en Louis Segond (LSG), Semeur, ESV, NIV, KJV" : "read and compare passages in ESV, NIV, CSB, KJV, and NLT"}
+            </li>
+            <li>
+              <strong>{isFr ? "Chiffrement local :" : "Local device encryption:"}</strong>{" "}
+              {isFr ? "vos prières et notes privées ne quittent jamais votre appareil" : "your private prayers and journal notes stay on your phone"}
+            </li>
+            <li>
+              <strong>{isFr ? "Zéro publicité :" : "Zero ads or sponsored interruptions:"}</strong>{" "}
+              {isFr ? "ni bannières, ni popups intrusifs, ni suivi publicitaire" : "no banners, popups, or tracking algorithms"}
+            </li>
           </ul>
           <div className="proof-note">
             <span>✦</span>
-            <strong>Grounded in verified Scripture</strong>
-            <small>Every daily passage is paired with verified chapter context.</small>
+            <strong>{isFr ? "Enraciné dans la Parole vérifiée" : "Grounded in verified Scripture"}</strong>
+            <small>{isFr ? "Chaque passage quotidien est remis dans le contexte de son chapitre." : "Every daily passage is paired with verified chapter context."}</small>
           </div>
           <Link className="underlined-link" href="/sign-up">
-            Create your free account <ArrowIcon />
+            {isFr ? "Créer mon compte gratuit" : "Create your free account"} <ArrowIcon />
           </Link>
         </div>
       </section>
 
       <section className="team-section page-shell">
         <div className="team-heading">
-          <p className="showcase-eyebrow">Biblical stewardship</p>
-          <h2>Rooted in pastoral care and <em>faithful teaching.</em></h2>
-          <p>LifeBook is curated and reviewed by pastors and biblical educators committed to sound doctrine and practical discipleship.</p>
+          <p className="showcase-eyebrow">{isFr ? "Engagement pastoral" : "Biblical stewardship"}</p>
+          <h2>
+            {isFr ? "Porté par le soin pastoral et un " : "Rooted in pastoral care and "}
+            <em>{isFr ? "enseignement fidèle." : "faithful teaching."}</em>
+          </h2>
+          <p>
+            {isFr
+              ? "LifeBook est conçu et relu par des pasteurs et enseignants engagés pour une doctrine solide et une vie de disciple pratique."
+              : "LifeBook is curated and reviewed by pastors and biblical educators committed to sound doctrine and practical discipleship."}
+          </p>
           <ul className="mt-4 space-y-1 text-xs text-[#5D5276] list-disc pl-4 text-left max-w-md mx-auto">
-            <li><strong>Pastoral oversight:</strong> teachings checked for doctrinal clarity and pastoral sensitivity</li>
-            <li><strong>Christ-centered focus:</strong> every devotional moves from Scripture to prayerful obedience</li>
+            <li>
+              <strong>{isFr ? "Veille pastorale :" : "Pastoral oversight:"}</strong>{" "}
+              {isFr ? "enseignements vérifiés pour leur justesse biblique et leur sensibilité humaine" : "teachings checked for doctrinal clarity and pastoral sensitivity"}
+            </li>
+            <li>
+              <strong>{isFr ? "Centré sur Christ :" : "Christ-centered focus:"}</strong>{" "}
+              {isFr ? "chaque méditation mène du texte à la prière et à l'obéissance concrète" : "every devotional moves from Scripture to prayerful obedience"}
+            </li>
           </ul>
         </div>
         <div className="team-portraits">
           <div>
             <Image src="/AsketOfficialPic (1).png" alt="Pastor Asket, teaching contributor" width={180} height={220} />
-            <span>Pastor Asket · Teaching contributor</span>
+            <span>Pastor Asket · {isFr ? "Contributeur d'enseignement" : "Teaching contributor"}</span>
           </div>
           <div>
             <Image src="/myself.jpeg" alt="LifeBook contributor" width={180} height={220} />
-            <span>Editorial and Pastoral contributor</span>
+            <span>{isFr ? "Contributeur éditorial et pastoral" : "Editorial and Pastoral contributor"}</span>
           </div>
         </div>
       </section>
 
       <section className="questions-section page-shell" id="questions">
         <div className="questions-heading">
-          <p className="showcase-eyebrow">Frequently asked questions</p>
-          <h2>Common questions before you start.</h2>
+          <p className="showcase-eyebrow">{t("faq_eyebrow")}</p>
+          <h2>{t("faq_heading")}</h2>
           <span className="question-mark">?</span>
         </div>
-        <div className="faq-list" role="region" aria-label="Frequently asked questions list">
+        <div className="faq-list" role="region" aria-label={isFr ? "Foire aux questions" : "Frequently asked questions list"}>
           {faqs.map(([question, answer], index) => {
             const isOpen = openFaq === index;
             return (
@@ -638,35 +674,35 @@ export default function Home() {
       <section className="closing-section" id="join">
         <div className="closing-band page-shell">
           <div>
-            <p className="showcase-eyebrow">Get started in 30 seconds</p>
-            <h2>Start tomorrow morning with Scripture in <em>under 5 minutes.</em></h2>
+            <p className="showcase-eyebrow">{t("cta_eyebrow")}</p>
+            <h2>{t("cta_heading")}</h2>
           </div>
           <div className="closing-form">
-            <p>Enter your email to receive tomorrow morning&apos;s devotional, reflection prompts, and prayer guide directly in your inbox.</p>
+            <p>{t("cta_desc")}</p>
             <p className="text-xs text-[#6B5E82] font-medium mb-3">
-              No spam. No credit card. Unsubscribe in one click anytime.
+              {isFr ? "Sans spam. Sans carte bancaire. Désinscription en un clic à tout moment." : "No spam. No credit card. Unsubscribe in one click anytime."}
             </p>
             {joined ? (
-              <div className="success-message">You are registered. Your first 5-minute devotional arrives tomorrow morning. <span>✦</span></div>
+              <div className="success-message">{t("cta_success")} <span>✦</span></div>
             ) : (
               <form onSubmit={handleSubmit}>
-                <label htmlFor="email">Your email address</label>
+                <label htmlFor="email">{t("cta_placeholder")}</label>
                 <div>
                   <input
                     id="email"
                     type="email"
-                    placeholder="name@example.com"
+                    placeholder={isFr ? "nom@exemple.com" : "name@example.com"}
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     required
                   />
-                  <button type="submit" aria-label="Send me tomorrow's devotional">
+                  <button type="submit" aria-label={t("cta_button")}>
                     <ArrowIcon />
                   </button>
                 </div>
               </form>
             )}
-            <small>Free daily devotional guide · Join over 500 daily readers</small>
+            <small>{t("cta_note")}</small>
           </div>
         </div>
       </section>
@@ -677,41 +713,50 @@ export default function Home() {
             <a className="footer-logo" href="#top" aria-label="LifeBook home">
               <Image src="/logol.png" alt="LifeBook" width={78} height={78} unoptimized />
             </a>
-            <p>“Draw near to God, and he will draw near to you.”<small>James 4:8 (ESV)</small></p>
+            <p>
+              {isFr
+                ? "« Approchez-vous de Dieu, et il s'approchera de vous. »"
+                : "“Draw near to God, and he will draw near to you.”"}
+              <small>{isFr ? "Jacques 4:8 (LSG)" : "James 4:8 (ESV)"}</small>
+            </p>
           </div>
           <div className="footer-nav">
             <div className="footer-column">
-              <h3>Daily Practice</h3>
-              <a href="#features">Today&apos;s Scripture</a>
-              <a href="#how-it-works">3-Step Routine</a>
-              <a href="#journeys">5-Day Studies</a>
-              <Link href="/voice">Voice Search</Link>
+              <h3>{t("nav_daily_practice")}</h3>
+              <a href="#features">{isFr ? "Verset du jour" : "Today's Scripture"}</a>
+              <a href="#how-it-works">{isFr ? "Routine en 3 étapes" : "3-Step Routine"}</a>
+              <a href="#journeys">{t("nav_journeys")}</a>
+              <Link href="/voice">{t("nav_voice_search")}</Link>
             </div>
             <div className="footer-column">
-              <h3>Study and Grow</h3>
-              <Link href="/living-word">Audio Teachings</Link>
-              <Link href="/progress">Habit Tracker</Link>
-              <a href="#questions">FAQ</a>
-              <a href="#join">Email Devotional</a>
+              <h3>{isFr ? "Étudier et grandir" : "Study and Grow"}</h3>
+              <Link href="/living-word">{t("nav_audio_teachings")}</Link>
+              <Link href="/progress">{isFr ? "Suivi d'habitude" : "Habit Tracker"}</Link>
+              <a href="#questions">{t("nav_faq")}</a>
+              <a href="#join">{isFr ? "Méditation par e-mail" : "Email Devotional"}</a>
             </div>
             <div className="footer-column">
-              <h3>Community</h3>
-              <Link href="/progress">Prayer Journal</Link>
-              <a href="#questions">Pastoral Questions</a>
-              <Link href="/moderation">Moderation Standards</Link>
+              <h3>{isFr ? "Communauté" : "Community"}</h3>
+              <Link href="/progress">{isFr ? "Journal de prière" : "Prayer Journal"}</Link>
+              <a href="#questions">{isFr ? "Questions pastorales" : "Pastoral Questions"}</a>
+              <Link href="/moderation">{isFr ? "Normes de modération" : "Moderation Standards"}</Link>
             </div>
             <div className="footer-column">
-              <h3>Trust and Privacy</h3>
-              <span className="footer-note">5 verified translations (ESV, NIV, CSB, KJV, NLT). Private local device storage.</span>
+              <h3>{isFr ? "Confiance et vie privée" : "Trust and Privacy"}</h3>
+              <span className="footer-note">
+                {isFr
+                  ? "Bilingue Français & Anglais. Versions LSG, Semeur, ESV, NIV. Sauvegarde locale privée."
+                  : "Bilingual English & French. Versions ESV, NIV, CSB, KJV, LSG. Private local device storage."}
+              </span>
             </div>
           </div>
           <div className="footer-bottom">
             <span>© 2026 LifeBook</span>
-            <span>Daily 5-minute Bible and prayer companion</span>
+            <span>{t("footer_copyright")}</span>
             <div>
-              <Link href="/privacy">Privacy</Link>
-              <a href="#top">Terms</a>
-              <a href="#top">Accessibility</a>
+              <Link href="/privacy">{t("footer_privacy")}</Link>
+              <a href="#top">{t("footer_terms")}</a>
+              <a href="#top">{isFr ? "Accessibilité" : "Accessibility"}</a>
             </div>
           </div>
         </div>
@@ -719,7 +764,7 @@ export default function Home() {
 
       {isSignedIn ? (
         <Link className="sticky-mobile-cta" href="/progress" id="sticky-continue-journey-btn">
-          Continue 5-minute devotion <ArrowIcon />
+          {isFr ? "Continuer la méditation (5 min)" : "Continue 5-minute devotion"} <ArrowIcon />
         </Link>
       ) : (
         <Link
@@ -727,7 +772,7 @@ export default function Home() {
           className="sticky-mobile-cta"
           id="sticky-begin-journey-btn"
         >
-          Start 5-minute devotion <ArrowIcon />
+          {t("nav_start_devotion")} <ArrowIcon />
         </Link>
       )}
 
@@ -736,8 +781,8 @@ export default function Home() {
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           className="fixed right-6 bottom-20 md:bottom-6 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-[#1e1931] text-[#fbfaf7] shadow-lg hover:bg-[#34294f] hover:scale-105 active:scale-95 transition-all cursor-pointer border border-[#fbfaf7]/15"
-          aria-label="Back to top"
-          title="Back to top"
+          aria-label={t("footer_back_to_top")}
+          title={t("footer_back_to_top")}
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
