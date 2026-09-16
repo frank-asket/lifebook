@@ -797,7 +797,7 @@ export function MonthlyMoodHeatmap({
                     </span>
                   ) : (
                     <span className="text-[11px] text-gray-300 font-serif italic group-hover:text-[#1FB6B0]">
-                      —
+                      -
                     </span>
                   )}
                 </div>
@@ -920,7 +920,7 @@ export function MonthlyMoodHeatmap({
               </h4>
               <p className="text-xs text-[#C2B7D9] mt-1">
                 {currentRecord.isSabbathRest
-                  ? '🕊️ Consecrated Sabbath Rest Day — shielded by grace'
+                  ? '🕊️ Consecrated Sabbath Rest Day: shielded by grace'
                   : currentRecord.intensity > 0
                   ? `Devotional engagement: ${currentRecord.intensity} of 4 practices completed`
                   : 'Rest day or awaiting spiritual check-in'}

@@ -41,7 +41,7 @@ export default function SignInPage() {
               “The steadfast love of the Lord never ceases; His mercies never come to an end; they are new every morning.”
             </blockquote>
             <p className="text-xs font-medium text-[#A59CB5] tracking-wide">
-              Lamentations 3:22–23
+              Lamentations 3:22-23
             </p>
           </div>
 
@@ -50,19 +50,19 @@ export default function SignInPage() {
               <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
                 📖
               </span>
-              <span>The Living Word — verse-by-verse scripture abiding</span>
+              <span>The Living Word: verse-by-verse scripture abiding</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
               <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
                 🙏
               </span>
-              <span>Soul Reflections — personal prayers & quiet heart check-ins</span>
+              <span>Soul Reflections: personal prayers and quiet heart check-ins</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
               <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
                 🌿
               </span>
-              <span>Burnout-Free Rhythms — holy rest with grace for missed days</span>
+              <span>Burnout-Free Rhythms: holy rest with grace for missed days</span>
             </div>
           </div>
         </div>

@@ -241,7 +241,7 @@ export function BurnoutPreventionCard({
               ? 'Today is consecrated as intentional Sabbath rest. Your continuous streak remains fully protected by grace while your spirit recharges.'
               : burnoutAnalysis.isHighIntensityDetected
               ? `You’ve sustained ${burnoutAnalysis.consecutiveActiveDays} consecutive days of high devotional intensity without a rest pause. God instituted the Sabbath so His children would never reduce faith to exhausting performance.`
-              : `You’ve completed ${burnoutAnalysis.consecutiveActiveDays} consecutive days of practice. Keep listening to your soul—remember to weave holy rest into your weekly journey.`}
+              : `You’ve completed ${burnoutAnalysis.consecutiveActiveDays} consecutive days of practice. Keep listening to your soul and remember to weave holy rest into your weekly journey.`}
           </p>
         </div>
 

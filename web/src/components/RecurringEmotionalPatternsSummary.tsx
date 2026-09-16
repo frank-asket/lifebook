@@ -514,7 +514,7 @@ export function RecurringEmotionalPatternsSummary({
             </h4>
 
             <p className="text-sm text-[#D1CAE3] leading-relaxed">
-              Across your check-in history, <strong>Sunday mornings record a {sundayStats.dominantMood.pct}% peace frequency</strong>—your highest of any time during the week. Observed Sabbath rest, church worship, and unhurried morning Scripture create an intentional sanctuary that guards against weekday hurry.
+              Across your check-in history, <strong>Sunday mornings record a {sundayStats.dominantMood.pct}% peace frequency</strong>: your highest of any time during the week. Observed Sabbath rest, church worship, and unhurried morning Scripture create an intentional sanctuary that guards against weekday hurry.
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-[#E5E0F2]">
@@ -548,7 +548,7 @@ export function RecurringEmotionalPatternsSummary({
               />
             </div>
             <p className="text-[11px] text-[#A69BBF] italic">
-              “My presence will go with you, and I will give you rest.” — Ex 33:14
+              “My presence will go with you, and I will give you rest.” (Ex 33:14)
             </p>
           </div>
         </div>

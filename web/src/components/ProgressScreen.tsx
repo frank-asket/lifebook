@@ -383,7 +383,7 @@ const DEFAULT_BADGES: Badge[] = [
     rewardPoints: 50,
     scripture: 'Come to me, all who labor and are heavy laden, and I will give you rest.',
     scriptureRef: 'Matthew 11:28',
-    reflection: 'Sabbath rest is an act of holy trust—believing God rules the world even when our striving ceases.',
+    reflection: 'Sabbath rest is an act of holy trust: believing God rules the world even when our striving ceases.',
     unlockedPerks: ['+50 Grace Points', 'Streak Preservation Shield'],
   },
   {
@@ -2519,7 +2519,7 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
                   “{weeklyPulseData.weeklyScripture.text}”
                 </blockquote>
                 <p className="mt-2 text-xs font-bold text-[#8A7539] pl-4">
-                  — {weeklyPulseData.weeklyScripture.reference}
+                  ({weeklyPulseData.weeklyScripture.reference})
                 </p>
               </div>
 
@@ -2783,7 +2783,7 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
                 “{selectedMilestone.scripture}”
               </blockquote>
               <span className="block mt-2 text-xs font-bold text-[#8A7539]">
-                — {selectedMilestone.scriptureRef}
+                ({selectedMilestone.scriptureRef})
               </span>
             </div>
 

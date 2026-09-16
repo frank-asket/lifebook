@@ -588,7 +588,7 @@ export function MoodTrendsAnalytics({
                   ticks={frequencyViewMode === 'daily' ? [0, 1] : undefined}
                   tickFormatter={(val: number) => {
                     if (frequencyViewMode === 'daily') {
-                      return val === 1 ? 'Logged' : '—';
+                      return val === 1 ? 'Logged' : '-';
                     }
                     return `${val}d`;
                   }}

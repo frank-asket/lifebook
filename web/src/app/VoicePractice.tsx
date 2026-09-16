@@ -38,14 +38,14 @@ function answerQuestion(question: string) {
   const normalized = question.toLowerCase();
   if (normalized.includes("trinity")) {
     return {
-      title: "The Father, Son, and Holy Spirit",
-      body: "Christians believe there is one God who eternally exists as three persons: the Father, the Son, and the Holy Spirit. This is a mystery we receive with humility, not a puzzle we have to solve before we can worship. Jesus sends his disciples in the name of the Father, Son, and Holy Spirit in Matthew 28:19.",
+      title: "Biblical clarity on the Trinity",
+      body: "Scripture teaches that there is one God who eternally exists in three persons: the Father, the Son, and the Holy Spirit (Matthew 28:19). Each person is fully God, equal in glory and purpose, working together in your salvation and daily walk.",
       verse: "Matthew 28:19",
     };
   }
   return {
-    title: "A place to begin",
-    body: "Thank you for bringing that question honestly. Let us begin with Scripture, stay curious, and make room for prayer. LifeBook will connect you with a passage, a reflection, and a next step rather than rushing you toward a shallow answer.",
+    title: "Scripture for wisdom and direction",
+    body: "God promises to provide wisdom generously to anyone who asks in faith without second-guessing (James 1:5). Read the surrounding verses in James chapter 1, bring your decision to God in prayer, and take the next obedient step today.",
     verse: "James 1:5",
   };
 }
@@ -175,26 +175,31 @@ export default function VoicePractice() {
   const isActive = status === "listening" || status === "thinking";
   const buttonLabel =
     status === "listening"
-      ? "Listening..."
+      ? "Listening for your question..."
       : status === "thinking"
-      ? "Preparing a response..."
-      : "Ask LifeBook";
+      ? "Searching Scripture..."
+      : "Ask your Bible question";
 
   return (
     <section className="voice-section" id="voice">
       <div className="page-shell voice-shell">
         <div className="voice-copy">
-          <p className="showcase-eyebrow">LifeBook Voice · web preview</p>
-          <h2>Bring your<br /><em>questions.</em></h2>
-          <p>Ask what is on your heart. LifeBook will help you begin with Scripture, respond with prayer, and leave room for the Holy Spirit to meet you there.</p>
-          <span className="voice-privacy">Tap to speak · Nothing is recorded until you choose to save it.</span>
+          <p className="showcase-eyebrow">Instant Scripture Search</p>
+          <h2>Find Bible verses for your exact situation in seconds.</h2>
+          <p>Speak or type what you are wrestling with today to get relevant Bible passages, contextual explanations, and a guided prayer step immediately.</p>
+          <ul className="space-y-2 my-4 text-xs text-[#5D5276] list-disc pl-4">
+            <li><strong>Instant answers:</strong> search Scripture for anxiety, work decisions, burnout, or forgiveness</li>
+            <li><strong>Verified context:</strong> read full passages in ESV, NIV, and CSB with zero cherry-picked fragments</li>
+            <li><strong>Private to your phone:</strong> save reflections straight to your personal journal in one tap</li>
+          </ul>
+          <span className="voice-privacy">100% private: audio is processed in your browser and never uploaded or stored.</span>
         </div>
         <div className="voice-console">
-          <div className="voice-console-top"><span>LifeBook Voice</span><span className="voice-live"><i /> browser preview</span></div>
+          <div className="voice-console-top"><span>LifeBook Voice</span><span className="voice-live"><i /> interactive preview</span></div>
           <div className="voice-conversation">
-            <div className="voice-prompt"><small>You can ask</small><strong>“Hey LifeBook, I would like to understand the Trinity.”</strong></div>
+            <div className="voice-prompt"><small>Try asking aloud or tap below</small><strong>“Hey LifeBook, I would like to understand the Trinity.”</strong></div>
             {transcript && <div className="voice-transcript"><small>You said</small><p>{transcript}</p></div>}
-            {answer && <div className="voice-answer"><div><small>LifeBook · grounded in Scripture</small><h3>{answer.title}</h3><p>{answer.body}</p><b>{answer.verse}</b></div><button type="button" className="voice-save" onClick={saveReflection}>{saved ? "Saved to Journal" : "Save reflection"}</button></div>}
+            {answer && <div className="voice-answer"><div><small>Scripture context</small><h3>{answer.title}</h3><p>{answer.body}</p><b>{answer.verse}</b></div><button type="button" className="voice-save" onClick={saveReflection}>{saved ? "Saved to Journal" : "Save reflection to journal"}</button></div>}
             {status === "unsupported" && <p className="voice-error">Voice input is not available in this browser. Try Chrome or Safari with microphone permission enabled.</p>}
           </div>
           <div className="voice-controls">
@@ -214,7 +219,7 @@ export default function VoicePractice() {
               </span>
               <span className="voice-button-label">{buttonLabel}</span>
             </button>
-            <span className="voice-hint">Try: “What does forgiveness look like?”</span>
+            <span className="voice-hint">Suggested: “What Bible verses help with anxiety at work?”</span>
           </div>
         </div>
       </div>

@@ -50,19 +50,19 @@ export default function SignUpPage() {
               <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
                 🌿
               </span>
-              <span>No Spiritual Scoreboards — grace when life gets full or heavy</span>
+              <span>No Spiritual Scoreboards: grace when life gets full or heavy</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
               <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
                 📖
               </span>
-              <span>Five Major Translations — ESV, NIV, KJV, CSB, and NLT</span>
+              <span>Five Major Translations: ESV, NIV, KJV, CSB, and NLT</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
               <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
                 🛡️
               </span>
-              <span>Completely Private & Safe — your prayers remain yours and God’s</span>
+              <span>Completely Private and Safe: your prayers remain yours and God’s</span>
             </div>
           </div>
         </div>

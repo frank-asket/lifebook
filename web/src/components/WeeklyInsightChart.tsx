@@ -511,7 +511,7 @@ export function WeeklyInsightChart({
                   {moodSummary.topMood.scriptureText}
                 </p>
                 <p className="text-[11px] font-bold mt-1" style={{ color: moodSummary.topMood.color }}>
-                  — {moodSummary.topMood.scriptureRef}
+                  ({moodSummary.topMood.scriptureRef})
                 </p>
               </div>
             </div>
@@ -676,7 +676,7 @@ export function WeeklyInsightChart({
                   </span>
                 </div>
                 <span className="text-[11px] text-[#A69BBF] italic">
-                  — Goal: 20 mins daily abiding
+                  (Goal: 20 mins daily abiding)
                 </span>
               </div>
 

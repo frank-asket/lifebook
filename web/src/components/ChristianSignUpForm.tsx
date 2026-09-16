@@ -9,7 +9,7 @@ const FAITH_SEASONS = [
   {
     id: "peace",
     label: "Seeking Peace & Stillness",
-    scripture: "Philippians 4:6–7",
+    scripture: "Philippians 4:6-7",
     description: "Bringing anxiety, racing thoughts, and weariness to Christ.",
     icon: "🌿",
   },
@@ -30,7 +30,7 @@ const FAITH_SEASONS = [
   {
     id: "gratitude",
     label: "Growing in Gratitude & Joy",
-    scripture: "1 Thessalonians 5:16–18",
+    scripture: "1 Thessalonians 5:16-18",
     description: "Noticing God’s daily mercies and learning to rejoice always.",
     icon: "☀️",
   },

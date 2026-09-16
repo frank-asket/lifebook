@@ -518,7 +518,7 @@ export function DailyGoalCard({
       <div className="mt-4 pt-3 border-t border-white/10 flex flex-col xs:flex-row items-center justify-between text-[11px] text-[#A69DC0] gap-2">
         <div className="flex items-center gap-1.5">
           <span className="text-sm">📖</span>
-          <span className="italic">“Whoever is faithful in very little is also faithful in much.” — Luke 16:10</span>
+          <span className="italic">“Whoever is faithful in very little is also faithful in much.” (Luke 16:10)</span>
         </div>
         <div className="flex items-center gap-1 text-[10px] text-[#8E84A6]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#1FB6B0]" />

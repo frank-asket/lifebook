@@ -235,7 +235,7 @@ export function StreakGamificationCard({
                     {currentLevel.title}
                   </h3>
                   <p className="text-xs text-[#D1C7E6] mt-0.5 italic">
-                    “{currentLevel.verse}” <strong className="text-[#37C6C2] not-italic">— {currentLevel.verseRef}</strong>
+                    “{currentLevel.verse}” <strong className="text-[#37C6C2] not-italic">({currentLevel.verseRef})</strong>
                   </p>
                 </div>
               </div>
@@ -701,7 +701,7 @@ export function StreakGamificationCard({
             <blockquote className="mt-4 p-4 rounded-2xl bg-white/10 border border-white/15 text-xs font-serif italic text-[#E5DCF6] leading-relaxed">
               “{celebratingMilestone.scripture}”
               <strong className="block not-italic text-[#37C6C2] mt-1">
-                — {celebratingMilestone.scriptureRef}
+                ({celebratingMilestone.scriptureRef})
               </strong>
             </blockquote>
 

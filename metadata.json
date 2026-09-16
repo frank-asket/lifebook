@@ -1,6 +1,6 @@
 {
   "name": "LifeBook",
-  "description": "A Christian devotional companion for Scripture, reflection, prayer, and community.",
+  "description": "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
   "requestFramePermissions": [
     "microphone"
   ],

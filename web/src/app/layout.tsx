@@ -19,13 +19,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
-  title: "LifeBook — Meet yourself where you are",
-  description: "A Christian devotional companion for Scripture, reflection, prayer, and community.",
+  title: "LifeBook | Daily 5-Minute Bible & Prayer Companion",
+  description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
   applicationName: "LifeBook",
-  keywords: ["Christian devotional", "Scripture reflection", "Christian prayer", "faith journey"],
+  keywords: ["Christian devotional", "daily Bible study", "morning prayer habit", "5-minute devotional"],
   openGraph: {
-    title: "LifeBook — Meet yourself where you are",
-    description: "A Christian devotional companion for Scripture, reflection, prayer, and community.",
+    title: "LifeBook | Daily 5-Minute Bible & Prayer Companion",
+    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
     type: "website",
     images: [{ url: "/lifebookbanner.png", width: 1200, height: 420, alt: "LifeBook" }],
   },
@@ -42,7 +42,7 @@ export default function RootLayout({
     "@type": "Organization",
     name: "LifeBook",
     url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-    description: "A Christian devotional companion for Scripture, reflection, prayer, and community.",
+    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling.",
     sameAs: [],
   };
 

@@ -28,7 +28,7 @@ const MOOD_SCRIPTURE_MAP: Record<
   grateful: {
     scriptureRef: 'Psalm 103:1-2',
     verse: 'Bless the Lord, O my soul, and all that is within me, bless his holy name! Bless the Lord, O my soul, and forget not all his benefits.',
-    guidance: 'Anchor this gratitude in thanksgiving—celebrate the small unseen provisions God made today.',
+    guidance: 'Anchor this gratitude in thanksgiving: celebrate the small unseen provisions God made today.',
     ambientBg: 'from-[#FFFDF5] via-[#FFF9EB] to-[#FFF3D6]',
     borderColor: '#E3B15E',
     glowColor: 'rgba(227, 177, 94, 0.25)',

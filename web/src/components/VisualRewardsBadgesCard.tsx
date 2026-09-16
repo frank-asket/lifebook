@@ -355,7 +355,7 @@ export function VisualRewardsBadgesCard({
                     <span className="font-bold text-[#1FB6B0] mr-1">Anchor:</span>
                     <span className="italic font-serif">“{badge.scripture}”</span>
                     <span className="block text-[10px] font-mono text-[#8B7E9F] mt-0.5">
-                      — {badge.scriptureRef}
+                      ({badge.scriptureRef})
                     </span>
                   </div>
                 )}

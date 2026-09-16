@@ -72,7 +72,7 @@ const MOOD_PROMPTS: Record<
   },
   doubting: {
     theme: 'Honest Heart in the Mystery',
-    prompt: 'Speak your raw questions and uncertainties without fear—the Lord holds you even when you can’t see.',
+    prompt: 'Speak your raw questions and uncertainties without fear: the Lord holds you even when you can’t see.',
     scriptureRef: 'Mark 9:24',
     scriptureSnippet: 'I believe; help my unbelief!',
     suggestedTags: ['#HonestQuestions', '#FaithInDoubt', '#Lament', '#Anchored'],
@@ -204,7 +204,7 @@ export function DynamicMoodJournal({
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;
     try {
       const textToCopy = `${entry.text}${
-        entry.scriptureRef ? `\n— Scripture: ${entry.scriptureRef}` : ''
+        entry.scriptureRef ? `\nScripture: ${entry.scriptureRef}` : ''
       }\n[LifeBook Journal · ${entry.moodLabel || 'Soul Reflection'}]`;
       await navigator.clipboard.writeText(textToCopy);
       setCopyFeedbackId(entry.id);

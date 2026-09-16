@@ -120,7 +120,7 @@ export function generatePulseHtmlEmail(data: SpiritualPulseData, recipientName?:
       `
         )
         .join('')
-    : `<div style="font-size: 12px; color: #7B6E96; font-style: italic;">No new streak tiers reached this week — keep building your daily foundation!</div>`;
+    : `<div style="font-size: 12px; color: #7B6E96; font-style: italic;">No new streak tiers reached this week: keep building your daily foundation!</div>`;
 
   return `
 <!DOCTYPE html>
@@ -324,7 +324,7 @@ export function generatePulseHtmlEmail(data: SpiritualPulseData, recipientName?:
                   “${data.weeklyScripture.text}”
                 </blockquote>
                 <div style="margin-top: 8px; font-size: 12px; font-weight: 700; color: #8A7539;">
-                  — ${data.weeklyScripture.reference}
+                  (${data.weeklyScripture.reference})
                 </div>
                 <p style="margin: 16px 0 0; font-size: 13px; color: #584F3D; line-height: 1.5; border-top: 1px solid #EAE2D2; padding-top: 14px;">
                   ${data.pastoralEncouragement}
