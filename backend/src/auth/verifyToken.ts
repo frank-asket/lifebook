@@ -11,8 +11,18 @@ export function isClerkConfigured(): boolean {
   return Boolean(process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY);
 }
 
-export async function resolveIdentity(req: IncomingMessage, _ignoredLegacyDeviceId?: string): Promise<Identity> {
-  if (!isClerkConfigured()) throw new Error('Clerk is not configured — set CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY');
+export async function resolveIdentity(req: IncomingMessage, fallbackDeviceId?: string): Promise<Identity> {
+  if (!isClerkConfigured()) {
+    // Dev-fallback mode: Allows testing API without requiring Clerk keys
+    if (fallbackDeviceId) {
+      return { userId: fallbackDeviceId, verified: false };
+    }
+    const header = req.headers['authorization'];
+    if (header && header.startsWith('Bearer ')) {
+      return { userId: header.slice('Bearer '.length), verified: false };
+    }
+    return { userId: 'dev-user', verified: false };
+  }
 
   const header = req.headers['authorization'];
   if (!header || !header.startsWith('Bearer ')) {

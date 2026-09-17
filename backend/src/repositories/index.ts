@@ -23,15 +23,15 @@ export const ProfileRepository = {
   async get(userId: string): Promise<UserProfile | null> {
     if (!isSupabaseConfigured()) {
       const local = db.read();
-      const prefs = local.preferences[userId] || {};
-      const streak = local.streaks[userId] || { current: 0, longest: 0 };
+      const prefs = local.preferences[userId] || { deviceId: userId };
+      const streak = local.streaks[userId] || { deviceId: userId, current: 0, longest: 0, lastCheckIn: '', history: [] };
       return {
         id: userId,
         timezone: prefs.timezone || 'UTC',
         translationPreference: prefs.translation || 'KJV',
         currentStreak: streak.current,
         longestStreak: streak.longest,
-        lastCheckinDate: streak.lastCheckinDate,
+        lastCheckinDate: streak.lastCheckIn,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -117,7 +117,7 @@ export const CheckinRepository = {
     if (!isSupabaseConfigured()) {
       const local = db.read();
       return local.checkins
-        .filter((c) => c.userId === userId)
+        .filter((c) => c.userId === userId || c.deviceId === userId)
         .slice(-limit)
         .reverse();
     }
@@ -133,6 +133,7 @@ export const CheckinRepository = {
     if (error || !data) return [];
     return data.map((row) => ({
       id: row.id,
+      deviceId: row.user_id,
       userId: row.user_id,
       mood: row.mood,
       note: row.note || undefined,
@@ -145,6 +146,7 @@ export const CheckinRepository = {
     const local = db.read();
     local.checkins.push({
       id: checkin.id,
+      deviceId: checkin.userId,
       userId: checkin.userId,
       mood: checkin.mood as any,
       note: checkin.note,
@@ -174,7 +176,7 @@ export const JournalRepository = {
     if (!isSupabaseConfigured()) {
       const local = db.read();
       return (local.journalEntries || [])
-        .filter((j) => j.userId === userId)
+        .filter((j) => j.userId === userId || j.deviceId === userId)
         .slice()
         .reverse();
     }
@@ -189,7 +191,9 @@ export const JournalRepository = {
     if (error || !data) return [];
     return data.map((row) => ({
       id: row.id,
+      deviceId: row.user_id,
       userId: row.user_id,
+      text: row.body,
       body: row.body,
       passageReference: row.passage_reference || undefined,
       tags: row.tags || [],
@@ -209,7 +213,9 @@ export const JournalRepository = {
     if (!local.journalEntries) local.journalEntries = [];
     local.journalEntries.push({
       id: entry.id,
+      deviceId: entry.userId,
       userId: entry.userId,
+      text: entry.body,
       body: entry.body,
       passageReference: entry.passageReference,
       tags: entry.tags,

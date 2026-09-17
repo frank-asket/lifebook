@@ -24,10 +24,13 @@ export interface GeneratedContent {
 export interface MoodCheckin {
   id: string;
   deviceId: string;
+  userId?: string;
   mood: Mood;
   note?: string;
   createdAt: string;
 }
+
+export type Checkin = MoodCheckin;
 
 export interface StreakRecord {
   deviceId: string;
@@ -121,8 +124,13 @@ export interface DiscussionReply {
 
 export interface JournalEntry {
   id: string;
-  deviceId: string;
-  text: string;
+  deviceId?: string;
+  userId?: string;
+  text?: string;
+  body?: string;
+  title?: string;
+  passageReference?: string;
+  tags?: string[];
   relatedContentId?: string;
   createdAt: string;
 }
@@ -145,6 +153,8 @@ export interface UserPreferences {
   favoriteBooks?: string[];
   joinedGroupSuggestion?: string;
   onboardingCompletedAt?: string;
+  timezone?: string;
+  translation?: string;
 }
 
 export interface Group {
