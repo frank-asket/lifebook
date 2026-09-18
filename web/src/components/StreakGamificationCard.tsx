@@ -12,7 +12,7 @@ interface StreakGamificationCardProps {
   onUpdateGracePoints: (newPoints: number) => void;
   onTogglePractice: (practiceKey: 'scriptureRead' | 'prayerCompleted' | 'journalWritten') => void;
   onOpenJournal?: () => void;
-  onTriggerMilestoneCelebration?: (days: 7 | 30) => void;
+  onTriggerMilestoneCelebration?: (days: number) => void;
 }
 
 export interface SpiritualLevelInfo {
@@ -644,12 +644,12 @@ export function StreakGamificationCard({
                     />
                   </div>
 
-                  {/* 7-Day & 30-Day Milestone Celebration Trigger Button */}
-                  {(m.days === 7 || m.days === 30) && onTriggerMilestoneCelebration && (
+                  {/* Milestone Celebration Trigger Button (7, 14, 21, 30, 50, 100 days) */}
+                  {[7, 14, 21, 30, 50, 100].includes(m.days) && onTriggerMilestoneCelebration && (
                     <button
                       type="button"
                       id={`milestone-${m.days}-celebration-trigger`}
-                      onClick={() => onTriggerMilestoneCelebration(m.days as 7 | 30)}
+                      onClick={() => onTriggerMilestoneCelebration(m.days)}
                       className={`mt-3 w-full py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs ${
                         isUnlocked
                           ? 'bg-gradient-to-r from-[#17132B] to-[#2B1D4B] hover:to-[#382662] text-white border border-white/20 hover:border-[#37C6C2]/60'

@@ -8,6 +8,7 @@ import { useChristianAuth } from "@/lib/christian-auth";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import PhoneMockup from "@/components/PhoneMockup";
+import PreSignupJourneyPreview from "@/components/PreSignupJourneyPreview";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -138,7 +139,7 @@ export default function Home() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
 
-      const sectionIds = ["top", "features", "how-it-works", "journeys", "voice", "living-word", "questions", "join"];
+      const sectionIds = ["top", "features", "how-it-works", "journey-preview", "journeys", "voice", "living-word", "questions", "join"];
       const scrollPos = window.scrollY + 100;
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const id = sectionIds[i];
@@ -183,6 +184,7 @@ export default function Home() {
             <a href="#journeys" className={activeSection === "journeys" ? "active-link" : ""}>{t("nav_journeys")}</a>
             <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>{t("nav_voice_search")}</Link>
             <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""}>{t("nav_audio_teachings")}</Link>
+            <Link href="/waitlist" className={activeSection === "waitlist" ? "active-link" : ""}>{isFr ? "Cohortes (P4)" : "Waitlist (P4)"}</Link>
             <Link href="/progress">{t("nav_my_progress")}</Link>
             <a href="#questions" className={activeSection === "questions" ? "active-link" : ""}>{t("nav_faq")}</a>
           </div>
@@ -277,6 +279,10 @@ export default function Home() {
               </div>
               <div className="mobile-nav-group">
                 <p className="mobile-nav-heading">{t("mobile_nav_community_help")}</p>
+                <Link href="/waitlist" onClick={() => setMenuOpen(false)}>
+                  <span>{isFr ? "Cohortes & Liste d'attente" : "Waitlist Cohorts"}</span>
+                  <span className="text-xs text-[#8c8297]">P4</span>
+                </Link>
                 <Link href="/progress" onClick={() => setMenuOpen(false)}>
                   <span>{t("nav_my_progress")}</span>
                   <span className="text-xs text-[#8c8297]">{isFr ? "Suivi" : "Track"}</span>
@@ -375,7 +381,7 @@ export default function Home() {
                 : "Free to start. No credit card required. No 50-chapter commitments."}
             </p>
 
-            <div className="showcase-actions">
+            <div className="showcase-actions flex-wrap gap-3">
               {isSignedIn ? (
                 <Link className="pill-button pill-dark" href="/progress" id="hero-continue-journey-btn">
                   {isFr ? "Continuer votre méditation" : "Continue your 5-minute devotion"} <ArrowIcon />
@@ -389,7 +395,15 @@ export default function Home() {
                   {t("hero_cta_start")} <ArrowIcon />
                 </Link>
               )}
-              <span className="rating-note">
+              <a
+                href="#journey-preview"
+                className="pill-button pill-light"
+                id="hero-preview-journey-btn"
+              >
+                <span>{isFr ? "Aperçu de votre étude & humeur" : "Explore Mood Reasoning & 5-Day Plan"}</span>
+                <span>↓</span>
+              </a>
+              <span className="rating-note w-full sm:w-auto">
                 <b>{isFr ? "Versions bibliques" : "5 verified translations"}:</b><br />
                 <small>{isFr ? "Louis Segond (LSG), Semeur, ESV, NIV, KJV · Sans publicité" : "ESV, NIV, CSB, KJV, NLT · 100% ad-free"}</small>
               </span>
@@ -524,6 +538,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* P2: Pre-Signup Mood Reasoning & 5-Day Curriculum Preview */}
+      <PreSignupJourneyPreview />
 
       <section className="journeys-section page-shell" id="journeys">
         <div className="journey-panel">
@@ -740,6 +757,7 @@ export default function Home() {
               <Link href="/progress">{isFr ? "Journal de prière" : "Prayer Journal"}</Link>
               <a href="#questions">{isFr ? "Questions pastorales" : "Pastoral Questions"}</a>
               <Link href="/moderation">{isFr ? "Normes de modération" : "Moderation Standards"}</Link>
+              <Link href="/analytics">{isFr ? "Télémétrie & Habitude" : "Funnel & Habit Telemetry"}</Link>
             </div>
             <div className="footer-column">
               <h3>{isFr ? "Confiance et vie privée" : "Trust and Privacy"}</h3>

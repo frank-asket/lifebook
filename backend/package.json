@@ -2,16 +2,13 @@
   "name": "lifebook-backend",
   "version": "0.1.0",
   "private": true,
-  "description": "LifeBook agent pipeline + API — zero runtime dependencies by design (see README).",
+  "description": "LifeBook agent pipeline + API — powered by Python (FastAPI).",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
-    "dev:livingword": "tsx watch src/microservices/livingWord.ts",
-    "start:livingword": "tsx src/microservices/livingWord.ts",
-    "dev:voice": "tsx watch src/microservices/voice.ts",
-    "start:voice": "tsx src/microservices/voice.ts",
-    "build": "tsc -p .",
-    "typecheck": "tsc --noEmit"
+    "dev": "python3 -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8787 --reload",
+    "start": "python3 -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8787",
+    "test": "python3 -m unittest backend/tests/test_api.py",
+    "build": "echo 'Backend ready'",
+    "typecheck": "python3 -m unittest backend/tests/test_api.py"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

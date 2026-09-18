@@ -19,6 +19,7 @@ import { NotificationSettingsModal, DEFAULT_NOTIFICATION_SETTINGS, type Notifica
 import { BadgeCelebrationModal, type BadgeCelebrationData } from './BadgeCelebrationModal';
 import { VisualMoodUpdateCard } from './VisualMoodUpdateCard';
 import { VisualRewardsBadgesCard } from './VisualRewardsBadgesCard';
+import { JourneyGraceProtectionCard } from './JourneyGraceProtectionCard';
 
 export type { JournalEntry };
 
@@ -130,8 +131,19 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
     description: 'Two continuous weeks rooted in Christ’s peaceful presence',
     scripture: 'Abide in me, and I in you. Whoever abides in me and I in him bears much fruit.',
     scriptureRef: 'John 15:4-5',
-    icon: '🔥',
+    icon: '🌱',
     rewardTitle: 'Vine & Branches',
+  },
+  {
+    id: 'streak-21',
+    days: 21,
+    title: '21-Day Habit of Grace',
+    tier: 'Amethyst Disciple',
+    description: '21 continuous days to rewire the spiritual heart and establish an automatic daily rhythm',
+    scripture: 'Do not be conformed to this world, but be transformed by the renewal of your mind.',
+    scriptureRef: 'Romans 12:2',
+    icon: '💎',
+    rewardTitle: 'Transformed Heart',
   },
   {
     id: 'streak-30',
@@ -143,6 +155,17 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
     scriptureRef: 'Psalm 1:3',
     icon: '🏛️',
     rewardTitle: 'Living Temple Pillar',
+  },
+  {
+    id: 'streak-50',
+    days: 50,
+    title: '50-Day Pentecost Jubilee',
+    tier: 'Pentecost Flame',
+    description: 'Fifty sacred days honoring the biblical Jubilee and the outpouring of the Holy Spirit',
+    scripture: 'When the day of Pentecost arrived, they were all together in one place... And they were all filled.',
+    scriptureRef: 'Acts 2:1-4',
+    icon: '🔥',
+    rewardTitle: 'Jubilee Vessel',
   },
   {
     id: 'streak-60',
@@ -779,34 +802,37 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     return Math.max(0, nextMilestone.days - currentStreak);
   }, [currentStreak, nextMilestone]);
 
-  // STREAK MILESTONE CELEBRATION ANIMATION (7-Day & 30-Day Triggers)
-  const [activeCelebrationMilestone, setActiveCelebrationMilestone] = useState<7 | 30 | null>(null);
+  // STREAK MILESTONE CELEBRATION ANIMATION (7, 14, 21, 30, 50, 100-Day Triggers)
+  const [activeCelebrationMilestone, setActiveCelebrationMilestone] = useState<number | null>(null);
   const prevStreakRef = useRef<number | null>(null);
 
-  // Trigger celebration animation whenever the user reaches a 7-day or 30-day streak
+  // Trigger celebration animation whenever the user reaches a milestone (e.g. 7, 14, 21, 30, 50, 100 days)
   useEffect(() => {
     if (prevStreakRef.current !== null && prevStreakRef.current !== currentStreak) {
-      if (
-        (currentStreak === 7 && prevStreakRef.current < 7) ||
-        (currentStreak === 30 && prevStreakRef.current < 30)
-      ) {
-        setActiveCelebrationMilestone(currentStreak as 7 | 30);
+      const milestoneThresholds = [7, 14, 21, 30, 50, 100];
+      const reached = milestoneThresholds.find(
+        (m) => currentStreak >= m && (prevStreakRef.current ?? 0) < m
+      );
+      if (reached) {
+        setActiveCelebrationMilestone(reached);
       }
     }
     prevStreakRef.current = currentStreak;
   }, [currentStreak]);
 
-  // First-load check: If user's current active streak is 7 or 30 and has not yet been celebrated in this browser
+  // First-load check: If user's current active streak qualifies for a milestone and has not yet been celebrated in this browser
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      const celebrated = JSON.parse(localStorage.getItem('lifebook.streakMilestones.celebrated') || '[]');
-      if (
-        (currentStreak === 7 || currentStreak === 30) &&
-        !celebrated.includes(currentStreak)
-      ) {
+      const celebrated: number[] = JSON.parse(localStorage.getItem('lifebook.streakMilestones.celebrated') || '[]');
+      const milestoneThresholds = [7, 14, 21, 30, 50, 100];
+      const uncelebrated = milestoneThresholds
+        .slice()
+        .reverse()
+        .find((m) => currentStreak >= m && !celebrated.includes(m));
+      if (uncelebrated) {
         const timer = setTimeout(() => {
-          setActiveCelebrationMilestone(currentStreak as 7 | 30);
+          setActiveCelebrationMilestone(uncelebrated);
         }, 900);
         return () => clearTimeout(timer);
       }
@@ -815,7 +841,7 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     }
   }, [currentStreak]);
 
-  const handleClaimMilestoneReward = (points: number, milestoneDays: 7 | 30) => {
+  const handleClaimMilestoneReward = (points: number, milestoneDays: number) => {
     setGracePoints((prev) => {
       const updated = prev + points;
       if (typeof window !== 'undefined') {
@@ -826,12 +852,12 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
 
     if (typeof window !== 'undefined') {
       try {
-        const celebrated = JSON.parse(localStorage.getItem('lifebook.streakMilestones.celebrated') || '[]');
+        const celebrated: number[] = JSON.parse(localStorage.getItem('lifebook.streakMilestones.celebrated') || '[]');
         if (!celebrated.includes(milestoneDays)) {
           localStorage.setItem('lifebook.streakMilestones.celebrated', JSON.stringify([...celebrated, milestoneDays]));
         }
 
-        const claimed = JSON.parse(localStorage.getItem('lifebook.claimedMilestones') || '[]');
+        const claimed: string[] = JSON.parse(localStorage.getItem('lifebook.claimedMilestones') || '[]');
         const milestoneId = `streak-${milestoneDays}`;
         if (!claimed.includes(milestoneId)) {
           localStorage.setItem('lifebook.claimedMilestones', JSON.stringify([...claimed, milestoneId]));
@@ -1815,6 +1841,11 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
         onTogglePractice={toggleTodayPractice}
       />
 
+      {/* P3 RETENTION PROTECTION: 5-DAY JOURNEY GRACE DAYS */}
+      <JourneyGraceProtectionCard
+        onGracePointsAwarded={(pts) => handleUpdateGracePoints(gracePoints + pts)}
+      />
+
       {/* TAB 1: CALENDAR VIEW WITH COLOR-CODED INTENSITY TILES */}
       {tab === 'calendar' && (
         <div className="mt-8 space-y-8">
@@ -2048,7 +2079,7 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
           {/* Interactive Streak Milestone Celebration Showcase Banner */}
           <div
             id="streak-milestone-interactive-banner"
-            className="rounded-3xl bg-gradient-to-r from-[#1D1635] via-[#261E47] to-[#122F3A] p-6 text-white border border-white/10 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6"
+            className="rounded-3xl bg-gradient-to-r from-[#1D1635] via-[#261E47] to-[#122F3A] p-6 text-white border border-white/10 shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-6"
           >
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1FB6B0]/20 border border-[#1FB6B0]/40 text-[#37C6C2] text-[11px] font-extrabold uppercase tracking-widest">
@@ -2056,34 +2087,72 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
                 <span>Consistency Milestones Engine</span>
               </div>
               <h3 className="text-2xl font-serif font-bold text-white mt-2">
-                7-Day & 30-Day Streak Milestones
+                Devotional Streak Milestones (7, 21, 50+ Days)
               </h3>
               <p className="text-xs text-[#C5BCD9] mt-1 max-w-xl">
-                Experience the celebratory fanfare, sacred Scripture illumination, and sacred confetti animation that honors your consistent walk with Christ.
+                Experience celebratory harmonic fanfares, sacred Scripture illumination, and real-time confetti physics commemorating your steady walk with Christ.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
               <button
                 type="button"
                 id="milestone-showcase-7day-btn"
                 onClick={() => setActiveCelebrationMilestone(7)}
-                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#1FB6B0] to-[#0E7773] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
+                className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#1FB6B0] to-[#0E7773] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                title="7-Day Sabbath Rhythm Celebration"
               >
                 <span>🌿</span>
-                <span>Trigger 7-Day Animation</span>
+                <span>7-Day</span>
                 <span className="text-amber-200">✦</span>
+              </button>
+
+              <button
+                type="button"
+                id="milestone-showcase-21day-btn"
+                onClick={() => setActiveCelebrationMilestone(21)}
+                className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                title="21-Day Habit of Grace Celebration"
+              >
+                <span>💎</span>
+                <span>21-Day</span>
+                <span className="text-purple-200">✦</span>
               </button>
 
               <button
                 type="button"
                 id="milestone-showcase-30day-btn"
                 onClick={() => setActiveCelebrationMilestone(30)}
-                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#E3B15E] to-[#B88424] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
+                className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#E3B15E] to-[#B88424] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                title="30-Day Spiritual Pillar Celebration"
               >
                 <span>👑</span>
-                <span>Trigger 30-Day Animation</span>
+                <span>30-Day</span>
                 <span className="text-amber-100">✦</span>
+              </button>
+
+              <button
+                type="button"
+                id="milestone-showcase-50day-btn"
+                onClick={() => setActiveCelebrationMilestone(50)}
+                className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#EC4899] to-[#BE185D] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                title="50-Day Pentecost Jubilee Celebration"
+              >
+                <span>🔥</span>
+                <span>50-Day</span>
+                <span className="text-pink-100">✦</span>
+              </button>
+
+              <button
+                type="button"
+                id="milestone-showcase-100day-btn"
+                onClick={() => setActiveCelebrationMilestone(100)}
+                className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-[#38BDF8] to-[#0284C7] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                title="100-Day Diamond Covenant Celebration"
+              >
+                <span>✨</span>
+                <span>100-Day</span>
+                <span className="text-cyan-100">✦</span>
               </button>
             </div>
           </div>
@@ -2787,19 +2856,35 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
               </span>
             </div>
 
-            {/* Reward Title */}
-            <div className="mt-4 flex items-center justify-between pt-3 border-t border-gray-100">
+            {/* Reward Title & Action Buttons */}
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100">
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Honorary Title</span>
                 <p className="text-xs font-bold text-[#1E1931]">{selectedMilestone.rewardTitle}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedMilestone(null)}
-                className="px-5 py-2 rounded-full bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all shadow-xs"
-              >
-                Done
-              </button>
+              <div className="flex items-center gap-2">
+                {[7, 14, 21, 30, 50, 100].includes(selectedMilestone.days) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const days = selectedMilestone.days;
+                      setSelectedMilestone(null);
+                      setActiveCelebrationMilestone(days);
+                    }}
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-[#1FB6B0] to-[#0E7773] hover:opacity-95 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>🎉</span>
+                    <span>Experience Animation</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMilestone(null)}
+                  className="px-5 py-2 rounded-full bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
             </div>
           </div>
         </div>

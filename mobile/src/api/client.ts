@@ -314,3 +314,8 @@ export function upgradeSubscription(deviceId: string, billingCycle: 'monthly' | 
     body: JSON.stringify({ deviceId, billingCycle }),
   });
 }
+
+export function fetchAnalyticsSummary() {
+  return request<any>('/api/analytics/summary');
+}
+

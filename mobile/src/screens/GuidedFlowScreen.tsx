@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 import { MeditationScreen } from './MeditationScreen';
 import { addJournalEntry, addFavorite, flagContent } from '../api/client';
+import { trackEvent } from '../analytics/telemetry';
 
 export interface GuidedSession {
   verseText: string;
@@ -33,29 +34,79 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
   const [flagState, setFlagState] = useState<'idle' | 'sending' | 'done'>('idle');
   const [startedAt] = useState(() => Date.now());
 
+  // Habit timer & telemetry tracking
+  const [totalElapsedSeconds, setTotalElapsedSeconds] = useState(0);
+  const [stepElapsedSeconds, setStepElapsedSeconds] = useState(0);
+  const habitAchievedFired = useRef(false);
+
+  useEffect(() => {
+    trackEvent('guided_flow_started', { initialStep, contentId: session.contentId }, deviceId);
+    trackEvent('guided_step_viewed', { step: initialStep, estimatedSeconds: 60 }, deviceId);
+  }, [deviceId, initialStep, session.contentId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTotalElapsedSeconds(prev => {
+        const next = prev + 1;
+        if (next >= 300 && !habitAchievedFired.current) {
+          habitAchievedFired.current = true;
+          trackEvent('habit_5min_achieved', { totalSeconds: next }, deviceId);
+        }
+        return next;
+      });
+      setStepElapsedSeconds(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [deviceId]);
+
+  function transitionToStep(nextStep: Step) {
+    trackEvent('guided_step_completed', {
+      step,
+      dwellSeconds: stepElapsedSeconds,
+      totalElapsedSeconds,
+    }, deviceId);
+
+    trackEvent('guided_step_viewed', {
+      step: nextStep,
+    }, deviceId);
+
+    setStepElapsedSeconds(0);
+    setStep(nextStep);
+  }
+
   async function saveReflection() {
     if (reflectionText.trim()) {
       await addJournalEntry(deviceId, reflectionText.trim(), session.contentId);
     }
-    setStep('meditate-select');
+    transitionToStep('meditate-select');
   }
 
   async function saveWrittenPrayer() {
     if (writtenPrayer.trim()) {
       await addJournalEntry(deviceId, `Prayer: ${writtenPrayer.trim()}`, session.contentId);
     }
-    setStep('complete');
+    trackEvent('guided_flow_completed', {
+      totalSeconds: totalElapsedSeconds,
+      habit5MinAchieved: totalElapsedSeconds >= 300,
+      contentId: session.contentId,
+    }, deviceId);
+    transitionToStep('complete');
   }
 
   async function handleFavorite() {
     if (!session.contentId) return;
     setFavorited(true);
+    trackEvent('scripture_favorited', {
+      contentId: session.contentId,
+      verseReference: session.verseReference,
+    }, deviceId);
     await addFavorite(deviceId, session.contentId, session.verseText, session.verseReference);
   }
 
   async function handleFlag() {
     if (!session.contentId) return;
     setFlagState('sending');
+    trackEvent('content_flagged', { contentId: session.contentId }, deviceId);
     await flagContent(session.contentId, deviceId);
     setFlagState('done');
   }
@@ -68,7 +119,7 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
         verseText={session.verseText}
         verseReference={session.verseReference}
         totalSeconds={meditateMinutes * 60}
-        onDone={() => setStep('pray')}
+        onDone={() => transitionToStep('pray')}
       />
     );
   }
@@ -77,6 +128,13 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.sourceLabel}>{session.sourceLabel}</Text>
       <StepDots step={step} />
+
+      <SubtleProgressTimer
+        step={step}
+        stepSeconds={stepElapsedSeconds}
+        totalSeconds={totalElapsedSeconds}
+        meditateMinutes={meditateMinutes}
+      />
 
       {step === 'scripture' && (
         <>
@@ -88,7 +146,7 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
               <Text style={styles.favoriteStar}>{favorited ? '\u2605 Saved to favorites' : '\u2606 Save this verse'}</Text>
             </Pressable>
           )}
-          <PrimaryButton label="Continue" onPress={() => setStep('reflect')} />
+          <PrimaryButton label="Continue" onPress={() => transitionToStep('reflect')} />
         </>
       )}
 
@@ -105,7 +163,7 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
             style={styles.textArea}
           />
           <PrimaryButton label="Continue" onPress={saveReflection} />
-          <Pressable onPress={() => setStep('meditate-select')}>
+          <Pressable onPress={() => transitionToStep('meditate-select')}>
             <Text style={styles.skipText}>Skip</Text>
           </Pressable>
         </>
@@ -123,7 +181,7 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
               </Pressable>
             ))}
           </View>
-          <PrimaryButton label="Begin Meditation" onPress={() => setStep('meditate-run')} />
+          <PrimaryButton label="Begin Meditation" onPress={() => transitionToStep('meditate-run')} />
         </>
       )}
 
@@ -144,7 +202,17 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
               <View style={styles.prayerCard}>
                 <Text style={styles.prayerText}>{session.prayerText}</Text>
               </View>
-              <PrimaryButton label="Continue" onPress={() => setStep('complete')} />
+              <PrimaryButton
+                label="Continue"
+                onPress={() => {
+                  trackEvent('guided_flow_completed', {
+                    totalSeconds: totalElapsedSeconds,
+                    habit5MinAchieved: totalElapsedSeconds >= 300,
+                    contentId: session.contentId,
+                  }, deviceId);
+                  transitionToStep('complete');
+                }}
+              />
             </>
           )}
 
@@ -170,6 +238,7 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
           <Text style={styles.completeTitle}>Reflection Completed</Text>
           <Text style={styles.completeSub}>
             You spent about {elapsedMinutes} minute{elapsedMinutes === 1 ? '' : 's'} with today's reflection.
+            {totalElapsedSeconds >= 300 ? ' Daily 5-minute habit completed! 🌿' : ''}
           </Text>
 
           {session.contentId && (
@@ -190,6 +259,77 @@ export function GuidedFlowScreen({ deviceId, session, onFinish, initialStep = 's
         </>
       )}
     </ScrollView>
+  );
+}
+
+interface SubtleTimerProps {
+  step: Step;
+  stepSeconds: number;
+  totalSeconds: number;
+  meditateMinutes: number;
+}
+
+function SubtleProgressTimer({ step, stepSeconds, totalSeconds, meditateMinutes }: SubtleTimerProps) {
+  if (step === 'complete' || step === 'meditate-run') return null;
+
+  let phaseLabel = 'Scripture Reading';
+  let phaseTargetSec = 60; // 1 min target for thoughtful scripture reading
+
+  if (step === 'reflect') {
+    phaseLabel = 'Reflection & Journaling';
+    phaseTargetSec = 90;
+  } else if (step === 'meditate-select') {
+    phaseLabel = 'Centering & Breathing';
+    phaseTargetSec = meditateMinutes * 60;
+  } else if (step === 'pray') {
+    phaseLabel = 'Prayer & Committal';
+    phaseTargetSec = 60;
+  }
+
+  const phaseProgress = Math.min(1, stepSeconds / phaseTargetSec);
+  const habitProgress = Math.min(1, totalSeconds / 300); // 5 min goal (300s)
+
+  const formatSec = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const remainingInPhase = Math.max(0, phaseTargetSec - stepSeconds);
+
+  return (
+    <View style={styles.timerCard}>
+      <View style={styles.timerRowTop}>
+        <View style={styles.phaseIndicator}>
+          <View style={styles.phaseDot} />
+          <Text style={styles.phaseTitle}>
+            {phaseLabel} <Text style={styles.phaseEst}>• ~{Math.ceil(phaseTargetSec / 60)} min pace</Text>
+          </Text>
+        </View>
+
+        <Text style={styles.habitBadge}>
+          {totalSeconds >= 300 ? '✨ 5-min habit reached' : `${formatSec(totalSeconds)} / 5:00 habit`}
+        </Text>
+      </View>
+
+      {/* Scripture & phase micro progress bar */}
+      <View style={styles.progressTrack}>
+        <View style={[styles.progressFill, { width: `${Math.round(phaseProgress * 100)}%` }]} />
+      </View>
+
+      <View style={styles.timerRowBottom}>
+        <Text style={styles.timerHint}>
+          {step === 'scripture'
+            ? remainingInPhase > 0
+              ? `Estimated ~${remainingInPhase}s to read & absorb deeply`
+              : 'Well contemplated • Continue whenever you are ready'
+            : remainingInPhase > 0
+            ? `Estimated ~${remainingInPhase}s for this phase`
+            : 'Pace completed • Continue at your own rhythm'}
+        </Text>
+        <Text style={styles.timerHabitPercent}>{Math.round(habitProgress * 100)}% daily target</Text>
+      </View>
+    </View>
   );
 }
 
@@ -227,9 +367,78 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bgDeep },
   content: { padding: 20, paddingTop: 50, paddingBottom: 60, alignItems: 'stretch' },
   sourceLabel: { color: '#8A7DAD', fontSize: 11, textAlign: 'center', marginBottom: 10 },
-  dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 30 },
+  dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 16 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.15)' },
   dotActive: { backgroundColor: colors.teal },
+
+  // Subtle progress timer styles
+  timerCard: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  timerRowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  phaseIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  phaseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.teal,
+  },
+  phaseTitle: {
+    color: '#E0D8F0',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  phaseEst: {
+    color: '#8A7DAD',
+    fontSize: 11,
+    fontWeight: '400',
+  },
+  habitBadge: {
+    color: '#B8823A',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  progressTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.teal,
+    borderRadius: 2,
+  },
+  timerRowBottom: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  timerHint: {
+    color: '#8A7DAD',
+    fontSize: 10.5,
+  },
+  timerHabitPercent: {
+    color: '#B6ABCF',
+    fontSize: 10.5,
+  },
+
   eyebrow: { color: '#B8823A', fontSize: 11, letterSpacing: 1.4, textAlign: 'center', marginBottom: 14 },
   verse: { color: colors.white, fontSize: 19, fontStyle: 'italic', textAlign: 'center', lineHeight: 27 },
   reference: { color: '#C9BEE0', fontSize: 13, fontWeight: '600', textAlign: 'center', marginTop: 10 },
@@ -256,3 +465,4 @@ const styles = StyleSheet.create({
   primaryBtn: { backgroundColor: colors.teal, borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 20 },
   primaryBtnText: { color: colors.bgDeep, fontWeight: '700', fontSize: 14.5 },
 });
+

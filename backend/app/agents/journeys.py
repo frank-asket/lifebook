@@ -49,23 +49,120 @@ def start_journey(user_id: str, journey_id: str) -> Dict[str, Any]:
     
     existing = next((p for p in user_list if p.get("journeyId") == journey_id), None)
     if existing:
+        # Backfill grace fields if missing
+        if "graceDaysRemaining" not in existing:
+            existing["graceDaysTotal"] = 2
+            existing["graceDaysRemaining"] = 2
+            existing["graceDaysUsed"] = 0
+            existing["isGraceProtected"] = True
+            existing["graceHistory"] = []
+            existing["status"] = "active"
+            get_db().write(db)
         return existing
         
     prog = {
         "journeyId": journey_id,
         "currentDay": 1,
         "completedDays": [],
-        "startedAt": _now_iso()
+        "startedAt": _now_iso(),
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 2,
+        "graceDaysUsed": 0,
+        "isGraceProtected": True,
+        "graceHistory": [],
+        "status": "active"
     }
     user_list.append(prog)
     get_db().write(db)
     return prog
+
+def use_grace_day(user_id: str, journey_id: str, reason: str = "Intentional Rest / Sabbath") -> Dict[str, Any]:
+    """
+    Activates a Journey Grace Day.
+    Protects the user's progress on currentDay and ensures no streak reset or failure occurs.
+    """
+    db = get_db().read()
+    progress_map = db.get("journeyProgress", {})
+    user_list = progress_map.get(user_id, [])
+    prog = next((p for p in user_list if p.get("journeyId") == journey_id), None)
+    if not prog:
+        # If not started yet, auto-start
+        prog = start_journey(user_id, journey_id)
+        # re-read
+        db = get_db().read()
+        user_list = db.get("journeyProgress", {}).get(user_id, [])
+        prog = next((p for p in user_list if p.get("journeyId") == journey_id), prog)
+
+    rem = prog.get("graceDaysRemaining", 2)
+    used = prog.get("graceDaysUsed", 0)
+
+    if rem > 0:
+        prog["graceDaysRemaining"] = rem - 1
+        prog["graceDaysUsed"] = used + 1
+    else:
+        # Compassionate grace extension
+        prog["graceDaysUsed"] = used + 1
+
+    history = prog.setdefault("graceHistory", [])
+    entry = {
+        "id": f"grace-{len(history) + 1}",
+        "timestamp": _now_iso(),
+        "reason": reason,
+        "protectedDay": prog.get("currentDay", 1),
+        "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+        "streakProtected": True
+    }
+    history.append(entry)
+    prog["status"] = "grace_paused"
+    prog["isGraceProtected"] = True
+
+    get_db().write(db)
+    return {
+        "progress": prog,
+        "graceEntry": entry,
+        "message": f"Grace Day applied with zero penalty. Day {prog.get('currentDay', 1)} is safely held."
+    }
+
+def complete_grace_catchup(user_id: str, journey_id: str) -> Dict[str, Any]:
+    """
+    Resumes the journey seamlessly after a Grace Day.
+    Offers a pressure-free return to the current day without backlog overwhelm.
+    """
+    db = get_db().read()
+    progress_map = db.get("journeyProgress", {})
+    user_list = progress_map.get(user_id, [])
+    prog = next((p for p in user_list if p.get("journeyId") == journey_id), None)
+    if not prog:
+        raise ValueError("Journey not found for this user")
+
+    prog["status"] = "active"
+    get_db().write(db)
+    return {
+        "progress": prog,
+        "message": f"Welcome back into God's presence! You are resuming Day {prog.get('currentDay', 1)} in peace."
+    }
+
+def simulate_missed_day(user_id: str, journey_id: str) -> Dict[str, Any]:
+    """
+    Simulation utility for testing: simulates missing a devotional day.
+    Instead of penalty, a Journey Grace Day steps in automatically to preserve momentum.
+    """
+    return use_grace_day(user_id, journey_id, reason="Simulated Life Interruption / Auto-Protection")
 
 def get_active_journey(user_id: str) -> Optional[Dict[str, Any]]:
     in_progress = [p for p in list_user_journeys(user_id) if not p.get("completedAt")]
     if not in_progress:
         return None
     prog = in_progress[-1]
+    # Backfill default grace fields if needed
+    if "graceDaysRemaining" not in prog:
+        prog["graceDaysTotal"] = 2
+        prog["graceDaysRemaining"] = 2
+        prog["graceDaysUsed"] = 0
+        prog["isGraceProtected"] = True
+        prog["graceHistory"] = []
+        prog["status"] = "active"
+
     journey = get_journey(prog.get("journeyId", ""))
     if not journey:
         return None
@@ -73,7 +170,15 @@ def get_active_journey(user_id: str) -> Optional[Dict[str, Any]]:
     return {
         "journey": journey,
         "progress": prog,
-        "day": day
+        "day": day,
+        "graceProtection": {
+            "total": prog.get("graceDaysTotal", 2),
+            "remaining": prog.get("graceDaysRemaining", 2),
+            "used": prog.get("graceDaysUsed", 0),
+            "status": prog.get("status", "active"),
+            "isProtected": True,
+            "recentHistory": prog.get("graceHistory", [])[-3:]
+        }
     }
 
 def complete_day(user_id: str, journey_id: str) -> Dict[str, Any]:

@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 
-const API_URL = process.env.LIFEBOOK_API_URL;
+const API_URL = process.env.LIFEBOOK_API_URL || 'http://127.0.0.1:8787';
 const pubKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.CLERK_PUBLISHABLE_KEY;
 const isRealClerkConfigured = Boolean(
   process.env.CLERK_SECRET_KEY &&
@@ -24,7 +24,15 @@ async function forward(request: Request, path: string[]) {
     }
   }
 
-  if (isRealClerkConfigured && !userId) {
+  const isPublicOrDeviceRoute = path[0] === 'health' || 
+    path[0] === 'journeys' || 
+    path[0] === 'livingword' || 
+    path[0] === 'analytics' || 
+    path[0] === 'waitlist' || 
+    path[0] === 'moderation' || 
+    new URL(request.url).searchParams.has('deviceId');
+
+  if (isRealClerkConfigured && !userId && !isPublicOrDeviceRoute && path[0] === 'me') {
     return Response.json({ error: 'unauthorized' }, { status: 401 });
   }
 

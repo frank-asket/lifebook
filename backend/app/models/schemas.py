@@ -244,3 +244,31 @@ class HealthResponse(BaseModel):
     aiMode: str
     authMode: str
     databaseMode: str
+
+# --- Analytics & Telemetry ---
+class TelemetryEventInput(BaseModel):
+    eventName: str
+    deviceId: Optional[str] = None
+    userId: Optional[str] = None
+    sessionId: Optional[str] = None
+    properties: Optional[Dict[str, Any]] = None
+    timestamp: Optional[str] = None
+
+class BatchTelemetryEventsInput(BaseModel):
+    events: List[TelemetryEventInput]
+
+class FunnelStepSummary(BaseModel):
+    step: str
+    views: int
+    completions: int
+    dropOffRate: float
+    avgDwellSeconds: float
+
+class AnalyticsSummaryResponse(BaseModel):
+    totalEvents: int
+    uniqueDevices: int
+    guidedFlowStarts: int
+    guidedFlowCompletions: int
+    completionRate: float
+    habit5MinAchieved: int
+    funnel: List[FunnelStepSummary]

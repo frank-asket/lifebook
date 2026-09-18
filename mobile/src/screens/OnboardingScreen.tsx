@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView, StyleSheet, Image } from 'react-native';
 import { colors, MOODS } from '../theme/colors';
 import { savePreferences } from '../api/client';
+import { trackEvent } from '../analytics/telemetry';
 
 interface Props {
   deviceId: string;
@@ -21,8 +22,13 @@ export function OnboardingScreen({ deviceId, onComplete }: Props) {
   const [favoriteMoods, setFavoriteMoods] = useState<string[]>([]);
   const [joinSuggested, setJoinSuggested] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
+  const stepStartTime = useRef(Date.now());
 
   const TOTAL_STEPS = 7;
+
+  useEffect(() => {
+    trackEvent('onboarding_started', { totalSteps: TOTAL_STEPS }, deviceId);
+  }, [deviceId]);
 
   function toggle(list: string[], setList: (v: string[]) => void, item: string) {
     setList(list.includes(item) ? list.filter(i => i !== item) : [...list, item]);
@@ -30,6 +36,15 @@ export function OnboardingScreen({ deviceId, onComplete }: Props) {
 
   async function finish() {
     setSaving(true);
+    const dwellSeconds = Math.round((Date.now() - stepStartTime.current) / 1000);
+    trackEvent('onboarding_completed', {
+      displayName: displayName || undefined,
+      spiritualPath: path || undefined,
+      dailyHabits: habits,
+      notificationTime,
+      finalStepDwellSeconds: dwellSeconds,
+    }, deviceId);
+
     try {
       await savePreferences(deviceId, {
         displayName: displayName || undefined,
@@ -45,10 +60,26 @@ export function OnboardingScreen({ deviceId, onComplete }: Props) {
   }
 
   function next() {
+    const dwellSeconds = Math.round((Date.now() - stepStartTime.current) / 1000);
+    trackEvent('guided_step_completed', {
+      flow: 'onboarding',
+      stepIndex: step,
+      dwellSeconds,
+      pathChoice: path,
+      habitsCount: habits.length,
+    }, deviceId);
+
+    stepStartTime.current = Date.now();
+
     if (step === TOTAL_STEPS - 1) {
       finish();
     } else {
-      setStep(step + 1);
+      const nextStep = step + 1;
+      setStep(nextStep);
+      trackEvent('guided_step_viewed', {
+        flow: 'onboarding',
+        stepIndex: nextStep,
+      }, deviceId);
     }
   }
 

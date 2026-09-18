@@ -18,6 +18,13 @@ export function PhoneMockup() {
       icon: "🌿",
       bgClass: "bg-[#e5f4ee] hover:bg-[#d8ede5] text-[#1c3e34]",
       borderClass: "border-[#bce2d3]",
+      journeyTitle: isFr ? "La paix dans le tourbillon du travail" : "Peace in Busy Workdays",
+      journeyDay: 3,
+      journeyTotal: 5,
+      journeyPercent: 60,
+      recommendationReason: isFr
+        ? "Parce que vous portez la pression du travail et la course des e-mails, LifeBook vous oriente vers Philippiens 4 pour apaiser l'urgence avant de commencer vos réunions."
+        : "Because you've carried work hurry and deadline pressure this week, LifeBook routes you to Philippians 4 so you surrender urgent thoughts before opening email.",
       quote: isFr
         ? "« L'Éternel est mon berger : je ne manquerai de rien. »"
         : "“The Lord is my shepherd; I shall not want.”",
@@ -36,6 +43,13 @@ export function PhoneMockup() {
       icon: "🧭",
       bgClass: "bg-[#eee7f8] hover:bg-[#e3d9f3] text-[#34244f]",
       borderClass: "border-[#d5c5ed]",
+      journeyTitle: isFr ? "Grandir dans la foi et le discernement" : "Clarity in Big Decisions",
+      journeyDay: 1,
+      journeyTotal: 5,
+      journeyPercent: 20,
+      recommendationReason: isFr
+        ? "Parce que vous pesez des choix professionnels ou familiaux difficiles, LifeBook ancre vos matinées dans Jacques 1:5 pour demander la sagesse dans la foi."
+        : "Because you're navigating crossroads and major career choices, LifeBook grounds your morning in James 1:5 so you seek divine wisdom with confidence.",
       quote: isFr
         ? "« Si quelqu'un d'entre vous manque de sagesse, qu'il la demande à Dieu. »"
         : "“If any of you lacks wisdom, you should ask God, who gives generously.”",
@@ -54,6 +68,13 @@ export function PhoneMockup() {
       icon: "✦",
       bgClass: "bg-[#fdf1d6] hover:bg-[#f7e7c3] text-[#4f3a12]",
       borderClass: "border-[#edd5a2]",
+      journeyTitle: isFr ? "La gratitude au réveil" : "The Habit of Thankfulness",
+      journeyDay: 4,
+      journeyTotal: 5,
+      journeyPercent: 80,
+      recommendationReason: isFr
+        ? "Parce que votre cœur est reconnaissant ce matin, LifeBook canalise cette joie dans 1 Thessaloniciens 5 pour enraciner une habitude pérenne."
+        : "Because your heart feels grateful this morning, LifeBook channels your joy into 1 Thessalonians 5 so thankfulness becomes your default daily habit.",
       quote: isFr
         ? "« Rendez grâces en toutes choses, car c'est la volonté de Dieu en Jésus-Christ. »"
         : "“Give thanks in all circumstances; for this is God's will in Christ.”",
@@ -72,6 +93,13 @@ export function PhoneMockup() {
       icon: "💬",
       bgClass: "bg-[#e2eff7] hover:bg-[#d2e5f1] text-[#1c3b4f]",
       borderClass: "border-[#bcd6e8]",
+      journeyTitle: isFr ? "Surmonter la peur et l'anxiété" : "Overcoming Fear & Anxiety",
+      journeyDay: 2,
+      journeyTotal: 5,
+      journeyPercent: 40,
+      recommendationReason: isFr
+        ? "Parce que vous portez des soucis intérieurs non résolus, LifeBook propose 1 Pierre 5:7 pour déposer ce fardeau à Christ sans culpabilité."
+        : "Because you've been carrying unresolved worries and emotional fatigue, LifeBook routes you to 1 Peter 5:7 to cast your burdens on Christ without guilt.",
       quote: isFr
         ? "« Déchargez-vous sur lui de tous vos soucis, car lui-même prend soin de vous. »"
         : "“Cast all your anxiety on him because he cares for you.”",
@@ -97,25 +125,53 @@ export function PhoneMockup() {
         }}
       />
 
-      {/* Floating Card: Study Track (Top Right on desktop) */}
+      {/* Floating Card: Study Track (Top Right on desktop) with Dynamic Recommendation Reasoning */}
       <div
-        className="hidden lg:flex flex-col gap-2 absolute -top-2 right-2 xl:-right-6 z-20 w-[210px] p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#2d2542]/10 shadow-[0_12px_30px_-6px_rgba(45,37,66,0.14)] transform rotate-[3deg] hover:rotate-0 transition-transform duration-300 pointer-events-auto"
+        className="hidden lg:flex flex-col gap-2 absolute -top-2 right-2 xl:-right-6 z-20 w-[240px] p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#2d2542]/12 shadow-[0_14px_32px_-6px_rgba(45,37,66,0.16)] transform rotate-[2deg] hover:rotate-0 transition-all duration-300 pointer-events-auto"
         id="preview-study-floating-card"
       >
         <div className="flex items-center justify-between text-[10px] font-bold text-[#705e8c] tracking-wider uppercase">
-          <span>{isFr ? "Parcours en cours" : "Active Study"}</span>
+          <span className="flex items-center gap-1">
+            <span>{currentMood.icon}</span>
+            <span>{isFr ? "Parcours recommandé" : "Recommended Track"}</span>
+          </span>
           <span className="w-2 h-2 rounded-full bg-[#3bb582]" />
         </div>
+
         <strong className="font-serif text-[13px] text-[#2d2542] leading-tight font-medium">
-          {isFr ? "La paix dans le tourbillon du travail" : "Peace in Busy Workdays"}
+          {currentMood.journeyTitle}
         </strong>
+
         <div className="flex items-center justify-between text-[10px] text-[#6b6279]">
-          <span>{isFr ? "Jour 3 sur 5" : "Day 3 of 5"}</span>
-          <span className="font-bold text-[#3bb582]">60%</span>
+          <span>{isFr ? `Jour ${currentMood.journeyDay} sur ${currentMood.journeyTotal}` : `Day ${currentMood.journeyDay} of ${currentMood.journeyTotal}`}</span>
+          <span className="font-bold text-[#3bb582]">{currentMood.journeyPercent}%</span>
         </div>
+
         <div className="w-full h-1.5 rounded-full bg-[#2d2542]/10 overflow-hidden">
-          <div className="h-full w-[60%] rounded-full bg-[#3bb582] transition-all duration-500" />
+          <div
+            className="h-full rounded-full bg-[#3bb582] transition-all duration-500"
+            style={{ width: `${currentMood.journeyPercent}%` }}
+          />
         </div>
+
+        {/* Dynamic Reasoning Callout on Floating Card */}
+        <div className="bg-[#f4effa] border border-[#dccff3] rounded-xl p-2 text-[9.5px] leading-tight text-[#473b61]">
+          <div className="flex items-center gap-1 font-bold text-[#705e8c] text-[8.5px] uppercase tracking-wider mb-0.5">
+            <span>💡</span>
+            <span>{isFr ? "Raison de la recommandation :" : "Why recommended:"}</span>
+          </div>
+          <p className="m-0 italic text-[#2d2542] line-clamp-2">
+            “{currentMood.recommendationReason}”
+          </p>
+        </div>
+
+        <a
+          href="#journey-preview"
+          className="text-[10px] font-bold text-[#705e8c] hover:text-[#2d2542] flex items-center justify-between pt-1 border-t border-[#2d2542]/10 transition-colors"
+        >
+          <span>{isFr ? "Aperçu complet du plan (5j)" : "Preview 5-day curriculum"}</span>
+          <span>↓</span>
+        </a>
       </div>
 
       {/* Floating Card: Grace Streak (Bottom Left on desktop) */}
@@ -129,10 +185,10 @@ export function PhoneMockup() {
           </span>
           <div>
             <strong className="block text-xs font-bold text-[#2d2542] leading-none">
-              {isFr ? "Série de 7 jours" : "7-Day Streak"}
+              {isFr ? "Série de 7 jours · 2 Jours de Grâce" : "7-Day Streak · 2 Grace Days"}
             </strong>
             <small className="text-[10px] text-[#705e8c]">
-              {isFr ? "Protection de grâce" : "Grace-protected"}
+              {isFr ? "Protection de parcours active 🛡️" : "Journey Shield Active 🛡️"}
             </small>
           </div>
         </div>
@@ -316,6 +372,20 @@ export function PhoneMockup() {
                       );
                     })}
                   </div>
+
+                  {/* Subtle in-app recommendation reasoning */}
+                  <div className="mt-2 rounded-xl p-2 bg-[#f4effa] border border-[#dfd2f3] text-[9.5px] space-y-0.5 animate-fadeIn">
+                    <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#705e8c]">
+                      <span className="flex items-center gap-1">
+                        <span>💡</span>
+                        <span>{isFr ? "Recommandation ciblée" : "Intentional Routing"}</span>
+                      </span>
+                      <span className="text-[#3bb582] font-semibold">{isFr ? "Parcours 5j" : "5-day sprint"}</span>
+                    </div>
+                    <p className="text-[#2d2542] italic leading-tight m-0 line-clamp-2">
+                      “{currentMood.recommendationReason}”
+                    </p>
+                  </div>
                 </div>
 
                 {/* SCRIPTURE OF THE DAY CARD (INSIDE THE PHONE) */}
@@ -383,6 +453,15 @@ export function PhoneMockup() {
                         </p>
                       </div>
                     )}
+
+                    {/* Pre-signup 5-day journey preview link */}
+                    <a
+                      href="#journey-preview"
+                      className="block text-center pt-2 text-[9px] font-bold text-[#705e8c] hover:text-[#2d2542] transition-colors"
+                      id="phone-curriculum-anchor"
+                    >
+                      {isFr ? "Consulter ce plan de 5 jours en détail ↓" : "Explore full 5-day plan & reasoning ↓"}
+                    </a>
                   </div>
                 </div>
               </div>
@@ -395,22 +474,35 @@ export function PhoneMockup() {
                   <strong className="text-[12px] font-serif text-[#1e1931]">
                     {isFr ? "Parcours thématiques (5 jours)" : "5-Day Topical Journeys"}
                   </strong>
+                  <a href="#journey-preview" className="text-[9px] text-[#705e8c] hover:underline font-bold">
+                    {isFr ? "Voir tout ↓" : "View all ↓"}
+                  </a>
                 </div>
 
-                {/* Track 1: Peace in Work */}
-                <div className="p-2.5 rounded-xl bg-white border border-[#2d2542]/10 shadow-xs space-y-1.5">
+                {/* Dynamically highlighted track matching selectedMood */}
+                <div className="p-2.5 rounded-xl bg-white border-2 border-[#705eaa] shadow-xs space-y-1.5 ring-1 ring-[#705eaa]/20">
                   <div className="flex items-center justify-between text-[9px]">
-                    <span className="font-bold text-[#3bb582] uppercase tracking-wider">
-                      {isFr ? "En cours · 60%" : "Active · 60%"}
+                    <span className="font-bold text-[#3bb582] uppercase tracking-wider flex items-center gap-1">
+                      <span>✓</span>
+                      <span>{isFr ? "Recommandé pour votre humeur" : "Recommended for your mood"}</span>
                     </span>
-                    <span className="text-[#776e82]">Jour 3 / 5</span>
+                    <span className="text-[#705e8c] font-bold flex items-center gap-0.5">
+                      <span>🛡️</span>
+                      <span>{isFr ? `J${currentMood.journeyDay}/5 · Grâce active` : `Day ${currentMood.journeyDay}/5 · Grace Active`}</span>
+                    </span>
                   </div>
                   <strong className="block font-serif text-[12px] text-[#1e1931] leading-tight">
-                    {isFr ? "La paix dans le tourbillon du travail" : "Peace in Busy Workdays"}
+                    {currentMood.journeyTitle}
                   </strong>
                   <div className="w-full h-1.5 rounded-full bg-[#2d2542]/10 overflow-hidden">
-                    <div className="h-full w-[60%] rounded-full bg-[#3bb582]" />
+                    <div
+                      className="h-full rounded-full bg-[#3bb582]"
+                      style={{ width: `${currentMood.journeyPercent}%` }}
+                    />
                   </div>
+                  <p className="text-[8.5px] text-[#5e5370] italic m-0 line-clamp-1">
+                    “{currentMood.recommendationReason}”
+                  </p>
                 </div>
 
                 {/* Track 2: Overcoming Anxiety */}

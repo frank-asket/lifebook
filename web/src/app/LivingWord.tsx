@@ -52,7 +52,16 @@ export default function LivingWord() {
               </button>
             ))}
           </div>
-          <span>{t("audio_curated")}</span>
+          <div className="flex items-center gap-3 text-xs">
+            <Link
+              href="/living-word/cms"
+              className="inline-flex items-center gap-1 font-bold text-[#705eaa] hover:text-[#2d2542] transition-colors"
+            >
+              <span>🛡️</span>
+              <span>{isFr ? "Audit Pastoral CMS" : "Pastoral Review CMS"}</span>
+            </Link>
+            <span className="hidden sm:inline">{t("audio_curated")}</span>
+          </div>
         </div>
         <div className="living-word-grid">
           {visibleTeachings.map((teaching) => {

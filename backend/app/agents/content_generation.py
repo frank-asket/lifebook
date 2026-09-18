@@ -49,6 +49,8 @@ def dev_fallback(mood: MoodType, verse: Verse) -> Dict[str, Any]:
 async def generate_content(mood: MoodType, verse: Verse, note: Optional[str] = None) -> Dict[str, Any]:
     if ANTHROPIC_API_KEY:
         try:
+            note_suffix = f"\nUser note: {note}" if note else ""
+            prompt_content = f'Mood: {mood}{note_suffix}\nVerse: "{verse.text}" ({verse.reference})\n\nWrite today\'s content.'
             req_data = {
                 "model": "claude-sonnet-4-6",
                 "max_tokens": 700,
@@ -56,7 +58,7 @@ async def generate_content(mood: MoodType, verse: Verse, note: Optional[str] = N
                 "messages": [
                     {
                         "role": "user",
-                        "content": f'Mood: {mood}{f"\nUser note: {note}" if note else ""}\nVerse: "{verse.text}" ({verse.reference})\n\nWrite today\'s content.'
+                        "content": prompt_content
                     }
                 ]
             }

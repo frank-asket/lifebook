@@ -1,0 +1,697 @@
+[
+  {
+    "id": "evt_1789715591374_0",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_401723d9-9d5e-43af-ad2c-d6fedb4c1fac",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:13:11.374925+00:00"
+  },
+  {
+    "id": "evt_1789715591379_1",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_401723d9-9d5e-43af-ad2c-d6fedb4c1fac",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:13:11.379706+00:00"
+  },
+  {
+    "id": "evt_1789715591379_3",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_401723d9-9d5e-43af-ad2c-d6fedb4c1fac",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:13:11.379706+00:00"
+  },
+  {
+    "id": "evt_1789715591379_5",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_401723d9-9d5e-43af-ad2c-d6fedb4c1fac",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:13:11.379706+00:00"
+  },
+  {
+    "id": "evt_1789715591379_7",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_401723d9-9d5e-43af-ad2c-d6fedb4c1fac",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:13:11.379706+00:00"
+  },
+  {
+    "id": "evt_1789715598866_5",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_708983cf-d618-482b-9431-8751483abba0",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:13:18.866981+00:00"
+  },
+  {
+    "id": "evt_1789715598873_6",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_708983cf-d618-482b-9431-8751483abba0",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:13:18.873386+00:00"
+  },
+  {
+    "id": "evt_1789715598873_8",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_708983cf-d618-482b-9431-8751483abba0",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:13:18.873386+00:00"
+  },
+  {
+    "id": "evt_1789715598873_10",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_708983cf-d618-482b-9431-8751483abba0",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:13:18.873386+00:00"
+  },
+  {
+    "id": "evt_1789715598873_12",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_708983cf-d618-482b-9431-8751483abba0",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:13:18.873386+00:00"
+  },
+  {
+    "id": "evt_1789715764919_10",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_ce4bade0-74f6-44ec-aba1-926d5fa56ffa",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:16:04.919338+00:00"
+  },
+  {
+    "id": "evt_1789715764930_11",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_ce4bade0-74f6-44ec-aba1-926d5fa56ffa",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:16:04.930404+00:00"
+  },
+  {
+    "id": "evt_1789715764930_13",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_ce4bade0-74f6-44ec-aba1-926d5fa56ffa",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:16:04.930404+00:00"
+  },
+  {
+    "id": "evt_1789715764930_15",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_ce4bade0-74f6-44ec-aba1-926d5fa56ffa",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:16:04.930404+00:00"
+  },
+  {
+    "id": "evt_1789715764930_17",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_ce4bade0-74f6-44ec-aba1-926d5fa56ffa",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:16:04.930404+00:00"
+  },
+  {
+    "id": "evt_1789715774574_15",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_ddb2e62f-d8d5-40e4-ab45-c750ba9602d8",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:16:14.574181+00:00"
+  },
+  {
+    "id": "evt_1789715774580_16",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_ddb2e62f-d8d5-40e4-ab45-c750ba9602d8",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:16:14.580331+00:00"
+  },
+  {
+    "id": "evt_1789715774580_18",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_ddb2e62f-d8d5-40e4-ab45-c750ba9602d8",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:16:14.580331+00:00"
+  },
+  {
+    "id": "evt_1789715774580_20",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_ddb2e62f-d8d5-40e4-ab45-c750ba9602d8",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:16:14.580331+00:00"
+  },
+  {
+    "id": "evt_1789715774580_22",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_ddb2e62f-d8d5-40e4-ab45-c750ba9602d8",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:16:14.580331+00:00"
+  },
+  {
+    "id": "evt_1789715778000_20",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_verification",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:16:18.000721+00:00"
+  },
+  {
+    "id": "evt_1789716175927_21",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_0fb23e50-b07d-4903-ac20-2edfb47586f1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:22:55.927773+00:00"
+  },
+  {
+    "id": "evt_1789716175933_22",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_0fb23e50-b07d-4903-ac20-2edfb47586f1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:22:55.933890+00:00"
+  },
+  {
+    "id": "evt_1789716175933_24",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_0fb23e50-b07d-4903-ac20-2edfb47586f1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:22:55.933890+00:00"
+  },
+  {
+    "id": "evt_1789716175933_26",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_0fb23e50-b07d-4903-ac20-2edfb47586f1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:22:55.933890+00:00"
+  },
+  {
+    "id": "evt_1789716175933_28",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_0fb23e50-b07d-4903-ac20-2edfb47586f1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:22:55.933890+00:00"
+  },
+  {
+    "id": "evt_1789716410701_26",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_64e28a18-4128-4a04-abb8-931715a83b05",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:26:50.701215+00:00"
+  },
+  {
+    "id": "evt_1789716410706_27",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_64e28a18-4128-4a04-abb8-931715a83b05",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:26:50.706653+00:00"
+  },
+  {
+    "id": "evt_1789716410706_29",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_64e28a18-4128-4a04-abb8-931715a83b05",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:26:50.706653+00:00"
+  },
+  {
+    "id": "evt_1789716410706_31",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_64e28a18-4128-4a04-abb8-931715a83b05",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:26:50.706653+00:00"
+  },
+  {
+    "id": "evt_1789716410706_33",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_64e28a18-4128-4a04-abb8-931715a83b05",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:26:50.706653+00:00"
+  },
+  {
+    "id": "evt_1789716425186_31",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_fea55080-2d9b-4aa7-899c-beb5f4826e2b",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:27:05.186267+00:00"
+  },
+  {
+    "id": "evt_1789716425190_32",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_fea55080-2d9b-4aa7-899c-beb5f4826e2b",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:27:05.190920+00:00"
+  },
+  {
+    "id": "evt_1789716425190_34",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_fea55080-2d9b-4aa7-899c-beb5f4826e2b",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:27:05.190920+00:00"
+  },
+  {
+    "id": "evt_1789716425190_36",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_fea55080-2d9b-4aa7-899c-beb5f4826e2b",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:27:05.190920+00:00"
+  },
+  {
+    "id": "evt_1789716425190_38",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_fea55080-2d9b-4aa7-899c-beb5f4826e2b",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:27:05.190920+00:00"
+  },
+  {
+    "id": "evt_1789716626883_36",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_a42720bb-0f3a-4982-9e19-91d231b9ad5d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:30:26.883426+00:00"
+  },
+  {
+    "id": "evt_1789716626889_37",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_a42720bb-0f3a-4982-9e19-91d231b9ad5d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:30:26.889762+00:00"
+  },
+  {
+    "id": "evt_1789716626889_39",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_a42720bb-0f3a-4982-9e19-91d231b9ad5d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:30:26.889762+00:00"
+  },
+  {
+    "id": "evt_1789716626889_41",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_a42720bb-0f3a-4982-9e19-91d231b9ad5d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:30:26.889762+00:00"
+  },
+  {
+    "id": "evt_1789716626889_43",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_a42720bb-0f3a-4982-9e19-91d231b9ad5d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:30:26.889762+00:00"
+  },
+  {
+    "id": "evt_1789716814843_41",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_cc46e823-ed71-4841-951c-2e9679824f8d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:33:34.843543+00:00"
+  },
+  {
+    "id": "evt_1789716814850_42",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_cc46e823-ed71-4841-951c-2e9679824f8d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:33:34.850210+00:00"
+  },
+  {
+    "id": "evt_1789716814850_44",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_cc46e823-ed71-4841-951c-2e9679824f8d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:33:34.850210+00:00"
+  },
+  {
+    "id": "evt_1789716814850_46",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_cc46e823-ed71-4841-951c-2e9679824f8d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:33:34.850210+00:00"
+  },
+  {
+    "id": "evt_1789716814850_48",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_cc46e823-ed71-4841-951c-2e9679824f8d",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:33:34.850210+00:00"
+  },
+  {
+    "id": "evt_1789717009868_46",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_d4bf667e-5a1b-4ffa-8a43-57d2b05ca4e5",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:36:49.868093+00:00"
+  },
+  {
+    "id": "evt_1789717009875_47",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_d4bf667e-5a1b-4ffa-8a43-57d2b05ca4e5",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:36:49.875417+00:00"
+  },
+  {
+    "id": "evt_1789717009875_49",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_d4bf667e-5a1b-4ffa-8a43-57d2b05ca4e5",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:36:49.875417+00:00"
+  },
+  {
+    "id": "evt_1789717009875_51",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_d4bf667e-5a1b-4ffa-8a43-57d2b05ca4e5",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:36:49.875417+00:00"
+  },
+  {
+    "id": "evt_1789717009875_53",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_d4bf667e-5a1b-4ffa-8a43-57d2b05ca4e5",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:36:49.875417+00:00"
+  },
+  {
+    "id": "evt_1789717035407_51",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_bbdbcdaf-6f95-4094-bc9e-30edc59e8cc1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:37:15.407489+00:00"
+  },
+  {
+    "id": "evt_1789717035413_52",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_bbdbcdaf-6f95-4094-bc9e-30edc59e8cc1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:37:15.413291+00:00"
+  },
+  {
+    "id": "evt_1789717035413_54",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_bbdbcdaf-6f95-4094-bc9e-30edc59e8cc1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:37:15.413291+00:00"
+  },
+  {
+    "id": "evt_1789717035413_56",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_bbdbcdaf-6f95-4094-bc9e-30edc59e8cc1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:37:15.413291+00:00"
+  },
+  {
+    "id": "evt_1789717035413_58",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_bbdbcdaf-6f95-4094-bc9e-30edc59e8cc1",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:37:15.413291+00:00"
+  },
+  {
+    "id": "evt_1789717043683_56",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_2b2e5de2-63ab-4f17-80d4-2e7c2ef6b366",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:37:23.683742+00:00"
+  },
+  {
+    "id": "evt_1789717043688_57",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_2b2e5de2-63ab-4f17-80d4-2e7c2ef6b366",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-18T07:37:23.688839+00:00"
+  },
+  {
+    "id": "evt_1789717043688_59",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_2b2e5de2-63ab-4f17-80d4-2e7c2ef6b366",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-18T07:37:23.688839+00:00"
+  },
+  {
+    "id": "evt_1789717043688_61",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_2b2e5de2-63ab-4f17-80d4-2e7c2ef6b366",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-18T07:37:23.688839+00:00"
+  },
+  {
+    "id": "evt_1789717043688_63",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_2b2e5de2-63ab-4f17-80d4-2e7c2ef6b366",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-18T07:37:23.688839+00:00"
+  }
+]
