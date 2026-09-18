@@ -134,20 +134,46 @@ wipes local disk on every restart or redeploy. Two options:
   under real load — it's a bridge, not the destination. Migrate to Postgres
   before this has real users depending on it.
 
-### Deploy to Render (recommended — has a free tier and a Blueprint file ready to go)
+### Deploy to Render (Free Tier Walkthrough)
 
-1. Push this repo to GitHub (Render deploys from a Git repo, not a zip upload).
-2. At https://dashboard.render.com, click **New** → **Blueprint**, and point it at your repo. Render will read `render.yaml` at the repo root and configure the service automatically — including a 1GB persistent disk mounted at `/data`.
-3. Render will ask for the env vars marked `sync: false` in `render.yaml` — set `ANTHROPIC_API_KEY`, the two Clerk keys, and the two Supabase keys.
-4. Deploy. Render builds the Dockerfile and gives you a URL like `https://lifebook-backend.onrender.com`.
-5. Test it: `curl https://lifebook-backend.onrender.com/api/health` should return the same JSON you've seen locally.
-6. Set `EXPO_PUBLIC_API_URL` in the mobile environment to that URL.
+The repository includes both a **Blueprint (`render.yaml`)** and configuration for manual Web Service setup on Render's **Free Tier**.
 
-**Note on `render.yaml`'s persistent disk:** Render's disk feature requires
-a paid plan (the Blueprint sets `plan: starter`), not the free tier. If you
-want to stay on Render's free tier for now, remove the `disk:` block and
-the `DATA_DIR` env var from `render.yaml` before deploying — you'll be
-back to ephemeral storage, which is fine for a first demo.
+#### Option A: 1-Click Blueprint Deployment (Fastest)
+1. Push your repository to GitHub.
+2. Log in at [dashboard.render.com](https://dashboard.render.com).
+3. Click **New +** → **Blueprint**.
+4. Select your GitHub repository. Render will detect `render.yaml` at the root and pre-configure the service with `plan: free`!
+5. In the environment variables prompt, enter any keys you want to configure (e.g. `ANTHROPIC_API_KEY` or `GEMINI_API_KEY`), or leave them blank to use local dev-fallback mode.
+6. Click **Apply**. Render will build and deploy your backend in ~1–2 minutes.
+
+#### Option B: Manual Web Service Setup
+1. Log in at [dashboard.render.com](https://dashboard.render.com) and click **New +** → **Web Service**.
+2. Connect your Git repository.
+3. Configure the settings:
+   - **Name**: `lifebook-backend` (or your chosen name)
+   - **Region**: Select the region closest to your users (e.g., Frankfurt or Oregon)
+   - **Branch**: `main`
+   - **Root Directory**: leave blank (or `backend`)
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r backend/requirements.txt`
+   - **Start Command**: `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT`
+   - **Instance Type**: **Free** ($0 / month)
+4. Under **Environment Variables**, add:
+   - `ALLOWED_ORIGINS`: `*` (or your web frontend URL)
+   - `PYTHON_VERSION`: `3.11.9`
+   - *(Optional)* `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `CLERK_*`, `SUPABASE_*`
+5. Click **Create Web Service**.
+
+#### Testing Your Deployed Backend
+Once deployed, Render gives you a public URL (e.g. `https://lifebook-backend.onrender.com`):
+```bash
+curl https://lifebook-backend.onrender.com/api/health
+```
+You will receive:
+```json
+{"status":"ok","modelMode":"dev-fallback","version":"0.1.0"}
+```
+Now set `NEXT_PUBLIC_API_URL` (in web) or `EXPO_PUBLIC_API_URL` (in mobile) to your Render URL.
 
 ### Alternatives
 

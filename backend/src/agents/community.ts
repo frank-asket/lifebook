@@ -5,14 +5,20 @@ import { db } from '../db';
 import { Group, PrayerRequest, Discussion, DiscussionReply } from '../types';
 import { moderate } from './communityModeration';
 
-const SEED_GROUPS: Group[] = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '..', 'data', 'groups.json'), 'utf-8')
-).groups.map((g: any) => ({ ...g, memberCount: 0 }));
+let seedGroupsCache: Group[] | null = null;
+function getSeedGroups(): Group[] {
+  if (!seedGroupsCache) {
+    seedGroupsCache = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'data', 'groups.json'), 'utf-8')
+    ).groups.map((g: any) => ({ ...g, memberCount: 0 }));
+  }
+  return seedGroupsCache;
+}
 
 function ensureGroupsSeeded() {
   const database = db.read();
   if (database.groups.length === 0) {
-    database.groups = SEED_GROUPS;
+    database.groups = getSeedGroups();
     db.write(database);
   }
 }

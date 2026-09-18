@@ -30,19 +30,32 @@ function emptyDb(): Database {
   };
 }
 
+let memoryCache: Database | null = null;
+
 function load(): Database {
-  if (!fs.existsSync(DB_PATH)) return emptyDb();
+  if (memoryCache) return memoryCache;
+  if (!fs.existsSync(DB_PATH)) {
+    memoryCache = emptyDb();
+    return memoryCache;
+  }
   try {
     const raw = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    return { ...emptyDb(), ...raw };
+    memoryCache = { ...emptyDb(), ...raw };
+    return memoryCache;
   } catch {
-    return emptyDb();
+    memoryCache = emptyDb();
+    return memoryCache;
   }
 }
 
-function persist(db: Database) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+function persist(database: Database) {
+  memoryCache = database;
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(DB_PATH, JSON.stringify(database, null, 2));
+  } catch (err) {
+    console.error('[db] Error persisting database to disk:', err);
+  }
 }
 
 export const db = {

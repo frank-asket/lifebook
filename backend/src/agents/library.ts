@@ -3,15 +3,21 @@ import path from 'node:path';
 import { db } from '../db';
 import { LibraryBook } from '../types';
 
-const CATALOG: LibraryBook[] = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '..', 'data', 'library.json'), 'utf-8')
-).books;
+let catalogCache: LibraryBook[] | null = null;
+function getCatalog(): LibraryBook[] {
+  if (!catalogCache) {
+    catalogCache = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'data', 'library.json'), 'utf-8')
+    ).books;
+  }
+  return catalogCache;
+}
 
 export function listLibrary(deviceId: string, tier: 'free' | 'premium') {
   const database = db.read();
   const progress = database.libraryProgress[deviceId] || [];
 
-  return CATALOG.map(book => {
+  return getCatalog().map(book => {
     const entry = progress.find(p => p.bookId === book.id);
     return {
       ...book,

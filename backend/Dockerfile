@@ -1,19 +1,19 @@
-FROM node:20-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies first so this layer is cached unless package.json changes
-COPY package.json package-lock.json* ./
-RUN npm install
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8787
 
-# Then copy the rest of the source
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend source
 COPY . .
 
-# Runs via tsx (already a dependency) rather than a separate tsc build step —
-# this avoids a compiled-output-vs-source-assets mismatch, since verses.json,
-# groups.json, and library.json are read at runtime via fs + __dirname
-# relative to the TypeScript source files, not bundled by tsc.
-ENV NODE_ENV=production
 EXPOSE 8787
 
-CMD ["npm", "start"]
+# Start Uvicorn, dynamically binding to Render's assigned $PORT
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8787}"]

@@ -479,8 +479,8 @@ const server = http.createServer(async (req, res) => {
   send(res, 404, { error: 'not found' });
 });
 
-server.listen(PORT, () => {
-  console.log(`LifeBook backend listening on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`LifeBook backend listening on http://0.0.0.0:${PORT}`);
   console.log(`AI mode: ${process.env.ANTHROPIC_API_KEY ? 'LIVE' : 'DEV-FALLBACK (no ANTHROPIC_API_KEY set)'}`);
   console.log(`Auth mode: ${isClerkConfigured() ? 'CLERK' : 'UNCONFIGURED'}`);
 });

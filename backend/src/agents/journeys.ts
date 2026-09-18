@@ -4,20 +4,26 @@ import { db } from '../db';
 import { Journey, JourneyDay, UserJourneyProgress, Mood } from '../types';
 import { moodHistory } from './journal';
 
-const CATALOG: { journeys: Journey[]; days: JourneyDay[] } = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '..', 'data', 'journeys.json'), 'utf-8')
-);
+let catalogCache: { journeys: Journey[]; days: JourneyDay[] } | null = null;
+function getCatalog(): { journeys: Journey[]; days: JourneyDay[] } {
+  if (!catalogCache) {
+    catalogCache = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'data', 'journeys.json'), 'utf-8')
+    );
+  }
+  return catalogCache;
+}
 
 export function listJourneys(): Journey[] {
-  return CATALOG.journeys;
+  return getCatalog().journeys;
 }
 
 export function getJourney(journeyId: string): Journey | null {
-  return CATALOG.journeys.find(j => j.id === journeyId) || null;
+  return getCatalog().journeys.find(j => j.id === journeyId) || null;
 }
 
 export function getJourneyDay(journeyId: string, dayNumber: number): JourneyDay | null {
-  return CATALOG.days.find(d => d.journeyId === journeyId && d.dayNumber === dayNumber) || null;
+  return getCatalog().days.find(d => d.journeyId === journeyId && d.dayNumber === dayNumber) || null;
 }
 
 export function listUserJourneys(userId: string): UserJourneyProgress[] {

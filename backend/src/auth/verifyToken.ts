@@ -1,5 +1,4 @@
 import { IncomingMessage } from 'node:http';
-import { createClerkClient } from '@clerk/backend';
 
 export interface Identity {
   userId: string;
@@ -9,6 +8,23 @@ export interface Identity {
 // --------------------------------------------------------------------------
 export function isClerkConfigured(): boolean {
   return Boolean(process.env.CLERK_SECRET_KEY && process.env.CLERK_PUBLISHABLE_KEY);
+}
+
+let cachedClerk: any = null;
+
+function getClerk() {
+  if (!cachedClerk) {
+    try {
+      const { createClerkClient } = require('@clerk/backend');
+      cachedClerk = createClerkClient({
+        secretKey: process.env.CLERK_SECRET_KEY!,
+        publishableKey: process.env.CLERK_PUBLISHABLE_KEY!,
+      });
+    } catch (e: any) {
+      throw new Error(`@clerk/backend is not installed or failed to initialize: ${e?.message || e}`);
+    }
+  }
+  return cachedClerk;
 }
 
 export async function resolveIdentity(req: IncomingMessage, fallbackDeviceId?: string): Promise<Identity> {
@@ -29,7 +45,7 @@ export async function resolveIdentity(req: IncomingMessage, fallbackDeviceId?: s
     throw new Error('Missing Authorization: Bearer <sessionToken> header');
   }
   const token = header.slice('Bearer '.length);
-  const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY!, publishableKey: process.env.CLERK_PUBLISHABLE_KEY! });
+  const clerk = getClerk();
   const result = await clerk.authenticateRequest(new Request('http://lifebook.internal', { headers: { Authorization: `Bearer ${token}` } }));
   if (!result.isAuthenticated || !result.toAuth().userId) throw new Error('Invalid or expired Clerk session token');
   return { userId: result.toAuth().userId, verified: true };
