@@ -9,12 +9,14 @@ import { teachings } from "../../livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { PlaylistModal } from "@/components/PlaylistModal";
+import { TeachingShareModal } from "@/components/TeachingShareModal";
 
 export default function LivingWordDetail() {
   const { slug } = useParams<{ slug: string }>();
   const teaching = teachings.find((item) => item.slug === slug);
   const [streamMode, setStreamMode] = useState<"video" | "audio">("video");
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { isFr } = useLanguage();
 
   const starterComments = isFr
@@ -73,7 +75,21 @@ export default function LivingWordDetail() {
           </div>
           <span className="detail-label">{isFr ? "Enseignement LivingWord" : "LivingWord teaching"}</span>
           <h1>{title}</h1>
-          <p className="detail-teacher-name">{teaching.teacher} · {teacherRole}</p>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <Link
+              href={`/living-word/teachers/${teaching.teacherSlug}`}
+              className="detail-teacher-name hover:underline text-white font-medium"
+            >
+              {teaching.teacher} · {teacherRole} ↗
+            </Link>
+            <Link
+              href={`/living-word/teachers/${teaching.teacherSlug}`}
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-900/50 border border-purple-400/40 text-purple-200 text-[11px] font-semibold hover:bg-purple-800/60 transition-colors"
+            >
+              <span>🎓</span>
+              <span>{isFr ? teaching.theologicalSpecialtyFr : teaching.theologicalSpecialty}</span>
+            </Link>
+          </div>
           <p className="detail-intro">{excerpt}</p>
           <div className="detail-meta">
             <span>{category}</span>
@@ -86,6 +102,14 @@ export default function LivingWordDetail() {
             >
               <span>📑</span>
               <span>{isFr ? "Ajouter à une liste" : "Save to Playlist"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#E2B714]/25 hover:bg-[#E2B714]/40 text-[#FCE59F] text-xs font-bold transition-colors border border-[#FCE59F]/40 shadow-xs cursor-pointer"
+            >
+              <span>↗</span>
+              <span>{isFr ? "Diffuser / Partager" : "Share"}</span>
             </button>
           </div>
         </div>
@@ -166,6 +190,21 @@ export default function LivingWordDetail() {
               <span>📑</span>
               <span>{isFr ? "Enregistrer pour plus tard" : "Save to Listening Playlist"}</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="w-full mt-2 py-2.5 px-3 rounded-xl border border-[#FCE59F]/40 bg-[#E2B714]/15 hover:bg-[#E2B714]/30 text-[#FCE59F] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            >
+              <span>↗</span>
+              <span>{isFr ? "Partager le message formaté" : "Share Formatted Message"}</span>
+            </button>
+            <Link
+              href={`/living-word/teachers/${teaching.teacherSlug}`}
+              className="w-full mt-2 py-2 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 text-xs font-medium transition-all flex items-center justify-center gap-2"
+            >
+              <span>👤</span>
+              <span>{isFr ? "Voir le profil de l'enseignant" : "View Teacher Profile"} →</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -235,6 +274,12 @@ export default function LivingWordDetail() {
         teaching={teaching}
         isOpen={isPlaylistModalOpen}
         onClose={() => setIsPlaylistModalOpen(false)}
+      />
+
+      <TeachingShareModal
+        teaching={teaching}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
       />
     </main>
   );

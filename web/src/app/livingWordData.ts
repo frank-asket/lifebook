@@ -1,10 +1,35 @@
+export interface Teacher {
+  id: string;
+  slug: string;
+  name: string;
+  title: string;
+  titleFr: string;
+  role: string;
+  roleFr: string;
+  theologicalSpecialty: string;
+  theologicalSpecialtyFr: string;
+  specialties: string[];
+  specialtiesFr: string[];
+  bio: string;
+  bioFr: string;
+  ministryAffiliation: string;
+  education: string;
+  educationFr: string;
+  portrait: string;
+  featuredScripture: string;
+  featuredScriptureFr: string;
+}
+
 export type Teaching = {
   slug: string;
   title: string;
   titleFr: string;
   teacher: string;
+  teacherSlug: string;
   teacherRole: string;
   teacherRoleFr: string;
+  theologicalSpecialty: string;
+  theologicalSpecialtyFr: string;
   category: string;
   categoryFr: string;
   duration: string;
@@ -21,14 +46,152 @@ export type Teaching = {
   videoUrl?: string;
 };
 
+export const teachers: Teacher[] = [
+  {
+    id: "teacher-asket",
+    slug: "pastor-asket",
+    name: "Pastor Asket",
+    title: "Reverend Pastor",
+    titleFr: "Pasteur Révérend",
+    role: "LifeBook Pastoral Director & Contributor",
+    roleFr: "Directeur pastoral & Contributeur LifeBook",
+    theologicalSpecialty: "Christocentric Hermeneutics & Contemplative Spiritual Disciplines",
+    theologicalSpecialtyFr: "Herméneutique christocentrique & Disciplines spirituelles contemplatives",
+    specialties: [
+      "Christocentric Hermeneutics",
+      "Contemplative Prayer",
+      "Sabbath Rest",
+      "Early Church Disciplines",
+      "Spiritual Warfare & Grace"
+    ],
+    specialtiesFr: [
+      "Herméneutique christocentrique",
+      "Prière contemplative",
+      "Repos du Sabbat",
+      "Disciplines de l'Église primitive",
+      "Combat spirituel & Grâce"
+    ],
+    bio: "Pastor Asket serves as a pastoral voice and teacher within the LifeBook fellowship, with over fifteen years of ministry dedicated to intentional discipleship, expository reflection, and restoring quiet, holy habits of prayer. His ministry focuses on leading hurried Christians out of performative religion into unhurried, resting communion with Christ through Scripture, stillness, and daily surrendered obedience.",
+    bioFr: "Le Pasteur Asket est une voix pastorale au sein de la communion LifeBook, avec plus de quinze années de ministère consacrées à la formation de disciples, à la méditation biblique textuelle et au rétablissement de saintes habitudes de prière. Son engagement est de délivrer les croyants pressés de la religion superficielle pour les ancrer dans une communion paisible avec le Christ par la Parole, le silence et l'obéissance du cœur.",
+    ministryAffiliation: "Grace & Truth Pastoral Fellowship",
+    education: "M.Div. in Pastoral Theology & Biblical Hermeneutics",
+    educationFr: "Master en Théologie Pastorale & Herméneutique Biblique",
+    portrait: "/AsketOfficialPic (1).png",
+    featuredScripture: "Mark 9:24",
+    featuredScriptureFr: "Marc 9:24",
+  },
+  {
+    id: "teacher-esther",
+    slug: "dr-esther-laurent",
+    name: "Dr. Esther Laurent",
+    title: "Senior Lecturer & Counselor",
+    titleFr: "Enseignante-chercheuse & Conseillère",
+    role: "Biblical Counselor & Old Testament Scholar",
+    roleFr: "Conseillère biblique & Spécialiste de l'Ancien Testament",
+    theologicalSpecialty: "Biblical Lament, Trauma Recovery & Covenant Grace",
+    theologicalSpecialtyFr: "Lamentation biblique, guérison intérieure & Grâce de l'Alliance",
+    specialties: [
+      "Biblical Lament",
+      "Covenant Grace",
+      "Emotional Healing in Christ",
+      "Psalms & Wisdom Literature",
+      "Grief & Hope"
+    ],
+    specialtiesFr: [
+      "Lamentation biblique",
+      "Grâce de l'Alliance",
+      "Guérison émotionnelle en Christ",
+      "Psaumes & Littérature sapientiale",
+      "Espérance dans le deuil"
+    ],
+    bio: "Dr. Esther Laurent is a biblical counselor, theological researcher, and author. Having walked with hundreds of believers through periods of grief, medical crises, and spiritual darkness, she teaches that biblical lament is not the antithesis of faith, but rather faith's most vulnerable and honest prayer before a sovereign God.",
+    bioFr: "Le Dr Esther Laurent est conseillère biblique, théologienne et auteure. Ayant accompagné des centaines de croyants dans les épreuves de la souffrance, du deuil et du doute, elle démontre que la lamentation biblique n'est pas le refus de la foi, mais son cri le plus authentique devant la souveraineté de Dieu.",
+    ministryAffiliation: "Living Hope Biblical Counseling Institute",
+    education: "Ph.D. in Old Testament Hermeneutics, Trinity Evangelical Divinity School",
+    educationFr: "Doctorat en Herméneutique de l'Ancien Testament",
+    portrait: "/myself.jpeg",
+    featuredScripture: "Psalm 34:18",
+    featuredScriptureFr: "Psaume 34:18",
+  },
+  {
+    id: "teacher-samuel",
+    slug: "pastor-samuel-ndlovu",
+    name: "Pastor Samuel Ndlovu",
+    title: "Pastor & Church Planter",
+    titleFr: "Pasteur & Implantateur",
+    role: "Church Planter & Expository Preacher",
+    roleFr: "Implantateur d'églises & Prédicateur textuel",
+    theologicalSpecialty: "Expository Preaching, Radical Discipleship & Missional Theology",
+    theologicalSpecialtyFr: "Prédication textuelle, vie de disciple radicale & Théologie missionnaire",
+    specialties: [
+      "Expository Preaching",
+      "Gospel in Urban Mission",
+      "Kingdom Ethics",
+      "Pauline Epistles",
+      "Sacrificial Living"
+    ],
+    specialtiesFr: [
+      "Prédication textuelle",
+      "Évangile en milieu urbain",
+      "Éthique du Royaume",
+      "Épîtres pauliniennes",
+      "Vie sacrificielle"
+    ],
+    bio: "Pastor Samuel Ndlovu has planted vibrant gospel-centered churches across diverse urban neighborhoods. He brings an infectious passion for verse-by-verse expository teaching that bridges deep doctrinal foundations with urgent practical obedience, urging believers to embody the radical grace and kingdom justice of Jesus.",
+    bioFr: "Le Pasteur Samuel Ndlovu a implanté des assemblées vivantes et centrées sur l'Évangile au cœur de grands centres urbains. Il communique un amour profond pour la prédication verset par verset qui relie l'orthodoxie doctrinale à l'amour concret du prochain, appelant à refléter la justice et la grâce du Royaume.",
+    ministryAffiliation: "All Nations Gospel Movement",
+    education: "Th.M. in Expository Preaching & Missiology, Reformed Theological Seminary",
+    educationFr: "Master en Prédication Textuelle & Missiologie",
+    portrait: "/AsketOfficialPic (1).png",
+    featuredScripture: "Romans 12:1-2",
+    featuredScriptureFr: "Romains 12:1-2",
+  },
+  {
+    id: "teacher-sarah",
+    slug: "minister-sarah-jenkins",
+    name: "Minister Sarah Jenkins",
+    title: "Spiritual Formation Director",
+    titleFr: "Directrice de formation spirituelle",
+    role: "Liturgical Director & Spiritual Companion",
+    roleFr: "Directrice liturgique & Accompagnatrice spirituelle",
+    theologicalSpecialty: "Historical Liturgies, Christian Solitude & Scripture Meditation",
+    theologicalSpecialtyFr: "Liturgies historiques, silence chrétien & Méditation des Écritures",
+    specialties: [
+      "Lectio Divina",
+      "Ancient Christian Collects",
+      "Contemplative Silence",
+      "Gospel of John",
+      "Spiritual Direction"
+    ],
+    specialtiesFr: [
+      "Lectio Divina",
+      "Prières et collectes anciennes",
+      "Silence contemplatif",
+      "Évangile de Jean",
+      "Accompagnement spirituel"
+    ],
+    bio: "Minister Sarah Jenkins is a seasoned teacher of historical Christian spiritual formation. She helps modern Christians discover ancient, time-tested practices such as Lectio Divina, liturgical prayers, and sacred silence, equipping them to resist distraction and remain deeply rooted in the Vine.",
+    bioFr: "La ministre Sarah Jenkins enseigne la formation spirituelle chrétienne ancrée dans les Pères de l'Église. Elle aide les chrétiens contemporains à redécouvrir les disciplines millénaires comme la Lectio Divina, la prière liturgique et le silence sacré, pour demeurer profondément attachés au vrai Cep face aux bruits du monde.",
+    ministryAffiliation: "Anchored Soul Contemplative Network",
+    education: "M.A. in Christian Formation & Soul Care, Wheaton College",
+    educationFr: "Master en Formation Chrétienne & Cure d'Âme",
+    portrait: "/myself.jpeg",
+    featuredScripture: "Psalm 46:10",
+    featuredScriptureFr: "Psaume 46:10",
+  }
+];
+
 export const teachings: Teaching[] = [
   {
     slug: "when-faith-feels-small",
     title: "When faith feels small",
     titleFr: "Quand la foi semble petite",
     teacher: "Pastor Asket",
-    teacherRole: "LifeBook teaching contributor",
-    teacherRoleFr: "Contributeur d'enseignement LifeBook",
+    teacherSlug: "pastor-asket",
+    teacherRole: "LifeBook Pastoral Director",
+    teacherRoleFr: "Directeur pastoral LifeBook",
+    theologicalSpecialty: "Christocentric Hermeneutics & Contemplative Spiritual Disciplines",
+    theologicalSpecialtyFr: "Herméneutique christocentrique & Disciplines spirituelles contemplatives",
     category: "Faith",
     categoryFr: "Foi",
     duration: "12 min",
@@ -46,9 +209,12 @@ export const teachings: Teaching[] = [
     slug: "learning-to-be-still",
     title: "Learning to be still",
     titleFr: "Apprendre à faire silence",
-    teacher: "Pastor Asket",
-    teacherRole: "LifeBook teaching contributor",
-    teacherRoleFr: "Contributeur d'enseignement LifeBook",
+    teacher: "Minister Sarah Jenkins",
+    teacherSlug: "minister-sarah-jenkins",
+    teacherRole: "Director of Spiritual Formation",
+    teacherRoleFr: "Directrice de formation spirituelle",
+    theologicalSpecialty: "Historical Liturgies, Christian Solitude & Scripture Meditation",
+    theologicalSpecialtyFr: "Liturgies historiques, silence chrétien & Méditation des Écritures",
     category: "Prayer",
     categoryFr: "Prière",
     duration: "9 min",
@@ -67,8 +233,11 @@ export const teachings: Teaching[] = [
     title: "The mercy of a new morning",
     titleFr: "La grâce d'un nouveau matin",
     teacher: "Pastor Asket",
-    teacherRole: "LifeBook teaching contributor",
-    teacherRoleFr: "Contributeur d'enseignement LifeBook",
+    teacherSlug: "pastor-asket",
+    teacherRole: "LifeBook Pastoral Director",
+    teacherRoleFr: "Directeur pastoral LifeBook",
+    theologicalSpecialty: "Christocentric Hermeneutics & Contemplative Spiritual Disciplines",
+    theologicalSpecialtyFr: "Herméneutique christocentrique & Disciplines spirituelles contemplatives",
     category: "Hope",
     categoryFr: "Espérance",
     duration: "15 min",
@@ -86,9 +255,12 @@ export const teachings: Teaching[] = [
     slug: "a-life-shaped-by-love",
     title: "A life shaped by love",
     titleFr: "Une vie façonnée par l'amour",
-    teacher: "Pastor Asket",
-    teacherRole: "LifeBook teaching contributor",
-    teacherRoleFr: "Contributeur d'enseignement LifeBook",
+    teacher: "Pastor Samuel Ndlovu",
+    teacherSlug: "pastor-samuel-ndlovu",
+    teacherRole: "Church Planter & Expository Preacher",
+    teacherRoleFr: "Implantateur d'églises & Prédicateur textuel",
+    theologicalSpecialty: "Expository Preaching, Radical Discipleship & Missional Theology",
+    theologicalSpecialtyFr: "Prédication textuelle, vie de disciple radicale & Théologie missionnaire",
     category: "Discipleship",
     categoryFr: "Vie chrétienne",
     duration: "18 min",
@@ -100,6 +272,60 @@ export const teachings: Teaching[] = [
     teaching: "Jesus does not describe discipleship only as what we know. He gives us a visible way to belong to him: love one another. This love is patient, costly, and practical. It becomes visible in the way we listen, forgive, serve, and remain present.",
     teachingFr: "Jésus ne définit pas la marche chrétienne par un simple savoir intellectuel. Il nous donne un signe distinctif et visible : l'amour fraternel. Un amour patient, exigeant et concret qui se manifeste dans notre capacité à écouter, pardonner, servir et persévérer ensemble.",
     color: "word-card-gold",
+    portrait: "/AsketOfficialPic (1).png",
+  },
+  {
+    slug: "honest-lament-in-the-dark",
+    title: "Honest lament in the dark",
+    titleFr: "La sainte lamentation dans la nuit",
+    teacher: "Dr. Esther Laurent",
+    teacherSlug: "dr-esther-laurent",
+    teacherRole: "Biblical Counselor & Old Testament Scholar",
+    teacherRoleFr: "Conseillère biblique & Spécialiste de l'Ancien Testament",
+    theologicalSpecialty: "Biblical Lament, Trauma Recovery & Covenant Grace",
+    theologicalSpecialtyFr: "Lamentation biblique, guérison intérieure & Grâce de l'Alliance",
+    category: "Hope",
+    categoryFr: "Espérance",
+    duration: "14 min",
+    durationFr: "14 min",
+    scripture: "Psalm 13:1-2",
+    scriptureFr: "Psaume 13:1-2",
+    excerpt: "How long, O Lord? Will you forget me forever? Scripture gives us permission to bring our sorrow to God without pious masks.",
+    excerptFr: "« Jusqu'à quand, Éternel ! M'oublieras-tu sans cesse ? » Les Écritures nous autorisent à crier notre chagrin à Dieu sans masque de piété feinte.",
+    teaching: "Over a third of the Psalms are songs of lament. God never asks us to suppress our tears or offer forced praises when our hearts are crushed. True biblical lament is not despair; it is the courage to address God even when he seems silent, trusting that his steadfast covenant outlasts our darkest night.",
+    teachingFr: "Plus d'un tiers des Psaumes sont des chants de lamentation. Dieu ne nous demande jamais d'étouffer nos sanglots ou de lui offrir des louanges feintes quand nos cœurs sont brisés. La sainte lamentation est l'acte de foi ultime : continuer à parler à Dieu dans le noir, confiant que son alliance d'amour est plus profonde que notre nuit.",
+    color: "word-card-rose",
     portrait: "/myself.jpeg",
   },
+  {
+    slug: "the-cost-of-discipleship",
+    title: "The cost and joy of the cross",
+    titleFr: "Le coût et la joie de la croix",
+    teacher: "Pastor Samuel Ndlovu",
+    teacherSlug: "pastor-samuel-ndlovu",
+    teacherRole: "Church Planter & Expository Preacher",
+    teacherRoleFr: "Implantateur d'églises & Prédicateur textuel",
+    theologicalSpecialty: "Expository Preaching, Radical Discipleship & Missional Theology",
+    theologicalSpecialtyFr: "Prédication textuelle, vie de disciple radicale & Théologie missionnaire",
+    category: "Discipleship",
+    categoryFr: "Vie chrétienne",
+    duration: "16 min",
+    durationFr: "16 min",
+    scripture: "Luke 9:23",
+    scriptureFr: "Luc 9:23",
+    excerpt: "If anyone would come after me, let him deny himself and take up his cross daily and follow me. The cross is not an obstacle to life; it is the doorway to it.",
+    excerptFr: "« Si quelqu'un veut venir après moi, qu'il renonce à lui-même, qu'il se charge chaque jour de sa croix, et qu'il me suive. » La croix n'est pas un fardeau stérile ; elle est la porte de la vraie vie.",
+    teaching: "Dietrich Bonhoeffer famously wrote that when Christ calls a person, he bids them come and die. Yet dying to self is the only way resurrection joy enters our reality. Following Jesus is costly, but wandering without him costs infinitely more. In his presence, the yoke becomes easy and the burden light.",
+    teachingFr: "Dietrich Bonhoeffer rappelait que lorsque le Christ appelle un homme, Il lui ordonne de venir et de mourir. Mais mourir à soi-même est la seule manière dont la joie de la résurrection inonde notre existence. Suivre Jésus a un coût, mais vivre sans Lui coûte infiniment plus cher. Avec Lui, le fardeau devient léger.",
+    color: "word-card-blue",
+    portrait: "/AsketOfficialPic (1).png",
+  }
 ];
+
+export function getTeacherBySlug(slug: string): Teacher | undefined {
+  return teachers.find((t) => t.slug === slug);
+}
+
+export function getTeachingsByTeacher(teacherSlug: string): Teaching[] {
+  return teachings.filter((item) => item.teacherSlug === teacherSlug);
+}
