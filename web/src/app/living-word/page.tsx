@@ -17,15 +17,12 @@ export default function LivingWordPage() {
           <strong>LivingWord</strong>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href="/living-word/cms"
-            className="px-3 py-1.5 rounded-full text-xs font-bold bg-[#faf5ff] text-[#705eaa] border border-[#dccff3] hover:bg-[#ede3f7] transition-colors"
-          >
-            Pastoral CMS (P5)
+          <Link href="/voice" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931] transition-colors">
+            Voice
           </Link>
           <LanguageToggle />
-          <Link href="/waitlist" className="pill-button pill-dark">
-            Waitlist Cohorts (P4)
+          <Link href="/#features" className="pill-button pill-dark">
+            Devotions
           </Link>
         </div>
       </nav>

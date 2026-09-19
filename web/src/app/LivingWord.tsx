@@ -75,7 +75,7 @@ export default function LivingWord() {
                   : "text-[#5D5276] hover:text-[#2D2542]"
               }`}
             >
-              📖 {isFr ? "Tous les enseignements" : "All Teachings"} ({teachings.length})
+              {isFr ? "Tous les enseignements" : "All Teachings"} ({teachings.length})
             </button>
             <button
               type="button"
@@ -86,7 +86,7 @@ export default function LivingWord() {
                   : "text-[#5D5276] hover:text-[#2D2542]"
               }`}
             >
-              <span>🎧 {isFr ? "Mes listes de lecture" : "My Playlists"}</span>
+              <span>{isFr ? "Mes listes de lecture" : "My Playlists"}</span>
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-200 text-purple-900 font-mono">
                 {playlists.length}
               </span>
@@ -96,10 +96,9 @@ export default function LivingWord() {
           <div className="flex items-center gap-3 text-xs">
             <Link
               href="/living-word/cms"
-              className="inline-flex items-center gap-1 font-bold text-[#705eaa] hover:text-[#2d2542] transition-colors"
+              className="inline-flex items-center gap-1 font-semibold text-[#705eaa] hover:text-[#2d2542] transition-colors"
             >
-              <span>🛡️</span>
-              <span>{isFr ? "Audit Pastoral CMS" : "Pastoral Review CMS"}</span>
+              <span>{isFr ? "Audit Pastoral CMS" : "Pastoral Review CMS"} ↗</span>
             </Link>
             <span className="hidden sm:inline text-[#5D5276]">{t("audio_curated")}</span>
           </div>

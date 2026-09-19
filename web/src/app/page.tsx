@@ -180,13 +180,9 @@ export default function Home() {
           <a className="wordmark" href="#top" aria-label="LifeBook home"><Mark /><span>LifeBook</span></a>
           <div className="showcase-links">
             <a href="#features" className={activeSection === "features" ? "active-link" : ""}>{t("nav_daily_practice")}</a>
-            <a href="#how-it-works" className={activeSection === "how-it-works" ? "active-link" : ""}>{t("nav_how_it_works")}</a>
             <a href="#journeys" className={activeSection === "journeys" ? "active-link" : ""}>{t("nav_journeys")}</a>
-            <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>{t("nav_voice_search")}</Link>
             <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""}>{t("nav_audio_teachings")}</Link>
-            <Link href="/waitlist" className={activeSection === "waitlist" ? "active-link" : ""}>{isFr ? "Cohortes (P4)" : "Waitlist (P4)"}</Link>
-            <Link href="/progress">{t("nav_my_progress")}</Link>
-            <a href="#questions" className={activeSection === "questions" ? "active-link" : ""}>{t("nav_faq")}</a>
+            <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>{t("nav_voice_search")}</Link>
           </div>
           <div className="auth-actions flex items-center gap-3">
             <LanguageToggle />
@@ -281,7 +277,6 @@ export default function Home() {
                 <p className="mobile-nav-heading">{t("mobile_nav_community_help")}</p>
                 <Link href="/waitlist" onClick={() => setMenuOpen(false)}>
                   <span>{isFr ? "Cohortes & Liste d'attente" : "Waitlist Cohorts"}</span>
-                  <span className="text-xs text-[#8c8297]">P4</span>
                 </Link>
                 <Link href="/progress" onClick={() => setMenuOpen(false)}>
                   <span>{t("nav_my_progress")}</span>
@@ -289,7 +284,6 @@ export default function Home() {
                 </Link>
                 <a href="#questions" className={activeSection === "questions" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
                   <span>{t("nav_faq")}</span>
-                  <span className="text-xs text-[#8c8297]">FAQ</span>
                 </a>
               </div>
               {isSignedIn ? (

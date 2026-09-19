@@ -18,14 +18,8 @@ export default function ProgressPage() {
         </div>
         <div className="flex items-center gap-3">
           <LanguageToggle />
-          <Link href="/voice" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931]">
-            Voice
-          </Link>
-          <Link href="/living-word" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931]">
-            LivingWord
-          </Link>
-          <Link href="/#join" className="pill-button pill-dark">
-            Join Circle
+          <Link href="/#features" className="pill-button pill-dark">
+            Devotions
           </Link>
         </div>
       </nav>

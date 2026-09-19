@@ -597,61 +597,57 @@ export function PhoneMockup() {
           </div>
 
           {/* APP BOTTOM TAB BAR */}
-          <div className="px-2 pt-1.5 pb-2 bg-white/95 border-t border-[#2d2542]/10 flex items-center justify-around text-center">
+          <div className="px-3 pt-2 pb-2.5 bg-white/95 border-t border-[#2d2542]/10 flex items-center justify-around text-center">
             <button
               type="button"
               onClick={() => setActivePhoneTab("today")}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all cursor-pointer ${
-                activePhoneTab === "today"
+              className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all cursor-pointer ${
+                activePhoneTab === "today" || activePhoneTab === "journal"
                   ? "text-[#2d2542] font-bold bg-[#f1edfb]"
                   : "text-[#7b7289] hover:text-[#2d2542]"
               }`}
               id="phone-tab-today"
             >
-              <span className="text-xs">📖</span>
-              <span className="text-[8.5px] leading-tight">{t("preview_tab_today")}</span>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              </svg>
+              <span className="text-[9px] font-medium leading-tight">{t("preview_tab_today")}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActivePhoneTab("journeys")}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all cursor-pointer ${
                 activePhoneTab === "journeys"
                   ? "text-[#2d2542] font-bold bg-[#f1edfb]"
                   : "text-[#7b7289] hover:text-[#2d2542]"
               }`}
               id="phone-tab-journeys"
             >
-              <span className="text-xs">🧭</span>
-              <span className="text-[8.5px] leading-tight">{t("preview_tab_journeys")}</span>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.2 7.8 14.1 14.1 7.8 16.2 9.9 9.9 16.2 7.8" />
+              </svg>
+              <span className="text-[9px] font-medium leading-tight">{t("preview_tab_journeys")}</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActivePhoneTab("voice")}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all cursor-pointer ${
                 activePhoneTab === "voice"
                   ? "text-[#2d2542] font-bold bg-[#f1edfb]"
                   : "text-[#7b7289] hover:text-[#2d2542]"
               }`}
               id="phone-tab-voice"
             >
-              <span className="text-xs">🎙️</span>
-              <span className="text-[8.5px] leading-tight">{isFr ? "Voix" : "Voice"}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActivePhoneTab("journal")}
-              className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all cursor-pointer ${
-                activePhoneTab === "journal"
-                  ? "text-[#2d2542] font-bold bg-[#f1edfb]"
-                  : "text-[#7b7289] hover:text-[#2d2542]"
-              }`}
-              id="phone-tab-journal"
-            >
-              <span className="text-xs">✍️</span>
-              <span className="text-[8.5px] leading-tight">{t("preview_tab_journal")}</span>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+              </svg>
+              <span className="text-[9px] font-medium leading-tight">{isFr ? "Voix" : "Voice"}</span>
             </button>
           </div>
 
