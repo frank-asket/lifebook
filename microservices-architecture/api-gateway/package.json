@@ -1,0 +1,9 @@
+{
+  "name": "api-gateway",
+  "version": "1.0.0",
+  "description": "API Gateway service routing requests to domain microservices",
+  "main": "gateway.js",
+  "scripts": {
+    "start": "node gateway.js"
+  }
+}

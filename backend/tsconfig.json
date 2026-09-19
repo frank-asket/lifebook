@@ -5,6 +5,8 @@
     "moduleResolution": "node",
     "ignoreDeprecations": "5.0",
     "lib": ["ES2022"],
+    "types": ["node"],
+    "typeRoots": ["../web/node_modules/@types", "node_modules/@types"],
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,

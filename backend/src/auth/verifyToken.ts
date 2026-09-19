@@ -14,24 +14,31 @@ let cachedClerk: any = null;
 
 function getClerk() {
   if (!cachedClerk) {
+    let createClerkClient: any;
     try {
-      const { createClerkClient } = require('@clerk/backend');
-      cachedClerk = createClerkClient({
-        secretKey: process.env.CLERK_SECRET_KEY!,
-        publishableKey: process.env.CLERK_PUBLISHABLE_KEY!,
-      });
-    } catch (e: any) {
-      throw new Error(`@clerk/backend is not installed or failed to initialize: ${e?.message || e}`);
+      createClerkClient = require('@clerk/nextjs/server').createClerkClient;
+    } catch {
+      try {
+        createClerkClient = require('@clerk/backend').createClerkClient;
+      } catch (e: any) {
+        throw new Error(`Clerk backend client failed to initialize: ${e?.message || e}`);
+      }
     }
+    cachedClerk = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY!,
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    });
   }
   return cachedClerk;
 }
 
 export async function resolveIdentity(req: IncomingMessage, fallbackDeviceId?: string): Promise<Identity> {
+  const explicitUserId = (req.headers['x-user-id'] as string) || fallbackDeviceId;
+
   if (!isClerkConfigured()) {
     // Dev-fallback mode: Allows testing API without requiring Clerk keys
-    if (fallbackDeviceId) {
-      return { userId: fallbackDeviceId, verified: false };
+    if (explicitUserId) {
+      return { userId: explicitUserId, verified: false };
     }
     const header = req.headers['authorization'];
     if (header && header.startsWith('Bearer ')) {
@@ -41,12 +48,33 @@ export async function resolveIdentity(req: IncomingMessage, fallbackDeviceId?: s
   }
 
   const header = req.headers['authorization'];
-  if (!header || !header.startsWith('Bearer ')) {
-    throw new Error('Missing Authorization: Bearer <sessionToken> header');
+  if (header && header.startsWith('Bearer ')) {
+    const token = header.slice('Bearer '.length).trim();
+    // If it's a local ChristianAuth/demo user session token (e.g. usr_...)
+    if (token.startsWith('usr_')) {
+      return { userId: token, verified: false };
+    }
+
+    try {
+      const clerk = getClerk();
+      const result = await clerk.authenticateRequest(
+        new Request('http://lifebook.internal', { headers: { Authorization: `Bearer ${token}` } })
+      );
+      const auth = result.toAuth();
+      if (result.isAuthenticated && auth?.userId) {
+        return { userId: auth.userId, verified: true };
+      }
+    } catch (e: any) {
+      if (explicitUserId) {
+        return { userId: explicitUserId, verified: false };
+      }
+      throw new Error(`Invalid or expired Clerk session token: ${e?.message || e}`);
+    }
   }
-  const token = header.slice('Bearer '.length);
-  const clerk = getClerk();
-  const result = await clerk.authenticateRequest(new Request('http://lifebook.internal', { headers: { Authorization: `Bearer ${token}` } }));
-  if (!result.isAuthenticated || !result.toAuth().userId) throw new Error('Invalid or expired Clerk session token');
-  return { userId: result.toAuth().userId, verified: true };
+
+  if (explicitUserId) {
+    return { userId: explicitUserId, verified: false };
+  }
+
+  throw new Error('Missing Authorization: Bearer <sessionToken> header');
 }

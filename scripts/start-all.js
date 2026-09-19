@@ -14,34 +14,25 @@ function checkBackend(callback) {
 }
 
 function startBackend() {
-  console.log('[LifeBook] Starting Python FastAPI backend on port 8787...');
-  let proc = spawn('python3', ['-m', 'uvicorn', 'backend.app.main:app', '--host', '0.0.0.0', '--port', '8787'], {
-    stdio: 'inherit',
-    env: process.env,
-  });
-
-  proc.on('error', (err) => {
-    console.error('[LifeBook] Python backend error, falling back to Node TS server:', err.message);
+  console.log('[LifeBook] Starting backend service on port 8787...');
+  let proc;
+  try {
+    const { execSync } = require('child_process');
+    execSync('python3 -m uvicorn --version', { stdio: 'ignore' });
+    proc = spawn('python3', ['-m', 'uvicorn', 'backend.app.main:app', '--host', '0.0.0.0', '--port', '8787'], {
+      stdio: 'inherit',
+      env: process.env,
+    });
+  } catch {
+    console.log('[LifeBook] Using Node TS backend server on port 8787...');
     proc = spawn('npx', ['tsx', 'backend/src/server.ts'], {
       stdio: 'inherit',
       env: process.env,
     });
-  });
+  }
 
-  proc.on('exit', (code) => {
-    if (code !== 0 && code !== null) {
-      console.warn(`[LifeBook] Backend process exited with code ${code}. Trying Node TS fallback...`);
-      setTimeout(() => {
-        checkBackend((alive) => {
-          if (!alive) {
-            spawn('npx', ['tsx', 'backend/src/server.ts'], {
-              stdio: 'inherit',
-              env: process.env,
-            });
-          }
-        });
-      }, 1000);
-    }
+  proc.on('error', (err) => {
+    console.error('[LifeBook] Backend error:', err.message);
   });
 
   return proc;

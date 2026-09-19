@@ -67,6 +67,8 @@ export interface Database {
   pushTokens: Record<string, PushToken>;
   journeyProgress: Record<string, UserJourneyProgress[]>;
   livingWordComments: LivingWordComment[];
+  playlists: Playlist[];
+  playlistItems: PlaylistItem[];
 }
 
 export interface LivingWordComment {
@@ -223,5 +225,34 @@ export interface Subscription {
   deviceId: string;
   tier: 'free' | 'premium';
   billingCycle?: 'monthly' | 'annual';
+  updatedAt: string;
+}
+
+export interface PlaylistItem {
+  id: string;
+  playlistId: string;
+  teachingSlug: string;
+  teachingTitle: string;
+  teacher: string;
+  duration: string;
+  category?: string;
+  audioUrl?: string;
+  portrait?: string;
+  position: number;
+  addedAt: string;
+}
+
+export interface Playlist {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  isDefault?: boolean;
+  itemCount: number;
+  totalDuration?: string;
+  items?: PlaylistItem[];
+  createdAt: string;
   updatedAt: string;
 }

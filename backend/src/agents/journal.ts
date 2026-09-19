@@ -1,59 +1,73 @@
 import { randomUUID } from 'node:crypto';
 import { db } from '../db';
 import { JournalEntry, FavoriteVerse } from '../types';
+import { JournalRepository, FavoriteVerseRepository, CheckinRepository } from '../repositories';
 
-export function addJournalEntry(deviceId: string, text: string, relatedContentId?: string): JournalEntry {
-  const entry: JournalEntry = { id: randomUUID(), deviceId, text, relatedContentId, createdAt: new Date().toISOString() };
-  const database = db.read();
-  database.journalEntries.push(entry);
-  db.write(database);
+export async function addJournalEntry(deviceId: string, text: string, relatedContentId?: string): Promise<JournalEntry> {
+  const entry: JournalEntry = {
+    id: randomUUID(),
+    deviceId,
+    userId: deviceId,
+    text,
+    body: text,
+    relatedContentId,
+    createdAt: new Date().toISOString(),
+  };
 
-  // Durable sync to Supabase when configured
-  import('../repositories').then(({ JournalRepository }) => {
-    JournalRepository.create({
-      id: entry.id,
-      userId: deviceId,
-      body: text,
-      passageReference: relatedContentId,
-    }).catch(() => {});
-  }).catch(() => {});
+  // Syncs to Supabase and updates local mirror
+  await JournalRepository.create({
+    id: entry.id,
+    userId: deviceId,
+    body: text,
+    relatedContentId,
+  });
 
   return entry;
 }
 
-export function listJournalEntries(deviceId: string): JournalEntry[] {
-  const database = db.read();
-  return database.journalEntries
-    .filter(e => e.deviceId === deviceId)
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+export async function listJournalEntries(deviceId: string): Promise<JournalEntry[]> {
+  return JournalRepository.listByUser(deviceId);
 }
 
-export function addFavorite(deviceId: string, contentId: string, verseText: string, verseReference: string): FavoriteVerse {
-  const database = db.read();
-  const existing = database.favorites.find(f => f.deviceId === deviceId && f.contentId === contentId);
+export async function addFavorite(deviceId: string, contentId: string, verseText: string, verseReference: string): Promise<FavoriteVerse> {
+  const existingFavorites = await FavoriteVerseRepository.listByUser(deviceId);
+  const existing = existingFavorites.find(f => f.contentId === contentId);
   if (existing) return existing;
 
-  const favorite: FavoriteVerse = { id: randomUUID(), deviceId, contentId, verseText, verseReference, createdAt: new Date().toISOString() };
-  database.favorites.push(favorite);
-  db.write(database);
+  const favorite: FavoriteVerse = {
+    id: randomUUID(),
+    deviceId,
+    contentId,
+    verseText,
+    verseReference,
+    createdAt: new Date().toISOString(),
+  };
+
+  await FavoriteVerseRepository.create({
+    id: favorite.id,
+    userId: deviceId,
+    contentId,
+    verseText,
+    verseReference,
+  });
+
   return favorite;
 }
 
-export function listFavorites(deviceId: string): FavoriteVerse[] {
-  const database = db.read();
-  return database.favorites
-    .filter(f => f.deviceId === deviceId)
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+export async function listFavorites(deviceId: string): Promise<FavoriteVerse[]> {
+  return FavoriteVerseRepository.listByUser(deviceId);
 }
 
-// Mood history is derived straight from real check-ins — this is the data
-// backing the Progress screen's heatmap. Nothing separate to keep in sync.
-export function moodHistory(deviceId: string, days = 30): { date: string; mood: string | null }[] {
-  const database = db.read();
+// Mood history backed directly by Supabase checkins
+export async function moodHistory(deviceId: string, days = 30): Promise<{ date: string; mood: string | null }[]> {
+  const checkins = await CheckinRepository.listByUser(deviceId, days * 2);
   const byDate = new Map<string, string>();
-  database.checkins
-    .filter(c => c.deviceId === deviceId)
-    .forEach(c => byDate.set(c.createdAt.slice(0, 10), c.mood));
+  checkins.forEach(c => {
+    const dStr = c.createdAt.slice(0, 10);
+    if (!byDate.has(dStr)) {
+      byDate.set(dStr, c.mood);
+    }
+  });
 
   const result: { date: string; mood: string | null }[] = [];
   for (let i = days - 1; i >= 0; i--) {

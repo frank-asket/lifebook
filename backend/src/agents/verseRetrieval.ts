@@ -19,7 +19,7 @@ function getCorpus(): { translation: string; verses: Verse[] } {
   if (!corpusCache) {
     corpusCache = JSON.parse(fs.readFileSync(CORPUS_PATH, 'utf-8'));
   }
-  return corpusCache;
+  return corpusCache!;
 }
 
 const recentlyServed: Record<string, string[]> = {};

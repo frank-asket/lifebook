@@ -16,6 +16,8 @@ import { SettingsScreen } from './src/screens/SettingsScreen';
 import { CheckinResponse, LibraryBook, ActiveJourney, completeJourneyDay } from './src/api/client';
 import { colors } from './src/theme/colors';
 import { setTokenProvider, tokenCache } from './src/auth/clerk';
+import * as Notifications from 'expo-notifications';
+import { initNotificationHandler } from './src/notifications/localScheduler';
 
 const ONBOARDED_KEY = 'lifebook.onboarded';
 
@@ -70,6 +72,19 @@ function LifeBookApp() {
     if (!userId) return;
     AsyncStorage.getItem(`${ONBOARDED_KEY}.${userId}`).then(done => setOnboarded(done === 'true'));
   }, [userId]);
+
+  useEffect(() => {
+    initNotificationHandler();
+    const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response?.notification?.request?.content?.data;
+      if (data?.type === 'daily-morning-reminder' || data?.type === 'test-reminder') {
+        goHome();
+      }
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   if (!isLoaded) return <View style={styles.root} />;
 

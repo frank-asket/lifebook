@@ -11,5 +11,8 @@
     "start": "node scripts/start-all.js start",
     "lint": "npm run lint --workspace=web",
     "test:backend": "python3 -m unittest backend/tests/test_api.py"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0"
   }
 }

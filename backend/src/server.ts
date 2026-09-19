@@ -18,9 +18,9 @@ import { isOriginAllowed, corsOriginHeader } from './security/cors';
 import { checkRateLimit } from './security/rateLimit';
 import { Mood } from './types';
 import { generateCheckin, answerVoiceQuestion, moderateCommunityPost, classifySafetyRisk } from './ai/gateway';
-import { ProfileRepository, CheckinRepository, JournalRepository } from './repositories';
+import { ProfileRepository, CheckinRepository, JournalRepository, PlaylistRepository } from './repositories';
 
-const PORT = Number(process.env.PORT) || 8787;
+const PORT = Number(process.env.BACKEND_PORT) || 8787;
 const VALID_MOODS: Mood[] = ['grateful', 'peaceful', 'seeking', 'doubting', 'distant', 'convicted'];
 
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS) || 60_000;
@@ -154,7 +154,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/streak') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { streak: getStreak(userId) });
+    return send(res, 200, { streak: await getStreak(userId) });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/flag') {
@@ -174,7 +174,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/badges') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { badges: computeBadges(getStreak(userId)) });
+    return send(res, 200, { badges: computeBadges(await getStreak(userId)) });
   }
 
   // ---- Community ----
@@ -193,44 +193,44 @@ const server = http.createServer(async (req, res) => {
     }
   }
   if (req.method === 'GET' && url.pathname === '/api/prayer-requests') {
-    return send(res, 200, { requests: listPrayerRequests() });
+    return send(res, 200, { requests: await listPrayerRequests() });
   }
   if (req.method === 'POST' && url.pathname === '/api/prayer-requests') {
     const body = await readBody(req);
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     if (!body.text) return send(res, 400, { error: 'text is required' });
-    return send(res, 200, submitPrayerRequest(userId, body.text, body.category));
+    return send(res, 200, await submitPrayerRequest(userId, body.text, body.category));
   }
   if (req.method === 'POST' && url.pathname.match(/^\/api\/prayer-requests\/[^/]+\/pray$/)) {
     try {
       const id = url.pathname.split('/')[3];
-      return send(res, 200, { request: prayFor(id) });
+      return send(res, 200, { request: await prayFor(id) });
     } catch (err: any) {
       return send(res, 404, { error: String(err?.message || err) });
     }
   }
   if (req.method === 'GET' && url.pathname === '/api/discussions') {
-    return send(res, 200, { discussions: listDiscussions() });
+    return send(res, 200, { discussions: await listDiscussions() });
   }
   if (req.method === 'POST' && url.pathname === '/api/discussions') {
     const body = await readBody(req);
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     if (!body.title || !body.body) return send(res, 400, { error: 'title and body are required' });
-    return send(res, 200, createDiscussion(userId, body.title, body.body, body.tags));
+    return send(res, 200, await createDiscussion(userId, body.title, body.body, body.tags));
   }
   if (req.method === 'POST' && url.pathname.match(/^\/api\/discussions\/[^/]+\/like$/)) {
     try {
       const id = url.pathname.split('/')[3];
-      return send(res, 200, { discussion: likeDiscussion(id) });
+      return send(res, 200, { discussion: await likeDiscussion(id) });
     } catch (err: any) {
       return send(res, 404, { error: String(err?.message || err) });
     }
   }
   if (req.method === 'GET' && url.pathname.match(/^\/api\/discussions\/[^/]+\/replies$/)) {
     const id = url.pathname.split('/')[3];
-    return send(res, 200, { replies: listReplies(id) });
+    return send(res, 200, { replies: await listReplies(id) });
   }
   if (req.method === 'POST' && url.pathname.match(/^\/api\/discussions\/[^/]+\/replies$/)) {
     try {
@@ -239,7 +239,7 @@ const server = http.createServer(async (req, res) => {
       const userId = await requireUser(req, res, body.deviceId);
       if (!userId) return;
       if (!body.text) return send(res, 400, { error: 'text is required' });
-      return send(res, 200, replyToDiscussion(id, userId, body.text));
+      return send(res, 200, await replyToDiscussion(id, userId, body.text));
     } catch (err: any) {
       return send(res, 404, { error: String(err?.message || err) });
     }
@@ -249,19 +249,19 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/journal') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { entries: listJournalEntries(userId) });
+    return send(res, 200, { entries: await listJournalEntries(userId) });
   }
   if (req.method === 'POST' && url.pathname === '/api/journal') {
     const body = await readBody(req);
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     if (!body.text) return send(res, 400, { error: 'text is required' });
-    return send(res, 200, { entry: addJournalEntry(userId, body.text, body.relatedContentId) });
+    return send(res, 200, { entry: await addJournalEntry(userId, body.text, body.relatedContentId) });
   }
   if (req.method === 'GET' && url.pathname === '/api/favorites') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { favorites: listFavorites(userId) });
+    return send(res, 200, { favorites: await listFavorites(userId) });
   }
   if (req.method === 'POST' && url.pathname === '/api/favorites') {
     const body = await readBody(req);
@@ -270,26 +270,26 @@ const server = http.createServer(async (req, res) => {
     if (!body.contentId || !body.verseText || !body.verseReference) {
       return send(res, 400, { error: 'contentId, verseText, and verseReference are required' });
     }
-    return send(res, 200, { favorite: addFavorite(userId, body.contentId, body.verseText, body.verseReference) });
+    return send(res, 200, { favorite: await addFavorite(userId, body.contentId, body.verseText, body.verseReference) });
   }
   if (req.method === 'GET' && url.pathname === '/api/mood-history') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { history: moodHistory(userId) });
+    return send(res, 200, { history: await moodHistory(userId) });
   }
 
   // ---- Preferences / onboarding ----
   if (req.method === 'GET' && url.pathname === '/api/preferences') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { preferences: getPreferences(userId) });
+    return send(res, 200, { preferences: await getPreferences(userId) });
   }
   if (req.method === 'POST' && url.pathname === '/api/preferences') {
     const body = await readBody(req);
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     const { deviceId, ...updates } = body;
-    return send(res, 200, { preferences: savePreferences(userId, updates) });
+    return send(res, 200, { preferences: await savePreferences(userId, updates) });
   }
 
   // ---- Push notifications ----
@@ -298,7 +298,7 @@ const server = http.createServer(async (req, res) => {
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     if (!body.token) return send(res, 400, { error: 'token is required' });
-    return send(res, 200, { registered: registerPushToken(userId, body.token, body.platform) });
+    return send(res, 200, { registered: await registerPushToken(userId, body.token, body.platform) });
   }
   if (req.method === 'POST' && url.pathname === '/api/notifications/send-test') {
     const body = await readBody(req);
@@ -310,11 +310,11 @@ const server = http.createServer(async (req, res) => {
 
   // ---- Journeys ----
   if (req.method === 'GET' && url.pathname === '/api/journeys') {
-    return send(res, 200, { journeys: listJourneys() });
+    return send(res, 200, { journeys: await listJourneys() });
   }
   if (req.method === 'GET' && url.pathname.match(/^\/api\/journeys\/[^/]+$/)) {
     const id = url.pathname.split('/')[3];
-    const journey = getJourney(id);
+    const journey = await getJourney(id);
     if (!journey) return send(res, 404, { error: 'journey not found' });
     return send(res, 200, { journey });
   }
@@ -324,7 +324,7 @@ const server = http.createServer(async (req, res) => {
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     try {
-      return send(res, 200, { progress: startJourney(userId, id) });
+      return send(res, 200, { progress: await startJourney(userId, id) });
     } catch (err: any) {
       return send(res, 404, { error: String(err?.message || err) });
     }
@@ -332,17 +332,17 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/journeys-active') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { active: getActiveJourney(userId) });
+    return send(res, 200, { active: await getActiveJourney(userId) });
   }
   if (req.method === 'GET' && url.pathname === '/api/journeys-mine') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { progress: listUserJourneys(userId) });
+    return send(res, 200, { progress: await listUserJourneys(userId) });
   }
   if (req.method === 'GET' && url.pathname === '/api/journeys-recommended') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { recommendation: getRecommendedJourney(userId) });
+    return send(res, 200, { recommendation: await getRecommendedJourney(userId) });
   }
   if (req.method === 'POST' && url.pathname.match(/^\/api\/journeys\/[^/]+\/complete-day$/)) {
     const id = url.pathname.split('/')[3];
@@ -350,7 +350,7 @@ const server = http.createServer(async (req, res) => {
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     try {
-      return send(res, 200, { progress: completeDay(userId, id) });
+      return send(res, 200, { progress: await completeDay(userId, id) });
     } catch (err: any) {
       return send(res, 400, { error: String(err?.message || err) });
     }
@@ -360,15 +360,15 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/library') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    const sub = getSubscription(userId);
-    return send(res, 200, { books: listLibrary(userId, sub.tier) });
+    const sub = await getSubscription(userId);
+    return send(res, 200, { books: await listLibrary(userId, sub.tier) });
   }
   if (req.method === 'POST' && url.pathname.match(/^\/api\/library\/[^/]+\/bookmark$/)) {
     const bookId = url.pathname.split('/')[3];
     const body = await readBody(req);
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
-    return send(res, 200, { entry: toggleBookmark(userId, bookId) });
+    return send(res, 200, { entry: await toggleBookmark(userId, bookId) });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/voice/answer') {
@@ -466,14 +466,85 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/subscription') {
     const userId = await requireUser(req, res, url.searchParams.get('deviceId') || undefined);
     if (!userId) return;
-    return send(res, 200, { subscription: getSubscription(userId) });
+    return send(res, 200, { subscription: await getSubscription(userId) });
   }
   if (req.method === 'POST' && url.pathname === '/api/subscription/upgrade') {
     const body = await readBody(req);
     const userId = await requireUser(req, res, body.deviceId);
     if (!userId) return;
     if (!body.billingCycle) return send(res, 400, { error: 'billingCycle is required' });
-    return send(res, 200, { subscription: upgrade(userId, body.billingCycle) });
+    return send(res, 200, { subscription: await upgrade(userId, body.billingCycle) });
+  }
+
+  // ---- LivingWord Playlists ----
+  if (req.method === 'GET' && url.pathname === '/api/livingword/playlists') {
+    const userId = (await requireUser(req, res, url.searchParams.get('deviceId') || undefined)) || 'dev-user';
+    const playlists = await PlaylistRepository.listByUser(userId);
+    return send(res, 200, { playlists });
+  }
+  if (req.method === 'POST' && url.pathname === '/api/livingword/playlists') {
+    const body = await readBody(req);
+    const userId = (await requireUser(req, res, body.deviceId)) || 'dev-user';
+    if (!body.title) return send(res, 400, { error: 'title is required' });
+    const playlist = await PlaylistRepository.create(userId, {
+      title: body.title,
+      description: body.description,
+      icon: body.icon,
+      color: body.color,
+    });
+    return send(res, 201, { playlist });
+  }
+  if (req.method === 'PATCH' && url.pathname.match(/^\/api\/livingword\/playlists\/[^/]+$/)) {
+    const playlistId = url.pathname.split('/')[4];
+    const body = await readBody(req);
+    const userId = (await requireUser(req, res, body.deviceId)) || 'dev-user';
+    const updated = await PlaylistRepository.update(playlistId, userId, body);
+    if (!updated) return send(res, 404, { error: 'playlist not found or unauthorized' });
+    return send(res, 200, { playlist: updated });
+  }
+  if (req.method === 'DELETE' && url.pathname.match(/^\/api\/livingword\/playlists\/[^/]+$/)) {
+    const playlistId = url.pathname.split('/')[4];
+    const userId = (await requireUser(req, res, url.searchParams.get('deviceId') || undefined)) || 'dev-user';
+    const success = await PlaylistRepository.delete(playlistId, userId);
+    if (!success) return send(res, 400, { error: 'cannot delete default playlist or playlist not found' });
+    return send(res, 200, { success: true });
+  }
+  if (req.method === 'POST' && url.pathname.match(/^\/api\/livingword\/playlists\/[^/]+\/items$/)) {
+    const playlistId = url.pathname.split('/')[4];
+    const body = await readBody(req);
+    const userId = (await requireUser(req, res, body.deviceId)) || 'dev-user';
+    if (!body.teachingSlug || !body.teachingTitle) {
+      return send(res, 400, { error: 'teachingSlug and teachingTitle are required' });
+    }
+    const result = await PlaylistRepository.addItem(userId, playlistId, {
+      teachingSlug: body.teachingSlug,
+      teachingTitle: body.teachingTitle,
+      teacher: body.teacher || 'Pastor Asket',
+      duration: body.duration || '10 min',
+      category: body.category,
+      audioUrl: body.audioUrl,
+      portrait: body.portrait,
+    });
+    return send(res, 200, result);
+  }
+  if (req.method === 'DELETE' && url.pathname.match(/^\/api\/livingword\/playlists\/[^/]+\/items\/[^/]+$/)) {
+    const parts = url.pathname.split('/');
+    const playlistId = parts[4];
+    const slug = parts[6];
+    const userId = (await requireUser(req, res, url.searchParams.get('deviceId') || undefined)) || 'dev-user';
+    const updated = await PlaylistRepository.removeItem(userId, playlistId, slug);
+    if (!updated) return send(res, 404, { error: 'playlist not found or item not found' });
+    return send(res, 200, { playlist: updated });
+  }
+  if (req.method === 'POST' && url.pathname.match(/^\/api\/livingword\/playlists\/[^/]+\/reorder$/)) {
+    const playlistId = url.pathname.split('/')[4];
+    const body = await readBody(req);
+    const userId = (await requireUser(req, res, body.deviceId)) || 'dev-user';
+    if (!Array.isArray(body.teachingSlugs)) {
+      return send(res, 400, { error: 'teachingSlugs array is required' });
+    }
+    const updated = await PlaylistRepository.reorderItems(userId, playlistId, body.teachingSlugs);
+    return send(res, 200, { playlist: updated });
   }
 
   send(res, 404, { error: 'not found' });

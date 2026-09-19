@@ -27,6 +27,7 @@ function emptyDb(): Database {
     libraryProgress: {}, subscriptions: {},
     journalEntries: [], favorites: [], preferences: {}, pushTokens: {},
     journeyProgress: {}, livingWordComments: [],
+    playlists: [], playlistItems: [],
   };
 }
 
@@ -35,16 +36,19 @@ let memoryCache: Database | null = null;
 function load(): Database {
   if (memoryCache) return memoryCache;
   if (!fs.existsSync(DB_PATH)) {
-    memoryCache = emptyDb();
-    return memoryCache;
+    const fresh = emptyDb();
+    memoryCache = fresh;
+    return fresh;
   }
   try {
     const raw = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    memoryCache = { ...emptyDb(), ...raw };
-    return memoryCache;
+    const loaded: Database = { ...emptyDb(), ...raw };
+    memoryCache = loaded;
+    return loaded;
   } catch {
-    memoryCache = emptyDb();
-    return memoryCache;
+    const fresh = emptyDb();
+    memoryCache = fresh;
+    return fresh;
   }
 }
 

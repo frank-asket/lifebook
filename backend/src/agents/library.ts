@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { db } from '../db';
 import { LibraryBook } from '../types';
+import { LibraryRepository } from '../repositories';
 
 let catalogCache: LibraryBook[] | null = null;
 function getCatalog(): LibraryBook[] {
@@ -10,12 +10,11 @@ function getCatalog(): LibraryBook[] {
       fs.readFileSync(path.join(__dirname, '..', 'data', 'library.json'), 'utf-8')
     ).books;
   }
-  return catalogCache;
+  return catalogCache!;
 }
 
-export function listLibrary(deviceId: string, tier: 'free' | 'premium') {
-  const database = db.read();
-  const progress = database.libraryProgress[deviceId] || [];
+export async function listLibrary(deviceId: string, tier: 'free' | 'premium') {
+  const progress = await LibraryRepository.listProgress(deviceId);
 
   return getCatalog().map(book => {
     const entry = progress.find(p => p.bookId === book.id);
@@ -28,18 +27,6 @@ export function listLibrary(deviceId: string, tier: 'free' | 'premium') {
   });
 }
 
-export function toggleBookmark(deviceId: string, bookId: string) {
-  const database = db.read();
-  if (!database.libraryProgress[deviceId]) database.libraryProgress[deviceId] = [];
-  const list = database.libraryProgress[deviceId];
-
-  let entry = list.find(p => p.bookId === bookId);
-  if (!entry) {
-    entry = { bookId, progressPercent: 0, bookmarked: true };
-    list.push(entry);
-  } else {
-    entry.bookmarked = !entry.bookmarked;
-  }
-  db.write(database);
-  return entry;
+export async function toggleBookmark(deviceId: string, bookId: string) {
+  return LibraryRepository.toggleBookmark(deviceId, bookId);
 }

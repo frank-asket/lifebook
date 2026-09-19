@@ -1,4 +1,5 @@
 import { db } from '../db';
+import { PushTokenRepository } from '../repositories';
 
 // --------------------------------------------------------------------------
 // This sends through Expo's push notification service
@@ -21,16 +22,12 @@ import { db } from '../db';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 
-export function registerPushToken(userId: string, token: string, platform: 'ios' | 'android' | 'unknown' = 'unknown') {
-  const database = db.read();
-  database.pushTokens[userId] = { userId, token, platform, updatedAt: new Date().toISOString() };
-  db.write(database);
-  return database.pushTokens[userId];
+export async function registerPushToken(userId: string, token: string, platform: 'ios' | 'android' | 'unknown' = 'unknown') {
+  return PushTokenRepository.upsert({ userId, token, platform, updatedAt: new Date().toISOString() });
 }
 
-export function getPushToken(userId: string) {
-  const database = db.read();
-  return database.pushTokens[userId] || null;
+export async function getPushToken(userId: string) {
+  return PushTokenRepository.get(userId);
 }
 
 export interface SendResult {
@@ -40,7 +37,7 @@ export interface SendResult {
 }
 
 export async function sendPushNotification(userId: string, title: string, body: string): Promise<SendResult> {
-  const record = getPushToken(userId);
+  const record = await getPushToken(userId);
   if (!record) {
     return { sent: false, reason: 'No push token registered for this user yet' };
   }

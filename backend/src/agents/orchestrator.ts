@@ -69,13 +69,28 @@ export async function runCheckin(deviceId: string, mood: Mood, note?: string): P
 
   // Durable sync to Supabase when configured
   try {
-    const { CheckinRepository, ProfileRepository } = await import('../repositories');
+    const { CheckinRepository, ProfileRepository, StreakRepository, GeneratedContentRepository } = await import('../repositories');
     await CheckinRepository.create({
       id: checkinId,
       userId: deviceId,
       mood,
       note,
     });
+    await GeneratedContentRepository.create({
+      id: content.id,
+      checkinId: content.checkinId,
+      userId: deviceId,
+      verseText: content.verseText,
+      verseReference: content.verseReference,
+      whyThisVerse: content.whyThisVerse,
+      meditation: content.meditation,
+      reflectionQuestion: content.reflectionQuestion,
+      prayer: content.prayer,
+      actionStep: content.actionStep,
+      reviewVerdict: content.reviewVerdict,
+      modelMode: content.modelMode,
+    });
+    await StreakRepository.upsert(streak);
     await ProfileRepository.upsert({
       id: deviceId,
       currentStreak: streak.current,
@@ -83,15 +98,15 @@ export async function runCheckin(deviceId: string, mood: Mood, note?: string): P
       lastCheckinDate: today,
     });
   } catch (syncErr) {
-    // Non-blocking: local store remains primary if offline or during provisioning
+    // Non-blocking: local store remains mirror if offline
   }
 
   return { content, streak, supportNoteNeeded: review.supportNoteNeeded };
 }
 
-export function getStreak(deviceId: string): StreakRecord | null {
-  const database = db.read();
-  return database.streaks[deviceId] || null;
+export async function getStreak(deviceId: string): Promise<StreakRecord | null> {
+  const { StreakRepository } = await import('../repositories');
+  return StreakRepository.get(deviceId);
 }
 
 export function fileFlag(contentId: string, deviceId: string, reason?: string) {

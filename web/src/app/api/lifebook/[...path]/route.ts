@@ -39,7 +39,19 @@ async function forward(request: Request, path: string[]) {
   const headers = new Headers();
   const contentType = request.headers.get('content-type');
   if (contentType) headers.set('content-type', contentType);
-  if (token) headers.set('authorization', `Bearer ${token}`);
+
+  const incomingAuth = request.headers.get('authorization');
+  if (token) {
+    headers.set('authorization', `Bearer ${token}`);
+  } else if (incomingAuth) {
+    headers.set('authorization', incomingAuth);
+  }
+
+  const incomingUserId = request.headers.get('x-user-id') || userId;
+  if (incomingUserId) {
+    headers.set('x-user-id', incomingUserId);
+  }
+
   const upstream = await fetch(`${API_URL.replace(/\/$/, '')}/api/${path.join('/')}${new URL(request.url).search}`, {
     method: request.method, headers,
     body: request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.arrayBuffer(), cache: 'no-store',
@@ -49,3 +61,5 @@ async function forward(request: Request, path: string[]) {
 
 export async function GET(request: Request, { params }: { params: Promise<{ path: string[] }> }) { return forward(request, (await params).path); }
 export async function POST(request: Request, { params }: { params: Promise<{ path: string[] }> }) { return forward(request, (await params).path); }
+export async function PATCH(request: Request, { params }: { params: Promise<{ path: string[] }> }) { return forward(request, (await params).path); }
+export async function DELETE(request: Request, { params }: { params: Promise<{ path: string[] }> }) { return forward(request, (await params).path); }

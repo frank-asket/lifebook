@@ -3,6 +3,7 @@ import path from 'node:path';
 import { db } from '../db';
 import { Journey, JourneyDay, UserJourneyProgress, Mood } from '../types';
 import { moodHistory } from './journal';
+import { JourneyRepository } from '../repositories';
 
 let catalogCache: { journeys: Journey[]; days: JourneyDay[] } | null = null;
 function getCatalog(): { journeys: Journey[]; days: JourneyDay[] } {
@@ -11,34 +12,39 @@ function getCatalog(): { journeys: Journey[]; days: JourneyDay[] } {
       fs.readFileSync(path.join(__dirname, '..', 'data', 'journeys.json'), 'utf-8')
     );
   }
-  return catalogCache;
+  return catalogCache!;
 }
 
-export function listJourneys(): Journey[] {
+export async function listJourneys(): Promise<Journey[]> {
+  const supabaseJourneys = await JourneyRepository.listAll();
+  if (supabaseJourneys && supabaseJourneys.length > 0) {
+    return supabaseJourneys;
+  }
   return getCatalog().journeys;
 }
 
-export function getJourney(journeyId: string): Journey | null {
-  return getCatalog().journeys.find(j => j.id === journeyId) || null;
+export async function getJourney(journeyId: string): Promise<Journey | null> {
+  const journeys = await listJourneys();
+  return journeys.find(j => j.id === journeyId) || null;
 }
 
-export function getJourneyDay(journeyId: string, dayNumber: number): JourneyDay | null {
+export async function getJourneyDay(journeyId: string, dayNumber: number): Promise<JourneyDay | null> {
+  const supabaseDay = await JourneyRepository.getDay(journeyId, dayNumber);
+  if (supabaseDay) return supabaseDay;
   return getCatalog().days.find(d => d.journeyId === journeyId && d.dayNumber === dayNumber) || null;
 }
 
-export function listUserJourneys(userId: string): UserJourneyProgress[] {
-  const database = db.read();
-  return database.journeyProgress[userId] || [];
+export async function listUserJourneys(userId: string): Promise<UserJourneyProgress[]> {
+  return JourneyRepository.getUserProgress(userId);
 }
 
-export function startJourney(userId: string, journeyId: string): UserJourneyProgress {
-  const journey = getJourney(journeyId);
+export async function startJourney(userId: string, journeyId: string): Promise<UserJourneyProgress> {
+  const journey = await getJourney(journeyId);
   if (!journey) throw new Error('Journey not found');
 
-  const database = db.read();
-  if (!database.journeyProgress[userId]) database.journeyProgress[userId] = [];
-  const existing = database.journeyProgress[userId].find(p => p.journeyId === journeyId);
-  if (existing) return existing; // already started — don't reset progress
+  const existingList = await listUserJourneys(userId);
+  const existing = existingList.find(p => p.journeyId === journeyId);
+  if (existing) return existing;
 
   const progress: UserJourneyProgress = {
     journeyId,
@@ -46,31 +52,33 @@ export function startJourney(userId: string, journeyId: string): UserJourneyProg
     completedDays: [],
     startedAt: new Date().toISOString(),
   };
-  database.journeyProgress[userId].push(progress);
-  db.write(database);
+
+  await JourneyRepository.syncUserProgress({
+    userId,
+    journeyId,
+    currentDay: progress.currentDay,
+    completedDays: progress.completedDays,
+  });
+
   return progress;
 }
 
-// The "active" journey shown on Home is the most recently started one that
-// isn't finished yet — if the user has multiple in progress, the newest
-// takes priority for the home screen's Continue card.
-export function getActiveJourney(userId: string): { journey: Journey; progress: UserJourneyProgress; day: JourneyDay } | null {
-  const list = listUserJourneys(userId).filter(p => !p.completedAt);
+export async function getActiveJourney(userId: string): Promise<{ journey: Journey; progress: UserJourneyProgress; day: JourneyDay } | null> {
+  const list = (await listUserJourneys(userId)).filter(p => !p.completedAt);
   if (list.length === 0) return null;
   const progress = list[list.length - 1];
-  const journey = getJourney(progress.journeyId);
-  const day = journey ? getJourneyDay(progress.journeyId, progress.currentDay) : null;
+  const journey = await getJourney(progress.journeyId);
+  const day = journey ? await getJourneyDay(progress.journeyId, progress.currentDay) : null;
   if (!journey || !day) return null;
   return { journey, progress, day };
 }
 
-export function completeDay(userId: string, journeyId: string): UserJourneyProgress {
-  const database = db.read();
-  const list = database.journeyProgress[userId] || [];
+export async function completeDay(userId: string, journeyId: string): Promise<UserJourneyProgress> {
+  const list = await listUserJourneys(userId);
   const progress = list.find(p => p.journeyId === journeyId);
   if (!progress) throw new Error('Journey not started for this user');
 
-  const journey = getJourney(journeyId);
+  const journey = await getJourney(journeyId);
   if (!journey) throw new Error('Journey not found');
 
   if (!progress.completedDays.includes(progress.currentDay)) {
@@ -83,7 +91,14 @@ export function completeDay(userId: string, journeyId: string): UserJourneyProgr
     progress.currentDay += 1;
   }
 
-  db.write(database);
+  await JourneyRepository.syncUserProgress({
+    userId,
+    journeyId,
+    currentDay: progress.currentDay,
+    completedDays: progress.completedDays,
+    completedAt: progress.completedAt,
+  });
+
   return progress;
 }
 
@@ -93,22 +108,6 @@ export interface JourneyRecommendation {
   personalized: boolean;
 }
 
-// --------------------------------------------------------------------------
-// Real personalization, not a static "recommended" label: scores each
-// not-yet-started journey against the user's actual mood history from the
-// last 7 days (via journal.ts's moodHistory, which is itself derived from
-// real check-ins — see journal.ts's own comment on that).
-//
-// Mood vocabulary is the research-grounded 6-mood set (grateful, peaceful,
-// seeking, doubting, distant, convicted) — see root README for the sourcing
-// (LifeWay Research on doubt, Barna Group on spiritual transformation
-// stages, and documented spiritual dryness literature). "Overcoming Fear"
-// maps to doubting/convicted since fear and doubt are closely linked
-// pastorally — a defensible connection this journey didn't have under the
-// previous upbeat-only mood set.
-// --------------------------------------------------------------------------
-// Same grammar concern as contentGeneration.ts's dev fallback — "feeling
-// doubting" isn't valid English, so each mood needs its own natural clause.
 const MOOD_STATE: Record<Mood, string> = {
   grateful: 'feeling grateful',
   peaceful: 'feeling peaceful',
@@ -118,13 +117,14 @@ const MOOD_STATE: Record<Mood, string> = {
   convicted: 'feeling convicted',
 };
 
-export function getRecommendedJourney(userId: string): JourneyRecommendation | null {
-  const database = db.read();
-  const started = new Set((database.journeyProgress[userId] || []).map(p => p.journeyId));
-  const candidates = CATALOG.journeys.filter(j => !started.has(j.id));
+export async function getRecommendedJourney(userId: string): Promise<JourneyRecommendation | null> {
+  const catalog = await listJourneys();
+  const userProgress = await listUserJourneys(userId);
+  const started = new Set(userProgress.map(p => p.journeyId));
+  const candidates = catalog.filter(j => !started.has(j.id));
   if (candidates.length === 0) return null;
 
-  const history = moodHistory(userId, 7);
+  const history = await moodHistory(userId, 7);
   const counts: Partial<Record<Mood, number>> = {};
   for (const entry of history) {
     if (entry.mood) counts[entry.mood as Mood] = (counts[entry.mood as Mood] || 0) + 1;
@@ -153,7 +153,6 @@ export function getRecommendedJourney(userId: string): JourneyRecommendation | n
     };
   }
 
-  // No mood signal strong enough to personalize — fall back to catalog order.
   return {
     journey: candidates[0],
     reason: history.every(h => !h.mood) ? 'A good place to start' : 'Something new to try',

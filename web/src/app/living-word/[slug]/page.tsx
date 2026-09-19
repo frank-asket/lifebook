@@ -8,11 +8,13 @@ import { FormEvent, useState } from "react";
 import { teachings } from "../../livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { PlaylistModal } from "@/components/PlaylistModal";
 
 export default function LivingWordDetail() {
   const { slug } = useParams<{ slug: string }>();
   const teaching = teachings.find((item) => item.slug === slug);
   const [streamMode, setStreamMode] = useState<"video" | "audio">("video");
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const { isFr } = useLanguage();
 
   const starterComments = isFr
@@ -77,6 +79,14 @@ export default function LivingWordDetail() {
             <span>{category}</span>
             <span>{teaching.duration}</span>
             <span>{scripture}</span>
+            <button
+              type="button"
+              onClick={() => setIsPlaylistModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-semibold transition-colors border border-white/20 shadow-xs cursor-pointer"
+            >
+              <span>📑</span>
+              <span>{isFr ? "Ajouter à une liste" : "Save to Playlist"}</span>
+            </button>
           </div>
         </div>
         <div className="detail-verse">
@@ -148,6 +158,14 @@ export default function LivingWordDetail() {
             <button type="button" className="live-reminder">
               {isFr ? "M'alerter des rassemblements en direct ↗" : "Notify me about live gatherings ↗"}
             </button>
+            <button
+              type="button"
+              onClick={() => setIsPlaylistModalOpen(true)}
+              className="w-full mt-3 py-2.5 px-3 rounded-xl border border-[#7F67B5] bg-purple-900/30 hover:bg-purple-900/50 text-purple-200 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            >
+              <span>📑</span>
+              <span>{isFr ? "Enregistrer pour plus tard" : "Save to Listening Playlist"}</span>
+            </button>
           </div>
         </div>
       </section>
@@ -212,6 +230,12 @@ export default function LivingWordDetail() {
           <Link href="/#join">{isFr ? "Rejoindre le cercle" : "Join the early circle"}</Link>
         </nav>
       </footer>
+
+      <PlaylistModal
+        teaching={teaching}
+        isOpen={isPlaylistModalOpen}
+        onClose={() => setIsPlaylistModalOpen(false)}
+      />
     </main>
   );
 }

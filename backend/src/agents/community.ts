@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { db } from '../db';
 import { Group, PrayerRequest, Discussion, DiscussionReply } from '../types';
 import { moderate } from './communityModeration';
+import { PrayerRepository, DiscussionRepository } from '../repositories';
 
 let seedGroupsCache: Group[] | null = null;
 function getSeedGroups(): Group[] {
@@ -12,7 +13,7 @@ function getSeedGroups(): Group[] {
       fs.readFileSync(path.join(__dirname, '..', 'data', 'groups.json'), 'utf-8')
     ).groups.map((g: any) => ({ ...g, memberCount: 0 }));
   }
-  return seedGroupsCache;
+  return seedGroupsCache!;
 }
 
 function ensureGroupsSeeded() {
@@ -46,14 +47,11 @@ export function joinGroup(groupId: string, deviceId: string) {
   return { joined: true, memberCount: database.groupMembers.filter(m => m.groupId === groupId).length };
 }
 
-export function listPrayerRequests() {
-  const database = db.read();
-  return database.prayerRequests
-    .filter(r => r.moderationStatus === 'approved')
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+export async function listPrayerRequests() {
+  return PrayerRepository.listApproved();
 }
 
-export function submitPrayerRequest(deviceId: string, text: string, category?: string): { request: PrayerRequest; needsSupportNote: boolean } {
+export async function submitPrayerRequest(deviceId: string, text: string, category?: string): Promise<{ request: PrayerRequest; needsSupportNote: boolean }> {
   const { status, needsSupportNote } = moderate(text);
   const request: PrayerRequest = {
     id: randomUUID(),
@@ -65,82 +63,41 @@ export function submitPrayerRequest(deviceId: string, text: string, category?: s
     moderationStatus: status,
     createdAt: new Date().toISOString(),
   };
-  const database = db.read();
-  database.prayerRequests.push(request);
-  db.write(database);
 
-  // Durable sync to Supabase with moderation queue staging
-  import('../repositories').then(({ PrayerRepository }) => {
-    PrayerRepository.create({
-      id: request.id,
-      userId: deviceId,
-      text,
-      category,
-      moderationStatus: status,
-      aiFlaggedReason: needsSupportNote ? 'Distress or escalation keywords flagged' : undefined,
-    }).catch(() => {});
-  }).catch(() => {});
+  await PrayerRepository.create({
+    id: request.id,
+    userId: deviceId,
+    text,
+    category,
+    moderationStatus: status,
+    aiFlaggedReason: needsSupportNote ? 'Distress or escalation keywords flagged' : undefined,
+  });
 
   return { request, needsSupportNote };
 }
 
-export function prayFor(requestId: string) {
-  const database = db.read();
-  const request = database.prayerRequests.find(r => r.id === requestId);
-  if (!request) throw new Error('Prayer request not found');
-  request.prayerCount += 1;
-  db.write(database);
-
-  import('../repositories').then(({ PrayerRepository }) => {
-    PrayerRepository.pray(requestId).catch(() => {});
-  }).catch(() => {});
-
-  return request;
-}
-
-export function likeDiscussion(discussionId: string) {
-  const database = db.read();
-  const discussion = database.discussions.find(d => d.id === discussionId);
-  if (!discussion) throw new Error('Discussion not found');
-  discussion.likeCount += 1;
-  db.write(database);
-  return discussion;
-}
-
-export function replyToDiscussion(discussionId: string, deviceId: string, text: string): { reply: DiscussionReply; needsSupportNote: boolean } {
-  const database = db.read();
-  const discussion = database.discussions.find(d => d.id === discussionId);
-  if (!discussion) throw new Error('Discussion not found');
-
-  const { needsSupportNote } = moderate(text);
-  const reply: DiscussionReply = {
-    id: randomUUID(),
-    discussionId,
-    deviceId,
+export async function prayFor(requestId: string) {
+  const newCount = await PrayerRepository.pray(requestId);
+  const local = db.read();
+  const req = local.prayerRequests.find(r => r.id === requestId) || {
+    id: requestId,
+    deviceId: '',
     authorName: 'A LifeBook user',
-    text,
+    text: '',
+    prayerCount: newCount,
+    moderationStatus: 'approved' as const,
     createdAt: new Date().toISOString(),
   };
-  database.discussionReplies.push(reply);
-  discussion.replyCount += 1;
-  db.write(database);
-  return { reply, needsSupportNote };
+  req.prayerCount = newCount;
+  return req;
 }
 
-export function listReplies(discussionId: string) {
-  const database = db.read();
-  return database.discussionReplies.filter(r => r.discussionId === discussionId);
+export async function listDiscussions() {
+  return DiscussionRepository.listApproved();
 }
 
-export function listDiscussions() {
-  const database = db.read();
-  return database.discussions
-    .filter(d => d.moderationStatus === 'approved')
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-}
-
-export function createDiscussion(deviceId: string, title: string, body: string, tags: string[] = []): { discussion: Discussion; needsSupportNote: boolean } {
-  const { status, needsSupportNote } = moderate(`${title} ${body}`);
+export async function createDiscussion(deviceId: string, title: string, body: string, tags: string[] = []): Promise<{ discussion: Discussion; needsSupportNote: boolean }> {
+  const { status, needsSupportNote } = moderate(`${title}\n${body}`);
   const discussion: Discussion = {
     id: randomUUID(),
     deviceId,
@@ -153,21 +110,35 @@ export function createDiscussion(deviceId: string, title: string, body: string, 
     moderationStatus: status,
     createdAt: new Date().toISOString(),
   };
-  const database = db.read();
-  database.discussions.push(discussion);
-  db.write(database);
 
-  import('../repositories').then(({ DiscussionRepository }) => {
-    DiscussionRepository.create({
-      id: discussion.id,
-      userId: deviceId,
-      title,
-      body,
-      tags,
-      moderationStatus: status,
-      aiFlaggedReason: needsSupportNote ? 'Distress or escalation keywords flagged' : undefined,
-    }).catch(() => {});
-  }).catch(() => {});
+  await DiscussionRepository.create({
+    id: discussion.id,
+    userId: deviceId,
+    title,
+    body,
+    tags,
+    moderationStatus: status,
+    aiFlaggedReason: needsSupportNote ? 'Flagged by community standards' : undefined,
+  });
 
   return { discussion, needsSupportNote };
+}
+
+export async function likeDiscussion(discussionId: string) {
+  return DiscussionRepository.like(discussionId);
+}
+
+export async function listReplies(discussionId: string) {
+  return DiscussionRepository.listReplies(discussionId);
+}
+
+export async function replyToDiscussion(discussionId: string, deviceId: string, text: string): Promise<{ reply: DiscussionReply; needsSupportNote: boolean }> {
+  const { needsSupportNote } = moderate(text);
+  const id = randomUUID();
+  const reply = await DiscussionRepository.reply(discussionId, {
+    id,
+    userId: deviceId,
+    text,
+  });
+  return { reply, needsSupportNote };
 }

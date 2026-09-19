@@ -3,6 +3,7 @@ import { View, Text, Pressable, TextInput, ScrollView, StyleSheet, Image } from 
 import { colors, MOODS } from '../theme/colors';
 import { savePreferences } from '../api/client';
 import { trackEvent } from '../analytics/telemetry';
+import { scheduleDailyMorningReminder, parseTimeString } from '../notifications/localScheduler';
 
 interface Props {
   deviceId: string;
@@ -53,6 +54,14 @@ export function OnboardingScreen({ deviceId, onComplete }: Props) {
         notificationTime,
         onboardingCompletedAt: new Date().toISOString(),
       });
+
+      // Automatically configure daily 5-minute morning reminder from onboarding choice
+      if (notificationTime) {
+        const { hour, minute } = parseTimeString(notificationTime);
+        await scheduleDailyMorningReminder(hour, minute).catch(err => {
+          console.warn('[Onboarding] Could not schedule initial reminder:', err);
+        });
+      }
     } finally {
       setSaving(false);
       onComplete();
