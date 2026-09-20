@@ -1,0 +1,109 @@
+{
+  "checkins": [
+    {
+      "id": "80815e60-3747-49ac-8f2a-2ba6a1139d2c",
+      "deviceId": "test-dev-user",
+      "mood": "peaceful",
+      "createdAt": "2026-09-16T23:31:54.951Z"
+    },
+    {
+      "id": "80815e60-3747-49ac-8f2a-2ba6a1139d2c",
+      "deviceId": "test-dev-user",
+      "userId": "test-dev-user",
+      "mood": "peaceful",
+      "createdAt": "2026-09-16T23:31:55.020Z"
+    },
+    {
+      "id": "0311150a-fda8-4b9c-88e7-96956d8dc7e8",
+      "deviceId": "test-dev-user",
+      "mood": "distant",
+      "note": "I want to die",
+      "createdAt": "2026-09-16T23:32:17.692Z"
+    },
+    {
+      "id": "0311150a-fda8-4b9c-88e7-96956d8dc7e8",
+      "deviceId": "test-dev-user",
+      "userId": "test-dev-user",
+      "mood": "distant",
+      "note": "I want to die",
+      "createdAt": "2026-09-16T23:32:17.696Z"
+    }
+  ],
+  "content": [
+    {
+      "id": "a25a189d-3f01-4e3e-a3aa-fbedc338b938",
+      "checkinId": "80815e60-3747-49ac-8f2a-2ba6a1139d2c",
+      "verseText": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "verseReference": "John 14:27",
+      "whyThisVerse": "This verse speaks directly to peace — it's one of the passages LifeBook returns to most for that season.",
+      "meditation": "Sit for a moment with \"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.\" Let the words settle rather than rushing past them. Notice what in your day left you feeling peaceful.",
+      "reflectionQuestion": "Where in the last day were you feeling peaceful, and what would it look like to bring that moment to God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry John 14:27 with me. Amen.",
+      "actionStep": "Send a one-line message to someone you trust, just to say hello.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-16T23:31:54.951Z"
+    },
+    {
+      "id": "43c162f8-e7a4-4989-9e75-cdcbd3694326",
+      "checkinId": "0311150a-fda8-4b9c-88e7-96956d8dc7e8",
+      "verseText": "As the hart panteth after the water brooks, so panteth my soul after thee, O God. My soul thirsteth for God, for the living God: when shall I come and appear before God?",
+      "verseReference": "Psalm 42:1-2",
+      "whyThisVerse": "This verse speaks directly to distance from God — it's one of the passages LifeBook returns to most for that season.",
+      "meditation": "Sit for a moment with \"As the hart panteth after the water brooks, so panteth my soul after thee, O God. My soul thirsteth for God, for the living God: when shall I come and appear before God?\" Let the words settle rather than rushing past them. Notice what in your day left you feeling distant from God.",
+      "reflectionQuestion": "Where in the last day were you feeling distant from God, and what would it look like to bring that moment to God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry Psalm 42:1-2 with me. Amen.",
+      "actionStep": "Send a one-line message to someone you trust, just to say hello.",
+      "reviewVerdict": "uncertain",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-16T23:32:17.692Z"
+    }
+  ],
+  "streaks": {
+    "test-dev-user": {
+      "deviceId": "test-dev-user",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-16",
+      "history": [
+        {
+          "date": "2026-09-16",
+          "mood": "distant"
+        }
+      ]
+    }
+  },
+  "flags": [],
+  "groups": [],
+  "groupMembers": [],
+  "prayerRequests": [],
+  "discussions": [],
+  "discussionReplies": [],
+  "libraryProgress": {},
+  "subscriptions": {},
+  "journalEntries": [],
+  "favorites": [],
+  "preferences": {},
+  "pushTokens": {},
+  "journeyProgress": {},
+  "livingWordComments": [
+    {
+      "id": "9d4d77ba-ed37-497e-8d90-cebe9d46329e",
+      "teachingSlug": "when-faith-feels-small",
+      "userId": "demo-user",
+      "authorName": "Demo disciple",
+      "text": "This gave me a place to bring my questions to Jesus.",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-09T15:37:41.644Z"
+    },
+    {
+      "id": "dd4e2863-722c-4af3-a79d-314ce6eb4fcd",
+      "teachingSlug": "when-faith-feels-small",
+      "userId": "demo-user",
+      "authorName": "LifeBook member",
+      "text": "click here to buy now",
+      "moderationStatus": "rejected",
+      "createdAt": "2026-09-09T15:37:41.670Z"
+    }
+  ]
+}

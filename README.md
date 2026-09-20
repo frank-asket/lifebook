@@ -78,9 +78,10 @@ The web MVP supports tap-to-talk voice input and a Scripture-grounded conversati
 
 | Area | Purpose | Start here |
 | --- | --- | --- |
-| `web/` | Next.js landing page, LifeBook Voice, LivingWord, teaching detail routes | [`web/README.md`](web/README.md) |
-| `mobile/` | Expo / React Native app with onboarding, guided practice, community, library, and profile | [`mobile/App.tsx`](mobile/App.tsx) |
-| `backend/` | Node.js / TypeScript API, agents, safety review, journeys, journal, community, and subscriptions | [`backend/README.md`](backend/README.md) |
+| `clients/web/` | Next.js landing page, LifeBook Voice, LivingWord, teaching detail routes | [`clients/web/README.md`](clients/web/README.md) |
+| `clients/mobile/` | Expo / React Native app with onboarding, guided practice, community, library, and profile | [`clients/mobile/App.tsx`](clients/mobile/App.tsx) |
+| `microservices/domain-2/service-b/` | Current FastAPI API and AI orchestration implementation | [`microservices/domain-2/service-b/README.md`](microservices/domain-2/service-b/README.md) |
+| `api-gateway/`, `identity-provider/`, `message-broker/`, `databases/` | Distributed-system infrastructure blueprint | [`docs/microservices-blueprint.md`](docs/microservices-blueprint.md) |
 | `docs/` | Product, technical, UX, flow, schema, and implementation documents | [`docs/`](docs/) |
 
 ## Run locally
@@ -88,7 +89,7 @@ The web MVP supports tap-to-talk voice input and a Scripture-grounded conversati
 ### Web
 
 ```bash
-cd web
+cd clients/web
 npm install
 npm run dev
 ```
@@ -103,7 +104,7 @@ Open [http://localhost:3000](http://localhost:3000). Current routes:
 ### Backend
 
 ```bash
-cd backend
+cd microservices/domain-2/service-b
 npm install
 npm run dev
 ```
@@ -120,25 +121,25 @@ curl -X POST http://localhost:8787/api/checkin \
 ### Mobile
 
 ```bash
-cd mobile
+cd clients/mobile
 npm install
 npx expo start
 ```
 
-Use Expo Go or an iOS/Android simulator. For a physical device, update the API base URL in `mobile/src/api/client.ts` to your computer's LAN IP.
+Use Expo Go or an iOS/Android simulator. For a physical device, update the API base URL in `clients/mobile/src/api/client.ts` to your computer's LAN IP.
 
 ## Architecture
 
 ```mermaid
 graph TD
-    Web[Next.js web] --> API[Node TypeScript API]
+    Web[Next.js web] --> API[FastAPI service]
     Mobile[Expo mobile] --> API
     API --> Orchestrator[Check-in orchestrator]
     Orchestrator --> Retrieval[Verse retrieval]
     Orchestrator --> Generation[Content generation]
     Orchestrator --> Safety[Safety review]
     API --> Store[(JSON data store in dev)]
-    API --> Auth[Firebase auth when configured]
+    API --> Auth[Clerk auth when configured]
 ```
 
 The backend uses a zero-dependency JSON store for development. Production should move durable user data to Postgres, Firestore, or another managed database before public launch.
@@ -162,7 +163,7 @@ The backend uses a zero-dependency JSON store for development. Production should
 | Licensed audio and video | Pending real recordings and distribution agreements |
 
 The backend also includes independently runnable LivingWord and Voice services
-on ports `8788` and `8789`; see [`backend/src/microservices/README.md`](backend/src/microservices/README.md).
+on ports `8788` and `8789`; see [`microservices/domain-2/service-b/src/microservices/README.md`](microservices/domain-2/service-b/src/microservices/README.md).
 
 ## Development principles
 

@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "web"
+    "clients/web"
   ],
   "scripts": {
     "dev": "node scripts/start-all.js dev",
     "build": "npm run build --workspace=web",
     "start": "node scripts/start-all.js start",
     "lint": "npm run lint --workspace=web",
-    "test:backend": "python3 -m unittest backend/tests/test_api.py"
+    "test:backend": "npm --prefix microservices/domain-2/service-b test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0"
