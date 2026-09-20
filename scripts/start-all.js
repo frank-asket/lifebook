@@ -16,22 +16,17 @@ function checkBackend(callback) {
 function startBackend() {
   console.log('[LifeBook] Starting backend service on port 8787...');
   let proc;
-  try {
-    const { execSync } = require('child_process');
-    execSync('python3 -m uvicorn --version', { stdio: 'ignore' });
-    proc = spawn('python3', ['-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8787'], {
-      stdio: 'inherit',
-      env: process.env,
-      cwd: 'microservices/domain-2/service-b',
-    });
-  } catch {
-    console.log('[LifeBook] Using Node TS backend server on port 8787...');
-    proc = spawn('npx', ['tsx', 'src/server.ts'], {
-      stdio: 'inherit',
-      env: process.env,
-      cwd: 'microservices/domain-2/service-b',
-    });
-  }
+  const fs = require('fs');
+  const path = require('path');
+
+  const microserviceTs = path.join(__dirname, '..', 'microservices', 'domain-2', 'service-b', 'src', 'server.ts');
+  const serverPath = fs.existsSync(microserviceTs) ? microserviceTs : path.join(__dirname, '..', 'backend', 'src', 'server.ts');
+
+  console.log(`[LifeBook] Using Node TS backend server on port 8787 (${serverPath})...`);
+  proc = spawn('npx', ['tsx', serverPath], {
+    stdio: 'inherit',
+    env: process.env,
+  });
 
   proc.on('error', (err) => {
     console.error('[LifeBook] Backend error:', err.message);
@@ -51,7 +46,7 @@ checkBackend((isRunning) => {
   }
 
   const npmArgs = mode === 'start' 
-    ? ['run', 'start', '--workspace=web']
+    ? ['run', 'start', '--workspace=web'] 
     : ['run', 'dev', '--workspace=web'];
 
   const webProc = spawn('npm', npmArgs, {

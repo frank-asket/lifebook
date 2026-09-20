@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useId } from "react";
+import { useState, useSyncExternalStore, useEffect, useId } from "react";
 import type { Teaching } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
 
@@ -9,6 +9,8 @@ interface TeachingShareModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const emptySubscribe = () => () => {};
 
 export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareModalProps) {
   const { isFr } = useLanguage();
@@ -22,7 +24,11 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
   const scripture = isFr ? teaching.scriptureFr : teaching.scripture;
   const specialty = isFr ? teaching.theologicalSpecialtyFr : teaching.theologicalSpecialty;
 
-  const [origin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
+  const origin = useSyncExternalStore(
+    emptySubscribe,
+    () => (typeof window !== "undefined" ? window.location.origin : ""),
+    () => ""
+  );
 
   const directUrl = `${origin || "https://lifebook.app"}/living-word/${teaching.slug}`;
 

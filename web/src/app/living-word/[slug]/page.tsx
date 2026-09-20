@@ -108,7 +108,7 @@ export default function LivingWordDetail() {
                 </Link>
               </div>
 
-              {/* Bio Content with smooth grid-template-rows height transition */}
+              {/* Bio Content with smooth height transition */}
               <div className="relative">
                 <div
                   className={`teacher-bio-wrapper transition-all duration-500 ease-out overflow-hidden ${

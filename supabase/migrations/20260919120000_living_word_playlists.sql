@@ -37,29 +37,60 @@ alter table public.living_word_playlist_items enable row level security;
 -- Policies for playlists
 create policy "Users can view own playlists"
   on public.living_word_playlists for select
-  using (true);
+  using (user_id = public.clerk_uid());
 
 create policy "Users can insert own playlists"
   on public.living_word_playlists for insert
-  with check (true);
+  with check (user_id = public.clerk_uid());
 
 create policy "Users can update own playlists"
   on public.living_word_playlists for update
-  using (true);
+  using (user_id = public.clerk_uid())
+  with check (user_id = public.clerk_uid());
 
 create policy "Users can delete own playlists"
   on public.living_word_playlists for delete
-  using (true);
+  using (user_id = public.clerk_uid());
 
 -- Policies for playlist items
 create policy "Users can view own playlist items"
   on public.living_word_playlist_items for select
-  using (true);
+  using (
+    exists (
+      select 1 from public.living_word_playlists p
+      where p.id = playlist_id and p.user_id = public.clerk_uid()
+    )
+  );
 
 create policy "Users can insert playlist items"
   on public.living_word_playlist_items for insert
-  with check (true);
+  with check (
+    exists (
+      select 1 from public.living_word_playlists p
+      where p.id = playlist_id and p.user_id = public.clerk_uid()
+    )
+  );
+
+create policy "Users can update playlist items"
+  on public.living_word_playlist_items for update
+  using (
+    exists (
+      select 1 from public.living_word_playlists p
+      where p.id = playlist_id and p.user_id = public.clerk_uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.living_word_playlists p
+      where p.id = playlist_id and p.user_id = public.clerk_uid()
+    )
+  );
 
 create policy "Users can delete playlist items"
   on public.living_word_playlist_items for delete
-  using (true);
+  using (
+    exists (
+      select 1 from public.living_word_playlists p
+      where p.id = playlist_id and p.user_id = public.clerk_uid()
+    )
+  );

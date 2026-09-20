@@ -158,7 +158,12 @@ create policy "journeys public read"
 
 create policy "journey_days public read"
   on public.journey_days for select
-  using (true);
+  using (
+    exists (
+      select 1 from public.journeys j
+      where j.id = journey_id and j.is_published = true
+    )
+  );
 
 -- Community prayer requests: Users can view approved prayers, or their own prayers even if pending
 drop policy if exists "prayer requests readable if approved or owned" on public.prayer_requests;
