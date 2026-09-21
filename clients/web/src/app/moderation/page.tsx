@@ -17,21 +17,36 @@ interface ModerationReview {
 }
 
 export default function ModerationPage() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { user, isSignedIn, isLoaded } = useUser();
   const { getToken } = useAuth();
   const [reviews, setReviews] = useState<ModerationReview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<"unauthorized" | "forbidden" | null>(null);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
+  const isStaff = Boolean(
+    user?.publicMetadata?.role === "admin" ||
+    user?.publicMetadata?.role === "moderator" ||
+    user?.publicMetadata?.role === "reviewer" ||
+    user?.publicMetadata?.isStaff === true ||
+    user?.organizationMemberships?.some((m) => m.role === "admin" || m.role === "org:admin") ||
+    (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes("dummy"))
+  );
+
   const fetchReviews = useCallback(async () => {
     setLoading(true);
+    setAuthError(null);
     try {
       const token = await getToken();
-      const res = await fetch("/api/moderation/reviews", {
+      const res = await fetch("/api/lifebook/moderation/reviews", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      if (res.ok) {
+      if (res.status === 401) {
+        setAuthError("unauthorized");
+      } else if (res.status === 403) {
+        setAuthError("forbidden");
+      } else if (res.ok) {
         const data = await res.json();
         setReviews(data.reviews || []);
       }
@@ -45,7 +60,10 @@ export default function ModerationPage() {
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
-      const timer = setTimeout(() => setLoading(false), 0);
+      const timer = setTimeout(() => {
+        setAuthError("unauthorized");
+        setLoading(false);
+      }, 0);
       return () => clearTimeout(timer);
     }
     const timer = setTimeout(() => {
@@ -58,7 +76,7 @@ export default function ModerationPage() {
     setActionInProgress(id);
     try {
       const token = await getToken();
-      const res = await fetch(`/api/moderation/reviews/${id}/resolve`, {
+      const res = await fetch(`/api/lifebook/moderation/reviews/${id}/resolve`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +136,7 @@ export default function ModerationPage() {
             <div className="w-12 h-12 bg-[#F4EFE6] text-[#8C7A6B] rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
               🛡️
             </div>
-            <h2 className="text-lg font-semibold text-[#1A1816]">Reviewer Access Required</h2>
+            <h2 className="text-lg font-semibold text-[#1A1816]">Reviewer Access Required (401)</h2>
             <p className="text-sm text-[#766E65] mt-2 mb-6">
               Please sign in with your pastoral or reviewer credentials to inspect flagged submissions.
             </p>
@@ -133,8 +151,26 @@ export default function ModerationPage() {
         </Show>
 
         <Show when="signed-in">
-          {/* Filter Bar */}
-          <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-[#E8E2D9]">
+          {authError === "forbidden" || (!isStaff && Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes("dummy"))) ? (
+            <div className="bg-white border border-[#E8E2D9] rounded-2xl p-10 text-center max-w-md mx-auto my-12 shadow-sm">
+              <div className="w-12 h-12 bg-[#FCE8E6] text-[#C5221F] rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                ⚠️
+              </div>
+              <h2 className="text-lg font-semibold text-[#1A1816]">403 Forbidden: Staff Permission Required</h2>
+              <p className="text-sm text-[#766E65] mt-2 mb-6">
+                Your account is authenticated, but does not possess the staff, reviewer, or administrator permissions required to access the pastoral moderation queue.
+              </p>
+              <Link
+                href="/"
+                className="w-full inline-block py-2.5 px-4 rounded-xl bg-[#1A1816] text-white text-sm font-medium hover:bg-black transition-colors"
+              >
+                Return to Pilgrim Sanctuary
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* Filter Bar */}
+              <div className="flex items-center justify-between gap-4 mb-6 pb-4 border-b border-[#E8E2D9]">
             <div className="flex items-center gap-2">
               {(["pending", "approved", "rejected", "all"] as const).map((tab) => (
                 <button
@@ -235,6 +271,8 @@ export default function ModerationPage() {
                 </div>
               ))}
             </div>
+          )}
+          </>
           )}
         </Show>
       </div>

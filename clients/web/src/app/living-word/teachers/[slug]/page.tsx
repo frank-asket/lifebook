@@ -20,6 +20,7 @@ export default function TeacherProfilePage() {
   const [selectedTeachingForPlaylist, setSelectedTeachingForPlaylist] = useState<Teaching | null>(null);
   const [selectedTeachingForShare, setSelectedTeachingForShare] = useState<Teaching | null>(null);
   const [copiedProfile, setCopiedProfile] = useState(false);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
 
   if (!teacher) {
     notFound();
@@ -31,6 +32,10 @@ export default function TeacherProfilePage() {
   const bio = isFr ? teacher.bioFr : teacher.bio;
   const education = isFr ? teacher.educationFr : teacher.education;
   const featuredScripture = isFr ? teacher.featuredScriptureFr : teacher.featuredScripture;
+
+  const BIO_LIMIT = 200;
+  const isBioLong = bio.length > BIO_LIMIT;
+  const displayedBio = isBioLong && !isBioExpanded ? `${bio.slice(0, BIO_LIMIT).trim()}...` : bio;
 
   async function handleShareProfile() {
     if (typeof window === "undefined") return;
@@ -184,7 +189,17 @@ export default function TeacherProfilePage() {
                 <span>{isFr ? "Biographie & Parcours" : "Biography & Calling"}</span>
               </h2>
               <div className="text-sm text-[#4E4467] leading-relaxed space-y-3 font-normal">
-                <p>{bio}</p>
+                <p className="m-0">{displayedBio}</p>
+                {isBioLong && (
+                  <button
+                    type="button"
+                    onClick={() => setIsBioExpanded(!isBioExpanded)}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#3D2E5C] hover:underline cursor-pointer bg-transparent border-0 p-0"
+                    aria-expanded={isBioExpanded}
+                  >
+                    <span>{isBioExpanded ? (isFr ? "Réduire la biographie ↑" : "Show Less ↑") : (isFr ? "Lire la suite ↓" : "Read More ↓")}</span>
+                  </button>
+                )}
               </div>
 
               <div className="pt-4 border-t border-[#EAE3D6] space-y-3 text-xs">

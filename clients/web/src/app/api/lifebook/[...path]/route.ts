@@ -8,32 +8,96 @@ const isRealClerkConfigured = Boolean(
   !pubKey.includes("dummy")
 );
 
+interface SessionClaimsRecord {
+  metadata?: { role?: string; isStaff?: boolean };
+  public_metadata?: { role?: string };
+  publicMetadata?: { role?: string; isStaff?: boolean };
+  role?: string;
+  org_role?: string;
+  is_staff?: boolean;
+  permissions?: string[];
+  [key: string]: unknown;
+}
+
+type AuthResult = Awaited<ReturnType<typeof auth>>;
+
+function isStaffAuth(authResult: AuthResult | null | undefined): boolean {
+  if (!authResult || !authResult.userId) return false;
+  if (typeof authResult.has === 'function') {
+    if (
+      authResult.has({ role: 'admin' }) ||
+      authResult.has({ role: 'org:admin' }) ||
+      authResult.has({ permission: 'org:moderation:review' })
+    ) {
+      return true;
+    }
+  }
+  const claims = (authResult.sessionClaims as SessionClaimsRecord | null | undefined) || {};
+  const role =
+    claims.metadata?.role ||
+    claims.public_metadata?.role ||
+    claims.publicMetadata?.role ||
+    claims.role ||
+    claims.org_role;
+  if (typeof role === 'string' && ['admin', 'moderator', 'reviewer', 'staff', 'org:admin'].includes(role.toLowerCase())) {
+    return true;
+  }
+  if (claims.publicMetadata?.isStaff === true || claims.metadata?.isStaff === true || claims.is_staff === true) {
+    return true;
+  }
+  const perms = claims.permissions || [];
+  if (Array.isArray(perms) && (perms.includes('org:moderation:review') || perms.includes('org:admin'))) {
+    return true;
+  }
+  return false;
+}
+
 async function forward(request: Request, path: string[]) {
   if (!API_URL) return Response.json({ error: 'LIFEBOOK_API_URL is not configured' }, { status: 503 });
   
   let token: string | null = null;
   let userId: string | null = null;
+  let isStaff = false;
 
   if (isRealClerkConfigured) {
     try {
       const authResult = await auth();
       userId = authResult.userId;
       token = await authResult.getToken();
+      isStaff = isStaffAuth(authResult);
     } catch {
       // In development or when Clerk credentials are not provisioned
     }
   }
 
-  const isPublicOrDeviceRoute = path[0] === 'health' || 
+  // Enforce staff-only authorization for moderation endpoints
+  if (path[0] === 'moderation') {
+    if (isRealClerkConfigured) {
+      if (!userId) {
+        return Response.json({ error: 'unauthorized', detail: 'Authentication required' }, { status: 401 });
+      }
+      if (!isStaff) {
+        return Response.json({ error: 'forbidden', detail: 'Staff or reviewer permission required' }, { status: 403 });
+      }
+    } else {
+      // Local dev mode fallback: allow dev reviewer
+      const authHeader = request.headers.get('authorization') || '';
+      const xDevUser = request.headers.get('x-user-id');
+      const isDevReviewer = authHeader.includes('dev_reviewer_admin') || xDevUser === 'dev_reviewer_admin';
+      if (!isDevReviewer && request.headers.get('x-enforce-auth') === 'true') {
+        return Response.json({ error: 'forbidden', detail: 'Staff permission required' }, { status: 403 });
+      }
+    }
+  }
+
+  const isPublicRoute = path[0] === 'health' || 
     path[0] === 'journeys' || 
-    path[0] === 'livingword' || 
     path[0] === 'analytics' || 
     path[0] === 'waitlist' || 
-    path[0] === 'moderation' || 
-    new URL(request.url).searchParams.has('deviceId');
+    (path[0] === 'livingword' && path[1] !== 'playlists');
 
-  if (isRealClerkConfigured && !userId && !isPublicOrDeviceRoute && path[0] === 'me') {
-    return Response.json({ error: 'unauthorized' }, { status: 401 });
+  if (isRealClerkConfigured && !userId && !isPublicRoute && (path[0] === 'me' || path[0] === 'subscription' || (path[0] === 'livingword' && path[1] === 'playlists'))) {
+    return Response.json({ error: 'unauthorized', detail: 'Valid session required' }, { status: 401 });
   }
 
   const headers = new Headers();
@@ -47,9 +111,12 @@ async function forward(request: Request, path: string[]) {
     headers.set('authorization', incomingAuth);
   }
 
-  const incomingUserId = request.headers.get('x-user-id') || userId;
-  if (incomingUserId) {
-    headers.set('x-user-id', incomingUserId);
+  // Never forward client x-user-id if Clerk is configured
+  if (!isRealClerkConfigured) {
+    const incomingUserId = request.headers.get('x-user-id') || userId;
+    if (incomingUserId) {
+      headers.set('x-user-id', incomingUserId);
+    }
   }
 
   const upstream = await fetch(`${API_URL.replace(/\/$/, '')}/api/${path.join('/')}${new URL(request.url).search}`, {
@@ -58,6 +125,7 @@ async function forward(request: Request, path: string[]) {
   });
   return new Response(await upstream.arrayBuffer(), { status: upstream.status, headers: { 'content-type': upstream.headers.get('content-type') || 'application/json' } });
 }
+
 
 export async function GET(request: Request, { params }: { params: Promise<{ path: string[] }> }) { return forward(request, (await params).path); }
 export async function POST(request: Request, { params }: { params: Promise<{ path: string[] }> }) { return forward(request, (await params).path); }

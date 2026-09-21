@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useChristianAuth } from "./christian-auth";
 import type { Teaching } from "@/app/livingWordData";
 
@@ -108,6 +109,7 @@ const LOCAL_STORAGE_KEY = "lifebook_playlists_cache";
 
 export function usePlaylists() {
   const { user } = useChristianAuth();
+  const { getToken, isSignedIn } = useAuth();
   const userId = user?.id || "usr_pilgrim_guest";
 
   const [playlists, setPlaylists] = useState<Playlist[]>(() => {
@@ -131,15 +133,29 @@ export function usePlaylists() {
     }
   };
 
+  const getAuthHeaders = useCallback(async (): Promise<Record<string, string>> => {
+    try {
+      if (isSignedIn) {
+        // Attempt supabase template first, fallback to default Clerk session token
+        let token = await getToken({ template: "supabase" }).catch(() => null);
+        if (!token) {
+          token = await getToken().catch(() => null);
+        }
+        if (token) {
+          return { Authorization: `Bearer ${token}` };
+        }
+      }
+    } catch {}
+    return {};
+  }, [getToken, isSignedIn]);
+
   useEffect(() => {
     let ignore = false;
     async function load() {
       try {
-        const res = await fetch(`/api/lifebook/livingword/playlists?deviceId=${encodeURIComponent(userId)}`, {
-          headers: {
-            "x-user-id": userId,
-            "Authorization": `Bearer ${userId}`,
-          },
+        const authHeaders = await getAuthHeaders();
+        const res = await fetch("/api/lifebook/livingword/playlists", {
+          headers: authHeaders,
         });
         if (res.ok && !ignore) {
           const data = await res.json();
@@ -155,15 +171,13 @@ export function usePlaylists() {
     return () => {
       ignore = true;
     };
-  }, [userId]);
+  }, [getAuthHeaders]);
 
   const fetchPlaylists = useCallback(async () => {
     try {
-      const res = await fetch(`/api/lifebook/livingword/playlists?deviceId=${encodeURIComponent(userId)}`, {
-        headers: {
-          "x-user-id": userId,
-          "Authorization": `Bearer ${userId}`,
-        },
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch("/api/lifebook/livingword/playlists", {
+        headers: authHeaders,
       });
       if (res.ok) {
         const data = await res.json();
@@ -174,7 +188,7 @@ export function usePlaylists() {
     } catch (e) {
       console.warn("Failed to fetch playlists from backend:", e);
     }
-  }, [userId]);
+  }, [getAuthHeaders]);
 
   const createPlaylist = async (title: string, description?: string, icon = "🎧", color = "from-[#5D4E7B] to-[#3B2D54]"): Promise<Playlist | null> => {
     const tempId = `pl_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
@@ -198,15 +212,14 @@ export function usePlaylists() {
     saveToCache(nextPlaylists);
 
     try {
+      const authHeaders = await getAuthHeaders();
       const res = await fetch("/api/lifebook/livingword/playlists", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": userId,
-          "Authorization": `Bearer ${userId}`,
+          ...authHeaders,
         },
         body: JSON.stringify({
-          deviceId: userId,
           title: title.trim(),
           description: description?.trim() || "",
           icon,
@@ -265,15 +278,14 @@ export function usePlaylists() {
     saveToCache(updatedPlaylists);
 
     try {
+      const authHeaders = await getAuthHeaders();
       await fetch(`/api/lifebook/livingword/playlists/${encodeURIComponent(playlistId)}/items`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": userId,
-          "Authorization": `Bearer ${userId}`,
+          ...authHeaders,
         },
         body: JSON.stringify({
-          deviceId: userId,
           teachingSlug: teaching.slug,
           teachingTitle: teaching.title,
           teacher: teaching.teacher,
@@ -308,12 +320,10 @@ export function usePlaylists() {
     saveToCache(updatedPlaylists);
 
     try {
-      await fetch(`/api/lifebook/livingword/playlists/${encodeURIComponent(playlistId)}/items/${encodeURIComponent(teachingSlug)}?deviceId=${encodeURIComponent(userId)}`, {
+      const authHeaders = await getAuthHeaders();
+      await fetch(`/api/lifebook/livingword/playlists/${encodeURIComponent(playlistId)}/items/${encodeURIComponent(teachingSlug)}`, {
         method: "DELETE",
-        headers: {
-          "x-user-id": userId,
-          "Authorization": `Bearer ${userId}`,
-        },
+        headers: authHeaders,
       });
     } catch (e) {
       console.warn("Failed to remove item on server:", e);
@@ -329,12 +339,10 @@ export function usePlaylists() {
     saveToCache(filtered);
 
     try {
-      await fetch(`/api/lifebook/livingword/playlists/${encodeURIComponent(playlistId)}?deviceId=${encodeURIComponent(userId)}`, {
+      const authHeaders = await getAuthHeaders();
+      await fetch(`/api/lifebook/livingword/playlists/${encodeURIComponent(playlistId)}`, {
         method: "DELETE",
-        headers: {
-          "x-user-id": userId,
-          "Authorization": `Bearer ${userId}`,
-        },
+        headers: authHeaders,
       });
     } catch (e) {
       console.warn("Failed to delete playlist on server:", e);
