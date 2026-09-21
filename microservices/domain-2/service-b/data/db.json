@@ -27,6 +27,21 @@
       "mood": "distant",
       "note": "I want to die",
       "createdAt": "2026-09-16T23:32:17.696Z"
+    },
+    {
+      "id": "d857d74b-a630-4ace-bace-2160fe37b713",
+      "deviceId": "dev-user",
+      "mood": "peaceful",
+      "note": "Testing checkin",
+      "createdAt": "2026-09-21T22:14:27.756Z"
+    },
+    {
+      "id": "d857d74b-a630-4ace-bace-2160fe37b713",
+      "deviceId": "dev-user",
+      "userId": "dev-user",
+      "mood": "peaceful",
+      "note": "Testing checkin",
+      "createdAt": "2026-09-21T22:14:27.772Z"
     }
   ],
   "content": [
@@ -57,6 +72,20 @@
       "reviewVerdict": "uncertain",
       "modelMode": "dev-fallback",
       "createdAt": "2026-09-16T23:32:17.692Z"
+    },
+    {
+      "id": "5af89b5f-0d89-4d13-9505-0572d615b130",
+      "checkinId": "d857d74b-a630-4ace-bace-2160fe37b713",
+      "verseText": "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.",
+      "verseReference": "Isaiah 26:3",
+      "whyThisVerse": "This verse speaks directly to peace — it's one of the passages LifeBook returns to most for that season.",
+      "meditation": "Sit for a moment with \"Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.\" Let the words settle rather than rushing past them. Notice what in your day left you feeling peaceful.",
+      "reflectionQuestion": "Where in the last day were you feeling peaceful, and what would it look like to bring that moment to God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry Isaiah 26:3 with me. Amen.",
+      "actionStep": "Send a one-line message to someone you trust, just to say hello.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-21T22:14:27.757Z"
     }
   ],
   "streaks": {
@@ -71,6 +100,18 @@
           "mood": "distant"
         }
       ]
+    },
+    "dev-user": {
+      "deviceId": "dev-user",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-21",
+      "history": [
+        {
+          "date": "2026-09-21",
+          "mood": "peaceful"
+        }
+      ]
     }
   },
   "flags": [],
@@ -83,7 +124,11 @@
   "subscriptions": {},
   "journalEntries": [],
   "favorites": [],
-  "preferences": {},
+  "preferences": {
+    "dev-user": {
+      "deviceId": "dev-user"
+    }
+  },
   "pushTokens": {},
   "journeyProgress": {},
   "livingWordComments": [
@@ -104,6 +149,75 @@
       "text": "click here to buy now",
       "moderationStatus": "rejected",
       "createdAt": "2026-09-09T15:37:41.670Z"
+    }
+  ],
+  "playlists": [
+    {
+      "id": "pl_listen_later_dev-user",
+      "userId": "dev-user",
+      "title": "Listen Later",
+      "description": "Teachings saved to listen to in your quiet morning and evening reflection.",
+      "icon": "⏳",
+      "color": "from-[#5D4E7B] to-[#3B2D54]",
+      "isDefault": true,
+      "itemCount": 1,
+      "totalDuration": "12 min",
+      "createdAt": "2026-09-21T22:14:24.950Z",
+      "updatedAt": "2026-09-21T22:14:24.950Z"
+    },
+    {
+      "id": "pl_reflections_dev-user",
+      "userId": "dev-user",
+      "title": "Sunday Reflections",
+      "description": "Deeper theological teachings for contemplation and Sabbath rest.",
+      "icon": "🕊️",
+      "color": "from-[#3A506B] to-[#1C2541]",
+      "isDefault": true,
+      "itemCount": 1,
+      "totalDuration": "9 min",
+      "createdAt": "2026-09-21T22:14:24.950Z",
+      "updatedAt": "2026-09-21T22:14:24.950Z"
+    },
+    {
+      "id": "pl_faith_dev-user",
+      "userId": "dev-user",
+      "title": "Strengthening Faith",
+      "description": "Encouraging pastoral messages on steadfast faith, prayer, and trusting Christ.",
+      "icon": "🌱",
+      "color": "from-[#436436] to-[#25391F]",
+      "isDefault": true,
+      "itemCount": 0,
+      "totalDuration": "0 min",
+      "createdAt": "2026-09-21T22:14:24.950Z",
+      "updatedAt": "2026-09-21T22:14:24.950Z"
+    }
+  ],
+  "playlistItems": [
+    {
+      "id": "pli_seed_1_dev-user",
+      "playlistId": "pl_listen_later_dev-user",
+      "teachingSlug": "when-faith-feels-small",
+      "teachingTitle": "When faith feels small",
+      "teacher": "Pastor Asket",
+      "duration": "12 min",
+      "category": "Faith",
+      "audioUrl": "",
+      "portrait": "/AsketOfficialPic (1).png",
+      "position": 0,
+      "addedAt": "2026-09-21T22:14:24.950Z"
+    },
+    {
+      "id": "pli_seed_2_dev-user",
+      "playlistId": "pl_reflections_dev-user",
+      "teachingSlug": "learning-to-be-still",
+      "teachingTitle": "Learning to be still",
+      "teacher": "Pastor Asket",
+      "duration": "9 min",
+      "category": "Prayer",
+      "audioUrl": "",
+      "portrait": "/AsketOfficialPic (1).png",
+      "position": 0,
+      "addedAt": "2026-09-21T22:14:24.950Z"
     }
   ]
 }
