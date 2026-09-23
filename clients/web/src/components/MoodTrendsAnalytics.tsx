@@ -271,13 +271,13 @@ export function MoodTrendsAnalytics({
         doubtingDays: rawBrackets['0d'].doubting,
         peacefulGratefulPct: rawBrackets['0d'].total > 0
           ? Math.round(((rawBrackets['0d'].peaceful + rawBrackets['0d'].grateful) / rawBrackets['0d'].total) * 100)
-          : 15,
+          : 0,
         doubtingPct: rawBrackets['0d'].total > 0
           ? Math.round((rawBrackets['0d'].doubting / rawBrackets['0d'].total) * 100)
-          : 35,
+          : 0,
         avgIntensity: rawBrackets['0d'].total > 0
           ? Number((rawBrackets['0d'].totalIntensity / rawBrackets['0d'].total).toFixed(1))
-          : 0.2,
+          : 0,
       },
       {
         streakTier: 'Sparking',
@@ -290,13 +290,13 @@ export function MoodTrendsAnalytics({
         doubtingDays: rawBrackets['1-3d'].doubting,
         peacefulGratefulPct: rawBrackets['1-3d'].total > 0
           ? Math.round(((rawBrackets['1-3d'].peaceful + rawBrackets['1-3d'].grateful) / rawBrackets['1-3d'].total) * 100)
-          : 42,
+          : 0,
         doubtingPct: rawBrackets['1-3d'].total > 0
           ? Math.round((rawBrackets['1-3d'].doubting / rawBrackets['1-3d'].total) * 100)
-          : 22,
+          : 0,
         avgIntensity: rawBrackets['1-3d'].total > 0
           ? Number((rawBrackets['1-3d'].totalIntensity / rawBrackets['1-3d'].total).toFixed(1))
-          : 1.8,
+          : 0,
       },
       {
         streakTier: 'Rooting',
@@ -309,13 +309,13 @@ export function MoodTrendsAnalytics({
         doubtingDays: rawBrackets['4-7d'].doubting,
         peacefulGratefulPct: rawBrackets['4-7d'].total > 0
           ? Math.round(((rawBrackets['4-7d'].peaceful + rawBrackets['4-7d'].grateful) / rawBrackets['4-7d'].total) * 100)
-          : 68,
+          : 0,
         doubtingPct: rawBrackets['4-7d'].total > 0
           ? Math.round((rawBrackets['4-7d'].doubting / rawBrackets['4-7d'].total) * 100)
-          : 11,
+          : 0,
         avgIntensity: rawBrackets['4-7d'].total > 0
           ? Number((rawBrackets['4-7d'].totalIntensity / rawBrackets['4-7d'].total).toFixed(1))
-          : 2.7,
+          : 0,
       },
       {
         streakTier: 'Abiding',
@@ -328,13 +328,13 @@ export function MoodTrendsAnalytics({
         doubtingDays: rawBrackets['8-14d'].doubting,
         peacefulGratefulPct: rawBrackets['8-14d'].total > 0
           ? Math.round(((rawBrackets['8-14d'].peaceful + rawBrackets['8-14d'].grateful) / rawBrackets['8-14d'].total) * 100)
-          : 84,
+          : 0,
         doubtingPct: rawBrackets['8-14d'].total > 0
           ? Math.round((rawBrackets['8-14d'].doubting / rawBrackets['8-14d'].total) * 100)
-          : 4,
+          : 0,
         avgIntensity: rawBrackets['8-14d'].total > 0
           ? Number((rawBrackets['8-14d'].totalIntensity / rawBrackets['8-14d'].total).toFixed(1))
-          : 3.4,
+          : 0,
       },
       {
         streakTier: 'Flourishing',
@@ -347,13 +347,13 @@ export function MoodTrendsAnalytics({
         doubtingDays: rawBrackets['15+d'].doubting,
         peacefulGratefulPct: rawBrackets['15+d'].total > 0
           ? Math.round(((rawBrackets['15+d'].peaceful + rawBrackets['15+d'].grateful) / rawBrackets['15+d'].total) * 100)
-          : 93,
+          : 0,
         doubtingPct: rawBrackets['15+d'].total > 0
           ? Math.round((rawBrackets['15+d'].doubting / rawBrackets['15+d'].total) * 100)
           : 0,
         avgIntensity: rawBrackets['15+d'].total > 0
           ? Number((rawBrackets['15+d'].totalIntensity / rawBrackets['15+d'].total).toFixed(1))
-          : 3.9,
+          : 0,
       },
     ];
 

@@ -1,6 +1,13 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import {
+  Bell,
+  Clock,
+  Check,
+  X,
+  HandsPraying,
+} from '@phosphor-icons/react';
 import type { MoodItem } from './ProgressScreen';
 import { MOODS } from './ProgressScreen';
 
@@ -253,14 +260,14 @@ export function NotificationSettingsModal({
             type="button"
             id="notification-settings-close-btn"
             onClick={onClose}
-            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-sm transition-all cursor-pointer"
+            className="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
             aria-label="Close notification settings"
           >
-            ✕
+            <X weight="bold" className="w-4 h-4 text-white" />
           </button>
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1FB6B0]/20 border border-[#1FB6B0]/40 text-[#37C6C2] text-[11px] font-extrabold uppercase tracking-widest">
-            <span>⏰</span>
+            <Clock weight="bold" className="w-3.5 h-3.5" />
             <span>Rhythm Settings</span>
           </div>
 
@@ -278,7 +285,7 @@ export function NotificationSettingsModal({
           <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F8F6FC] border border-[#E5DEEE]">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-2xl bg-[#2A2146] text-white flex items-center justify-center text-xl shadow-xs">
-                🔔
+                <Bell weight="fill" className="w-5 h-5 text-[#37C6C2]" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-[#1E1835]">
@@ -571,7 +578,7 @@ export function NotificationSettingsModal({
               }}
               className="px-4 py-2.5 rounded-xl bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
-              <span>🕊️</span>
+              <HandsPraying weight="fill" className="w-4 h-4 text-[#37C6C2]" />
               <span>Save & Check In Now</span>
             </button>
 
@@ -583,12 +590,12 @@ export function NotificationSettingsModal({
             >
               {saveToast ? (
                 <>
-                  <span>✓</span>
+                  <Check weight="bold" className="w-4 h-4 text-white" />
                   <span>Saved!</span>
                 </>
               ) : (
                 <>
-                  <span>💾</span>
+                  <Check weight="bold" className="w-4 h-4 text-white" />
                   <span>Save Reminder</span>
                 </>
               )}

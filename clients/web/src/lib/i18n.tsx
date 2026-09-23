@@ -21,6 +21,10 @@ export interface Translations {
   nav_switch_lang: string;
   nav_lang_en: string;
   nav_lang_fr: string;
+  theme_toggle_label: string;
+  theme_light: string;
+  theme_dark: string;
+  theme_night_reading: string;
 
   // Mobile menu headers
   mobile_nav_devotion: string;
@@ -199,6 +203,10 @@ const translations: Record<Language, Translations> = {
     nav_switch_lang: "Switch language",
     nav_lang_en: "EN",
     nav_lang_fr: "FR",
+    theme_toggle_label: "Theme",
+    theme_light: "Light",
+    theme_dark: "Night (HC)",
+    theme_night_reading: "Night Reading",
 
     mobile_nav_devotion: "Daily Devotion",
     mobile_nav_scripture_audio: "Scripture & Audio",
@@ -362,6 +370,10 @@ const translations: Record<Language, Translations> = {
     nav_switch_lang: "Changer de langue",
     nav_lang_en: "EN",
     nav_lang_fr: "FR",
+    theme_toggle_label: "Thème",
+    theme_light: "Clair",
+    theme_dark: "Nuit (HC)",
+    theme_night_reading: "Lecture de nuit",
 
     mobile_nav_devotion: "Méditation quotidienne",
     mobile_nav_scripture_audio: "Écritures & Audio",

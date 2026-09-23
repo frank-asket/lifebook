@@ -122,6 +122,7 @@ export function DynamicMoodJournal({
   // Filters & Search
   const [filterMood, setFilterMood] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterDate, setFilterDate] = useState('');
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -226,6 +227,20 @@ export function DynamicMoodJournal({
       // Favorite filter
       if (onlyFavorites && !entry.isFavorite) return false;
 
+      // Date filter
+      if (filterDate) {
+        let entryIso = '';
+        if (entry.timestamp) {
+          entryIso = new Date(entry.timestamp).toISOString().slice(0, 10);
+        } else {
+          const match = entry.date.match(/^(\d{4}-\d{2}-\d{2})/);
+          if (match) entryIso = match[1];
+        }
+        if (entryIso !== filterDate && !entry.date.includes(filterDate)) {
+          return false;
+        }
+      }
+
       // Search query
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
@@ -233,12 +248,13 @@ export function DynamicMoodJournal({
         const scriptMatch = Boolean(entry.scriptureRef?.toLowerCase().includes(query));
         const tagMatch = Boolean(entry.tags?.some(t => t.toLowerCase().includes(query)));
         const moodMatch = Boolean(entry.moodLabel?.toLowerCase().includes(query));
-        if (!textMatch && !scriptMatch && !tagMatch && !moodMatch) return false;
+        const dateMatch = entry.date.toLowerCase().includes(query);
+        if (!textMatch && !scriptMatch && !tagMatch && !moodMatch && !dateMatch) return false;
       }
 
       return true;
     });
-  }, [entries, filterMood, onlyFavorites, searchQuery]);
+  }, [entries, filterMood, onlyFavorites, searchQuery, filterDate]);
 
   // Mood counts for filter badges
   const moodCounts = useMemo(() => {
@@ -478,8 +494,9 @@ export function DynamicMoodJournal({
             </p>
           </div>
 
-          {/* Search bar & Favorites toggle */}
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Search bar, Date Filter & Favorites toggle */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Keyword search input */}
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">🔍</span>
               <input
@@ -487,8 +504,38 @@ export function DynamicMoodJournal({
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search reflections or Scripture..."
-                className="pl-8 pr-3 py-2 rounded-2xl bg-[#F6F4F9] border border-gray-200 text-xs text-[#2A2045] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1FB6B0] w-52 sm:w-64"
+                className="pl-8 pr-7 py-2 rounded-2xl bg-[#F6F4F9] border border-gray-200 text-xs text-[#2A2045] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1FB6B0] w-48 sm:w-56"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-[10px] font-bold"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Date filter input */}
+            <div className="relative flex items-center">
+              <input
+                type="date"
+                value={filterDate}
+                onChange={e => setFilterDate(e.target.value)}
+                className="px-3 py-2 rounded-2xl bg-[#F6F4F9] border border-gray-200 text-xs text-[#2A2045] focus:outline-none focus:ring-2 focus:ring-[#1FB6B0] cursor-pointer"
+                title="Filter reflections by specific date"
+              />
+              {filterDate && (
+                <button
+                  type="button"
+                  onClick={() => setFilterDate('')}
+                  className="ml-1 text-gray-400 hover:text-red-500 text-xs font-bold px-1"
+                  title="Clear date filter"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             <button
@@ -501,7 +548,7 @@ export function DynamicMoodJournal({
               }`}
             >
               <span>{onlyFavorites ? '★' : '☆'}</span>
-              <span>Favorites Only</span>
+              <span>Favorites</span>
             </button>
           </div>
         </div>

@@ -119,10 +119,35 @@ async function forward(request: Request, path: string[]) {
     }
   }
 
-  const upstream = await fetch(`${API_URL.replace(/\/$/, '')}/api/${path.join('/')}${new URL(request.url).search}`, {
-    method: request.method, headers,
-    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.arrayBuffer(), cache: 'no-store',
-  });
+  const bodyBuffer = request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.arrayBuffer();
+
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${API_URL.replace(/\/$/, '')}/api/${path.join('/')}${new URL(request.url).search}`, {
+      method: request.method,
+      headers,
+      body: bodyBuffer,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(6000),
+    });
+  } catch {
+    if (API_URL !== 'http://127.0.0.1:8787') {
+      try {
+        upstream = await fetch(`http://127.0.0.1:8787/api/${path.join('/')}${new URL(request.url).search}`, {
+          method: request.method,
+          headers,
+          body: bodyBuffer,
+          cache: 'no-store',
+          signal: AbortSignal.timeout(6000),
+        });
+      } catch {
+        return Response.json({ error: 'service_unavailable', detail: 'Local and remote backend unreachable' }, { status: 503 });
+      }
+    } else {
+      return Response.json({ error: 'service_unavailable', detail: 'Backend service unreachable' }, { status: 503 });
+    }
+  }
+
   return new Response(await upstream.arrayBuffer(), { status: upstream.status, headers: { 'content-type': upstream.headers.get('content-type') || 'application/json' } });
 }
 

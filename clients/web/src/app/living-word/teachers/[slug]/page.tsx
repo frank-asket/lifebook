@@ -7,6 +7,7 @@ import { useState } from "react";
 import { teachers, getTeachingsByTeacher, type Teaching } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { TeachingShareModal } from "@/components/TeachingShareModal";
 
@@ -77,8 +78,9 @@ export default function TeacherProfilePage() {
             <span className="text-[#1E1931] font-bold">{teacher.name}</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageToggle />
+            <ThemeToggle />
             <Link
               href="/teacher"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#5D5276] hover:text-[#1E1931] hover:bg-black/5 transition-colors"

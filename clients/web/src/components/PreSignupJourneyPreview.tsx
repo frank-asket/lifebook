@@ -487,47 +487,54 @@ export function PreSignupJourneyPreview() {
   return (
     <section
       id="journey-preview"
-      className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20"
+      className="page-shell my-16 sm:my-20 scroll-mt-20"
       aria-label="Pre-signup 5-day journey preview and mood recommendation reasoning"
     >
-      {/* Section Header */}
-      <div className="text-center max-w-3xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#eee7f8] border border-[#d5c5ed] text-[#5e4b85] text-xs font-bold uppercase tracking-wider mb-3">
-          <span>✦</span>
-          <span>{isFr ? "Recommandation transparente · Aperçu sans inscription" : "Transparent Reasoning · Pre-Signup Preview"}</span>
+      {/* Section Header matching landing page design system */}
+      <div className="section-heading mb-10">
+        <div>
+          <p className="showcase-eyebrow">
+            {isFr ? "Recommandation transparente · Aperçu sans inscription" : "Transparent reasoning · Pre-signup preview"}
+          </p>
+          <h2>
+            {isFr ? (
+              <>
+                Pourquoi LifeBook vous recommande ce parcours,{" "}
+                <em>avant même de créer un compte.</em>
+              </>
+            ) : (
+              <>
+                See why LifeBook recommends each 5-day journey{" "}
+                <em>before creating an account.</em>
+              </>
+            )}
+          </h2>
         </div>
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#1e1931] tracking-tight mb-4">
-          {isFr ? (
-            <>
-              Pourquoi LifeBook vous recommande ce parcours de 5 jours,{" "}
-              <em className="font-normal italic text-[#705eaa]">avant même de créer un compte.</em>
-            </>
-          ) : (
-            <>
-              See why LifeBook recommends each 5-day journey{" "}
-              <em className="font-normal italic text-[#705eaa]">before creating an account.</em>
-            </>
-          )}
-        </h2>
-        <p className="text-sm sm:text-base text-[#5e5370] leading-relaxed">
-          {isFr
-            ? "Les applications bibliques génériques vous imposent des listes généalogiques quand vous êtes épuisé. LifeBook adapte son parcours en fonction de votre état émotionnel et spirituel réel."
-            : "Generic Bible apps hand you random 40-chapter reading plans regardless of how worn out you feel. LifeBook prescribes focused 5-day sprints calibrated to your exact emotional state."}
-        </p>
+        <div>
+          <p>
+            {isFr
+              ? "Les applications bibliques génériques vous imposent des listes généalogiques quand vous êtes épuisé. LifeBook adapte son parcours en fonction de votre état émotionnel et spirituel réel."
+              : "Generic Bible apps hand you random 40-chapter reading plans regardless of how worn out you feel. LifeBook prescribes focused 5-day sprints calibrated to your exact emotional state."}
+          </p>
+        </div>
       </div>
 
       {/* Mood Selector Switcher */}
       <div className="mb-8">
-        <p className="text-center text-xs font-semibold text-[#705e8c] uppercase tracking-wider mb-3">
+        <p className="text-xs font-bold text-[#705e8c] uppercase tracking-[0.14em] mb-3">
           {isFr ? "Sélectionnez votre état de cœur actuel pour tester la recommandation :" : "Select your current season or emotional state to test the recommendation:"}
         </p>
         <div
-          className="grid grid-cols-2 md:grid-cols-4 gap-2.5 max-w-4xl mx-auto"
+          className="grid grid-cols-2 md:grid-cols-4 gap-3.5"
           role="tablist"
           aria-label="Mood journey selectors"
         >
-          {journeys.map((j) => {
+          {journeys.map((j, idx) => {
             const isSelected = j.id === currentJourney.id;
+            // Match landing page benefit pastel colors
+            const bgTints = ["bg-[#e7d4ed]", "bg-[#d9e7f3]", "bg-[#f2dfbc]", "bg-[#d8efdc]"];
+            const bgTint = bgTints[idx % bgTints.length];
+
             return (
               <button
                 key={j.id}
@@ -536,26 +543,30 @@ export function PreSignupJourneyPreview() {
                 aria-selected={isSelected}
                 onClick={() => handleSelectJourney(j)}
                 id={`journey-tab-${j.id}`}
-                className={`flex flex-col items-start p-3 rounded-2xl text-left transition-all duration-200 cursor-pointer border ${
+                className={`flex flex-col items-start p-4 sm:p-5 rounded-2xl text-left transition-all duration-200 cursor-pointer border ${bgTint} ${
                   isSelected
-                    ? "bg-[#2d2542] text-white border-[#2d2542] shadow-md scale-[1.02]"
-                    : "bg-white/80 hover:bg-white text-[#2d2542] border-[#2d2542]/12 hover:border-[#2d2542]/25"
+                    ? "ring-2 ring-[#17151a] shadow-lg scale-[1.02] border-[#17151a]/30"
+                    : "border-[#2d2542]/12 hover:shadow-md hover:scale-[1.01]"
                 }`}
               >
-                <div className="flex items-center justify-between w-full mb-1">
-                  <span className="text-xl" aria-hidden="true">
+                <div className="flex items-center justify-between w-full mb-2">
+                  <span className="text-2xl" aria-hidden="true">
                     {j.moodIcon}
                   </span>
-                  {isSelected && (
-                    <span className="text-[10px] font-bold bg-[#3bb582] text-white px-2 py-0.5 rounded-full">
+                  {isSelected ? (
+                    <span className="text-[10px] font-bold bg-[#17151a] text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                       {isFr ? "Actif" : "Active"}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-bold text-[#2d2542]/60 uppercase tracking-wider">
+                      ✦
                     </span>
                   )}
                 </div>
-                <strong className={`text-xs font-serif font-bold leading-tight ${isSelected ? "text-white" : "text-[#1e1931]"}`}>
+                <strong className="text-sm font-serif font-normal text-[#1e1931] leading-tight block">
                   {j.title}
                 </strong>
-                <span className={`text-[11px] mt-0.5 line-clamp-1 ${isSelected ? "text-white/70" : "text-[#705e8c]"}`}>
+                <span className="text-[11px] mt-1 text-[#5b4e75] font-medium line-clamp-1 block">
                   {j.moodName}
                 </span>
               </button>
@@ -565,42 +576,46 @@ export function PreSignupJourneyPreview() {
       </div>
 
       {/* Main Preview Container */}
-      <div className="max-w-5xl mx-auto bg-[#faf7f2] rounded-3xl border border-[#2d2542]/12 shadow-xl overflow-hidden">
-        {/* REASONING BANNER */}
-        <div className="bg-gradient-to-r from-[#2d2542] to-[#3a2f54] text-white p-5 sm:p-7 border-b border-[#2d2542]/20">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-2 max-w-3xl">
+      <div className="bg-[#fbfaf7] rounded-3xl border border-[#2d2542]/12 shadow-xl overflow-hidden">
+        {/* REASONING BANNER (matching .scripture-preview and .closing-section) */}
+        <div className="bg-[#211b3b] text-[#fbf7f0] p-6 sm:p-8 relative overflow-hidden">
+          {/* Subtle Ambient Disc */}
+          <div className="pointer-events-none absolute -right-16 -bottom-24 w-80 h-80 rounded-full border border-white/10" />
+          <div className="pointer-events-none absolute top-0 right-1/4 w-48 h-48 rounded-full bg-[#e8ba6a]/10 blur-2xl" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2.5 max-w-3xl">
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-amber-300 text-[11px] font-bold tracking-wider uppercase border border-white/10">
-                  <span>💡</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[#e8ba6a] text-[10px] font-bold tracking-[0.16em] uppercase border border-white/15">
+                  <span>✦</span>
                   <span>{isFr ? "Pourquoi ce parcours vous est recommandé" : "Why this journey was recommended"}</span>
                 </span>
                 <span className="text-white/60 text-xs font-mono">• 5 {isFr ? "jours · 5 min/jour" : "days · 5 min/day"}</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-white m-0">
+              <h3 className="text-2xl sm:text-3xl font-serif font-normal tracking-tight text-white m-0">
                 {currentJourney.title}
               </h3>
-              <p className="text-xs sm:text-sm text-white/85 leading-relaxed m-0 italic font-serif">
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed m-0 italic font-serif max-w-2xl">
                 “{currentJourney.reasoning}”
               </p>
             </div>
 
-            <div className="shrink-0 bg-white/10 rounded-2xl p-3 border border-white/10 text-center min-w-[170px]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block mb-0.5">
+            <div className="shrink-0 bg-white/10 backdrop-blur-xs rounded-2xl p-4 border border-white/15 text-center min-w-[180px]">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#e8ba6a] block mb-1">
                 {isFr ? "Format garanti" : "Guaranteed Format"}
               </span>
-              <strong className="text-sm font-bold text-white block">
+              <strong className="text-base font-serif font-normal text-white block">
                 {isFr ? "3 étapes en 5 minutes" : "3 Steps in 5 Minutes"}
               </strong>
-              <small className="text-[11px] text-white/70 block mt-0.5">
+              <small className="text-[11px] text-white/70 block mt-1">
                 {isFr ? "Lire (90s) · Méditer (2m) · Prier (60s)" : "Read (90s) · Reflect (2m) · Pray (60s)"}
               </small>
             </div>
           </div>
 
           {/* Contrast vs generic apps callout */}
-          <div className="mt-4 pt-4 border-t border-white/10 flex items-start gap-2.5 text-xs text-white/80">
-            <span className="text-amber-300 font-bold shrink-0">vs.</span>
+          <div className="relative z-10 mt-5 pt-4 border-t border-white/10 flex items-start gap-2.5 text-xs text-white/80">
+            <span className="text-[#e8ba6a] font-bold shrink-0 uppercase tracking-wider text-[11px]">✦ vs.</span>
             <p className="m-0 leading-relaxed">
               <span className="text-white/50">{isFr ? "La différence avec les applications classiques :" : "The difference vs. standard Bible apps:"} </span>
               {currentJourney.contrastVsGeneric}
@@ -609,9 +624,9 @@ export function PreSignupJourneyPreview() {
         </div>
 
         {/* 5-DAY PROGRESSION TABS */}
-        <div className="bg-[#f0ebe1] px-4 sm:px-7 py-3 border-b border-[#2d2542]/10 overflow-x-auto scrollbar-none">
+        <div className="bg-[#f5f0e7] px-4 sm:px-8 py-3.5 border-b border-[#2d2542]/10 overflow-x-auto scrollbar-none">
           <div className="flex items-center gap-2 min-w-max">
-            <span className="text-xs font-bold text-[#705e8c] uppercase tracking-wider mr-2 shrink-0">
+            <span className="text-xs font-bold text-[#705e8c] uppercase tracking-[0.14em] mr-2 shrink-0">
               {isFr ? "Plan des 5 jours :" : "5-Day Plan:"}
             </span>
             {currentJourney.days.map((day) => {
@@ -622,13 +637,13 @@ export function PreSignupJourneyPreview() {
                   type="button"
                   onClick={() => setSelectedDayNum(day.day)}
                   id={`day-select-btn-${day.day}`}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 border ${
+                  className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
                     isCurrentDay
-                      ? "bg-white text-[#2d2542] font-bold border-[#2d2542]/20 shadow-xs ring-1 ring-[#2d2542]/10"
-                      : "bg-transparent text-[#705e8c] hover:bg-white/50 border-transparent"
+                      ? "bg-[#17151a] text-white font-bold border-[#17151a] shadow-sm"
+                      : "bg-white text-[#2d2542] hover:bg-white/80 border-[#2d2542]/12"
                   }`}
                 >
-                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${isCurrentDay ? "bg-[#2d2542] text-white font-bold" : "bg-[#2d2542]/10 text-[#2d2542]"}`}>
+                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${isCurrentDay ? "bg-white text-[#17151a] font-bold" : "bg-[#2d2542]/10 text-[#2d2542]"}`}>
                     {day.day}
                   </span>
                   <span>{day.title}</span>
@@ -639,11 +654,11 @@ export function PreSignupJourneyPreview() {
         </div>
 
         {/* P3 RETENTION PROTECTION BANNER & INTERACTIVE DEMO */}
-        <div className="bg-[#f8f5fd] px-4 sm:px-7 py-3 border-b border-[#2d2542]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="bg-[#f0f6f4] px-4 sm:px-8 py-3.5 border-b border-[#2d2542]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
             <span className="text-base">🛡️</span>
             <div>
-              <span className="font-bold text-[#2d2542]">
+              <span className="font-bold text-[#1e1931]">
                 {isFr ? "Garantie anti-culpabilité : 2 Journées de Grâce incluses" : "Zero-Guilt Guarantee: 2 Journey Grace Days Included"}
               </span>
               <span className="text-[#64597b] ml-1.5 hidden sm:inline">
@@ -658,7 +673,7 @@ export function PreSignupJourneyPreview() {
             type="button"
             onClick={() => setIsGraceProtectionDemoOpen(!isGraceProtectionDemoOpen)}
             id="toggle-grace-demo-btn"
-            className="px-3 py-1 rounded-lg bg-white hover:bg-[#ede6f7] border border-[#d8cfec] text-[#5e4b85] font-semibold text-[11px] shrink-0 transition-colors flex items-center gap-1 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-full bg-white hover:bg-[#fbfaf7] border border-[#2d2542]/15 text-[#1e1931] font-bold text-[11px] shrink-0 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <span>{isGraceProtectionDemoOpen ? "▲" : "▼"}</span>
             <span>
@@ -673,38 +688,38 @@ export function PreSignupJourneyPreview() {
         {isGraceProtectionDemoOpen && (
           <div
             id="pre-signup-grace-demo-drawer"
-            className="bg-[#faf5ff] p-4 sm:p-6 border-b border-[#e9d5ff] space-y-3 animate-fade-in text-xs text-[#4d4262]"
+            className="bg-[#faf5ff] p-5 sm:p-7 border-b border-[#e9d5ff] space-y-3 animate-fade-in text-xs text-[#4d4262]"
           >
             <div className="flex items-center justify-between">
               <span className="font-bold uppercase tracking-wider text-[#6b21a8] text-[11px] flex items-center gap-1.5">
                 <span>🛡️</span>
                 <span>{isFr ? "Simulation de protection de persévérance" : "Retention Science in Action"}</span>
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-[#f3e8ff] text-[#6b21a8] font-bold text-[10px]">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#f3e8ff] text-[#6b21a8] font-bold text-[10px]">
                 {isFr ? "Taux de complétion × 3,8" : "3.8x Completion Multiplier"}
               </span>
             </div>
 
-            <p className="leading-relaxed m-0">
+            <p className="leading-relaxed m-0 text-sm">
               {isFr
                 ? "Dans les applications classiques, manquer le Jour 3 vous fait vous sentir coupable et 78 % des fidèles abandonnent l'application. Sur LifeBook, une Journée de Grâce s'active automatiquement :"
                 : "In traditional Bible apps, missing Day 3 triggers an ugly broken chain icon, and 78% of people abandon the app out of guilt. In LifeBook, your Grace Shield steps in automatically:"}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div className="p-3 rounded-xl bg-white border border-[#e9d5ff] space-y-1">
+              <div className="p-4 rounded-2xl bg-white border border-[#e9d5ff] space-y-1 shadow-xs">
                 <span className="font-bold text-[#1e1931] block">1. Spot Held in Peace</span>
                 <span className="text-[#64597b] text-[11px] block">
                   {isFr ? "Votre Jour 3 reste ouvert sans pénalité." : "Day 3 is preserved without resetting to Day 1."}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-white border border-[#e9d5ff] space-y-1">
+              <div className="p-4 rounded-2xl bg-white border border-[#e9d5ff] space-y-1 shadow-xs">
                 <span className="font-bold text-[#1e1931] block">2. 90-Second Catch-Up</span>
                 <span className="text-[#64597b] text-[11px] block">
                   {isFr ? "Pas de double devoir : une simple respiration de 90s." : "No double homework: just a 90s reconnect prayer."}
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-white border border-[#e9d5ff] space-y-1">
+              <div className="p-4 rounded-2xl bg-white border border-[#e9d5ff] space-y-1 shadow-xs">
                 <span className="font-bold text-[#1e1931] block">3. Habit Momentum Stays</span>
                 <span className="text-[#64597b] text-[11px] block">
                   {isFr ? "Votre série et vos points de grâce continuent." : "Your spiritual habit momentum remains intact."}
@@ -715,16 +730,16 @@ export function PreSignupJourneyPreview() {
         )}
 
         {/* DAY CONTENT TEST DRIVE (Inside the Preview) */}
-        <div className="p-5 sm:p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#2d2542]/10">
+        <div className="p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#2d2542]/10">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#705e8c]">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#705e8c]">
                 {isFr ? `Jour ${activeDay.day} sur 5 · Aperçu interactif` : `Day ${activeDay.day} of 5 · Interactive Preview`}
               </span>
-              <h4 className="text-xl sm:text-2xl font-serif font-bold text-[#1e1931] mt-0.5 m-0">
+              <h4 className="text-2xl sm:text-3xl font-serif font-normal text-[#1e1931] mt-0.5 m-0">
                 {activeDay.title}
               </h4>
-              <p className="text-xs text-[#5e5370] m-0 mt-0.5 font-medium">
+              <p className="text-xs sm:text-sm text-[#5e5370] m-0 mt-1 font-medium">
                 {activeDay.theme}
               </p>
             </div>
@@ -734,10 +749,10 @@ export function PreSignupJourneyPreview() {
               type="button"
               onClick={handleToggleAudio}
               id="preview-audio-sample-btn"
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer border ${
                 isPlayingAudioSample
-                  ? "bg-[#2d2542] text-white border-[#2d2542] shadow-sm animate-pulse"
-                  : "bg-white text-[#2d2542] border-[#2d2542]/20 hover:bg-[#f4efe4]"
+                  ? "bg-[#17151a] text-white border-[#17151a] shadow-sm animate-pulse"
+                  : "bg-white text-[#17151a] border-[#2d2542]/20 hover:bg-[#f5f0e7] shadow-xs"
               }`}
             >
               <span>{isPlayingAudioSample ? "⏸" : "▶"}</span>
@@ -749,29 +764,29 @@ export function PreSignupJourneyPreview() {
             </button>
           </div>
 
-          {/* STEP 1: SCRIPTURE BOX */}
-          <div className="bg-white rounded-2xl p-5 border border-[#2d2542]/12 shadow-xs space-y-3">
+          {/* STEP 1: SCRIPTURE BOX (Styled matching .scripture-art on landing page) */}
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#2d2542]/12 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#705e8c] bg-[#eee7f8] px-2.5 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#705e8c] bg-[#e7d4ed]/40 px-3 py-1 rounded-full">
                 <span>📖</span>
                 <span>{isFr ? "Étape 1 · Écriture Sainte (90s)" : "Step 1 · Scripture (90s)"}</span>
               </span>
-              <span className="text-xs font-bold text-[#2d2542] bg-[#faf6ee] px-2 py-0.5 rounded-md border border-[#edd79d]/50">
+              <span className="text-xs font-semibold text-[#1e1931] bg-[#fbfaf7] px-3 py-1 rounded-full border border-[#2d2542]/15">
                 {activeDay.reference}
               </span>
             </div>
 
-            <blockquote className="m-0 pl-4 border-l-2 border-[#705eaa]">
-              <p className="font-serif text-base sm:text-lg text-[#1e1931] italic leading-relaxed m-0 font-medium">
+            <blockquote className="m-0 pl-4 sm:pl-6 border-l-2 border-[#705eaa]">
+              <p className="font-serif text-lg sm:text-xl text-[#1e1931] italic leading-relaxed m-0 font-normal">
                 {activeDay.scripture}
               </p>
             </blockquote>
           </div>
 
           {/* STEP 2: REFLECTION PROMPT */}
-          <div className="bg-[#faf6ee] rounded-2xl p-5 border border-[#edd79d] shadow-xs space-y-3">
+          <div className="bg-[#fbf6ea] rounded-3xl p-6 sm:p-7 border border-[#e8ba6a]/40 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#916212] bg-white px-2.5 py-0.5 rounded-full border border-[#edd79d]">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#845b14] bg-white px-3 py-1 rounded-full border border-[#e8ba6a]/40">
                 <span>✍️</span>
                 <span>{isFr ? "Étape 2 · Question de méditation (2 min)" : "Step 2 · Reflection Prompt (2 min)"}</span>
               </span>
@@ -780,12 +795,12 @@ export function PreSignupJourneyPreview() {
               </span>
             </div>
 
-            <p className="text-sm sm:text-base font-serif text-[#2d2542] leading-snug font-semibold m-0">
+            <p className="text-base sm:text-lg font-serif text-[#1e1931] leading-snug font-normal m-0">
               {activeDay.reflectionPrompt}
             </p>
 
             {/* Interactive Scratchpad for immediate engagement */}
-            <div className="pt-1">
+            <div className="pt-2">
               <input
                 type="text"
                 value={scratchpadNote}
@@ -795,38 +810,38 @@ export function PreSignupJourneyPreview() {
                     ? "Exprimez votre pensée ici pour tester votre journal (privé)..."
                     : "Type your reflection here to test the private journal experience..."
                 }
-                className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white border border-[#2d2542]/15 text-[#2d2542] placeholder-[#8c8297] focus:outline-hidden focus:ring-2 focus:ring-[#705eaa]"
+                className="w-full text-xs sm:text-sm px-4 py-3 rounded-2xl bg-white border border-[#2d2542]/15 text-[#1e1931] placeholder-[#8c8297] focus:outline-hidden focus:ring-2 focus:ring-[#705eaa]"
                 id="pre-signup-scratchpad-input"
               />
             </div>
           </div>
 
           {/* STEP 3: GUIDED PRAYER */}
-          <div className="bg-[#f0f6f3] rounded-2xl p-5 border border-[#cbe3d7] shadow-xs space-y-2">
+          <div className="bg-[#d8efdc]/30 rounded-3xl p-6 sm:p-7 border border-[#66c8bb]/40 shadow-xs space-y-2">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#1e5843] bg-white px-2.5 py-0.5 rounded-full border border-[#cbe3d7]">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#124d3e] bg-white px-3 py-1 rounded-full border border-[#66c8bb]/40">
                 <span>🙏</span>
                 <span>{isFr ? "Étape 3 · Prière guidée (60s)" : "Step 3 · Guided Prayer (60s)"}</span>
               </span>
-              <span className="text-[11px] text-[#1e5843] font-semibold">
+              <span className="text-[11px] text-[#124d3e] font-semibold">
                 {isFr ? "À réciter ou adapter" : "Pray aloud or adapt"}
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#1c3e34] italic leading-relaxed m-0 font-serif">
+            <p className="text-sm sm:text-base text-[#124d3e] italic leading-relaxed m-0 font-serif">
               {activeDay.prayer}
             </p>
           </div>
 
           {/* BOTTOM CONVERSION ACTION STRIP */}
-          <div className="pt-4 border-t border-[#2d2542]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/60 p-4 rounded-2xl border">
+          <div className="pt-4 border-t border-[#2d2542]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#f5f0e7]/70 p-5 sm:p-6 rounded-3xl border border-[#2d2542]/10">
             <div>
-              <strong className="block text-sm font-bold text-[#1e1931]">
+              <strong className="block text-base font-serif font-normal text-[#1e1931]">
                 {isFr
                   ? `Prêt à vivre le Jour 1 de « ${currentJourney.title} » ?`
                   : `Ready to start Day 1 of “${currentJourney.title}”?`}
               </strong>
-              <small className="text-xs text-[#5e5370]">
+              <small className="text-xs text-[#5e5370] block mt-0.5">
                 {isFr
                   ? "Rejoignez LifeBook gratuitement. Aucune carte bancaire requise. Protection de grâce incluse."
                   : "Join LifeBook free. Zero credit card required. Built-in grace days protect your streak."}
@@ -836,11 +851,11 @@ export function PreSignupJourneyPreview() {
             <Link
               href={`/sign-up?journey=${currentJourney.slug}&mood=${currentJourney.moodKey}`}
               onClick={handleStartJourney}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#2d2542] hover:bg-[#1a1429] text-white font-bold text-xs sm:text-sm transition-all shadow-md hover:shadow-lg shrink-0"
+              className="inline-flex items-center justify-center gap-2 min-h-[46px] px-6 py-3 rounded-full bg-[#17151a] hover:bg-[#2d2542] text-white font-bold text-xs sm:text-sm transition-all shadow-md hover:-translate-y-0.5 shrink-0"
               id="start-pre-signup-journey-btn"
             >
               <span>{isFr ? "Commencer ce parcours (5 min)" : "Start this 5-Day Journey"}</span>
-              <span>→</span>
+              <span aria-hidden="true">↗</span>
             </Link>
           </div>
         </div>

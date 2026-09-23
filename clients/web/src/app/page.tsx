@@ -7,8 +7,9 @@ import { useRouter } from "next/navigation";
 import { useChristianAuth } from "@/lib/christian-auth";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import PhoneMockup from "@/components/PhoneMockup";
-import PreSignupJourneyPreview from "@/components/PreSignupJourneyPreview";
+import { VisualStreakCounter } from "@/components/VisualStreakCounter";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -184,10 +185,12 @@ export default function Home() {
             <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""}>{t("nav_audio_teachings")}</Link>
             <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>{t("nav_voice_search")}</Link>
           </div>
-          <div className="auth-actions flex items-center gap-3">
+          <div className="auth-actions flex items-center gap-2 sm:gap-3">
             <LanguageToggle />
+            <ThemeToggle />
             {isSignedIn ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <VisualStreakCounter variant="compact" />
                 <Link
                   href="/progress"
                   id="user-profile-nav-pill"
@@ -243,9 +246,13 @@ export default function Home() {
               aria-hidden="true"
             />
             <div className="mobile-navigation page-shell" id="mobile-navigation" role="dialog" aria-label="Navigation menu">
-              <div className="flex items-center justify-between pb-3 border-b border-[#2d2542]/10 mb-2">
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#2d2542]/10 mb-2">
                 <span className="text-xs font-semibold text-[#6a6078]">{isFr ? "Langue :" : "Language:"}</span>
                 <LanguageToggle />
+              </div>
+              <div className="flex items-center justify-between pb-3 border-b border-[#2d2542]/10 mb-2">
+                <span className="text-xs font-semibold text-[#6a6078]">{isFr ? "Thème nuit HD :" : "Night Mode:"}</span>
+                <ThemeToggle variant="segmented" showLabel showIndicator={false} />
               </div>
               <div className="mobile-nav-group">
                 <p className="mobile-nav-heading">{t("mobile_nav_devotion")}</p>
@@ -287,27 +294,32 @@ export default function Home() {
                 </a>
               </div>
               {isSignedIn ? (
-                <div className="mobile-account flex items-center justify-between pt-2 border-t border-[#2d2542]/10 w-full">
-                  <Link
-                    href="/progress"
-                    onClick={() => setMenuOpen(false)}
-                    className="text-xs font-semibold text-[#2d2542] flex items-center gap-2"
-                  >
-                    <span className="w-6 h-6 rounded-full bg-[#2d2542] text-[#fbfaf7] flex items-center justify-center text-[10px] font-bold">
-                      {user?.avatarInitial || "LB"}
-                    </span>
-                    <span>{user?.fullName || (isFr ? "Mes Progrès et Séries" : "My Progress and Streaks")} →</span>
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      signOut();
-                    }}
-                    className="text-xs text-[#776e82] hover:text-[#1e1931]"
-                  >
-                    {t("nav_sign_out")}
-                  </button>
+                <div className="mobile-account flex flex-col gap-2 pt-2 border-t border-[#2d2542]/10 w-full">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href="/progress"
+                      onClick={() => setMenuOpen(false)}
+                      className="text-xs font-semibold text-[#2d2542] flex items-center gap-2"
+                    >
+                      <span className="w-6 h-6 rounded-full bg-[#2d2542] text-[#fbfaf7] flex items-center justify-center text-[10px] font-bold">
+                        {user?.avatarInitial || "LB"}
+                      </span>
+                      <span>{user?.fullName || (isFr ? "Mes Progrès et Séries" : "My Progress and Streaks")} →</span>
+                    </Link>
+                    <VisualStreakCounter variant="compact" />
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        signOut();
+                      }}
+                      className="text-xs text-[#776e82] hover:text-[#1e1931]"
+                    >
+                      {t("nav_sign_out")}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col gap-2 pt-2 border-t border-[#2d2542]/10 w-full">
@@ -390,11 +402,11 @@ export default function Home() {
                 </Link>
               )}
               <a
-                href="#journey-preview"
+                href="#features"
                 className="pill-button pill-light"
                 id="hero-preview-journey-btn"
               >
-                <span>{isFr ? "Aperçu de votre étude & humeur" : "Explore Mood Reasoning & 5-Day Plan"}</span>
+                <span>{isFr ? "Découvrir la pratique en 3 étapes" : "Explore 3-Step Daily Practice"}</span>
                 <span>↓</span>
               </a>
               <span className="rating-note w-full sm:w-auto">
@@ -532,9 +544,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* P2: Pre-Signup Mood Reasoning & 5-Day Curriculum Preview */}
-      <PreSignupJourneyPreview />
 
       <section className="journeys-section page-shell" id="journeys">
         <div className="journey-panel">

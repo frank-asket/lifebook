@@ -1,6 +1,7 @@
 import Link from "next/link";
 import VoicePractice from "../VoicePractice";
 import { LanguageToggle } from "../../components/LanguageToggle";
+import { ThemeToggle } from "../../components/ThemeToggle";
 
 export const metadata = {
   title: "LifeBook Voice | Ask, reflect, pray (Bilingual EN/FR)",
@@ -16,8 +17,9 @@ export default function VoicePage() {
           <span>/</span>
           <strong>Voice</strong>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageToggle />
+          <ThemeToggle />
           <Link href="/#join" className="pill-button pill-dark">
             Join the early circle
           </Link>

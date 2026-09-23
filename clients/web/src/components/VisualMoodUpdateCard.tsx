@@ -1,6 +1,18 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import {
+  Heart,
+  BookOpen,
+  Lightbulb,
+  Check,
+  CheckCircle,
+  HandsPraying,
+  PencilSimpleLine,
+  FloppyDisk,
+  Sparkle,
+  Leaf,
+} from '@phosphor-icons/react';
 import type { MoodItem, DayActivityRecord } from './ProgressScreen';
 import { MOODS } from './ProgressScreen';
 
@@ -194,7 +206,7 @@ export function VisualMoodUpdateCard({
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#1FB6B0]/15 text-[#0E716D] text-[10px] font-extrabold uppercase tracking-wider">
-                <span>✦</span>
+                <Heart weight="fill" className="w-3 h-3 text-[#1FB6B0]" />
                 <span>Visual Soul & Mood Check-In</span>
               </span>
               {isToday && (
@@ -289,7 +301,7 @@ export function VisualMoodUpdateCard({
           <div className="mt-5 p-4 rounded-2xl bg-white/80 border border-gray-200/90 shadow-2xs backdrop-blur-xs">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1FB6B0] flex items-center gap-1.5">
-                <span>📖</span>
+                <BookOpen weight="bold" className="w-3.5 h-3.5" />
                 <span>Anchor Scripture Promise · {activeMoodConfig.scriptureRef}</span>
               </span>
               <span className="text-[11px] font-bold text-[#7E6C3B] bg-[#FFF8E6] px-2 py-0.5 rounded-md border border-[#F0DFB2]">
@@ -300,7 +312,7 @@ export function VisualMoodUpdateCard({
               “{activeMoodConfig.verse}”
             </p>
             <p className="text-[11px] text-[#695B82] mt-2 border-t border-gray-100 pt-2 flex items-center gap-1.5">
-              <span>💡</span>
+              <Lightbulb weight="bold" className="w-3.5 h-3.5 text-amber-500" />
               <span>{activeMoodConfig.guidance}</span>
             </p>
           </div>
@@ -362,7 +374,11 @@ export function VisualMoodUpdateCard({
                     : 'bg-white border-gray-200 text-[#473C63] hover:bg-gray-50'
                 }`}
               >
-                <span>{scriptureRead ? '✅' : '📖'}</span>
+                {scriptureRead ? (
+                  <CheckCircle weight="fill" className="w-4 h-4 text-[#1FB6B0]" />
+                ) : (
+                  <BookOpen weight="regular" className="w-4 h-4 text-gray-500" />
+                )}
                 <span>Scripture Read</span>
               </button>
 
@@ -376,7 +392,11 @@ export function VisualMoodUpdateCard({
                     : 'bg-white border-gray-200 text-[#473C63] hover:bg-gray-50'
                 }`}
               >
-                <span>{prayerCompleted ? '✅' : '🙏'}</span>
+                {prayerCompleted ? (
+                  <CheckCircle weight="fill" className="w-4 h-4 text-[#E3B15E]" />
+                ) : (
+                  <HandsPraying weight="regular" className="w-4 h-4 text-gray-500" />
+                )}
                 <span>Spoke in Prayer</span>
               </button>
 
@@ -390,7 +410,11 @@ export function VisualMoodUpdateCard({
                     : 'bg-white border-gray-200 text-[#473C63] hover:bg-gray-50'
                 }`}
               >
-                <span>{stillnessPractice ? '✅' : '🌿'}</span>
+                {stillnessPractice ? (
+                  <CheckCircle weight="fill" className="w-4 h-4 text-[#7B62B8]" />
+                ) : (
+                  <Leaf weight="regular" className="w-4 h-4 text-gray-500" />
+                )}
                 <span>Silent Abiding</span>
               </button>
 
@@ -404,7 +428,11 @@ export function VisualMoodUpdateCard({
                     : 'bg-white border-gray-200 text-[#473C63] hover:bg-gray-50'
                 }`}
               >
-                <span>{journalWritten ? '✅' : '✍️'}</span>
+                {journalWritten ? (
+                  <CheckCircle weight="fill" className="w-4 h-4 text-[#B8746B]" />
+                ) : (
+                  <PencilSimpleLine weight="regular" className="w-4 h-4 text-gray-500" />
+                )}
                 <span>Soul Journaling</span>
               </button>
             </div>
@@ -434,7 +462,7 @@ export function VisualMoodUpdateCard({
                 onClick={onOpenJournal}
                 className="px-3.5 py-2.5 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-[#483C66] transition-colors shrink-0 shadow-2xs flex items-center gap-1.5 cursor-pointer"
               >
-                <span>📖</span>
+                <BookOpen weight="bold" className="w-3.5 h-3.5" />
                 <span>Full Journal</span>
               </button>
             )}
@@ -446,7 +474,7 @@ export function VisualMoodUpdateCard({
           <div className="flex items-center gap-2">
             {isSavedSuccess ? (
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#E8F8F5] border border-[#A5E3D8] text-[#0D6B63] text-xs font-bold animate-fadeIn">
-                <span>✓</span>
+                <Check weight="bold" className="w-3.5 h-3.5" />
                 <span>
                   Heart record updated for {currentDateKey}! Milestone progress recalculated.
                 </span>
@@ -471,9 +499,9 @@ export function VisualMoodUpdateCard({
               onClick={() => handleSaveMood()}
               className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-[#241C3D] to-[#17132B] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>💾</span>
+              <FloppyDisk weight="fill" className="w-4 h-4 text-white" />
               <span>Save & Update Soul Record</span>
-              <span className="text-[#37C6C2]">✦</span>
+              <Sparkle weight="bold" className="w-3.5 h-3.5 text-[#37C6C2]" />
             </button>
           </div>
         </div>

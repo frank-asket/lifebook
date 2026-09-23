@@ -1,6 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import {
+  ShieldCheck,
+  Sparkle,
+  Lightbulb,
+  Hourglass,
+  Lightning,
+} from '@phosphor-icons/react';
 import { trackEvent } from '../lib/telemetry';
 
 export interface JourneyGraceState {
@@ -346,8 +353,9 @@ export function JourneyGraceProtectionCard({
             <span className="text-xs font-bold uppercase tracking-widest text-[#705EAA]">
               P3 Retention Protection
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#37C6C2]/15 text-[#0F7571] border border-[#37C6C2]/30">
-              🛡️ Journey Grace Days
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[#37C6C2]/15 text-[#0F7571] border border-[#37C6C2]/30 flex items-center gap-1">
+              <ShieldCheck weight="fill" className="w-3.5 h-3.5" />
+              <span>Journey Grace Days</span>
             </span>
           </div>
           <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#1E1931] mt-1">
@@ -363,10 +371,10 @@ export function JourneyGraceProtectionCard({
             id="journey-grace-policy-info-btn"
             type="button"
             onClick={() => setIsPolicyInfoOpen(true)}
-            className="px-3 py-1.5 rounded-full bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] text-[#6B21A8] text-xs font-semibold transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-full bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] text-[#6B21A8] text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
             title="Learn why Grace Days boost retention by 3.8x"
           >
-            <span>💡</span>
+            <Lightbulb weight="bold" className="w-3.5 h-3.5" />
             <span>Why Grace Days?</span>
           </button>
         </div>
@@ -380,7 +388,7 @@ export function JourneyGraceProtectionCard({
           <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#FAF8FC] via-[#F7F3FB] to-[#F1F9F9] border border-[#E4DCF1]">
             <div className="flex items-center justify-between gap-2 text-xs">
               <span className="font-bold text-[#705EAA] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <span>{currentTrack.icon}</span>
+                <ShieldCheck weight="bold" className="w-3.5 h-3.5 text-[#705EAA]" />
                 <span>Active 5-Day Track:</span>
               </span>
 
@@ -394,14 +402,14 @@ export function JourneyGraceProtectionCard({
 
               {state.status === 'grace_rest' && (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#92400E] border border-[#F59E0B]/30 flex items-center gap-1">
-                  <span>🛡️</span>
+                  <ShieldCheck weight="fill" className="w-3.5 h-3.5" />
                   <span>Grace Rest Active</span>
                 </span>
               )}
 
               {state.status === 'catchup_needed' && (
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EDE9FE] text-[#6D28D9] border border-[#8B5CF6]/30 flex items-center gap-1">
-                  <span>✨</span>
+                  <Sparkle weight="bold" className="w-3.5 h-3.5" />
                   <span>90s Catch-Up Ready</span>
                 </span>
               )}
@@ -566,7 +574,7 @@ export function JourneyGraceProtectionCard({
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#E8E1F0]">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#705EAA] flex items-center gap-1.5">
-                <span>🛡️</span>
+                <ShieldCheck weight="bold" className="w-4 h-4 text-[#705EAA]" />
                 <span>Grace Days Bank</span>
               </span>
               <span className="text-xs font-bold text-[#1E1931]">
@@ -587,7 +595,13 @@ export function JourneyGraceProtectionCard({
                         : 'bg-gray-100/70 border-gray-200 text-gray-400'
                     }`}
                   >
-                    <span className="text-2xl">{isAvailable ? '🛡️' : '⏳'}</span>
+                    <span className="text-2xl text-[#0F7571]">
+                      {isAvailable ? (
+                        <ShieldCheck weight="fill" className="w-6 h-6 text-[#37C6C2]" />
+                      ) : (
+                        <Hourglass weight="regular" className="w-6 h-6 text-gray-400" />
+                      )}
+                    </span>
                     <div>
                       <strong className="block text-xs font-bold text-[#1E1931]">
                         Grace Shield #{slot}
@@ -615,7 +629,7 @@ export function JourneyGraceProtectionCard({
               onClick={() => setIsRestModalOpen(true)}
               className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#2A2146] to-[#1E1835] hover:opacity-95 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
             >
-              <span>🛡️</span>
+              <ShieldCheck weight="fill" className="w-4 h-4 text-[#37C6C2]" />
               <span>Take a Grace Day (Rest Today Without Penalty)</span>
             </button>
 
@@ -625,10 +639,10 @@ export function JourneyGraceProtectionCard({
                 id="simulate-missed-day-btn"
                 type="button"
                 onClick={handleSimulateMissedDay}
-                className="py-2 px-3 rounded-xl bg-white hover:bg-[#FAF8FC] border border-[#D8CFEC] text-[#4D4262] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                className="py-2 px-3 rounded-xl bg-white hover:bg-[#FAF8FC] border border-[#D8CFEC] text-[#4D4262] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 title="Simulate missing yesterday to test how Grace Day preserves Day 3"
               >
-                <span>⚡</span>
+                <Lightning weight="bold" className="w-3.5 h-3.5 text-amber-500" />
                 <span>Test Missed Day</span>
               </button>
 
@@ -636,9 +650,9 @@ export function JourneyGraceProtectionCard({
                 id="catchup-quick-btn"
                 type="button"
                 onClick={() => setIsCatchUpModalOpen(true)}
-                className="py-2 px-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] text-[#6B21A8] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                className="py-2 px-3 rounded-xl bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] text-[#6B21A8] text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <span>✨</span>
+                <Sparkle weight="bold" className="w-3.5 h-3.5 text-purple-600" />
                 <span>90s Catch-Up</span>
               </button>
             </div>

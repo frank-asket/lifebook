@@ -1,6 +1,20 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
+import {
+  Palette,
+  Flame,
+  CaretLeft,
+  CaretRight,
+  Bell,
+  BookOpen,
+  HandsPraying,
+  PencilSimpleLine,
+  ChatCircleDots,
+  Check,
+  Plus,
+  Sparkle,
+} from '@phosphor-icons/react';
 import type { MoodItem, DayActivityRecord } from './ProgressScreen';
 import { MOODS } from './ProgressScreen';
 
@@ -393,26 +407,26 @@ export function MonthlyMoodHeatmap({
                 id="heatmap-mode-mood"
                 type="button"
                 onClick={() => setDisplayMode('mood')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   displayMode === 'mood'
                     ? 'bg-[#2A2146] text-white shadow-xs'
                     : 'text-[#62557B] hover:text-[#1E1931]'
                 }`}
               >
-                <span>🎨</span>
+                <Palette weight="bold" className="w-3.5 h-3.5" />
                 <span>Mood Heatmap</span>
               </button>
               <button
                 id="heatmap-mode-intensity"
                 type="button"
                 onClick={() => setDisplayMode('intensity')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   displayMode === 'intensity'
                     ? 'bg-[#2A2146] text-white shadow-xs'
                     : 'text-[#62557B] hover:text-[#1E1931]'
                 }`}
               >
-                <span>🔥</span>
+                <Flame weight="bold" className="w-3.5 h-3.5" />
                 <span>Practice Habits</span>
               </button>
             </div>
@@ -424,15 +438,16 @@ export function MonthlyMoodHeatmap({
                 type="button"
                 onClick={handlePrevMonth}
                 aria-label="Previous Month"
-                className="px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-bold text-[#4E4466] hover:bg-gray-50 active:scale-95 transition-all"
+                className="px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-bold text-[#4E4466] hover:bg-gray-50 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
               >
-                ← Prev
+                <CaretLeft weight="bold" className="w-3 h-3" />
+                <span>Prev</span>
               </button>
               <button
                 id="heatmap-today-jump-btn"
                 type="button"
                 onClick={handleJumpToToday}
-                className="px-4 py-1.5 rounded-full bg-[#2A2146] text-white text-xs font-bold hover:bg-[#1E1835] active:scale-95 transition-all shadow-xs"
+                className="px-4 py-1.5 rounded-full bg-[#2A2146] text-white text-xs font-bold hover:bg-[#1E1835] active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 This Month
               </button>
@@ -441,9 +456,10 @@ export function MonthlyMoodHeatmap({
                 type="button"
                 onClick={handleNextMonth}
                 aria-label="Next Month"
-                className="px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-bold text-[#4E4466] hover:bg-gray-50 active:scale-95 transition-all"
+                className="px-3.5 py-1.5 rounded-full border border-gray-200 text-xs font-bold text-[#4E4466] hover:bg-gray-50 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
               >
-                Next →
+                <span>Next</span>
+                <CaretRight weight="bold" className="w-3 h-3" />
               </button>
 
               {onOpenNotificationSettings && (
@@ -452,9 +468,9 @@ export function MonthlyMoodHeatmap({
                   type="button"
                   onClick={onOpenNotificationSettings}
                   title="Set daily reminder notification time for mood check-in"
-                  className="px-3.5 py-1.5 rounded-full border border-[#D5CBE7] bg-[#F7F4FB] hover:bg-[#EFE9F7] text-[#2C214A] text-xs font-bold transition-all shadow-2xs flex items-center gap-1 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-full border border-[#D5CBE7] bg-[#F7F4FB] hover:bg-[#EFE9F7] text-[#2C214A] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span className="text-xs">🔔</span>
+                  <Bell weight="bold" className="w-3.5 h-3.5 text-[#2C214A]" />
                   <span className="hidden sm:inline">Daily Reminder</span>
                   {notificationReminderTime && (
                     <span className="text-[10px] font-mono font-extrabold text-[#0E716D] bg-[#E7F7F6] px-1.5 py-0.2 rounded-full border border-[#9DE1DD]">
@@ -533,9 +549,9 @@ export function MonthlyMoodHeatmap({
                 <button
                   type="button"
                   onClick={onOpenPulse}
-                  className="px-3.5 py-1.5 rounded-full bg-white border border-[#D5CBE5] hover:bg-[#FAF8FD] text-[#2A2146] text-xs font-bold transition-all shadow-2xs flex items-center gap-1"
+                  className="px-3.5 py-1.5 rounded-full bg-white border border-[#D5CBE5] hover:bg-[#FAF8FD] text-[#2A2146] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>🕊️</span>
+                  <Sparkle weight="bold" className="w-3.5 h-3.5 text-[#1FB6B0]" />
                   <span>Weekly Pulse</span>
                 </button>
               )}
@@ -543,9 +559,9 @@ export function MonthlyMoodHeatmap({
                 <button
                   type="button"
                   onClick={onOpenJournal}
-                  className="px-3.5 py-1.5 rounded-full bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1"
+                  className="px-3.5 py-1.5 rounded-full bg-[#2A2146] hover:bg-[#1E1835] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>✍️</span>
+                  <PencilSimpleLine weight="bold" className="w-3.5 h-3.5 text-[#E3B15E]" />
                   <span>Journal</span>
                 </button>
               )}
@@ -1047,16 +1063,16 @@ export function MonthlyMoodHeatmap({
                   type="button"
                   id="toggle-practice-scripture"
                   onClick={() => handleTogglePractice('scriptureRead')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 ${
+                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 cursor-pointer ${
                     currentRecord.scriptureRead
                       ? 'bg-[#E3B15E]/20 border-[#E3B15E] text-[#FFF6E5]'
                       : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-lg">📖</span>
+                    <BookOpen weight="bold" className="w-5 h-5 text-[#E3B15E]" />
                     <span className="text-xs font-bold">
-                      {currentRecord.scriptureRead ? '✓' : '+'}
+                      {currentRecord.scriptureRead ? <Check weight="bold" className="w-3.5 h-3.5" /> : <Plus weight="bold" className="w-3.5 h-3.5" />}
                     </span>
                   </div>
                   <div>
@@ -1070,16 +1086,16 @@ export function MonthlyMoodHeatmap({
                   type="button"
                   id="toggle-practice-prayer"
                   onClick={() => handleTogglePractice('prayerCompleted')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 ${
+                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 cursor-pointer ${
                     currentRecord.prayerCompleted
                       ? 'bg-[#37C6C2]/20 border-[#37C6C2] text-[#DCFAF9]'
                       : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-lg">🙏</span>
+                    <HandsPraying weight="bold" className="w-5 h-5 text-[#37C6C2]" />
                     <span className="text-xs font-bold">
-                      {currentRecord.prayerCompleted ? '✓' : '+'}
+                      {currentRecord.prayerCompleted ? <Check weight="bold" className="w-3.5 h-3.5" /> : <Plus weight="bold" className="w-3.5 h-3.5" />}
                     </span>
                   </div>
                   <div>
@@ -1093,16 +1109,16 @@ export function MonthlyMoodHeatmap({
                   type="button"
                   id="toggle-practice-stillness"
                   onClick={() => handleTogglePractice('stillnessPractice')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 ${
+                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 cursor-pointer ${
                     currentRecord.stillnessPractice
                       ? 'bg-[#7B62B8]/25 border-[#9A82D4] text-[#EFEAF9]'
                       : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-lg">🕯️</span>
+                    <Sparkle weight="bold" className="w-5 h-5 text-[#9A82D4]" />
                     <span className="text-xs font-bold">
-                      {currentRecord.stillnessPractice ? '✓' : '+'}
+                      {currentRecord.stillnessPractice ? <Check weight="bold" className="w-3.5 h-3.5" /> : <Plus weight="bold" className="w-3.5 h-3.5" />}
                     </span>
                   </div>
                   <div>
@@ -1116,16 +1132,16 @@ export function MonthlyMoodHeatmap({
                   type="button"
                   id="toggle-practice-journal"
                   onClick={() => handleTogglePractice('journalWritten')}
-                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 ${
+                  className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between min-h-[72px] active:scale-95 cursor-pointer ${
                     currentRecord.journalWritten
                       ? 'bg-[#1FB6B0]/25 border-[#1FB6B0] text-[#D4F7F5]'
                       : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-lg">✍️</span>
+                    <PencilSimpleLine weight="bold" className="w-5 h-5 text-[#1FB6B0]" />
                     <span className="text-xs font-bold">
-                      {currentRecord.journalWritten ? '✓' : '+'}
+                      {currentRecord.journalWritten ? <Check weight="bold" className="w-3.5 h-3.5" /> : <Plus weight="bold" className="w-3.5 h-3.5" />}
                     </span>
                   </div>
                   <div>
@@ -1139,7 +1155,7 @@ export function MonthlyMoodHeatmap({
             {/* Reflection Quote Snippet if present */}
             {currentRecord.reflectionSnippet && (
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-3">
-                <span className="text-xl">💭</span>
+                <ChatCircleDots weight="bold" className="w-5 h-5 text-[#37C6C2] shrink-0" />
                 <div>
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#37C6C2]">
                     Recorded Reflection

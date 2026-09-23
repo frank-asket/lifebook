@@ -7,6 +7,7 @@ import Analytics from "./Analytics";
 import { ClerkProvider } from '@clerk/nextjs';
 import { ChristianAuthProvider } from "@/lib/christian-auth";
 import { LanguageProvider } from "@/lib/i18n";
+import { ThemeProvider } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,29 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('lifebook_theme');
+                  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    document.documentElement.style.colorScheme = 'light';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <ClerkProvider
           dynamic
@@ -73,9 +97,11 @@ export default function RootLayout({
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
           />
           <LanguageProvider>
-            <ChristianAuthProvider>
-              {children}
-            </ChristianAuthProvider>
+            <ThemeProvider>
+              <ChristianAuthProvider>
+                {children}
+              </ChristianAuthProvider>
+            </ThemeProvider>
           </LanguageProvider>
         </ClerkProvider>
       </body>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback, useId } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { trackEvent } from "@/lib/telemetry";
 
 interface CohortSummary {
@@ -251,7 +252,8 @@ export default function WaitlistPage() {
                 : (isFr ? "✍️ Formulaire d'inscription" : "✍️ Public Waitlist View")}
             </button>
             <LanguageToggle />
-            <Link href="/" className="font-medium text-[#705e8c] hover:text-[#2d2542] transition-colors">
+            <ThemeToggle />
+            <Link href="/" className="font-medium text-[#705e8c] hover:text-[#2d2542] dark:text-[#b8b0c8] dark:hover:text-white transition-colors">
               {isFr ? "← Accueil" : "← Home"}
             </Link>
           </div>

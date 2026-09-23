@@ -8,6 +8,7 @@ import { FormEvent, useState } from "react";
 import { teachings, getTeacherBySlug } from "../../livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { TeachingShareModal } from "@/components/TeachingShareModal";
 
@@ -63,8 +64,9 @@ export default function LivingWordDetail() {
           <span>/</span>
           <strong>{title}</strong>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageToggle />
+          <ThemeToggle />
           <Link className="detail-home" href="/">
             {isFr ? "Accueil ↗" : "Home ↗"}
           </Link>

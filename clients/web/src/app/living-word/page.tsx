@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LivingWord from "../LivingWord";
 import { LanguageToggle } from "../../components/LanguageToggle";
+import { ThemeToggle } from "../../components/ThemeToggle";
 
 export const metadata = {
   title: "LivingWord | Christian teaching and reflection (Bilingual EN/FR)",
@@ -16,11 +17,12 @@ export default function LivingWordPage() {
           <span>/</span>
           <strong>LivingWord</strong>
         </div>
-        <div className="flex items-center gap-3">
-          <Link href="/voice" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931] transition-colors">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/voice" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931] dark:text-[#B8B0C8] dark:hover:text-white transition-colors">
             Voice
           </Link>
           <LanguageToggle />
+          <ThemeToggle />
           <Link href="/#features" className="pill-button pill-dark">
             Devotions
           </Link>

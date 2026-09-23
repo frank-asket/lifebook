@@ -1,6 +1,31 @@
 @import "tailwindcss";
 
-:root { --plum: #211b3b; --plum-deep: #17132c; --ink: #2b2344; --muted: #766d87; --cream: #f5f0e7; --paper: #fcfaf6; --teal: #66c8bb; --gold: #e8ba6a; }
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --plum: #211b3b;
+  --plum-deep: #17132c;
+  --ink: #2b2344;
+  --muted: #766d87;
+  --cream: #f5f0e7;
+  --paper: #fcfaf6;
+  --teal: #66c8bb;
+  --gold: #e8ba6a;
+  color-scheme: light;
+}
+
+html.dark,
+[data-theme="dark"] {
+  --plum: #151128;
+  --plum-deep: #0c0918;
+  --ink: #fdfcfb;
+  --muted: #b8b0c8;
+  --cream: #1e1834;
+  --paper: #0e0c18;
+  --teal: #4ee2d8;
+  --gold: #f7cb7a;
+  color-scheme: dark;
+}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 88px; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-geist-sans), Arial, sans-serif; -webkit-font-smoothing: antialiased; }
@@ -853,5 +878,564 @@ a { color: inherit; text-decoration: none; }
     transform: scale(1.025);
   }
 }
+
+/* ==========================================================================
+   High-Contrast Dark Theme for Better Accessibility & Night Reading
+   ========================================================================== */
+
+/* High-contrast canvas & typography */
+html.dark body,
+[data-theme="dark"] body {
+  background-color: #0e0c18;
+  color: #fdfcfb;
+  letter-spacing: 0.012em;
+}
+
+html.dark .showcase-page,
+[data-theme="dark"] .showcase-page {
+  background: #0e0c18;
+  color: #fdfcfb;
+}
+
+html.dark .route-page,
+[data-theme="dark"] .route-page {
+  background: #0e0c18;
+  color: #fdfcfb;
+}
+
+/* Sticky Navigation Header in Dark */
+html.dark .sticky-nav-header.header-scrolled,
+[data-theme="dark"] .sticky-nav-header.header-scrolled {
+  background-color: rgba(14, 12, 24, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+html.dark .sticky-nav-header:not(.header-scrolled),
+[data-theme="dark"] .sticky-nav-header:not(.header-scrolled) {
+  background-color: rgba(14, 12, 24, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+html.dark .showcase-nav .wordmark,
+[data-theme="dark"] .showcase-nav .wordmark {
+  color: #ffffff;
+}
+
+html.dark .showcase-links,
+[data-theme="dark"] .showcase-links {
+  color: rgba(253, 252, 251, 0.82);
+}
+
+html.dark .showcase-links a:hover,
+[data-theme="dark"] .showcase-links a:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .showcase-links a.active-link,
+[data-theme="dark"] .showcase-links a.active-link {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+html.dark .nav-sign-in,
+[data-theme="dark"] .nav-sign-in {
+  color: #d6cee4;
+}
+
+html.dark .nav-sign-in:hover,
+[data-theme="dark"] .nav-sign-in:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+html.dark .pill-dark,
+[data-theme="dark"] .pill-dark {
+  color: #0e0c18 !important;
+  background: #fdfcfb !important;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
+}
+
+html.dark .pill-dark:hover,
+[data-theme="dark"] .pill-dark:hover {
+  background: #ffffff !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.35);
+}
+
+/* Hero Section in High-Contrast Dark */
+html.dark .showcase-hero,
+[data-theme="dark"] .showcase-hero {
+  background: radial-gradient(circle at 75% 25%, rgba(68, 48, 110, 0.55), transparent 45%), linear-gradient(135deg, #18132e 0%, #110d22 55%, #0c1518 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+html.dark .showcase-eyebrow,
+[data-theme="dark"] .showcase-eyebrow {
+  color: #f7cb7a;
+}
+
+html.dark .showcase-hero h1,
+[data-theme="dark"] .showcase-hero h1,
+html.dark .showcase-page h2,
+[data-theme="dark"] .showcase-page h2 {
+  color: #ffffff;
+}
+
+html.dark .showcase-page em,
+[data-theme="dark"] .showcase-page em {
+  color: #4ee2d8;
+}
+
+html.dark .showcase-hero-copy > p:not(.showcase-eyebrow),
+[data-theme="dark"] .showcase-hero-copy > p:not(.showcase-eyebrow) {
+  color: #d6d0e5;
+}
+
+html.dark .rating-note,
+[data-theme="dark"] .rating-note {
+  color: #b8b0c8;
+}
+
+html.dark .hero-scroll,
+[data-theme="dark"] .hero-scroll {
+  color: rgba(253, 252, 251, 0.65);
+}
+
+/* Phone Frame Night Preview */
+html.dark .phone-frame,
+[data-theme="dark"] .phone-frame {
+  background: #141024;
+  border: 5px solid rgba(255, 255, 255, 0.22);
+  color: #fdfcfb;
+  box-shadow: 15px 30px 50px rgba(0, 0, 0, 0.7);
+}
+
+html.dark .phone-greeting strong,
+[data-theme="dark"] .phone-greeting strong {
+  color: #ffffff;
+}
+
+html.dark .phone-greeting span,
+[data-theme="dark"] .phone-greeting span {
+  color: #b8b0c8;
+}
+
+html.dark .mood-gold,
+[data-theme="dark"] .mood-gold {
+  background: #2b2114;
+  color: #ffd98f;
+  border: 1px solid rgba(247, 203, 122, 0.3);
+}
+
+html.dark .mood-teal,
+[data-theme="dark"] .mood-teal {
+  background: #102621;
+  color: #88ede5;
+  border: 1px solid rgba(78, 226, 216, 0.3);
+}
+
+html.dark .mood-violet,
+[data-theme="dark"] .mood-violet {
+  background: #241938;
+  color: #d9c5f8;
+  border: 1px solid rgba(198, 168, 245, 0.3);
+}
+
+html.dark .mood-blue,
+[data-theme="dark"] .mood-blue {
+  background: #122138;
+  color: #b3dcf8;
+  border: 1px solid rgba(144, 205, 250, 0.3);
+}
+
+html.dark .mood-tile small,
+[data-theme="dark"] .mood-tile small {
+  color: rgba(253, 252, 251, 0.75);
+}
+
+html.dark .phone-bottom,
+[data-theme="dark"] .phone-bottom {
+  border-top-color: rgba(255, 255, 255, 0.16);
+  color: #b8b0c8;
+}
+
+html.dark .active-tab,
+[data-theme="dark"] .active-tab {
+  color: #4ee2d8;
+}
+
+/* Benefits Cards */
+html.dark .benefits-section,
+[data-theme="dark"] .benefits-section {
+  background: #110e20;
+}
+
+html.dark .section-heading > p,
+[data-theme="dark"] .section-heading > p {
+  color: #b8b0c8;
+}
+
+html.dark .benefit-card,
+[data-theme="dark"] .benefit-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+html.dark .benefit-lilac,
+[data-theme="dark"] .benefit-lilac {
+  background: #251c38;
+  color: #ffffff;
+}
+
+html.dark .benefit-blue,
+[data-theme="dark"] .benefit-blue {
+  background: #14243a;
+  color: #ffffff;
+}
+
+html.dark .benefit-mint,
+[data-theme="dark"] .benefit-mint {
+  background: #122b24;
+  color: #ffffff;
+}
+
+html.dark .benefit-card h3,
+[data-theme="dark"] .benefit-card h3 {
+  color: #ffffff;
+}
+
+html.dark .benefit-card p,
+[data-theme="dark"] .benefit-card p {
+  color: rgba(253, 252, 251, 0.9);
+}
+
+/* How It Works Section */
+html.dark .how-section,
+[data-theme="dark"] .how-section {
+  background: #0e0c18;
+}
+
+html.dark .how-heading > p:last-child,
+[data-theme="dark"] .how-heading > p:last-child {
+  color: #b8b0c8;
+}
+
+html.dark .step-list,
+[data-theme="dark"] .step-list,
+html.dark .how-step,
+[data-theme="dark"] .how-step {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+html.dark .how-step h3,
+[data-theme="dark"] .how-step h3 {
+  color: #ffffff;
+}
+
+html.dark .how-step p,
+[data-theme="dark"] .how-step p {
+  color: #b8b0c8;
+}
+
+html.dark .how-step > span,
+[data-theme="dark"] .how-step > span {
+  background: #272040;
+  color: #f7cb7a;
+}
+
+html.dark .selected-step,
+[data-theme="dark"] .selected-step {
+  background: #221c38;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+  border: 1px solid #4ee2d8;
+}
+
+html.dark .scripture-preview,
+[data-theme="dark"] .scripture-preview {
+  background: linear-gradient(145deg, #2b1f48, #120e22);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65);
+}
+
+/* Journeys Section */
+html.dark .journeys-section,
+[data-theme="dark"] .journeys-section {
+  background: #110e20;
+}
+
+html.dark .journey-panel-copy > p:not(.showcase-eyebrow),
+[data-theme="dark"] .journey-panel-copy > p:not(.showcase-eyebrow) {
+  color: #b8b0c8;
+}
+
+html.dark .underlined-link,
+[data-theme="dark"] .underlined-link {
+  color: #ffffff;
+  border-bottom-color: #4ee2d8;
+}
+
+/* Questions / FAQ Section */
+html.dark .questions-section,
+[data-theme="dark"] .questions-section {
+  background: #0e0c18;
+}
+
+html.dark .faq-list,
+[data-theme="dark"] .faq-list,
+html.dark .faq-row,
+[data-theme="dark"] .faq-row {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+html.dark .faq-row button,
+[data-theme="dark"] .faq-row button {
+  color: #ffffff;
+}
+
+html.dark .faq-row p,
+[data-theme="dark"] .faq-row p {
+  color: #b8b0c8;
+}
+
+/* Living Word Section */
+html.dark .living-word-section,
+[data-theme="dark"] .living-word-section {
+  background: #0e0c18;
+  color: #fdfcfb;
+}
+
+html.dark .living-word-heading > p,
+[data-theme="dark"] .living-word-heading > p {
+  color: #b8b0c8;
+}
+
+html.dark .living-word-toolbar,
+[data-theme="dark"] .living-word-toolbar {
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+}
+
+html.dark .living-word-tabs button,
+[data-theme="dark"] .living-word-tabs button {
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #b8b0c8;
+}
+
+html.dark .living-word-tabs button:hover,
+[data-theme="dark"] .living-word-tabs button:hover,
+html.dark .living-word-tabs .active-word-tab,
+[data-theme="dark"] .living-word-tabs .active-word-tab {
+  border-color: #4ee2d8;
+  color: #ffffff;
+  background: #2a2146;
+}
+
+html.dark .word-card,
+[data-theme="dark"] .word-card {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+}
+
+html.dark .word-card-rose,
+[data-theme="dark"] .word-card-rose {
+  background: #25162a;
+  color: #ffffff;
+}
+
+html.dark .word-card-sage,
+[data-theme="dark"] .word-card-sage {
+  background: #112822;
+  color: #ffffff;
+}
+
+html.dark .word-card-blue,
+[data-theme="dark"] .word-card-blue {
+  background: #122137;
+  color: #ffffff;
+}
+
+html.dark .word-card-gold,
+[data-theme="dark"] .word-card-gold {
+  background: #292114;
+  color: #ffffff;
+}
+
+html.dark .word-card h3,
+[data-theme="dark"] .word-card h3 {
+  color: #ffffff;
+}
+
+html.dark .word-card-excerpt,
+[data-theme="dark"] .word-card-excerpt {
+  color: rgba(253, 252, 251, 0.88);
+}
+
+html.dark .word-card-category,
+[data-theme="dark"] .word-card-category {
+  color: #f7cb7a;
+}
+
+html.dark .word-card-teacher,
+[data-theme="dark"] .word-card-teacher {
+  color: #b8b0c8;
+}
+
+html.dark .listen-button,
+[data-theme="dark"] .listen-button {
+  border-color: rgba(255, 255, 255, 0.38);
+  color: #ffffff;
+}
+
+html.dark .listen-button:hover,
+[data-theme="dark"] .listen-button:hover {
+  background: #ffffff;
+  color: #0e0c18;
+}
+
+/* Living Word Scripture Detail & Night Reading */
+html.dark .living-detail,
+[data-theme="dark"] .living-detail {
+  background: #0e0c18;
+  color: #fdfcfb;
+}
+
+html.dark .detail-nav,
+[data-theme="dark"] .detail-nav {
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+}
+
+html.dark .detail-back,
+[data-theme="dark"] .detail-back,
+html.dark .detail-home,
+[data-theme="dark"] .detail-home {
+  color: #b8b0c8;
+}
+
+html.dark .detail-back:hover,
+[data-theme="dark"] .detail-back:hover,
+html.dark .detail-home:hover,
+[data-theme="dark"] .detail-home:hover {
+  color: #ffffff;
+}
+
+html.dark .detail-hero h1,
+[data-theme="dark"] .detail-hero h1 {
+  color: #ffffff;
+}
+
+html.dark .detail-intro,
+[data-theme="dark"] .detail-intro {
+  color: #c8c2d6;
+}
+
+html.dark .detail-verse,
+[data-theme="dark"] .detail-verse {
+  background: linear-gradient(145deg, #302050, #141026);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+}
+
+/* Voice Console in Dark */
+html.dark .voice-console,
+[data-theme="dark"] .voice-console {
+  background: #141124;
+  color: #fdfcfb;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+html.dark .voice-console-top,
+[data-theme="dark"] .voice-console-top {
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+  color: #fdfcfb;
+}
+
+html.dark .voice-prompt,
+[data-theme="dark"] .voice-prompt {
+  background: #1f1936;
+  color: #ffffff;
+}
+
+html.dark .voice-transcript,
+[data-theme="dark"] .voice-transcript {
+  background: #271c35;
+  color: #ffffff;
+}
+
+html.dark .voice-transcript p,
+[data-theme="dark"] .voice-transcript p {
+  color: #d6d0e3;
+}
+
+html.dark .voice-answer,
+[data-theme="dark"] .voice-answer {
+  background: #122822;
+  color: #ffffff;
+}
+
+html.dark .voice-answer p,
+[data-theme="dark"] .voice-answer p {
+  color: #d8f3e5;
+}
+
+/* Mobile Navigation Menu */
+html.dark .mobile-navigation,
+[data-theme="dark"] .mobile-navigation {
+  background: #141124;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65);
+}
+
+html.dark .mobile-nav-heading,
+[data-theme="dark"] .mobile-nav-heading {
+  color: #f7cb7a;
+}
+
+/* Route Navigation & Breadcrumbs */
+html.dark .route-nav,
+[data-theme="dark"] .route-nav {
+  border-bottom-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+html.dark .breadcrumbs a,
+[data-theme="dark"] .breadcrumbs a {
+  color: #b8b0c8;
+}
+
+html.dark .breadcrumbs a:hover,
+[data-theme="dark"] .breadcrumbs a:hover {
+  color: #ffffff;
+}
+
+html.dark .breadcrumbs strong,
+[data-theme="dark"] .breadcrumbs strong {
+  color: #ffffff;
+}
+
+/* Progress Screen & Devotional Habit Dashboard */
+html.dark main.min-h-screen,
+[data-theme="dark"] main.min-h-screen {
+  background-color: #0e0c18 !important;
+  color: #fdfcfb !important;
+}
+
+/* Modal Dialogs in Dark Mode */
+html.dark [role="dialog"],
+[data-theme="dark"] [role="dialog"] {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Accessible High-Contrast Focus Ring */
+:focus-visible {
+  outline: 2px solid #4ee2d8 !important;
+  outline-offset: 2px !important;
+}
+
 
 

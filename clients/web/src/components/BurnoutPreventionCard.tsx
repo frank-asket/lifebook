@@ -1,6 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Peace,
+  ShieldCheck,
+  Warning,
+  PencilSimpleLine,
+} from '@phosphor-icons/react';
 import type { DayActivityRecord } from './ProgressScreen';
 
 interface BurnoutPreventionCardProps {
@@ -212,18 +218,18 @@ export function BurnoutPreventionCard({
             </span>
             <span>·</span>
             {burnoutAnalysis.isSabbathToday ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#1FB6B0]/30 text-[#43E4DC] border border-[#1FB6B0]/60 shadow-xs">
-                <span>🕊️</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#1FB6B0]/30 text-[#43E4DC] border border-[#1FB6B0]/60 shadow-xs">
+                <ShieldCheck weight="fill" className="w-3.5 h-3.5" />
                 <span>Sabbath Day Active · Streak Sheltered</span>
               </span>
             ) : burnoutAnalysis.isHighIntensityDetected ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F28C38]/30 text-[#FFAE66] border border-[#F28C38]/60 animate-pulse">
-                <span>⚠️</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F28C38]/30 text-[#FFAE66] border border-[#F28C38]/60 animate-pulse">
+                <Warning weight="bold" className="w-3.5 h-3.5" />
                 <span>Long High-Intensity Streak Detected · Sabbath Day Recommended</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-[#C5BDD8] border border-white/15">
-                <span>🌿</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-[#C5BDD8] border border-white/15">
+                <Peace weight="bold" className="w-3.5 h-3.5" />
                 <span>Spiritual Pacing: Balanced Rhythm</span>
               </span>
             )}
@@ -505,7 +511,7 @@ export function BurnoutPreventionCard({
                   onClick={() => onHonorSabbath(todayStr)}
                   className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#1FB6B0] via-[#24C2BB] to-[#E3B15E] hover:brightness-110 active:scale-95 text-[#141022] font-bold text-sm transition-all shadow-[0_10px_25px_-4px_rgba(31,182,176,0.5)] flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span className="text-lg">🕊️</span>
+                  <ShieldCheck weight="fill" className="w-5 h-5 text-[#141022]" />
                   <span>Honor Sabbath Day Today (+50 Grace Points & Shield)</span>
                 </button>
               </div>
@@ -515,8 +521,8 @@ export function BurnoutPreventionCard({
             <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#1B2F38] via-[#242A46] to-[#2B1F3F] border border-[#3ED1C8]/60 shadow-lg space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#1FB6B0] text-[#141022] flex items-center justify-center text-xl shadow-md">
-                    🕊️
+                  <div className="w-10 h-10 rounded-xl bg-[#1FB6B0] text-[#141022] flex items-center justify-center shadow-md">
+                    <ShieldCheck weight="fill" className="w-6 h-6 text-[#141022]" />
                   </div>
                   <div>
                     <h4 className="text-base font-bold text-white">
@@ -543,7 +549,7 @@ export function BurnoutPreventionCard({
                     onClick={onOpenJournal}
                     className="px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-bold text-white transition-all flex items-center gap-1.5"
                   >
-                    <span>✍️</span>
+                    <PencilSimpleLine weight="bold" className="w-4 h-4 text-[#3ED1C8]" />
                     <span>View Sabbath Journal Reflection</span>
                   </button>
                 )}
