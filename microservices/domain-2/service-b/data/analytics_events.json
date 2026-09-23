@@ -750,5 +750,62 @@
       "totalSeconds": 310
     },
     "timestamp": "2026-09-18T07:50:21.532600+00:00"
+  },
+  {
+    "id": "evt_1790206239024_66",
+    "eventName": "guided_flow_started",
+    "deviceId": "test_device_480cc2ac-d8ae-4be4-9906-06f4e4782118",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-23T23:30:39.024723+00:00"
+  },
+  {
+    "id": "evt_1790206239027_67",
+    "eventName": "guided_step_viewed",
+    "deviceId": "test_device_480cc2ac-d8ae-4be4-9906-06f4e4782118",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture"
+    },
+    "timestamp": "2026-09-23T23:30:39.027037+00:00"
+  },
+  {
+    "id": "evt_1790206239027_69",
+    "eventName": "guided_step_completed",
+    "deviceId": "test_device_480cc2ac-d8ae-4be4-9906-06f4e4782118",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "step": "scripture",
+      "dwellSeconds": 45
+    },
+    "timestamp": "2026-09-23T23:30:39.027037+00:00"
+  },
+  {
+    "id": "evt_1790206239027_71",
+    "eventName": "guided_flow_completed",
+    "deviceId": "test_device_480cc2ac-d8ae-4be4-9906-06f4e4782118",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310,
+      "habit5MinAchieved": true
+    },
+    "timestamp": "2026-09-23T23:30:39.027037+00:00"
+  },
+  {
+    "id": "evt_1790206239027_73",
+    "eventName": "habit_5min_achieved",
+    "deviceId": "test_device_480cc2ac-d8ae-4be4-9906-06f4e4782118",
+    "userId": null,
+    "sessionId": null,
+    "properties": {
+      "totalSeconds": 310
+    },
+    "timestamp": "2026-09-23T23:30:39.027037+00:00"
   }
 ]

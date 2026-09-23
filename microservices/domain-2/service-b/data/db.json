@@ -42,6 +42,13 @@
       "mood": "peaceful",
       "note": "Testing checkin",
       "createdAt": "2026-09-21T22:14:27.772Z"
+    },
+    {
+      "id": "e2234136-9a32-4c10-8d6c-53ae2694e790",
+      "deviceId": "test_device_d40bc08d-4a80-4783-85ae-e8fd0437c5c0",
+      "mood": "peaceful",
+      "note": "A restful morning with the Lord.",
+      "createdAt": "2026-09-23T23:30:38.128897+00:00"
     }
   ],
   "content": [
@@ -86,6 +93,20 @@
       "reviewVerdict": "pass",
       "modelMode": "dev-fallback",
       "createdAt": "2026-09-21T22:14:27.757Z"
+    },
+    {
+      "id": "f6c8e766-5a89-462c-bde2-155c17609d45",
+      "checkinId": "e2234136-9a32-4c10-8d6c-53ae2694e790",
+      "verseText": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "verseReference": "John 14:27",
+      "whyThisVerse": "This verse speaks directly to peace — it is one of the timeless passages LifeBook returns to for grounding.",
+      "meditation": "Sit for a quiet moment with \"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.\". Let the words settle rather than rushing past them. Notice what in your heart left you feeling peaceful.",
+      "reflectionQuestion": "Where recently were you feeling peaceful, and what would it look like to bring that honestly before God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry John 14:27 with me throughout this day. Amen.",
+      "actionStep": "Send a brief message to someone you care about or write down one quiet prayer of release.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-23T23:30:38.128897+00:00"
     }
   ],
   "streaks": {
@@ -112,25 +133,159 @@
           "mood": "peaceful"
         }
       ]
+    },
+    "test_device_d40bc08d-4a80-4783-85ae-e8fd0437c5c0": {
+      "deviceId": "test_device_d40bc08d-4a80-4783-85ae-e8fd0437c5c0",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-23",
+      "history": [
+        {
+          "date": "2026-09-23",
+          "mood": "peaceful"
+        }
+      ]
     }
   },
   "flags": [],
-  "groups": [],
+  "groups": [
+    {
+      "id": "grp-peace-seekers",
+      "name": "Peace Seekers",
+      "description": "For anyone navigating anxiety and looking for a steady, daily rhythm.",
+      "meetingFrequency": "Weekly, Thursdays"
+    },
+    {
+      "id": "grp-young-adults",
+      "name": "Young Adults Faith Circle",
+      "description": "Scripture and prayer for 18-30s figuring out life and faith together.",
+      "meetingFrequency": "Weekly, Sundays"
+    },
+    {
+      "id": "grp-morning-prayer",
+      "name": "Morning Prayer Collective",
+      "description": "A quiet, async prayer thread — read and pray whenever your morning starts.",
+      "meetingFrequency": "Daily, async"
+    },
+    {
+      "id": "grp-new-believers",
+      "name": "New Believers Table",
+      "description": "No question too basic — a supportive space for people early in their faith.",
+      "meetingFrequency": "Bi-weekly"
+    }
+  ],
   "groupMembers": [],
-  "prayerRequests": [],
-  "discussions": [],
+  "prayerRequests": [
+    {
+      "id": "8aab6cfa-50bd-4c1c-84cd-af76dc089994",
+      "deviceId": "test_device_a4bcbbf0-a546-4a02-a9be-826993037c68",
+      "authorName": "A LifeBook user",
+      "text": "Please pray for safe travels and peace at work.",
+      "category": "Work & Calling",
+      "prayerCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-23T23:30:38.135169+00:00"
+    }
+  ],
+  "discussions": [
+    {
+      "id": "e8c16dd0-a6a5-48d6-805a-7820903dbbad",
+      "deviceId": "test_device_a4bcbbf0-a546-4a02-a9be-826993037c68",
+      "authorName": "Believer",
+      "title": "Morning reflection on Proverbs",
+      "body": "What verses give you strength when facing big decisions?",
+      "tags": [
+        "wisdom",
+        "guidance"
+      ],
+      "replyCount": 0,
+      "likeCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-23T23:30:38.138268+00:00"
+    }
+  ],
   "discussionReplies": [],
-  "libraryProgress": {},
-  "subscriptions": {},
-  "journalEntries": [],
-  "favorites": [],
+  "libraryProgress": {
+    "test_device_3ac9553f-507b-478c-b57c-190b31dd6964": [
+      {
+        "bookId": "bk-mere-christianity",
+        "progressPercent": 0,
+        "bookmarked": true
+      }
+    ]
+  },
+  "subscriptions": {
+    "test_device_13ad2969-e67c-439b-b606-b0847de16efa": {
+      "deviceId": "test_device_13ad2969-e67c-439b-b606-b0847de16efa",
+      "tier": "premium",
+      "billingCycle": "annual",
+      "updatedAt": "2026-09-23T23:30:39.021323+00:00"
+    }
+  },
+  "journalEntries": [
+    {
+      "id": "c969407f-f90e-4a52-93bb-ee881ccfd8c3",
+      "deviceId": "test_device_817c03ce-a86f-4919-a5d1-5dc2da0c75b2",
+      "text": "Reflecting on gratitude and peace today.",
+      "relatedContentId": null,
+      "createdAt": "2026-09-23T23:30:38.141421+00:00"
+    }
+  ],
+  "favorites": [
+    {
+      "id": "e925db04-321d-46af-9f4c-6042b785f922",
+      "deviceId": "test_device_817c03ce-a86f-4919-a5d1-5dc2da0c75b2",
+      "contentId": "chk-test-1",
+      "verseText": "Peace I leave with you...",
+      "verseReference": "John 14:27",
+      "createdAt": "2026-09-23T23:30:38.144400+00:00"
+    }
+  ],
   "preferences": {
     "dev-user": {
       "deviceId": "dev-user"
+    },
+    "test_device_9b0984d9-b9a0-47e8-ab7a-bcbf5b159fd9": {
+      "deviceId": "test_device_9b0984d9-b9a0-47e8-ab7a-bcbf5b159fd9",
+      "displayName": "Faithful Pilgrim",
+      "spiritualPath": "Seeker"
     }
   },
-  "pushTokens": {},
-  "journeyProgress": {},
+  "pushTokens": {
+    "test_device_9b0984d9-b9a0-47e8-ab7a-bcbf5b159fd9": {
+      "userId": "test_device_9b0984d9-b9a0-47e8-ab7a-bcbf5b159fd9",
+      "token": "ExponentPushToken[mock-test-token-12345]",
+      "platform": "android",
+      "updatedAt": "2026-09-23T23:30:38.180161+00:00"
+    }
+  },
+  "journeyProgress": {
+    "test_device_9a224f65-af0c-4e69-923b-51649ea17a88": [
+      {
+        "journeyId": "jr-finding-peace",
+        "currentDay": 2,
+        "completedDays": [
+          1
+        ],
+        "startedAt": "2026-09-23T23:30:38.148350+00:00",
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 1,
+        "graceDaysUsed": 1,
+        "isGraceProtected": true,
+        "graceHistory": [
+          {
+            "id": "grace-1",
+            "timestamp": "2026-09-23T23:30:38.154368+00:00",
+            "reason": "Family emergency & intentional Sabbath rest",
+            "protectedDay": 2,
+            "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+            "streakProtected": true
+          }
+        ],
+        "status": "active"
+      }
+    ]
+  },
   "livingWordComments": [
     {
       "id": "9d4d77ba-ed37-497e-8d90-cebe9d46329e",
@@ -149,6 +304,15 @@
       "text": "click here to buy now",
       "moderationStatus": "rejected",
       "createdAt": "2026-09-09T15:37:41.670Z"
+    },
+    {
+      "id": "00ea686e-28ef-4cfa-bd3c-408c2e5583c6",
+      "teachingSlug": "abiding-in-the-vine-during-storms-1790206238169",
+      "userId": "test_device_096e5d41-10ac-484c-be6e-4f876ff87a8f",
+      "authorName": "LifeBook member",
+      "text": "Such an encouraging message today. Thank you!",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-23T23:30:39.048725+00:00"
     }
   ],
   "playlists": [
@@ -218,6 +382,260 @@
       "portrait": "/AsketOfficialPic (1).png",
       "position": 0,
       "addedAt": "2026-09-21T22:14:24.950Z"
+    }
+  ],
+  "waitlistMembers": [
+    {
+      "id": "wl-demo-1",
+      "email": "pastor.thomas@gracebiblical.org",
+      "name": "Pastor Thomas Vance",
+      "spiritualRole": "Senior Pastor & Expository Preacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-PT-1049",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 175,
+      "struggleFeedback": "Congregants struggle with biblical literacy and feel discouraged by legalistic Bible apps that shame them when they miss a day.",
+      "desiredFeatures": [
+        "Pastoral LivingWord review",
+        "Journey Grace Days",
+        "Theological audit trail"
+      ],
+      "dailyTimeAvailable": "5-10 minutes",
+      "feedbackNotes": [
+        {
+          "note": "Approved for pastoral beta advisory panel",
+          "timestamp": "2026-09-23T23:30:38.161392+00:00"
+        }
+      ],
+      "referralCount": 4,
+      "createdAt": "2026-09-23T23:30:38.161396+00:00",
+      "updatedAt": "2026-09-23T23:30:38.161398+00:00"
+    },
+    {
+      "id": "wl-demo-2",
+      "email": "sarah.lead@citychurch.net",
+      "name": "Sarah Jenkins",
+      "spiritualRole": "Small Group Facilitator",
+      "cohortId": "cohort-gamma",
+      "referralCode": "LB-SJ-8821",
+      "referredBy": "LB-PT-1049",
+      "stage": "feedback_submitted",
+      "priorityScore": 155,
+      "struggleFeedback": "Maintaining engagement across our 12-person small group when life gets busy mid-week.",
+      "desiredFeatures": [
+        "5-Minute Morning Audio",
+        "Sabbath Rest Shields",
+        "Shared Prayer Requests"
+      ],
+      "dailyTimeAvailable": "5 minutes",
+      "feedbackNotes": [],
+      "referralCount": 2,
+      "createdAt": "2026-09-23T23:30:38.161399+00:00",
+      "updatedAt": "2026-09-23T23:30:38.161401+00:00"
+    },
+    {
+      "id": "wl-demo-3",
+      "email": "david.chen@technorm.io",
+      "name": "David Chen",
+      "spiritualRole": "Devotional Seeker & Software Lead",
+      "cohortId": "cohort-alpha",
+      "referralCode": "LB-DC-4412",
+      "referredBy": null,
+      "stage": "onboarded",
+      "priorityScore": 140,
+      "struggleFeedback": "Morning screen anxiety — opening Slack before Bible. Need a 5-minute sanctuary habit.",
+      "desiredFeatures": [
+        "Spiritual Pulse check-ins",
+        "Voice companion",
+        "Offline habit streaks"
+      ],
+      "dailyTimeAvailable": "5-8 minutes",
+      "feedbackNotes": [
+        {
+          "note": "Testing morning notifications",
+          "timestamp": "2026-09-23T23:30:38.161402+00:00"
+        }
+      ],
+      "referralCount": 1,
+      "createdAt": "2026-09-23T23:30:38.161403+00:00",
+      "updatedAt": "2026-09-23T23:30:38.161404+00:00"
+    },
+    {
+      "id": "wl-demo-4",
+      "email": "esther.worship@hopemail.org",
+      "name": "Esther Moreau",
+      "spiritualRole": "Worship Leader & Youth Mentor",
+      "cohortId": "cohort-gamma",
+      "referralCode": "LB-EM-9102",
+      "referredBy": null,
+      "stage": "registered",
+      "priorityScore": 125,
+      "struggleFeedback": null,
+      "desiredFeatures": [],
+      "feedbackNotes": [],
+      "referralCount": 0,
+      "createdAt": "2026-09-23T23:30:38.161405+00:00",
+      "updatedAt": "2026-09-23T23:30:38.161406+00:00"
+    },
+    {
+      "id": "a7f5c5e7-f9c7-48a1-8ffd-532a835dfe2e",
+      "email": "test.disciple.1790206238162@lifebook.org",
+      "name": "Jean-Marc disciple",
+      "spiritualRole": "Pastor & Bible Teacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-JE-6584",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 205,
+      "struggleFeedback": "Time fragmentation in the morning.",
+      "desiredFeatures": [
+        "Audio Sermons",
+        "Pastoral Review",
+        "Grace Days"
+      ],
+      "feedbackNotes": [
+        {
+          "note": "Excited for the pastoral review feature!",
+          "timestamp": "2026-09-23T23:30:38.165799+00:00"
+        },
+        {
+          "type": "stage_promotion_note",
+          "note": "Fast-tracked for ministerial advisory board.",
+          "timestamp": "2026-09-23T23:30:38.167683+00:00"
+        }
+      ],
+      "deviceId": "test_device_6b497033-2b98-42f8-9e78-c2e6d48aad80",
+      "referralCount": 0,
+      "createdAt": "2026-09-23T23:30:38.163633+00:00",
+      "updatedAt": "2026-09-23T23:30:38.165803+00:00",
+      "dailyTimeAvailable": "5-10 min",
+      "stageUpdatedAt": "2026-09-23T23:30:38.167679+00:00"
+    }
+  ],
+  "livingWordTeachings": [
+    {
+      "slug": "abiding-in-the-vine-during-storms-1790206238169",
+      "title": "Abiding in the Vine during Storms 1790206238169",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook pastoral teaching contributor",
+      "category": "Discipleship",
+      "duration": "14 min",
+      "scripture": "John 15:5-7",
+      "excerpt": "Apart from Me you can do nothing.",
+      "fullBody": "Christ calls us to branch-like reliance, not anxious striving.",
+      "theologicalNotes": "Greek word 'meno' implies permanent dwelling, not occasional visits.",
+      "status": "published",
+      "audioUrl": null,
+      "videoUrl": null,
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Theologically vetted and approved for congregation publication."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-09-23T23:30:38.174248+00:00",
+      "createdBy": "pastor_contributor",
+      "createdAt": "2026-09-23T23:30:38.171043+00:00",
+      "updatedAt": "2026-09-23T23:30:38.174252+00:00"
+    },
+    {
+      "slug": "when-faith-feels-small",
+      "title": "When faith feels small",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook teaching contributor",
+      "category": "Faith",
+      "duration": "12 min",
+      "scripture": "Mark 9:24",
+      "excerpt": "Lord, I believe; help my unbelief.",
+      "audioUrl": null,
+      "videoUrl": null,
+      "status": "published",
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Original foundational pastoral series by Pastor Asket."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-01-01T00:00:00Z",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "fullBody": "Lord, I believe; help my unbelief.\n\nIn this pastoral teaching, we explore how God's truth transforms our ordinary workdays, quiet meditations, and spiritual rhythms."
+    },
+    {
+      "slug": "learning-to-be-still",
+      "title": "Learning to be still",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook teaching contributor",
+      "category": "Prayer",
+      "duration": "9 min",
+      "scripture": "Psalm 46:10",
+      "excerpt": "Be still, and know that I am God.",
+      "audioUrl": null,
+      "videoUrl": null,
+      "status": "published",
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Original foundational pastoral series by Pastor Asket."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-01-01T00:00:00Z",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "fullBody": "Be still, and know that I am God.\n\nIn this pastoral teaching, we explore how God's truth transforms our ordinary workdays, quiet meditations, and spiritual rhythms."
+    },
+    {
+      "slug": "mercy-of-a-new-morning",
+      "title": "The mercy of a new morning",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook teaching contributor",
+      "category": "Hope",
+      "duration": "15 min",
+      "scripture": "Lamentations 3:22-23",
+      "excerpt": "The steadfast love of the Lord never ceases.",
+      "audioUrl": null,
+      "videoUrl": null,
+      "status": "published",
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Original foundational pastoral series by Pastor Asket."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-01-01T00:00:00Z",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "fullBody": "The steadfast love of the Lord never ceases.\n\nIn this pastoral teaching, we explore how God's truth transforms our ordinary workdays, quiet meditations, and spiritual rhythms."
+    },
+    {
+      "slug": "a-life-shaped-by-love",
+      "title": "A life shaped by love",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook teaching contributor",
+      "category": "Discipleship",
+      "duration": "18 min",
+      "scripture": "John 13:34-35",
+      "excerpt": "By this all people will know that you are my disciples.",
+      "audioUrl": null,
+      "videoUrl": null,
+      "status": "published",
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Original foundational pastoral series by Pastor Asket."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-01-01T00:00:00Z",
+      "createdAt": "2026-01-01T00:00:00Z",
+      "fullBody": "By this all people will know that you are my disciples.\n\nIn this pastoral teaching, we explore how God's truth transforms our ordinary workdays, quiet meditations, and spiritual rhythms."
     }
   ]
 }

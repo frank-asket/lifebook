@@ -272,3 +272,28 @@ class AnalyticsSummaryResponse(BaseModel):
     completionRate: float
     habit5MinAchieved: int
     funnel: List[FunnelStepSummary]
+
+# --- Living Word Playlists ---
+class CreatePlaylistInput(BaseModel):
+    title: str
+    description: Optional[str] = None
+    icon: Optional[str] = "🎧"
+    color: Optional[str] = "from-[#5D4E7B] to-[#3B2D54]"
+
+class UpdatePlaylistInput(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
+
+class AddPlaylistItemInput(BaseModel):
+    teachingSlug: str
+    teachingTitle: str
+    teacher: Optional[str] = "Pastor Asket"
+    duration: Optional[str] = "10 min"
+    category: Optional[str] = None
+    audioUrl: Optional[str] = None
+    portrait: Optional[str] = None
+
+class ReorderPlaylistItemsInput(BaseModel):
+    teachingSlugs: List[str]
