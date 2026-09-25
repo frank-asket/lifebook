@@ -11,6 +11,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { TeachingShareModal } from "@/components/TeachingShareModal";
+import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 
 export default function LivingWordDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -20,6 +21,7 @@ export default function LivingWordDetail() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isBioExpanded, setIsBioExpanded] = useState(false);
   const { isFr } = useLanguage();
+  const { playTeaching, currentTrack, isPlaying, togglePlay } = useSanctuaryAudio();
 
   const starterComments = isFr
     ? [
@@ -206,9 +208,30 @@ export default function LivingWordDetail() {
                 <audio controls src={teaching.audioUrl} />
               ) : (
                 <>
-                  <button type="button" className="live-play" disabled>▶</button>
+                  <button
+                    type="button"
+                    className="live-play cursor-pointer"
+                    onClick={() => {
+                      if (currentTrack?.slug === teaching.slug) {
+                        togglePlay();
+                      } else {
+                        playTeaching(teaching);
+                      }
+                    }}
+                    aria-label={isFr ? "Écouter dans le mini-lecteur" : "Play in Sanctuary Mini-Player"}
+                  >
+                    {currentTrack?.slug === teaching.slug && isPlaying ? "⏸" : "▶"}
+                  </button>
                   <div className="live-progress">
-                    <span>{isFr ? "Enregistrement pastoral en cours de préparation" : "Real preacher recording coming soon"}</span>
+                    <span>
+                      {currentTrack?.slug === teaching.slug && isPlaying
+                        ? isFr
+                          ? "Lecture active dans le mini-lecteur continu"
+                          : "Playing in persistent Sanctuary Mini-Player"
+                        : isFr
+                        ? "Cliquez sur ▶ pour écouter avec chapitres et minuteur"
+                        : "Click ▶ to listen with chapters & sleep timer"}
+                    </span>
                     <i />
                   </div>
                   <span className="live-time">{teaching.duration}</span>

@@ -48,6 +48,8 @@ import { VisualStreakCounter } from './VisualStreakCounter';
 import { calculateConsecutiveStreak, isRecordActive } from '../lib/streak-utils';
 import { DailyRitualModal } from './DailyRitualModal';
 import { LIFEBOOK_RITUAL_COMPLETED_EVENT } from '../lib/daily-ritual';
+import { CloudSyncBadge } from './CloudSyncBadge';
+import { PWAInstallButton } from './PWAInstallPrompt';
 
 export type { JournalEntry };
 
@@ -1446,12 +1448,8 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
       <div className="section-heading mb-8">
         <div>
           <div className="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-[0.14em]">
-            <Link href="/" className="text-[#5A4B7C] dark:text-[#4EE2D8] hover:underline flex items-center gap-1">
-              ← Home
-            </Link>
-            <span className="text-[#705e8c]">·</span>
-            <Link href="/dashboard" className="text-[#5A4B7C] dark:text-[#C8C2D6] hover:underline">
-              Daily Sanctuary
+            <Link href="/dashboard" className="text-[#5A4B7C] dark:text-[#4EE2D8] hover:underline flex items-center gap-1">
+              ← Daily Sanctuary Dashboard
             </Link>
             <span className="text-[#705e8c]">·</span>
             <span className="showcase-eyebrow m-0">Spiritual Rhythm & Consistency</span>
@@ -1558,6 +1556,9 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             <span>✦</span>
             <span>Start 5-Min Ritual</span>
           </button>
+
+          <CloudSyncBadge />
+          <PWAInstallButton />
 
           <button
             id="header-notification-settings-btn"

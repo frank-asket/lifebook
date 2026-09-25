@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="112" fill="#2A2146"/>
+  <circle cx="256" cy="256" r="184" fill="#1E1735" stroke="#4EE2D8" stroke-width="6" stroke-opacity="0.35"/>
+  <!-- Open Scripture Book -->
+  <path d="M136 188C136 174.745 146.745 164 160 164H236C247.046 164 256 172.954 256 184V348C256 339.163 248.837 332 240 332H156C144.954 332 136 323.046 136 312V188Z" fill="#FAF8F5"/>
+  <path d="M376 188C376 174.745 365.255 164 352 164H276C264.954 164 256 172.954 256 184V348C256 339.163 263.163 332 272 332H356C367.046 332 376 323.046 376 312V188Z" fill="#EDE7F5"/>
+  <!-- Cross & Morning Star -->
+  <path d="M256 108V152M236 128H276" stroke="#FFD770" stroke-width="10" stroke-linecap="round"/>
+  <!-- Still Waters Wave -->
+  <path d="M168 372C196 358 224 386 256 372C288 358 316 386 344 372" stroke="#4EE2D8" stroke-width="10" stroke-linecap="round"/>
+</svg>

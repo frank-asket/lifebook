@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -20,6 +21,9 @@ import {
   type CompletedRitualPayload,
 } from "@/lib/daily-ritual";
 import { DailyRitualModal } from "@/components/DailyRitualModal";
+import { CloudSyncBadge } from "@/components/CloudSyncBadge";
+import { PWAInstallButton } from "@/components/PWAInstallPrompt";
+import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 
 export interface DashboardJournalEntry {
   id: string;
@@ -131,8 +135,10 @@ const INITIAL_JOURNAL_ENTRIES: DashboardJournalEntry[] = [
 ];
 
 export default function DribbbleDashboard() {
+  const router = useRouter();
   const { isFr } = useLanguage();
-  const { user } = useChristianAuth();
+  const { user, isSignedIn, signOut } = useChristianAuth();
+  const { playTrack, currentTrack, isPlaying: isGlobalAudioPlaying, togglePlay: toggleGlobalAudio } = useSanctuaryAudio();
 
   // Active view filters: 'overview' | 'audio' | 'journal' | 'heatmap' | 'community'
   const [activeTab, setActiveTab] = useState<"overview" | "audio" | "journal" | "heatmap" | "community">("overview");
@@ -324,7 +330,7 @@ export default function DribbbleDashboard() {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Brand Logo & Wordmark */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2.5 group">
+            <Link href="/dashboard" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-serif text-sm font-bold shadow-xs group-hover:scale-105 transition-transform">
                 LB
               </div>
@@ -340,8 +346,8 @@ export default function DribbbleDashboard() {
 
             {/* Quick Navigation Links */}
             <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
-              <Link href="/" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
-                {isFr ? "Accueil" : "Home"}
+              <Link href="/dashboard" className="px-3 py-2 rounded-lg text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10 transition-colors">
+                {isFr ? "Tableau de Bord" : "Dashboard"}
               </Link>
               <Link href="/living-word" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
                 {isFr ? "Enseignements" : "Teachings"}
@@ -373,7 +379,7 @@ export default function DribbbleDashboard() {
             <LanguageToggle />
             <ThemeToggle />
 
-            {/* User Profile */}
+            {/* User Profile & Session Controls */}
             <div className="flex items-center gap-2 pl-2 border-l border-[#2D2542]/10 dark:border-white/12">
               <div className="w-8 h-8 rounded-full bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-bold text-xs shadow-xs">
                 {user?.firstName?.charAt(0) || "P"}
@@ -381,6 +387,26 @@ export default function DribbbleDashboard() {
               <span className="text-xs font-bold text-[#1E1931] dark:text-white hidden lg:inline">
                 {user?.fullName || (isFr ? "Pèlerin" : "Pilgrim")}
               </span>
+              {isSignedIn ? (
+                <button
+                  type="button"
+                  id="dashboard-sign-out-btn"
+                  onClick={async () => {
+                    await signOut();
+                    router.push("/?marketing=1");
+                  }}
+                  className="text-xs font-semibold text-[#6E6285] dark:text-[#B8B0C8] hover:text-[#1E1931] dark:hover:text-white transition-colors cursor-pointer px-2 py-1"
+                >
+                  {isFr ? "Déconnexion" : "Sign out"}
+                </button>
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="text-xs font-semibold text-[#2D2542] dark:text-[#4EE2D8] hover:underline px-2 py-1 whitespace-nowrap"
+                >
+                  {isFr ? "Connexion" : "Sign in"}
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -433,10 +459,17 @@ export default function DribbbleDashboard() {
             </button>
             <button
               type="button"
-              onClick={() => setIsAudioPlaying(!isAudioPlaying)}
+              onClick={() => {
+                if (currentTrack) {
+                  toggleGlobalAudio();
+                } else {
+                  playTrack("psalm-23-still-waters");
+                }
+                setIsAudioPlaying(!isAudioPlaying);
+              }}
               className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
             >
-              <span>{isAudioPlaying ? "⏸ Pause Audio" : "▶ 3-Min Audio"}</span>
+              <span>{isGlobalAudioPlaying ? "⏸ Pause Audio" : "▶ 3-Min Audio"}</span>
             </button>
             <Link
               href="/progress"
@@ -476,9 +509,9 @@ export default function DribbbleDashboard() {
             })}
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs text-[#5A4B7C] dark:text-[#C8C2D6] font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>{isFr ? "Synchronisé localement" : "Local storage active"}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <CloudSyncBadge />
+            <PWAInstallButton />
           </div>
         </div>
 

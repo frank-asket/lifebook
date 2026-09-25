@@ -11,6 +11,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import PhoneMockup from "@/components/PhoneMockup";
 import { VisualStreakCounter } from "@/components/VisualStreakCounter";
 import { DailyRitualModal } from "@/components/DailyRitualModal";
+import { PWAInstallButton } from "@/components/PWAInstallPrompt";
+import { CloudSyncBadge } from "@/components/CloudSyncBadge";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -29,6 +31,21 @@ export default function Home() {
   const [isRitualModalOpen, setIsRitualModalOpen] = useState(false);
   const router = useRouter();
   const { user, isSignedIn, signOut } = useChristianAuth();
+
+  // Direct signed-in users and installed standalone PWA launches straight to /dashboard
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("marketing") === "1") return;
+
+    const isStandalonePWA =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+
+    if (isSignedIn || isStandalonePWA) {
+      router.replace("/dashboard");
+    }
+  }, [isSignedIn, router]);
 
   const benefits = useMemo(() => isFr ? [
     {
@@ -172,7 +189,7 @@ export default function Home() {
     event.preventDefault();
     if (email.trim()) {
       setJoined(true);
-      router.push("/thank-you");
+      router.push("/sign-up");
     }
   }
 
@@ -193,10 +210,10 @@ export default function Home() {
             {isSignedIn ? (
               <div className="flex items-center gap-2.5">
                 <Link
-                  href="/progress"
+                  href="/dashboard"
                   id="user-profile-nav-pill"
                   className="pill-button pill-dark"
-                  title={isFr ? "Voir vos progrès et séries" : "View your devotional progress and streaks"}
+                  title={isFr ? "Ouvrir votre Tableau de Bord du Sanctuaire" : "Open your Daily Sanctuary Dashboard"}
                 >
                   <span className="w-5 h-5 rounded-full bg-white/20 text- currentColor flex items-center justify-center text-[11px] font-bold">
                     {user?.avatarInitial || "LB"}
@@ -298,14 +315,14 @@ export default function Home() {
                 <div className="mobile-account flex flex-col gap-2 pt-2 border-t border-[#2d2542]/10 w-full">
                   <div className="flex items-center justify-between">
                     <Link
-                      href="/progress"
+                      href="/dashboard"
                       onClick={() => setMenuOpen(false)}
                       className="text-xs font-semibold text-[#2d2542] flex items-center gap-2"
                     >
                       <span className="w-6 h-6 rounded-full bg-[#2d2542] text-[#fbfaf7] flex items-center justify-center text-[10px] font-bold">
                         {user?.avatarInitial || "LB"}
                       </span>
-                      <span>{user?.fullName || (isFr ? "Mes Progrès et Séries" : "My Progress and Streaks")} →</span>
+                      <span>{user?.fullName || (isFr ? "Mon Tableau de Bord" : "My Sanctuary Dashboard")} →</span>
                     </Link>
                     <VisualStreakCounter variant="compact" />
                   </div>
@@ -390,8 +407,8 @@ export default function Home() {
 
             <div className="showcase-actions flex-wrap gap-3">
               {isSignedIn ? (
-                <Link className="pill-button pill-dark" href="/progress" id="hero-continue-journey-btn">
-                  {isFr ? "Continuer votre méditation" : "Continue your 5-minute devotion"} <ArrowIcon />
+                <Link className="pill-button pill-dark" href="/dashboard" id="hero-continue-journey-btn">
+                  {isFr ? "Ouvrir mon Tableau de Bord" : "Open My Sanctuary Dashboard"} <ArrowIcon />
                 </Link>
               ) : (
                 <Link
@@ -411,6 +428,10 @@ export default function Home() {
                 <span>✦</span>
                 <span>{isFr ? "Pratiquer le rituel 5-min maintenant" : "Try 5-Min Guided Ritual Now"}</span>
               </button>
+              <div className="flex flex-wrap items-center gap-2 w-full pt-1">
+                <PWAInstallButton />
+                <CloudSyncBadge />
+              </div>
               <span className="rating-note w-full sm:w-auto">
                 <b>{isFr ? "Versions bibliques" : "5 verified translations"}:</b><br />
                 <small>{isFr ? "Louis Segond (LSG), Semeur, ESV, NIV, KJV · Sans publicité" : "ESV, NIV, CSB, KJV, NLT · 100% ad-free"}</small>
@@ -793,8 +814,8 @@ export default function Home() {
       </footer>
 
       {isSignedIn ? (
-        <Link className="sticky-mobile-cta" href="/progress" id="sticky-continue-journey-btn">
-          {isFr ? "Continuer la méditation (5 min)" : "Continue 5-minute devotion"} <ArrowIcon />
+        <Link className="sticky-mobile-cta" href="/dashboard" id="sticky-continue-journey-btn">
+          {isFr ? "Ouvrir le Tableau de Bord (5 min)" : "Open Sanctuary Dashboard"} <ArrowIcon />
         </Link>
       ) : (
         <Link

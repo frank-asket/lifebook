@@ -37,14 +37,13 @@ export default function ProgressPage() {
       {/* Sticky Navigation Header matching landing page */}
       <header className={`sticky-nav-header ${scrolled ? "header-scrolled" : ""}`}>
         <nav className="showcase-nav page-shell" aria-label="Main navigation">
-          <Link className="wordmark" href="/" aria-label="LifeBook home">
+          <Link className="wordmark" href="/dashboard" aria-label="LifeBook Sanctuary Dashboard">
             <Mark />
             <span>LifeBook</span>
           </Link>
 
           <div className="showcase-links">
-            <Link href="/#features">{t("nav_daily_practice")}</Link>
-            <Link href="/#journeys">{t("nav_journeys")}</Link>
+            <Link href="/dashboard">{isFr ? "Tableau de Bord" : "Dashboard"}</Link>
             <Link href="/living-word">{t("nav_audio_teachings")}</Link>
             <Link href="/voice">{t("nav_voice_search")}</Link>
             <Link href="/progress" className="active-link">
@@ -134,13 +133,9 @@ export default function ProgressPage() {
               </div>
               <div className="mobile-nav-group">
                 <p className="mobile-nav-heading">{t("mobile_nav_devotion")}</p>
-                <Link href="/#features" onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_daily_practice")}</span>
+                <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
+                  <span>{isFr ? "Tableau de Bord" : "Sanctuary Dashboard"}</span>
                   <span className="text-xs text-[#8c8297]">5 mins</span>
-                </Link>
-                <Link href="/#journeys" onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_journeys")}</span>
-                  <span className="text-xs text-[#8c8297]">5 {isFr ? "jours" : "days"}</span>
                 </Link>
                 <Link href="/voice" onClick={() => setMenuOpen(false)}>
                   <span>{t("nav_voice_search")}</span>

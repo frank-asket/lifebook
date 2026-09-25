@@ -206,6 +206,29 @@ async def me(
     }
 
 
+@app.get("/api/sync")
+async def get_cloud_sync_snapshot(accountKey: str = Query("acct_anonymous")):
+    from .db.database import get_db
+    db = get_db()
+    data = db.read()
+    snapshots = data.get("cloudSyncSnapshots", {})
+    return {"ok": True, "accountKey": accountKey, "snapshot": snapshots.get(accountKey)}
+
+
+@app.post("/api/sync")
+async def save_cloud_sync_snapshot(payload: Dict[str, Any]):
+    from .db.database import get_db
+    account_key = payload.get("accountKey") or "acct_anonymous"
+    snapshot = payload.get("snapshot") or {}
+    db = get_db()
+    data = db.read()
+    if "cloudSyncSnapshots" not in data or not isinstance(data["cloudSyncSnapshots"], dict):
+        data["cloudSyncSnapshots"] = {}
+    data["cloudSyncSnapshots"][account_key] = snapshot
+    db.write(data)
+    return {"ok": True, "accountKey": account_key, "snapshot": snapshot}
+
+
 # --------------------------------------------------------------------------
 # Check-in & Core Devotional
 # --------------------------------------------------------------------------

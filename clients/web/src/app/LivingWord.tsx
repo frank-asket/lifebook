@@ -8,9 +8,11 @@ import { useLanguage } from "@/lib/i18n";
 import { usePlaylists, type Playlist } from "@/lib/usePlaylists";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { PlaylistPlayer } from "@/components/PlaylistPlayer";
+import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 
 export default function LivingWord() {
   const { isFr, t } = useLanguage();
+  const { playTeaching, currentTrack, isPlaying, togglePlay } = useSanctuaryAudio();
   const [mainTab, setMainTab] = useState<"teachings" | "playlists">("teachings");
   const [category, setCategory] = useState("All");
 
@@ -144,17 +146,39 @@ export default function LivingWord() {
                     </Link>
 
                     <div className="flex items-center gap-2 mt-2">
-                      <Link href={`/living-word/${teaching.slug}`} className="listen-button flex-1 text-center">
-                        <span>📖</span>{t("audio_read_study")}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (currentTrack?.slug === teaching.slug) {
+                            togglePlay();
+                          } else {
+                            playTeaching(teaching);
+                          }
+                        }}
+                        className="listen-button flex-1 text-center justify-center cursor-pointer"
+                      >
+                        <span>{currentTrack?.slug === teaching.slug && isPlaying ? "⏸" : "🎧"}</span>
+                        <span>
+                          {currentTrack?.slug === teaching.slug && isPlaying
+                            ? isFr
+                              ? "En écoute"
+                              : "Playing"
+                            : isFr
+                            ? "Écouter"
+                            : "Listen"}
+                        </span>
+                      </button>
+                      <Link href={`/living-word/${teaching.slug}`} className="min-h-[40px] px-3.5 py-2 rounded-full border border-[#D5CBE4] dark:border-white/25 bg-white/90 dark:bg-[#1B1630] hover:bg-white dark:hover:bg-[#272042] text-xs font-semibold text-[#3D2E5C] dark:text-white transition-all flex items-center gap-1 shadow-xs whitespace-nowrap">
+                        <span>📖</span>
+                        <span>{t("audio_read_study")}</span>
                       </Link>
                       <button
                         type="button"
                         onClick={() => setActiveModalTeaching(teaching)}
                         title={isFr ? "Enregistrer dans une liste" : "Save to playlist"}
-                        className="min-h-[40px] px-3.5 py-2 rounded-full border border-[#D5CBE4] dark:border-white/25 bg-white/90 dark:bg-[#1B1630] hover:bg-white dark:hover:bg-[#272042] text-xs font-semibold text-[#3D2E5C] dark:text-white transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                        className="min-h-[40px] px-3 py-2 rounded-full border border-[#D5CBE4] dark:border-white/25 bg-white/90 dark:bg-[#1B1630] hover:bg-white dark:hover:bg-[#272042] text-xs font-semibold text-[#3D2E5C] dark:text-white transition-all flex items-center gap-1 shadow-xs cursor-pointer"
                       >
                         <span>➕</span>
-                        <span className="hidden sm:inline">{isFr ? "Liste" : "Playlist"}</span>
                       </button>
                     </div>
                   </article>

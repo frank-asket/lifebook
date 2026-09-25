@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useChristianAuth } from "../lib/christian-auth";
 import { LifeBookLogo } from "./LifeBookLogo";
@@ -64,7 +64,13 @@ const QUIET_TIMES = [
 
 export function ChristianSignUpForm() {
   const router = useRouter();
-  const { signUp } = useChristianAuth();
+  const { signUp, isSignedIn } = useChristianAuth();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace("/dashboard");
+    }
+  }, [isSignedIn, router]);
 
   // Wizard Step: 1 = Basic Account, 2 = Faith Personalization
   const [step, setStep] = useState<1 | 2>(1);
@@ -153,7 +159,7 @@ export function ChristianSignUpForm() {
       });
 
       if (res.success) {
-        router.push("/progress");
+        router.replace("/dashboard");
       } else {
         setError(res.error || "Unable to complete registration. Please check details.");
       }

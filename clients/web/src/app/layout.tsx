@@ -1,13 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 import "./seo.css";
 import Analytics from "./Analytics";
-import { ClerkProvider } from '@clerk/nextjs';
+import { ClerkProvider } from "@clerk/nextjs";
 import { ChristianAuthProvider } from "@/lib/christian-auth";
 import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
+import { CloudSyncProvider } from "@/lib/cloud-sync";
+import { SanctuaryAudioProvider } from "@/lib/sanctuary-audio";
+import { GlobalAudioPlayer } from "@/components/GlobalAudioPlayer";
+import { OfflineIndicator } from "@/components/PWAInstallPrompt";
 
 const displaySerif = Cormorant_Garamond({
   variable: "--font-serif",
@@ -30,15 +34,39 @@ const geistMono = JetBrains_Mono({
 
 export const dynamic = "force-dynamic";
 
+export const viewport: Viewport = {
+  themeColor: "#2A2146",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   title: "LifeBook | Daily 5-Minute Bible & Prayer Companion (Bilingual EN/FR)",
-  description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
+  description:
+    "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
   applicationName: "LifeBook",
-  keywords: ["Christian devotional", "daily Bible study", "morning prayer habit", "5-minute devotional", "méditation chrétienne", "prière du matin"],
+  keywords: [
+    "Christian devotional",
+    "daily Bible study",
+    "morning prayer habit",
+    "5-minute devotional",
+    "méditation chrétienne",
+    "prière du matin",
+  ],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "LifeBook",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "LifeBook | Daily 5-Minute Bible & Prayer Companion",
-    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
+    description:
+      "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
     type: "website",
     images: [{ url: "/lifebookbanner.png", width: 1200, height: 420, alt: "LifeBook" }],
   },
@@ -55,7 +83,8 @@ export default function RootLayout({
     "@type": "Organization",
     name: "LifeBook",
     url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-    description: "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
+    description:
+      "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
     sameAs: [],
   };
 
@@ -65,6 +94,8 @@ export default function RootLayout({
       className={`${displaySerif.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -87,7 +118,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col pb-20">
         <ClerkProvider
           dynamic
           publishableKey={
@@ -97,8 +128,8 @@ export default function RootLayout({
           }
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
-          signInFallbackRedirectUrl="/"
-          signUpFallbackRedirectUrl="/"
+          signInFallbackRedirectUrl="/dashboard"
+          signUpFallbackRedirectUrl="/dashboard"
         >
           <Analytics />
           <script
@@ -108,7 +139,13 @@ export default function RootLayout({
           <LanguageProvider>
             <ThemeProvider>
               <ChristianAuthProvider>
-                {children}
+                <CloudSyncProvider>
+                  <SanctuaryAudioProvider>
+                    <OfflineIndicator />
+                    {children}
+                    <GlobalAudioPlayer />
+                  </SanctuaryAudioProvider>
+                </CloudSyncProvider>
               </ChristianAuthProvider>
             </ThemeProvider>
           </LanguageProvider>

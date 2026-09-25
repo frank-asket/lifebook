@@ -1,13 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useChristianAuth } from "../lib/christian-auth";
 import { LifeBookLogo } from "./LifeBookLogo";
 
 export function ChristianSignInForm() {
   const router = useRouter();
-  const { signIn, loginAsDemo } = useChristianAuth();
+  const { signIn, loginAsDemo, isSignedIn } = useChristianAuth();
+
+  useEffect(() => {
+    if (isSignedIn) {
+      router.replace("/dashboard");
+    }
+  }, [isSignedIn, router]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +31,7 @@ export function ChristianSignInForm() {
     try {
       const res = await signIn(email, password);
       if (res.success) {
-        router.push("/");
+        router.replace("/dashboard");
       } else {
         setError(res.error || "Unable to sign in. Please check your email and password.");
       }
@@ -38,7 +44,7 @@ export function ChristianSignInForm() {
 
   const handleQuickDemo = () => {
     loginAsDemo("asketfranckolivieralex@gmail.com");
-    router.push("/");
+    router.replace("/dashboard");
   };
 
   return (
