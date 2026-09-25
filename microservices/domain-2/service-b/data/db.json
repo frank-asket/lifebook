@@ -49,6 +49,48 @@
       "mood": "peaceful",
       "note": "A restful morning with the Lord.",
       "createdAt": "2026-09-23T23:30:38.128897+00:00"
+    },
+    {
+      "id": "fe486696-b774-46b3-9019-9152da2ba460",
+      "deviceId": "test_device_13e70bd7-2b44-441e-ba47-024feae4485d",
+      "mood": "peaceful",
+      "note": "A restful morning with the Lord.",
+      "createdAt": "2026-09-25T11:27:51.417554+00:00"
+    },
+    {
+      "id": "e62e48f1-6084-46da-ac3e-fb69d79757ef",
+      "deviceId": "test_device_9daa3cd2-3a70-4a1f-bbc1-c0cccd090a1e",
+      "mood": "peaceful",
+      "note": "A restful morning with the Lord.",
+      "createdAt": "2026-09-25T11:29:12.615611+00:00"
+    },
+    {
+      "id": "7c6597f6-dd99-42f6-aa7f-7411e4041763",
+      "deviceId": "test_device_ad953d3e-a74d-4830-b9a7-3bde816b71ae",
+      "mood": "peaceful",
+      "note": "A restful morning with the Lord.",
+      "createdAt": "2026-09-25T11:29:40.810715+00:00"
+    },
+    {
+      "id": "7ebc519b-9ec6-4050-9667-26dccc6774df",
+      "deviceId": "test_device_2c74b88b-82ac-478b-a144-d04a8a933825",
+      "mood": "peaceful",
+      "note": "A restful morning with the Lord.",
+      "createdAt": "2026-09-25T11:29:53.675597+00:00"
+    },
+    {
+      "id": "f2184351-4fa7-4cd2-9e56-822587bfe797",
+      "deviceId": "test_device_1f779e2d-16da-4dcc-8152-c00426af4552",
+      "mood": "peaceful",
+      "note": "A restful morning with the Lord.",
+      "createdAt": "2026-09-25T11:31:31.574397+00:00"
+    },
+    {
+      "id": "f941e4ca-f2bc-4030-a263-357029d600be",
+      "deviceId": "test_device_f7df1dfa-da74-4f45-8a3d-d4bfbbbeda9e",
+      "mood": "peaceful",
+      "note": "A restful morning with the Lord.",
+      "createdAt": "2026-09-25T12:06:06.868472+00:00"
     }
   ],
   "content": [
@@ -107,6 +149,90 @@
       "reviewVerdict": "pass",
       "modelMode": "dev-fallback",
       "createdAt": "2026-09-23T23:30:38.128897+00:00"
+    },
+    {
+      "id": "3f500f77-c5ba-49c5-998c-806fa800d9a2",
+      "checkinId": "fe486696-b774-46b3-9019-9152da2ba460",
+      "verseText": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "verseReference": "John 14:27",
+      "whyThisVerse": "This verse speaks directly to peace — it is one of the timeless passages LifeBook returns to for grounding.",
+      "meditation": "Sit for a quiet moment with \"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.\". Let the words settle rather than rushing past them. Notice what in your heart left you feeling peaceful.",
+      "reflectionQuestion": "Where recently were you feeling peaceful, and what would it look like to bring that honestly before God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry John 14:27 with me throughout this day. Amen.",
+      "actionStep": "Send a brief message to someone you care about or write down one quiet prayer of release.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-25T11:27:51.417554+00:00"
+    },
+    {
+      "id": "afc21c1a-64b8-4982-9eb0-ba5314adb26d",
+      "checkinId": "e62e48f1-6084-46da-ac3e-fb69d79757ef",
+      "verseText": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "verseReference": "John 14:27",
+      "whyThisVerse": "This verse speaks directly to peace — it is one of the timeless passages LifeBook returns to for grounding.",
+      "meditation": "Sit for a quiet moment with \"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.\". Let the words settle rather than rushing past them. Notice what in your heart left you feeling peaceful.",
+      "reflectionQuestion": "Where recently were you feeling peaceful, and what would it look like to bring that honestly before God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry John 14:27 with me throughout this day. Amen.",
+      "actionStep": "Send a brief message to someone you care about or write down one quiet prayer of release.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-25T11:29:12.615611+00:00"
+    },
+    {
+      "id": "9f54e27e-8881-430c-9c6c-2b50d2c7a530",
+      "checkinId": "7c6597f6-dd99-42f6-aa7f-7411e4041763",
+      "verseText": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "verseReference": "John 14:27",
+      "whyThisVerse": "This verse speaks directly to peace — it is one of the timeless passages LifeBook returns to for grounding.",
+      "meditation": "Sit for a quiet moment with \"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.\". Let the words settle rather than rushing past them. Notice what in your heart left you feeling peaceful.",
+      "reflectionQuestion": "Where recently were you feeling peaceful, and what would it look like to bring that honestly before God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry John 14:27 with me throughout this day. Amen.",
+      "actionStep": "Send a brief message to someone you care about or write down one quiet prayer of release.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-25T11:29:40.810715+00:00"
+    },
+    {
+      "id": "897d6d2b-55fc-461e-bb23-18137fb7e2b5",
+      "checkinId": "7ebc519b-9ec6-4050-9667-26dccc6774df",
+      "verseText": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "verseReference": "John 14:27",
+      "whyThisVerse": "This verse speaks directly to peace — it is one of the timeless passages LifeBook returns to for grounding.",
+      "meditation": "Sit for a quiet moment with \"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.\". Let the words settle rather than rushing past them. Notice what in your heart left you feeling peaceful.",
+      "reflectionQuestion": "Where recently were you feeling peaceful, and what would it look like to bring that honestly before God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry John 14:27 with me throughout this day. Amen.",
+      "actionStep": "Send a brief message to someone you care about or write down one quiet prayer of release.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-25T11:29:53.675597+00:00"
+    },
+    {
+      "id": "ce1fc3cc-bbc9-4f20-b5c9-79857adf4e85",
+      "checkinId": "f2184351-4fa7-4cd2-9e56-822587bfe797",
+      "verseText": "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.",
+      "verseReference": "Isaiah 26:3",
+      "whyThisVerse": "This verse speaks directly to peace — it is one of the timeless passages LifeBook returns to for grounding.",
+      "meditation": "Sit for a quiet moment with \"Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.\". Let the words settle rather than rushing past them. Notice what in your heart left you feeling peaceful.",
+      "reflectionQuestion": "Where recently were you feeling peaceful, and what would it look like to bring that honestly before God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry Isaiah 26:3 with me throughout this day. Amen.",
+      "actionStep": "Send a brief message to someone you care about or write down one quiet prayer of release.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-25T11:31:31.574397+00:00"
+    },
+    {
+      "id": "a269fe5c-5687-4228-88d0-972e6b8c2922",
+      "checkinId": "f941e4ca-f2bc-4030-a263-357029d600be",
+      "verseText": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+      "verseReference": "John 14:27",
+      "whyThisVerse": "This verse speaks directly to peace — it is one of the timeless passages LifeBook returns to for grounding.",
+      "meditation": "Sit for a quiet moment with \"Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.\". Let the words settle rather than rushing past them. Notice what in your heart left you feeling peaceful.",
+      "reflectionQuestion": "Where recently were you feeling peaceful, and what would it look like to bring that honestly before God?",
+      "prayer": "Lord, thank You for meeting me in how I actually feel today, not how I think I should feel. Help me carry John 14:27 with me throughout this day. Amen.",
+      "actionStep": "Send a brief message to someone you care about or write down one quiet prayer of release.",
+      "reviewVerdict": "pass",
+      "modelMode": "dev-fallback",
+      "createdAt": "2026-09-25T12:06:06.868472+00:00"
     }
   ],
   "streaks": {
@@ -142,6 +268,78 @@
       "history": [
         {
           "date": "2026-09-23",
+          "mood": "peaceful"
+        }
+      ]
+    },
+    "test_device_13e70bd7-2b44-441e-ba47-024feae4485d": {
+      "deviceId": "test_device_13e70bd7-2b44-441e-ba47-024feae4485d",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-25",
+      "history": [
+        {
+          "date": "2026-09-25",
+          "mood": "peaceful"
+        }
+      ]
+    },
+    "test_device_9daa3cd2-3a70-4a1f-bbc1-c0cccd090a1e": {
+      "deviceId": "test_device_9daa3cd2-3a70-4a1f-bbc1-c0cccd090a1e",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-25",
+      "history": [
+        {
+          "date": "2026-09-25",
+          "mood": "peaceful"
+        }
+      ]
+    },
+    "test_device_ad953d3e-a74d-4830-b9a7-3bde816b71ae": {
+      "deviceId": "test_device_ad953d3e-a74d-4830-b9a7-3bde816b71ae",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-25",
+      "history": [
+        {
+          "date": "2026-09-25",
+          "mood": "peaceful"
+        }
+      ]
+    },
+    "test_device_2c74b88b-82ac-478b-a144-d04a8a933825": {
+      "deviceId": "test_device_2c74b88b-82ac-478b-a144-d04a8a933825",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-25",
+      "history": [
+        {
+          "date": "2026-09-25",
+          "mood": "peaceful"
+        }
+      ]
+    },
+    "test_device_1f779e2d-16da-4dcc-8152-c00426af4552": {
+      "deviceId": "test_device_1f779e2d-16da-4dcc-8152-c00426af4552",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-25",
+      "history": [
+        {
+          "date": "2026-09-25",
+          "mood": "peaceful"
+        }
+      ]
+    },
+    "test_device_f7df1dfa-da74-4f45-8a3d-d4bfbbbeda9e": {
+      "deviceId": "test_device_f7df1dfa-da74-4f45-8a3d-d4bfbbbeda9e",
+      "current": 1,
+      "longest": 1,
+      "lastCheckIn": "2026-09-25",
+      "history": [
+        {
+          "date": "2026-09-25",
           "mood": "peaceful"
         }
       ]
@@ -185,6 +383,66 @@
       "prayerCount": 0,
       "moderationStatus": "approved",
       "createdAt": "2026-09-23T23:30:38.135169+00:00"
+    },
+    {
+      "id": "6f311a1f-ca2e-4ec3-bf32-caab922833ff",
+      "deviceId": "test_device_d3217e3d-1055-4637-b6fd-d9e8da8739d2",
+      "authorName": "A LifeBook user",
+      "text": "Please pray for safe travels and peace at work.",
+      "category": "Work & Calling",
+      "prayerCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:27:51.460199+00:00"
+    },
+    {
+      "id": "0215fbdd-2ea0-49c0-b5e9-1f3315f5af14",
+      "deviceId": "test_device_085dbf72-b915-4e1b-91a8-0e4000e745a3",
+      "authorName": "A LifeBook user",
+      "text": "Please pray for safe travels and peace at work.",
+      "category": "Work & Calling",
+      "prayerCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:12.634082+00:00"
+    },
+    {
+      "id": "442214ac-a07d-4981-9c86-86120be3a8c7",
+      "deviceId": "test_device_4fb1585d-2637-4ef2-8d72-cc5593602476",
+      "authorName": "A LifeBook user",
+      "text": "Please pray for safe travels and peace at work.",
+      "category": "Work & Calling",
+      "prayerCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:40.832629+00:00"
+    },
+    {
+      "id": "672a5e45-6aaa-4266-b7bc-3ee99c3e8f32",
+      "deviceId": "test_device_ff858b7d-1814-4208-8b25-47631a844e46",
+      "authorName": "A LifeBook user",
+      "text": "Please pray for safe travels and peace at work.",
+      "category": "Work & Calling",
+      "prayerCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:53.703727+00:00"
+    },
+    {
+      "id": "c0a0d286-82ff-4964-bdd5-f69286ab4f0b",
+      "deviceId": "test_device_0d3f39bb-c9d7-4e78-b2fa-21122e82efbf",
+      "authorName": "A LifeBook user",
+      "text": "Please pray for safe travels and peace at work.",
+      "category": "Work & Calling",
+      "prayerCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:31:31.599548+00:00"
+    },
+    {
+      "id": "0e8a0982-5e79-473e-aa21-f947068483dc",
+      "deviceId": "test_device_1c19d73f-08c8-4b7a-955b-dd02dd7ea6c5",
+      "authorName": "A LifeBook user",
+      "text": "Please pray for safe travels and peace at work.",
+      "category": "Work & Calling",
+      "prayerCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T12:06:06.896521+00:00"
     }
   ],
   "discussions": [
@@ -202,11 +460,143 @@
       "likeCount": 0,
       "moderationStatus": "approved",
       "createdAt": "2026-09-23T23:30:38.138268+00:00"
+    },
+    {
+      "id": "ba978df6-577e-46d9-b183-3594a81fddaa",
+      "deviceId": "test_device_d3217e3d-1055-4637-b6fd-d9e8da8739d2",
+      "authorName": "Believer",
+      "title": "Morning reflection on Proverbs",
+      "body": "What verses give you strength when facing big decisions?",
+      "tags": [
+        "wisdom",
+        "guidance"
+      ],
+      "replyCount": 0,
+      "likeCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:27:51.470606+00:00"
+    },
+    {
+      "id": "c727c8f4-b2ea-4fb3-abe9-f28ca9b1fba2",
+      "deviceId": "test_device_085dbf72-b915-4e1b-91a8-0e4000e745a3",
+      "authorName": "Believer",
+      "title": "Morning reflection on Proverbs",
+      "body": "What verses give you strength when facing big decisions?",
+      "tags": [
+        "wisdom",
+        "guidance"
+      ],
+      "replyCount": 0,
+      "likeCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:12.643810+00:00"
+    },
+    {
+      "id": "49cef772-8f69-49d9-be10-00020866eae2",
+      "deviceId": "test_device_4fb1585d-2637-4ef2-8d72-cc5593602476",
+      "authorName": "Believer",
+      "title": "Morning reflection on Proverbs",
+      "body": "What verses give you strength when facing big decisions?",
+      "tags": [
+        "wisdom",
+        "guidance"
+      ],
+      "replyCount": 0,
+      "likeCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:40.844776+00:00"
+    },
+    {
+      "id": "6b070668-1710-4a18-bed4-7305fb68f769",
+      "deviceId": "test_device_ff858b7d-1814-4208-8b25-47631a844e46",
+      "authorName": "Believer",
+      "title": "Morning reflection on Proverbs",
+      "body": "What verses give you strength when facing big decisions?",
+      "tags": [
+        "wisdom",
+        "guidance"
+      ],
+      "replyCount": 0,
+      "likeCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:53.723287+00:00"
+    },
+    {
+      "id": "61bfaa70-91dc-4ccd-8639-3689bee6c7b4",
+      "deviceId": "test_device_0d3f39bb-c9d7-4e78-b2fa-21122e82efbf",
+      "authorName": "Believer",
+      "title": "Morning reflection on Proverbs",
+      "body": "What verses give you strength when facing big decisions?",
+      "tags": [
+        "wisdom",
+        "guidance"
+      ],
+      "replyCount": 0,
+      "likeCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:31:31.613764+00:00"
+    },
+    {
+      "id": "8abf793e-5fb8-4a28-9e3a-55318809c40a",
+      "deviceId": "test_device_1c19d73f-08c8-4b7a-955b-dd02dd7ea6c5",
+      "authorName": "Believer",
+      "title": "Morning reflection on Proverbs",
+      "body": "What verses give you strength when facing big decisions?",
+      "tags": [
+        "wisdom",
+        "guidance"
+      ],
+      "replyCount": 0,
+      "likeCount": 0,
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T12:06:06.915678+00:00"
     }
   ],
   "discussionReplies": [],
   "libraryProgress": {
     "test_device_3ac9553f-507b-478c-b57c-190b31dd6964": [
+      {
+        "bookId": "bk-mere-christianity",
+        "progressPercent": 0,
+        "bookmarked": true
+      }
+    ],
+    "test_device_f6eb7419-1b8e-45b6-ae11-fca2eca3b9db": [
+      {
+        "bookId": "bk-mere-christianity",
+        "progressPercent": 0,
+        "bookmarked": true
+      }
+    ],
+    "test_device_7ccdc2fe-217c-47bd-aa65-64e5b388b351": [
+      {
+        "bookId": "bk-mere-christianity",
+        "progressPercent": 0,
+        "bookmarked": true
+      }
+    ],
+    "test_device_c3406a46-61bb-4e5c-993b-b35441a5d459": [
+      {
+        "bookId": "bk-mere-christianity",
+        "progressPercent": 0,
+        "bookmarked": true
+      }
+    ],
+    "test_device_3e93e51e-7d29-4f5e-9917-d30b46dc67c5": [
+      {
+        "bookId": "bk-mere-christianity",
+        "progressPercent": 0,
+        "bookmarked": true
+      }
+    ],
+    "test_device_b6c140ac-f99f-42fa-aacc-06e55ae89d11": [
+      {
+        "bookId": "bk-mere-christianity",
+        "progressPercent": 0,
+        "bookmarked": true
+      }
+    ],
+    "test_device_ad398e67-7fa0-4a5c-88ef-5227e26b6d0d": [
       {
         "bookId": "bk-mere-christianity",
         "progressPercent": 0,
@@ -220,6 +610,42 @@
       "tier": "premium",
       "billingCycle": "annual",
       "updatedAt": "2026-09-23T23:30:39.021323+00:00"
+    },
+    "test_device_17eca2cc-1ace-434f-9bcf-ffd4481fd459": {
+      "deviceId": "test_device_17eca2cc-1ace-434f-9bcf-ffd4481fd459",
+      "tier": "premium",
+      "billingCycle": "annual",
+      "updatedAt": "2026-09-25T11:27:51.838883+00:00"
+    },
+    "test_device_42a99d74-9e62-4331-a8b1-fccca7348619": {
+      "deviceId": "test_device_42a99d74-9e62-4331-a8b1-fccca7348619",
+      "tier": "premium",
+      "billingCycle": "annual",
+      "updatedAt": "2026-09-25T11:29:12.993360+00:00"
+    },
+    "test_device_e7ceb6b1-5a7d-4d7b-9472-a64e917b7bcc": {
+      "deviceId": "test_device_e7ceb6b1-5a7d-4d7b-9472-a64e917b7bcc",
+      "tier": "premium",
+      "billingCycle": "annual",
+      "updatedAt": "2026-09-25T11:29:41.243356+00:00"
+    },
+    "test_device_4c97bb52-7f6a-49b7-bc12-705e50b9b854": {
+      "deviceId": "test_device_4c97bb52-7f6a-49b7-bc12-705e50b9b854",
+      "tier": "premium",
+      "billingCycle": "annual",
+      "updatedAt": "2026-09-25T11:29:54.189787+00:00"
+    },
+    "test_device_c3387341-180a-4bb4-a9d0-865ef5519800": {
+      "deviceId": "test_device_c3387341-180a-4bb4-a9d0-865ef5519800",
+      "tier": "premium",
+      "billingCycle": "annual",
+      "updatedAt": "2026-09-25T11:31:32.060287+00:00"
+    },
+    "test_device_f3830a91-e143-4fc6-a4b0-07005ee6658e": {
+      "deviceId": "test_device_f3830a91-e143-4fc6-a4b0-07005ee6658e",
+      "tier": "premium",
+      "billingCycle": "annual",
+      "updatedAt": "2026-09-25T12:06:07.535826+00:00"
     }
   },
   "journalEntries": [
@@ -229,6 +655,48 @@
       "text": "Reflecting on gratitude and peace today.",
       "relatedContentId": null,
       "createdAt": "2026-09-23T23:30:38.141421+00:00"
+    },
+    {
+      "id": "d3774a1a-0459-41a5-bd50-8dffcc30ab73",
+      "deviceId": "test_device_26dcdcd7-ce83-4967-a409-35c6bab7910e",
+      "text": "Reflecting on gratitude and peace today.",
+      "relatedContentId": null,
+      "createdAt": "2026-09-25T11:27:51.481422+00:00"
+    },
+    {
+      "id": "72409171-ff5c-4afc-b532-7e4602caf042",
+      "deviceId": "test_device_54d0a14f-72e2-4604-9812-7c333300f125",
+      "text": "Reflecting on gratitude and peace today.",
+      "relatedContentId": null,
+      "createdAt": "2026-09-25T11:29:12.652981+00:00"
+    },
+    {
+      "id": "70123ab5-0e1c-4c8b-9178-69665e3e9d6c",
+      "deviceId": "test_device_3d291a70-53ca-4838-9437-088c81d77ffe",
+      "text": "Reflecting on gratitude and peace today.",
+      "relatedContentId": null,
+      "createdAt": "2026-09-25T11:29:40.857948+00:00"
+    },
+    {
+      "id": "56a2923d-3c7a-4ea8-8db6-a2bdcf956ed4",
+      "deviceId": "test_device_ba690d42-954b-43bb-a327-473e1337867e",
+      "text": "Reflecting on gratitude and peace today.",
+      "relatedContentId": null,
+      "createdAt": "2026-09-25T11:29:53.738136+00:00"
+    },
+    {
+      "id": "a7a16982-3207-4a53-8864-edf8c490eb85",
+      "deviceId": "test_device_afe084de-e919-4644-83e4-70057509817f",
+      "text": "Reflecting on gratitude and peace today.",
+      "relatedContentId": null,
+      "createdAt": "2026-09-25T11:31:31.628709+00:00"
+    },
+    {
+      "id": "8ba092aa-24b1-4834-9f8f-39ed8f865be0",
+      "deviceId": "test_device_d30d7c2d-5df0-4d5d-aac3-d57cf324d6b7",
+      "text": "Reflecting on gratitude and peace today.",
+      "relatedContentId": null,
+      "createdAt": "2026-09-25T12:06:06.937234+00:00"
     }
   ],
   "favorites": [
@@ -239,6 +707,54 @@
       "verseText": "Peace I leave with you...",
       "verseReference": "John 14:27",
       "createdAt": "2026-09-23T23:30:38.144400+00:00"
+    },
+    {
+      "id": "a539135d-1c50-4b2a-bbc8-c1b0f8e35e46",
+      "deviceId": "test_device_26dcdcd7-ce83-4967-a409-35c6bab7910e",
+      "contentId": "chk-test-1",
+      "verseText": "Peace I leave with you...",
+      "verseReference": "John 14:27",
+      "createdAt": "2026-09-25T11:27:51.491831+00:00"
+    },
+    {
+      "id": "4e3d11b7-3ca2-49f6-876b-fd6757b65464",
+      "deviceId": "test_device_54d0a14f-72e2-4604-9812-7c333300f125",
+      "contentId": "chk-test-1",
+      "verseText": "Peace I leave with you...",
+      "verseReference": "John 14:27",
+      "createdAt": "2026-09-25T11:29:12.662611+00:00"
+    },
+    {
+      "id": "ead98d46-3dde-4822-965f-bb8decf3b74f",
+      "deviceId": "test_device_3d291a70-53ca-4838-9437-088c81d77ffe",
+      "contentId": "chk-test-1",
+      "verseText": "Peace I leave with you...",
+      "verseReference": "John 14:27",
+      "createdAt": "2026-09-25T11:29:40.869969+00:00"
+    },
+    {
+      "id": "a63c3862-c532-43f7-b378-0cc7cc228066",
+      "deviceId": "test_device_ba690d42-954b-43bb-a327-473e1337867e",
+      "contentId": "chk-test-1",
+      "verseText": "Peace I leave with you...",
+      "verseReference": "John 14:27",
+      "createdAt": "2026-09-25T11:29:53.770693+00:00"
+    },
+    {
+      "id": "02ee4d82-0566-45b6-b14b-946ea89ef3a8",
+      "deviceId": "test_device_afe084de-e919-4644-83e4-70057509817f",
+      "contentId": "chk-test-1",
+      "verseText": "Peace I leave with you...",
+      "verseReference": "John 14:27",
+      "createdAt": "2026-09-25T11:31:31.644618+00:00"
+    },
+    {
+      "id": "0e60171e-df94-426f-b64b-8d49d2c702fe",
+      "deviceId": "test_device_d30d7c2d-5df0-4d5d-aac3-d57cf324d6b7",
+      "contentId": "chk-test-1",
+      "verseText": "Peace I leave with you...",
+      "verseReference": "John 14:27",
+      "createdAt": "2026-09-25T12:06:06.954481+00:00"
     }
   ],
   "preferences": {
@@ -249,6 +765,36 @@
       "deviceId": "test_device_9b0984d9-b9a0-47e8-ab7a-bcbf5b159fd9",
       "displayName": "Faithful Pilgrim",
       "spiritualPath": "Seeker"
+    },
+    "test_device_ffcfbbc5-fc86-47e7-8292-32223cc6fa8a": {
+      "deviceId": "test_device_ffcfbbc5-fc86-47e7-8292-32223cc6fa8a",
+      "displayName": "Faithful Pilgrim",
+      "spiritualPath": "Seeker"
+    },
+    "test_device_4f5a3a81-2a8a-4ab3-8993-2bdfd7cb43f1": {
+      "deviceId": "test_device_4f5a3a81-2a8a-4ab3-8993-2bdfd7cb43f1",
+      "displayName": "Faithful Pilgrim",
+      "spiritualPath": "Seeker"
+    },
+    "test_device_8b55597b-c237-4041-83b6-de4f54921ef7": {
+      "deviceId": "test_device_8b55597b-c237-4041-83b6-de4f54921ef7",
+      "displayName": "Faithful Pilgrim",
+      "spiritualPath": "Seeker"
+    },
+    "test_device_3134f2b7-dd54-4854-8396-9d31006da260": {
+      "deviceId": "test_device_3134f2b7-dd54-4854-8396-9d31006da260",
+      "displayName": "Faithful Pilgrim",
+      "spiritualPath": "Seeker"
+    },
+    "test_device_986bc314-bdd6-4e06-bccc-a7cd01c4a091": {
+      "deviceId": "test_device_986bc314-bdd6-4e06-bccc-a7cd01c4a091",
+      "displayName": "Faithful Pilgrim",
+      "spiritualPath": "Seeker"
+    },
+    "test_device_076aa88d-b47e-4085-af95-7ba59e2ac606": {
+      "deviceId": "test_device_076aa88d-b47e-4085-af95-7ba59e2ac606",
+      "displayName": "Faithful Pilgrim",
+      "spiritualPath": "Seeker"
     }
   },
   "pushTokens": {
@@ -257,6 +803,42 @@
       "token": "ExponentPushToken[mock-test-token-12345]",
       "platform": "android",
       "updatedAt": "2026-09-23T23:30:38.180161+00:00"
+    },
+    "test_device_ffcfbbc5-fc86-47e7-8292-32223cc6fa8a": {
+      "userId": "test_device_ffcfbbc5-fc86-47e7-8292-32223cc6fa8a",
+      "token": "ExponentPushToken[mock-test-token-12345]",
+      "platform": "android",
+      "updatedAt": "2026-09-25T11:27:51.646560+00:00"
+    },
+    "test_device_4f5a3a81-2a8a-4ab3-8993-2bdfd7cb43f1": {
+      "userId": "test_device_4f5a3a81-2a8a-4ab3-8993-2bdfd7cb43f1",
+      "token": "ExponentPushToken[mock-test-token-12345]",
+      "platform": "android",
+      "updatedAt": "2026-09-25T11:29:12.808935+00:00"
+    },
+    "test_device_8b55597b-c237-4041-83b6-de4f54921ef7": {
+      "userId": "test_device_8b55597b-c237-4041-83b6-de4f54921ef7",
+      "token": "ExponentPushToken[mock-test-token-12345]",
+      "platform": "android",
+      "updatedAt": "2026-09-25T11:29:41.051692+00:00"
+    },
+    "test_device_3134f2b7-dd54-4854-8396-9d31006da260": {
+      "userId": "test_device_3134f2b7-dd54-4854-8396-9d31006da260",
+      "token": "ExponentPushToken[mock-test-token-12345]",
+      "platform": "android",
+      "updatedAt": "2026-09-25T11:29:53.993040+00:00"
+    },
+    "test_device_986bc314-bdd6-4e06-bccc-a7cd01c4a091": {
+      "userId": "test_device_986bc314-bdd6-4e06-bccc-a7cd01c4a091",
+      "token": "ExponentPushToken[mock-test-token-12345]",
+      "platform": "android",
+      "updatedAt": "2026-09-25T11:31:31.868945+00:00"
+    },
+    "test_device_076aa88d-b47e-4085-af95-7ba59e2ac606": {
+      "userId": "test_device_076aa88d-b47e-4085-af95-7ba59e2ac606",
+      "token": "ExponentPushToken[mock-test-token-12345]",
+      "platform": "android",
+      "updatedAt": "2026-09-25T12:06:07.308063+00:00"
     }
   },
   "journeyProgress": {
@@ -276,6 +858,156 @@
           {
             "id": "grace-1",
             "timestamp": "2026-09-23T23:30:38.154368+00:00",
+            "reason": "Family emergency & intentional Sabbath rest",
+            "protectedDay": 2,
+            "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+            "streakProtected": true
+          }
+        ],
+        "status": "active"
+      }
+    ],
+    "test_device_fd296950-c06e-4c1b-b7c5-50ec6dfebc00": [
+      {
+        "journeyId": "jr-finding-peace",
+        "currentDay": 2,
+        "completedDays": [
+          1
+        ],
+        "startedAt": "2026-09-25T11:27:51.506191+00:00",
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 1,
+        "graceDaysUsed": 1,
+        "isGraceProtected": true,
+        "graceHistory": [
+          {
+            "id": "grace-1",
+            "timestamp": "2026-09-25T11:27:51.540217+00:00",
+            "reason": "Family emergency & intentional Sabbath rest",
+            "protectedDay": 2,
+            "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+            "streakProtected": true
+          }
+        ],
+        "status": "active"
+      }
+    ],
+    "test_device_aba6c303-855e-4b2a-b8ba-ff4212f69778": [
+      {
+        "journeyId": "jr-finding-peace",
+        "currentDay": 2,
+        "completedDays": [
+          1
+        ],
+        "startedAt": "2026-09-25T11:29:12.675242+00:00",
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 1,
+        "graceDaysUsed": 1,
+        "isGraceProtected": true,
+        "graceHistory": [
+          {
+            "id": "grace-1",
+            "timestamp": "2026-09-25T11:29:12.694938+00:00",
+            "reason": "Family emergency & intentional Sabbath rest",
+            "protectedDay": 2,
+            "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+            "streakProtected": true
+          }
+        ],
+        "status": "active"
+      }
+    ],
+    "test_device_2d196ee1-ceb3-4a9c-a7ac-8bf7dccfe26c": [
+      {
+        "journeyId": "jr-finding-peace",
+        "currentDay": 2,
+        "completedDays": [
+          1
+        ],
+        "startedAt": "2026-09-25T11:29:40.886389+00:00",
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 1,
+        "graceDaysUsed": 1,
+        "isGraceProtected": true,
+        "graceHistory": [
+          {
+            "id": "grace-1",
+            "timestamp": "2026-09-25T11:29:40.911043+00:00",
+            "reason": "Family emergency & intentional Sabbath rest",
+            "protectedDay": 2,
+            "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+            "streakProtected": true
+          }
+        ],
+        "status": "active"
+      }
+    ],
+    "test_device_fad1247e-f86d-4978-8115-000660d7dc86": [
+      {
+        "journeyId": "jr-finding-peace",
+        "currentDay": 2,
+        "completedDays": [
+          1
+        ],
+        "startedAt": "2026-09-25T11:29:53.789796+00:00",
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 1,
+        "graceDaysUsed": 1,
+        "isGraceProtected": true,
+        "graceHistory": [
+          {
+            "id": "grace-1",
+            "timestamp": "2026-09-25T11:29:53.821297+00:00",
+            "reason": "Family emergency & intentional Sabbath rest",
+            "protectedDay": 2,
+            "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+            "streakProtected": true
+          }
+        ],
+        "status": "active"
+      }
+    ],
+    "test_device_fd8f0db1-b947-49e4-9a8f-23861af8e662": [
+      {
+        "journeyId": "jr-finding-peace",
+        "currentDay": 2,
+        "completedDays": [
+          1
+        ],
+        "startedAt": "2026-09-25T11:31:31.664809+00:00",
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 1,
+        "graceDaysUsed": 1,
+        "isGraceProtected": true,
+        "graceHistory": [
+          {
+            "id": "grace-1",
+            "timestamp": "2026-09-25T11:31:31.696637+00:00",
+            "reason": "Family emergency & intentional Sabbath rest",
+            "protectedDay": 2,
+            "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
+            "streakProtected": true
+          }
+        ],
+        "status": "active"
+      }
+    ],
+    "test_device_a7be1829-bdc1-4974-ad43-84d57acc8ffb": [
+      {
+        "journeyId": "jr-finding-peace",
+        "currentDay": 2,
+        "completedDays": [
+          1
+        ],
+        "startedAt": "2026-09-25T12:06:06.976334+00:00",
+        "graceDaysTotal": 2,
+        "graceDaysRemaining": 1,
+        "graceDaysUsed": 1,
+        "isGraceProtected": true,
+        "graceHistory": [
+          {
+            "id": "grace-1",
+            "timestamp": "2026-09-25T12:06:07.014902+00:00",
             "reason": "Family emergency & intentional Sabbath rest",
             "protectedDay": 2,
             "scripture": "The Lord's mercies are new every morning; great is your faithfulness. (Lamentations 3:22-23)",
@@ -313,6 +1045,60 @@
       "text": "Such an encouraging message today. Thank you!",
       "moderationStatus": "approved",
       "createdAt": "2026-09-23T23:30:39.048725+00:00"
+    },
+    {
+      "id": "7d162102-fdc0-4d82-813b-9eaca1f486ae",
+      "teachingSlug": "abiding-in-the-vine-during-storms-1790335671600",
+      "userId": "test_device_acae3e00-ec12-4ec9-add8-0aa31f8ac516",
+      "authorName": "LifeBook member",
+      "text": "Such an encouraging message today. Thank you!",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:27:51.879435+00:00"
+    },
+    {
+      "id": "07fab39f-273e-4762-99ac-3ec938023e06",
+      "teachingSlug": "abiding-in-the-vine-during-storms-1790335752777",
+      "userId": "test_device_5eefab98-6669-4640-bbe3-a90e230067b4",
+      "authorName": "LifeBook member",
+      "text": "Such an encouraging message today. Thank you!",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:13.029047+00:00"
+    },
+    {
+      "id": "44fb9be4-d7d9-44af-885f-3eba2754b505",
+      "teachingSlug": "abiding-in-the-vine-during-storms-1790335781014",
+      "userId": "test_device_79f8ccb2-0877-4bf0-9ea0-b44f5ca8205f",
+      "authorName": "LifeBook member",
+      "text": "Such an encouraging message today. Thank you!",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:41.282038+00:00"
+    },
+    {
+      "id": "270820e9-63f6-4671-acf9-f4a0b3d2bc79",
+      "teachingSlug": "abiding-in-the-vine-during-storms-1790335793947",
+      "userId": "test_device_9a9ffa59-4a59-43a4-bfc2-67e32ab5c5c4",
+      "authorName": "LifeBook member",
+      "text": "Such an encouraging message today. Thank you!",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:29:54.243600+00:00"
+    },
+    {
+      "id": "ad9af88c-507a-4e21-a1a2-ca9cfdef5cb2",
+      "teachingSlug": "abiding-in-the-vine-during-storms-1790335891821",
+      "userId": "test_device_7367f606-4ea2-4f18-bb8b-8dbb6ea56791",
+      "authorName": "LifeBook member",
+      "text": "Such an encouraging message today. Thank you!",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T11:31:32.103964+00:00"
+    },
+    {
+      "id": "b1d0e41e-9d9b-4e36-ade5-31e41e62ac65",
+      "teachingSlug": "abiding-in-the-vine-during-storms-1790337967221",
+      "userId": "test_device_ba462dd8-a97c-40ac-ad64-5ef48da907c9",
+      "authorName": "LifeBook member",
+      "text": "Such an encouraging message today. Thank you!",
+      "moderationStatus": "approved",
+      "createdAt": "2026-09-25T12:06:07.592643+00:00"
     }
   ],
   "playlists": [
@@ -354,6 +1140,162 @@
       "totalDuration": "0 min",
       "createdAt": "2026-09-21T22:14:24.950Z",
       "updatedAt": "2026-09-21T22:14:24.950Z"
+    },
+    {
+      "id": "default_morning_test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "userId": "test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "title": "Morning Stillness & Foundation",
+      "description": "Short, uplifting theological expositions for daily sunrise devotional rhythms.",
+      "icon": "🌅",
+      "color": "from-[#5D4E7B] to-[#3B2D54]",
+      "isDefault": true,
+      "itemCount": 2,
+      "totalDuration": "25 min",
+      "createdAt": "2026-09-25T11:29:12.718644+00:00",
+      "updatedAt": "2026-09-25T11:29:12.718644+00:00"
+    },
+    {
+      "id": "default_evening_test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "userId": "test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "title": "Evening Examen & Rest",
+      "description": "Contemplative, peaceful reflections to cast anxiety upon Christ before sleep.",
+      "icon": "🌙",
+      "color": "from-[#3B2D54] to-[#1A162B]",
+      "isDefault": true,
+      "itemCount": 0,
+      "totalDuration": "0 min",
+      "createdAt": "2026-09-25T11:29:12.718644+00:00",
+      "updatedAt": "2026-09-25T11:29:12.718644+00:00"
+    },
+    {
+      "id": "default_morning_test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "userId": "test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "title": "Morning Stillness & Foundation",
+      "description": "Short, uplifting theological expositions for daily sunrise devotional rhythms.",
+      "icon": "🌅",
+      "color": "from-[#5D4E7B] to-[#3B2D54]",
+      "isDefault": true,
+      "itemCount": 2,
+      "totalDuration": "25 min",
+      "createdAt": "2026-09-25T11:29:40.939861+00:00",
+      "updatedAt": "2026-09-25T11:29:40.939861+00:00"
+    },
+    {
+      "id": "default_evening_test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "userId": "test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "title": "Evening Examen & Rest",
+      "description": "Contemplative, peaceful reflections to cast anxiety upon Christ before sleep.",
+      "icon": "🌙",
+      "color": "from-[#3B2D54] to-[#1A162B]",
+      "isDefault": true,
+      "itemCount": 0,
+      "totalDuration": "0 min",
+      "createdAt": "2026-09-25T11:29:40.939861+00:00",
+      "updatedAt": "2026-09-25T11:29:40.939861+00:00"
+    },
+    {
+      "id": "default_morning_test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "userId": "test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "title": "Morning Stillness & Foundation",
+      "description": "Short, uplifting theological expositions for daily sunrise devotional rhythms.",
+      "icon": "🌅",
+      "color": "from-[#5D4E7B] to-[#3B2D54]",
+      "isDefault": true,
+      "itemCount": 2,
+      "totalDuration": "25 min",
+      "createdAt": "2026-09-25T11:29:53.862747+00:00",
+      "updatedAt": "2026-09-25T11:29:53.862747+00:00"
+    },
+    {
+      "id": "default_evening_test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "userId": "test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "title": "Evening Examen & Rest",
+      "description": "Contemplative, peaceful reflections to cast anxiety upon Christ before sleep.",
+      "icon": "🌙",
+      "color": "from-[#3B2D54] to-[#1A162B]",
+      "isDefault": true,
+      "itemCount": 0,
+      "totalDuration": "0 min",
+      "createdAt": "2026-09-25T11:29:53.862747+00:00",
+      "updatedAt": "2026-09-25T11:29:53.862747+00:00"
+    },
+    {
+      "id": "default_morning_dev_user_tester",
+      "userId": "dev_user_tester",
+      "title": "Morning Stillness & Foundation",
+      "description": "Short, uplifting theological expositions for daily sunrise devotional rhythms.",
+      "icon": "🌅",
+      "color": "from-[#5D4E7B] to-[#3B2D54]",
+      "isDefault": true,
+      "itemCount": 2,
+      "totalDuration": "25 min",
+      "createdAt": "2026-09-25T11:30:33.587982+00:00",
+      "updatedAt": "2026-09-25T11:30:33.587982+00:00"
+    },
+    {
+      "id": "default_evening_dev_user_tester",
+      "userId": "dev_user_tester",
+      "title": "Evening Examen & Rest",
+      "description": "Contemplative, peaceful reflections to cast anxiety upon Christ before sleep.",
+      "icon": "🌙",
+      "color": "from-[#3B2D54] to-[#1A162B]",
+      "isDefault": true,
+      "itemCount": 0,
+      "totalDuration": "0 min",
+      "createdAt": "2026-09-25T11:30:33.587982+00:00",
+      "updatedAt": "2026-09-25T11:30:33.587982+00:00"
+    },
+    {
+      "id": "default_morning_test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "userId": "test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "title": "Morning Stillness & Foundation",
+      "description": "Short, uplifting theological expositions for daily sunrise devotional rhythms.",
+      "icon": "🌅",
+      "color": "from-[#5D4E7B] to-[#3B2D54]",
+      "isDefault": true,
+      "itemCount": 2,
+      "totalDuration": "25 min",
+      "createdAt": "2026-09-25T11:31:31.733083+00:00",
+      "updatedAt": "2026-09-25T11:31:31.733083+00:00"
+    },
+    {
+      "id": "default_evening_test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "userId": "test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "title": "Evening Examen & Rest",
+      "description": "Contemplative, peaceful reflections to cast anxiety upon Christ before sleep.",
+      "icon": "🌙",
+      "color": "from-[#3B2D54] to-[#1A162B]",
+      "isDefault": true,
+      "itemCount": 0,
+      "totalDuration": "0 min",
+      "createdAt": "2026-09-25T11:31:31.733083+00:00",
+      "updatedAt": "2026-09-25T11:31:31.733083+00:00"
+    },
+    {
+      "id": "default_morning_test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "userId": "test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "title": "Morning Stillness & Foundation",
+      "description": "Short, uplifting theological expositions for daily sunrise devotional rhythms.",
+      "icon": "🌅",
+      "color": "from-[#5D4E7B] to-[#3B2D54]",
+      "isDefault": true,
+      "itemCount": 2,
+      "totalDuration": "25 min",
+      "createdAt": "2026-09-25T12:06:07.060783+00:00",
+      "updatedAt": "2026-09-25T12:06:07.060783+00:00"
+    },
+    {
+      "id": "default_evening_test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "userId": "test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "title": "Evening Examen & Rest",
+      "description": "Contemplative, peaceful reflections to cast anxiety upon Christ before sleep.",
+      "icon": "🌙",
+      "color": "from-[#3B2D54] to-[#1A162B]",
+      "isDefault": true,
+      "itemCount": 0,
+      "totalDuration": "0 min",
+      "createdAt": "2026-09-25T12:06:07.060783+00:00",
+      "updatedAt": "2026-09-25T12:06:07.060783+00:00"
     }
   ],
   "playlistItems": [
@@ -382,6 +1324,162 @@
       "portrait": "/AsketOfficialPic (1).png",
       "position": 0,
       "addedAt": "2026-09-21T22:14:24.950Z"
+    },
+    {
+      "id": "pli_def_1_test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "playlistId": "default_morning_test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "teachingSlug": "grace-in-trials",
+      "teachingTitle": "Grace in Trials: Finding Still Waters",
+      "teacher": "Pastor Asket",
+      "duration": "14 min",
+      "category": "Grace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__integers.mp3",
+      "portrait": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80",
+      "position": 0,
+      "addedAt": "2026-09-25T11:29:12.718644+00:00"
+    },
+    {
+      "id": "pli_def_2_test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "playlistId": "default_morning_test_user_test_device_0b5f7195-7abb-45d0-afa1-019105c150dc",
+      "teachingSlug": "unshakable-peace",
+      "teachingTitle": "Unshakable Peace: Christ in the Tempest",
+      "teacher": "Dr. Miriam Thorne",
+      "duration": "11 min",
+      "category": "Peace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverending_Story.mp3",
+      "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+      "position": 1,
+      "addedAt": "2026-09-25T11:29:12.718644+00:00"
+    },
+    {
+      "id": "pli_def_1_test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "playlistId": "default_morning_test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "teachingSlug": "grace-in-trials",
+      "teachingTitle": "Grace in Trials: Finding Still Waters",
+      "teacher": "Pastor Asket",
+      "duration": "14 min",
+      "category": "Grace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__integers.mp3",
+      "portrait": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80",
+      "position": 0,
+      "addedAt": "2026-09-25T11:29:40.939861+00:00"
+    },
+    {
+      "id": "pli_def_2_test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "playlistId": "default_morning_test_user_test_device_00a08073-a389-4809-a668-bb38b78302cc",
+      "teachingSlug": "unshakable-peace",
+      "teachingTitle": "Unshakable Peace: Christ in the Tempest",
+      "teacher": "Dr. Miriam Thorne",
+      "duration": "11 min",
+      "category": "Peace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverending_Story.mp3",
+      "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+      "position": 1,
+      "addedAt": "2026-09-25T11:29:40.939861+00:00"
+    },
+    {
+      "id": "pli_def_1_test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "playlistId": "default_morning_test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "teachingSlug": "grace-in-trials",
+      "teachingTitle": "Grace in Trials: Finding Still Waters",
+      "teacher": "Pastor Asket",
+      "duration": "14 min",
+      "category": "Grace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__integers.mp3",
+      "portrait": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80",
+      "position": 0,
+      "addedAt": "2026-09-25T11:29:53.862747+00:00"
+    },
+    {
+      "id": "pli_def_2_test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "playlistId": "default_morning_test_user_test_device_d549f426-47d7-424c-a921-c1da03157c14",
+      "teachingSlug": "unshakable-peace",
+      "teachingTitle": "Unshakable Peace: Christ in the Tempest",
+      "teacher": "Dr. Miriam Thorne",
+      "duration": "11 min",
+      "category": "Peace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverending_Story.mp3",
+      "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+      "position": 1,
+      "addedAt": "2026-09-25T11:29:53.862747+00:00"
+    },
+    {
+      "id": "pli_def_1_dev_user_tester",
+      "playlistId": "default_morning_dev_user_tester",
+      "teachingSlug": "grace-in-trials",
+      "teachingTitle": "Grace in Trials: Finding Still Waters",
+      "teacher": "Pastor Asket",
+      "duration": "14 min",
+      "category": "Grace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__integers.mp3",
+      "portrait": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80",
+      "position": 0,
+      "addedAt": "2026-09-25T11:30:33.587982+00:00"
+    },
+    {
+      "id": "pli_def_2_dev_user_tester",
+      "playlistId": "default_morning_dev_user_tester",
+      "teachingSlug": "unshakable-peace",
+      "teachingTitle": "Unshakable Peace: Christ in the Tempest",
+      "teacher": "Dr. Miriam Thorne",
+      "duration": "11 min",
+      "category": "Peace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverending_Story.mp3",
+      "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+      "position": 1,
+      "addedAt": "2026-09-25T11:30:33.587982+00:00"
+    },
+    {
+      "id": "pli_def_1_test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "playlistId": "default_morning_test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "teachingSlug": "grace-in-trials",
+      "teachingTitle": "Grace in Trials: Finding Still Waters",
+      "teacher": "Pastor Asket",
+      "duration": "14 min",
+      "category": "Grace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__integers.mp3",
+      "portrait": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80",
+      "position": 0,
+      "addedAt": "2026-09-25T11:31:31.733083+00:00"
+    },
+    {
+      "id": "pli_def_2_test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "playlistId": "default_morning_test_user_test_device_32e9ab70-f5aa-4c7f-ab20-4b7e12401878",
+      "teachingSlug": "unshakable-peace",
+      "teachingTitle": "Unshakable Peace: Christ in the Tempest",
+      "teacher": "Dr. Miriam Thorne",
+      "duration": "11 min",
+      "category": "Peace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverending_Story.mp3",
+      "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+      "position": 1,
+      "addedAt": "2026-09-25T11:31:31.733083+00:00"
+    },
+    {
+      "id": "pli_def_1_test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "playlistId": "default_morning_test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "teachingSlug": "grace-in-trials",
+      "teachingTitle": "Grace in Trials: Finding Still Waters",
+      "teacher": "Pastor Asket",
+      "duration": "14 min",
+      "category": "Grace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__integers.mp3",
+      "portrait": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80",
+      "position": 0,
+      "addedAt": "2026-09-25T12:06:07.060783+00:00"
+    },
+    {
+      "id": "pli_def_2_test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "playlistId": "default_morning_test_user_test_device_7aad63fc-0487-4874-b6a0-160127b7142c",
+      "teachingSlug": "unshakable-peace",
+      "teachingTitle": "Unshakable Peace: Christ in the Tempest",
+      "teacher": "Dr. Miriam Thorne",
+      "duration": "11 min",
+      "category": "Peace",
+      "audioUrl": "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverending_Story.mp3",
+      "portrait": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80",
+      "position": 1,
+      "addedAt": "2026-09-25T12:06:07.060783+00:00"
     }
   ],
   "waitlistMembers": [
@@ -511,9 +1609,375 @@
       "updatedAt": "2026-09-23T23:30:38.165803+00:00",
       "dailyTimeAvailable": "5-10 min",
       "stageUpdatedAt": "2026-09-23T23:30:38.167679+00:00"
+    },
+    {
+      "id": "211773e2-d703-4a66-a9e3-e4a6a1a55829",
+      "email": "test.disciple.1790335671567@lifebook.org",
+      "name": "Jean-Marc disciple",
+      "spiritualRole": "Pastor & Bible Teacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-JE-6F28",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 205,
+      "struggleFeedback": "Time fragmentation in the morning.",
+      "desiredFeatures": [
+        "Audio Sermons",
+        "Pastoral Review",
+        "Grace Days"
+      ],
+      "feedbackNotes": [
+        {
+          "note": "Excited for the pastoral review feature!",
+          "timestamp": "2026-09-25T11:27:51.579183+00:00"
+        },
+        {
+          "type": "stage_promotion_note",
+          "note": "Fast-tracked for ministerial advisory board.",
+          "timestamp": "2026-09-25T11:27:51.585858+00:00"
+        }
+      ],
+      "deviceId": "test_device_ff149e78-84c8-45c9-a21f-4a8791265365",
+      "referralCount": 0,
+      "createdAt": "2026-09-25T11:27:51.571567+00:00",
+      "updatedAt": "2026-09-25T11:27:51.579197+00:00",
+      "dailyTimeAvailable": "5-10 min",
+      "stageUpdatedAt": "2026-09-25T11:27:51.585846+00:00"
+    },
+    {
+      "id": "459ee1c6-8f64-4613-a879-7820f3ced84b",
+      "email": "test.disciple.1790335752752@lifebook.org",
+      "name": "Jean-Marc disciple",
+      "spiritualRole": "Pastor & Bible Teacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-JE-D24B",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 205,
+      "struggleFeedback": "Time fragmentation in the morning.",
+      "desiredFeatures": [
+        "Grace Days",
+        "Audio Sermons",
+        "Pastoral Review"
+      ],
+      "feedbackNotes": [
+        {
+          "note": "Excited for the pastoral review feature!",
+          "timestamp": "2026-09-25T11:29:12.763242+00:00"
+        },
+        {
+          "type": "stage_promotion_note",
+          "note": "Fast-tracked for ministerial advisory board.",
+          "timestamp": "2026-09-25T11:29:12.769466+00:00"
+        }
+      ],
+      "deviceId": "test_device_002b98ac-6261-4bfd-a78c-85658435abbd",
+      "referralCount": 0,
+      "createdAt": "2026-09-25T11:29:12.756406+00:00",
+      "updatedAt": "2026-09-25T11:29:12.763254+00:00",
+      "dailyTimeAvailable": "5-10 min",
+      "stageUpdatedAt": "2026-09-25T11:29:12.769456+00:00"
+    },
+    {
+      "id": "f7ccc287-e7dd-4f62-a2e0-220aadd6e98c",
+      "email": "test.disciple.1790335780983@lifebook.org",
+      "name": "Jean-Marc disciple",
+      "spiritualRole": "Pastor & Bible Teacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-JE-84E0",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 205,
+      "struggleFeedback": "Time fragmentation in the morning.",
+      "desiredFeatures": [
+        "Audio Sermons",
+        "Grace Days",
+        "Pastoral Review"
+      ],
+      "feedbackNotes": [
+        {
+          "note": "Excited for the pastoral review feature!",
+          "timestamp": "2026-09-25T11:29:40.995490+00:00"
+        },
+        {
+          "type": "stage_promotion_note",
+          "note": "Fast-tracked for ministerial advisory board.",
+          "timestamp": "2026-09-25T11:29:41.004091+00:00"
+        }
+      ],
+      "deviceId": "test_device_e7ceb005-c114-4904-8297-8536bf912a71",
+      "referralCount": 0,
+      "createdAt": "2026-09-25T11:29:40.987189+00:00",
+      "updatedAt": "2026-09-25T11:29:40.995504+00:00",
+      "dailyTimeAvailable": "5-10 min",
+      "stageUpdatedAt": "2026-09-25T11:29:41.004078+00:00"
+    },
+    {
+      "id": "2c28dead-a380-447a-91c5-50cf562136b3",
+      "email": "test.disciple.1790335793911@lifebook.org",
+      "name": "Jean-Marc disciple",
+      "spiritualRole": "Pastor & Bible Teacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-JE-48ED",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 205,
+      "struggleFeedback": "Time fragmentation in the morning.",
+      "desiredFeatures": [
+        "Grace Days",
+        "Pastoral Review",
+        "Audio Sermons"
+      ],
+      "feedbackNotes": [
+        {
+          "note": "Excited for the pastoral review feature!",
+          "timestamp": "2026-09-25T11:29:53.927210+00:00"
+        },
+        {
+          "type": "stage_promotion_note",
+          "note": "Fast-tracked for ministerial advisory board.",
+          "timestamp": "2026-09-25T11:29:53.936210+00:00"
+        }
+      ],
+      "deviceId": "test_device_fcba7985-55f6-4e4e-ac86-398cbf9bcf1c",
+      "referralCount": 0,
+      "createdAt": "2026-09-25T11:29:53.916636+00:00",
+      "updatedAt": "2026-09-25T11:29:53.927227+00:00",
+      "dailyTimeAvailable": "5-10 min",
+      "stageUpdatedAt": "2026-09-25T11:29:53.936197+00:00"
+    },
+    {
+      "id": "522f97ef-b29e-4e93-ae8d-7229dee3f025",
+      "email": "test.disciple.1790335891783@lifebook.org",
+      "name": "Jean-Marc disciple",
+      "spiritualRole": "Pastor & Bible Teacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-JE-5971",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 205,
+      "struggleFeedback": "Time fragmentation in the morning.",
+      "desiredFeatures": [
+        "Pastoral Review",
+        "Audio Sermons",
+        "Grace Days"
+      ],
+      "feedbackNotes": [
+        {
+          "note": "Excited for the pastoral review feature!",
+          "timestamp": "2026-09-25T11:31:31.799390+00:00"
+        },
+        {
+          "type": "stage_promotion_note",
+          "note": "Fast-tracked for ministerial advisory board.",
+          "timestamp": "2026-09-25T11:31:31.809101+00:00"
+        }
+      ],
+      "deviceId": "test_device_bcf0d2d6-52d0-485d-905f-9b795bac6697",
+      "referralCount": 0,
+      "createdAt": "2026-09-25T11:31:31.789055+00:00",
+      "updatedAt": "2026-09-25T11:31:31.799408+00:00",
+      "dailyTimeAvailable": "5-10 min",
+      "stageUpdatedAt": "2026-09-25T11:31:31.809087+00:00"
+    },
+    {
+      "id": "c152669e-d0a5-4206-9f37-fc401c79d18d",
+      "email": "test.disciple.1790337967161@lifebook.org",
+      "name": "Jean-Marc disciple",
+      "spiritualRole": "Pastor & Bible Teacher",
+      "cohortId": "cohort-beta",
+      "referralCode": "LB-JE-BFF9",
+      "referredBy": null,
+      "stage": "vip_invited",
+      "priorityScore": 205,
+      "struggleFeedback": "Time fragmentation in the morning.",
+      "desiredFeatures": [
+        "Pastoral Review",
+        "Grace Days",
+        "Audio Sermons"
+      ],
+      "feedbackNotes": [
+        {
+          "note": "Excited for the pastoral review feature!",
+          "timestamp": "2026-09-25T12:06:07.183027+00:00"
+        },
+        {
+          "type": "stage_promotion_note",
+          "note": "Fast-tracked for ministerial advisory board.",
+          "timestamp": "2026-09-25T12:06:07.197448+00:00"
+        }
+      ],
+      "deviceId": "test_device_443411ab-fb1e-41db-8f35-4e2f3729d7e1",
+      "referralCount": 0,
+      "createdAt": "2026-09-25T12:06:07.166591+00:00",
+      "updatedAt": "2026-09-25T12:06:07.183046+00:00",
+      "dailyTimeAvailable": "5-10 min",
+      "stageUpdatedAt": "2026-09-25T12:06:07.197430+00:00"
     }
   ],
   "livingWordTeachings": [
+    {
+      "slug": "abiding-in-the-vine-during-storms-1790337967221",
+      "title": "Abiding in the Vine during Storms 1790337967221",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook pastoral teaching contributor",
+      "category": "Discipleship",
+      "duration": "14 min",
+      "scripture": "John 15:5-7",
+      "excerpt": "Apart from Me you can do nothing.",
+      "fullBody": "Christ calls us to branch-like reliance, not anxious striving.",
+      "theologicalNotes": "Greek word 'meno' implies permanent dwelling, not occasional visits.",
+      "status": "published",
+      "audioUrl": null,
+      "videoUrl": null,
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Theologically vetted and approved for congregation publication."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-09-25T12:06:07.261621+00:00",
+      "createdBy": "pastor_contributor",
+      "createdAt": "2026-09-25T12:06:07.226574+00:00",
+      "updatedAt": "2026-09-25T12:06:07.261637+00:00"
+    },
+    {
+      "slug": "abiding-in-the-vine-during-storms-1790335891821",
+      "title": "Abiding in the Vine during Storms 1790335891821",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook pastoral teaching contributor",
+      "category": "Discipleship",
+      "duration": "14 min",
+      "scripture": "John 15:5-7",
+      "excerpt": "Apart from Me you can do nothing.",
+      "fullBody": "Christ calls us to branch-like reliance, not anxious striving.",
+      "theologicalNotes": "Greek word 'meno' implies permanent dwelling, not occasional visits.",
+      "status": "published",
+      "audioUrl": null,
+      "videoUrl": null,
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Theologically vetted and approved for congregation publication."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-09-25T11:31:31.842791+00:00",
+      "createdBy": "pastor_contributor",
+      "createdAt": "2026-09-25T11:31:31.826538+00:00",
+      "updatedAt": "2026-09-25T11:31:31.842805+00:00"
+    },
+    {
+      "slug": "abiding-in-the-vine-during-storms-1790335793947",
+      "title": "Abiding in the Vine during Storms 1790335793947",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook pastoral teaching contributor",
+      "category": "Discipleship",
+      "duration": "14 min",
+      "scripture": "John 15:5-7",
+      "excerpt": "Apart from Me you can do nothing.",
+      "fullBody": "Christ calls us to branch-like reliance, not anxious striving.",
+      "theologicalNotes": "Greek word 'meno' implies permanent dwelling, not occasional visits.",
+      "status": "published",
+      "audioUrl": null,
+      "videoUrl": null,
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Theologically vetted and approved for congregation publication."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-09-25T11:29:53.968379+00:00",
+      "createdBy": "pastor_contributor",
+      "createdAt": "2026-09-25T11:29:53.951544+00:00",
+      "updatedAt": "2026-09-25T11:29:53.968391+00:00"
+    },
+    {
+      "slug": "abiding-in-the-vine-during-storms-1790335781014",
+      "title": "Abiding in the Vine during Storms 1790335781014",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook pastoral teaching contributor",
+      "category": "Discipleship",
+      "duration": "14 min",
+      "scripture": "John 15:5-7",
+      "excerpt": "Apart from Me you can do nothing.",
+      "fullBody": "Christ calls us to branch-like reliance, not anxious striving.",
+      "theologicalNotes": "Greek word 'meno' implies permanent dwelling, not occasional visits.",
+      "status": "published",
+      "audioUrl": null,
+      "videoUrl": null,
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Theologically vetted and approved for congregation publication."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-09-25T11:29:41.030275+00:00",
+      "createdBy": "pastor_contributor",
+      "createdAt": "2026-09-25T11:29:41.018321+00:00",
+      "updatedAt": "2026-09-25T11:29:41.030287+00:00"
+    },
+    {
+      "slug": "abiding-in-the-vine-during-storms-1790335752777",
+      "title": "Abiding in the Vine during Storms 1790335752777",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook pastoral teaching contributor",
+      "category": "Discipleship",
+      "duration": "14 min",
+      "scripture": "John 15:5-7",
+      "excerpt": "Apart from Me you can do nothing.",
+      "fullBody": "Christ calls us to branch-like reliance, not anxious striving.",
+      "theologicalNotes": "Greek word 'meno' implies permanent dwelling, not occasional visits.",
+      "status": "published",
+      "audioUrl": null,
+      "videoUrl": null,
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Theologically vetted and approved for congregation publication."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-09-25T11:29:12.791906+00:00",
+      "createdBy": "pastor_contributor",
+      "createdAt": "2026-09-25T11:29:12.781195+00:00",
+      "updatedAt": "2026-09-25T11:29:12.791916+00:00"
+    },
+    {
+      "slug": "abiding-in-the-vine-during-storms-1790335671600",
+      "title": "Abiding in the Vine during Storms 1790335671600",
+      "teacher": "Pastor Asket",
+      "teacherRole": "LifeBook pastoral teaching contributor",
+      "category": "Discipleship",
+      "duration": "14 min",
+      "scripture": "John 15:5-7",
+      "excerpt": "Apart from Me you can do nothing.",
+      "fullBody": "Christ calls us to branch-like reliance, not anxious striving.",
+      "theologicalNotes": "Greek word 'meno' implies permanent dwelling, not occasional visits.",
+      "status": "published",
+      "audioUrl": null,
+      "videoUrl": null,
+      "theologicalRubric": {
+        "scriptureAccuracy": 5,
+        "christocentricFocus": 5,
+        "pastoralTone": 5,
+        "historicalOrthodoxy": 5,
+        "notes": "Theologically vetted and approved for congregation publication."
+      },
+      "reviewedBy": "Pastor Asket",
+      "reviewedAt": "2026-09-25T11:27:51.626120+00:00",
+      "createdBy": "pastor_contributor",
+      "createdAt": "2026-09-25T11:27:51.604304+00:00",
+      "updatedAt": "2026-09-25T11:27:51.626195+00:00"
+    },
     {
       "slug": "abiding-in-the-vine-during-storms-1790206238169",
       "title": "Abiding in the Vine during Storms 1790206238169",

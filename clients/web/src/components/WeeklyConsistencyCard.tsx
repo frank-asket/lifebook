@@ -259,6 +259,7 @@ export function WeeklyConsistencyCard({
   return (
     <div
       id="weekly-consistency-score-card"
+      data-testid="weekly-consistency-score-card"
       className={`rounded-3xl bg-white dark:bg-[#161228] border border-[#2d2542]/10 dark:border-white/15 p-6 sm:p-7 shadow-sm hover:shadow-md transition-all relative overflow-hidden ${className}`}
       role="region"
       aria-label={
@@ -353,6 +354,7 @@ export function WeeklyConsistencyCard({
                   {/* The Progress Dot */}
                   <button
                     type="button"
+                    data-testid="progress-dot"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleToggleDay(day.dateStr);

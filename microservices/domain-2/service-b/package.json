@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8787 --reload",
     "start": "python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8787",
-    "test": "python3 -m unittest tests/test_api.py",
+    "test": "PYTHONPATH=. python3 tests/test_api.py",
     "build": "echo 'Backend ready'",
-    "typecheck": "python3 -m unittest tests/test_api.py"
+    "typecheck": "PYTHONPATH=. python3 tests/test_api.py"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

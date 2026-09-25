@@ -27,6 +27,9 @@ def empty_db() -> Dict[str, Any]:
         "pushTokens": {},
         "journeyProgress": {},
         "livingWordComments": [],
+        "playlists": [],
+        "playlistItems": [],
+        "waitlistMembers": [],
     }
 
 class JSONDatabase:

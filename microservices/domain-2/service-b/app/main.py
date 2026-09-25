@@ -14,7 +14,7 @@ from .config import (
 )
 from .security.cors import get_cors_middleware_args
 from .security.rate_limit import check_rate_limit
-from .auth.verify_token import get_current_user, get_optional_user, is_clerk_configured
+from .auth.verify_token import get_current_user, get_optional_user, require_staff_user, is_clerk_configured
 from .models.schemas import (
     CheckinRequest,
     FlagRequest,
@@ -32,6 +32,19 @@ from .models.schemas import (
     TelemetryEventInput,
     BatchTelemetryEventsInput,
     AnalyticsSummaryResponse,
+    CreatePlaylistInput,
+    UpdatePlaylistInput,
+    AddPlaylistItemInput,
+    ReorderPlaylistItemsInput,
+)
+from .agents.playlists import (
+    list_playlists,
+    create_playlist,
+    update_playlist,
+    delete_playlist,
+    add_playlist_item,
+    remove_playlist_item,
+    reorder_playlist_items,
 )
 from .agents.orchestrator import run_checkin, get_streak, file_flag
 from .agents.badges import compute_badges
@@ -640,7 +653,7 @@ async def moderate_content(
 
 @app.get("/api/moderation/reviews")
 async def get_reviews(
-    auth_user: Optional[str] = Depends(get_optional_user),
+    auth_user: str = Depends(require_staff_user),
 ):
     return {"reviews": list_moderation_reviews()}
 
@@ -649,9 +662,9 @@ async def get_reviews(
 async def resolve_review_endpoint(
     review_id: str,
     payload: ModerationReviewResolveInput,
-    auth_user: Optional[str] = Depends(get_optional_user),
+    auth_user: str = Depends(require_staff_user),
 ):
-    active_id = payload.deviceId or auth_user or "dev_user_anonymous"
+    active_id = auth_user or payload.deviceId or "dev_reviewer_admin"
     res = resolve_moderation_review(
         review_id=review_id,
         reviewer_id=active_id,
@@ -911,6 +924,91 @@ async def get_analytics_events_endpoint(limit: int = Query(50)):
     return {"events": get_recent_events(limit=limit)}
 
 
+# --- Living Word Playlists Endpoints ---
+@app.get("/api/livingword/playlists")
+async def get_playlists_endpoint(auth_user: str = Depends(get_current_user)):
+    playlists = list_playlists(auth_user)
+    return {"playlists": playlists}
+
+
+@app.post("/api/livingword/playlists", status_code=status.HTTP_201_CREATED)
+async def create_playlist_endpoint(
+    body: CreatePlaylistInput,
+    auth_user: str = Depends(get_current_user),
+):
+    playlist = create_playlist(
+        user_id=auth_user,
+        title=body.title,
+        description=body.description,
+        icon=body.icon,
+        color=body.color,
+    )
+    return {"playlist": playlist}
+
+
+@app.patch("/api/livingword/playlists/{playlist_id}")
+async def update_playlist_endpoint(
+    playlist_id: str,
+    body: UpdatePlaylistInput,
+    auth_user: str = Depends(get_current_user),
+):
+    updated = update_playlist(
+        playlist_id=playlist_id,
+        user_id=auth_user,
+        data=body.model_dump(exclude_unset=True),
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="playlist not found or unauthorized")
+    return {"playlist": updated}
+
+
+@app.delete("/api/livingword/playlists/{playlist_id}")
+async def delete_playlist_endpoint(
+    playlist_id: str,
+    auth_user: str = Depends(get_current_user),
+):
+    success = delete_playlist(playlist_id, auth_user)
+    if not success:
+        raise HTTPException(status_code=400, detail="cannot delete default playlist or playlist not found")
+    return {"success": True, "id": playlist_id}
+
+
+@app.post("/api/livingword/playlists/{playlist_id}/items")
+async def add_playlist_item_endpoint(
+    playlist_id: str,
+    body: AddPlaylistItemInput,
+    auth_user: str = Depends(get_current_user),
+):
+    result = add_playlist_item(auth_user, playlist_id, body.model_dump())
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    return result
+
+
+@app.delete("/api/livingword/playlists/{playlist_id}/items/{teaching_slug}")
+async def remove_playlist_item_endpoint(
+    playlist_id: str,
+    teaching_slug: str,
+    auth_user: str = Depends(get_current_user),
+):
+    updated = remove_playlist_item(auth_user, playlist_id, teaching_slug)
+    if not updated:
+        raise HTTPException(status_code=404, detail="playlist not found or item not found")
+    return {"playlist": updated}
+
+
+@app.post("/api/livingword/playlists/{playlist_id}/reorder")
+async def reorder_playlist_items_endpoint(
+    playlist_id: str,
+    body: ReorderPlaylistItemsInput,
+    auth_user: str = Depends(get_current_user),
+):
+    updated = reorder_playlist_items(auth_user, playlist_id, body.teachingSlugs)
+    if not updated:
+        raise HTTPException(status_code=404, detail="playlist not found")
+    return {"playlist": updated}
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=PORT, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=PORT, reload=True)

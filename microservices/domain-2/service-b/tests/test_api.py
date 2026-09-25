@@ -370,5 +370,70 @@ class TestFastAPIBackend(unittest.TestCase):
         self.assertEqual(r_pub.status_code, 200)
         self.assertTrue(any(t["slug"] == slug for t in r_pub.json()["teachings"]))
 
+    def test_livingword_playlists(self):
+        auth_header = {"Authorization": f"Bearer test_user_{self.test_device_id}"}
+        
+        # 1. Get default starter playlists
+        r_get = self.client.get("/api/livingword/playlists", headers=auth_header)
+        self.assertEqual(r_get.status_code, 200)
+        data = r_get.json()
+        self.assertIn("playlists", data)
+        self.assertGreaterEqual(len(data["playlists"]), 2)
+        morning_pl = next(p for p in data["playlists"] if p.get("isDefault"))
+        pl_id = morning_pl["id"]
+
+        # 2. Create custom playlist
+        create_payload = {
+            "title": "Evening Reflections & Psalm Meditations",
+            "description": "Quiet evening wind-down in Scripture",
+            "icon": "🌙",
+            "color": "from-[#3B2D54] to-[#1A162B]"
+        }
+        r_create = self.client.post("/api/livingword/playlists", json=create_payload, headers=auth_header)
+        self.assertEqual(r_create.status_code, 201)
+        created_pl = r_create.json()["playlist"]
+        created_id = created_pl["id"]
+        self.assertEqual(created_pl["title"], "Evening Reflections & Psalm Meditations")
+
+        # 3. Add teaching item to created playlist
+        item_payload = {
+            "teachingSlug": "unshakable-peace",
+            "teachingTitle": "Unshakable Peace: Christ in the Tempest",
+            "teacher": "Dr. Miriam Thorne",
+            "duration": "11 min",
+            "category": "Peace",
+            "audioUrl": "https://example.com/audio.mp3"
+        }
+        r_add_item = self.client.post(f"/api/livingword/playlists/{created_id}/items", json=item_payload, headers=auth_header)
+        self.assertEqual(r_add_item.status_code, 200)
+        self.assertIn("item", r_add_item.json())
+
+        # 4. Update playlist title
+        r_update = self.client.patch(f"/api/livingword/playlists/{created_id}", json={"title": "Updated Evening Rhythms"}, headers=auth_header)
+        self.assertEqual(r_update.status_code, 200)
+        self.assertEqual(r_update.json()["playlist"]["title"], "Updated Evening Rhythms")
+
+        # 5. Delete custom playlist
+        r_del = self.client.delete(f"/api/livingword/playlists/{created_id}", headers=auth_header)
+        self.assertEqual(r_del.status_code, 200)
+        self.assertTrue(r_del.json()["success"])
+
+    def test_security_auth_enforcement(self):
+        # 1. Unauthenticated requests to protected moderation endpoints should be rejected
+        r_unauth = self.client.get("/api/moderation/reviews")
+        self.assertEqual(r_unauth.status_code, 401)
+
+        # 2. Staff endpoint with non-staff credentials should be forbidden
+        user_header = {"Authorization": "Bearer standard_regular_user"}
+        r_user = self.client.get("/api/moderation/reviews", headers=user_header)
+        self.assertEqual(r_user.status_code, 403)
+
+        # 3. Staff endpoint with staff/admin credentials should succeed
+        staff_header = {"Authorization": "Bearer staff_reviewer_admin"}
+        r_staff = self.client.get("/api/moderation/reviews", headers=staff_header)
+        self.assertEqual(r_staff.status_code, 200)
+        self.assertIn("reviews", r_staff.json())
+
+
 if __name__ == "__main__":
     unittest.main()

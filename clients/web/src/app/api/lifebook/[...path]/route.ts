@@ -130,6 +130,22 @@ async function forward(request: Request, path: string[]) {
       cache: 'no-store',
       signal: AbortSignal.timeout(6000),
     });
+    if (API_URL !== 'http://127.0.0.1:8787' && upstream.status === 404) {
+      try {
+        const localResponse = await fetch(`http://127.0.0.1:8787/api/${path.join('/')}${new URL(request.url).search}`, {
+          method: request.method,
+          headers,
+          body: bodyBuffer,
+          cache: 'no-store',
+          signal: AbortSignal.timeout(3000),
+        });
+        if (localResponse.status !== 404) {
+          upstream = localResponse;
+        }
+      } catch {
+        // Fall back to original response
+      }
+    }
   } catch {
     if (API_URL !== 'http://127.0.0.1:8787') {
       try {

@@ -16,11 +16,9 @@ def is_clerk_configured() -> bool:
     )
 
 def is_test_environment(request: Optional[Request] = None) -> bool:
-    if os.getenv("TESTING") in ["true", "1"] or os.getenv("ENVIRONMENT") == "test":
-        return True
-    if request and request.headers.get("x-test-mode") == "true":
-        return True
-    return False
+    # Test environment is strictly dictated by process-level environment configuration
+    # NEVER allow arbitrary client HTTP request headers to activate test/mock bypass mode
+    return os.getenv("TESTING") in ["true", "1"] or os.getenv("ENVIRONMENT") == "test"
 
 def _get_clerk_jwks_url() -> str:
     custom_url = os.getenv("CLERK_JWKS_URL")

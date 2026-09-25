@@ -115,6 +115,7 @@ export function ThemeToggle({
 
         {showIndicator && (
           <span
+            data-testid="theme-active-indicator"
             className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase transition-all select-none border ${
               isDark
                 ? "bg-[#231A38] text-[#F7CB7A] border-[#F7CB7A]/30 shadow-xs"
@@ -138,6 +139,7 @@ export function ThemeToggle({
         {tooltipVisible && (
           <div
             role="tooltip"
+            data-testid="theme-tooltip"
             className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 min-w-[210px] p-2.5 rounded-lg bg-[#141022] text-white text-xs border border-white/20 shadow-xl pointer-events-none animate-in fade-in duration-150"
           >
             <div className="flex items-center gap-1.5 font-bold text-[11px] text-[#F7CB7A] mb-0.5">
@@ -229,7 +231,8 @@ export function ThemeToggle({
       {/* Visual Indicator Pill showing currently active theme */}
       {showIndicator && (
         <span
-          className={`hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase transition-all select-none border cursor-default ${
+          data-testid="theme-active-indicator"
+          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase transition-all select-none border cursor-default ${
             isDark
               ? "bg-[#221B3A] text-[#F7CB7A] border-[#F7CB7A]/30 shadow-xs"
               : "bg-[#F2ECE1] text-[#483F5E] border-[#2D2542]/12 shadow-2xs"
@@ -253,6 +256,7 @@ export function ThemeToggle({
       {tooltipVisible && (
         <div
           role="tooltip"
+          data-testid="theme-tooltip"
           className="absolute top-full right-0 mt-2 z-50 min-w-[220px] max-w-[280px] p-2.5 rounded-lg bg-[#141022]/95 backdrop-blur-md text-white border border-white/20 shadow-xl pointer-events-none transition-opacity duration-150"
         >
           <div className="flex items-center gap-1.5 font-bold text-[11px] text-[#F7CB7A] mb-1">
