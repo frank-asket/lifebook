@@ -1,0 +1,18 @@
+{
+  "translation": "King James Version (public domain)",
+  "notes": "Mood set redesigned to reflect documented Christian faith-journey experiences (LifeWay Research on doubt, Barna Group research on spiritual transformation stages, Ignatian consolation/desolation, and the extensively documented phenomenon of spiritual dryness) rather than generic secular mood vocabulary.",
+  "verses": [
+    { "mood": "grateful", "text": "O give thanks unto the LORD, for he is good: for his mercy endureth for ever.", "reference": "Psalm 107:1" },
+    { "mood": "grateful", "text": "In every thing give thanks: for this is the will of God in Christ Jesus concerning you.", "reference": "1 Thessalonians 5:18" },
+    { "mood": "peaceful", "text": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.", "reference": "John 14:27" },
+    { "mood": "peaceful", "text": "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.", "reference": "Isaiah 26:3" },
+    { "mood": "seeking", "text": "For I know the thoughts that I think toward you, saith the LORD, thoughts of peace, and not of evil, to give you an expected end.", "reference": "Jeremiah 29:11" },
+    { "mood": "seeking", "text": "Ask, and it shall be given you; seek, and ye shall find; knock, and it shall be opened unto you.", "reference": "Matthew 7:7" },
+    { "mood": "doubting", "text": "Lord, I believe; help thou mine unbelief.", "reference": "Mark 9:24" },
+    { "mood": "doubting", "text": "Jesus saith unto him, Thomas, because thou hast seen me, thou hast believed: blessed are they that have not seen, and yet have believed.", "reference": "John 20:29" },
+    { "mood": "distant", "text": "As the hart panteth after the water brooks, so panteth my soul after thee, O God. My soul thirsteth for God, for the living God: when shall I come and appear before God?", "reference": "Psalm 42:1-2" },
+    { "mood": "distant", "text": "How long wilt thou forget me, O LORD? for ever? how long wilt thou hide thy face from me?", "reference": "Psalm 13:1" },
+    { "mood": "convicted", "text": "Create in me a clean heart, O God; and renew a right spirit within me.", "reference": "Psalm 51:10" },
+    { "mood": "convicted", "text": "If we confess our sins, he is faithful and just to forgive us our sins, and to cleanse us from all unrighteousness.", "reference": "1 John 1:9" }
+  ]
+}

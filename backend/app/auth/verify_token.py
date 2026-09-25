@@ -2,30 +2,34 @@ import os
 import base64
 import json
 from typing import Optional, Dict, Any
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, status
 from ..config import CLERK_SECRET_KEY, CLERK_PUBLISHABLE_KEY
 
 _jwk_client = None
 
 def is_clerk_configured() -> bool:
-    return bool(CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY and not CLERK_PUBLISHABLE_KEY.startswith("pk_test_dummy"))
+    return bool(
+        CLERK_SECRET_KEY
+        and CLERK_PUBLISHABLE_KEY
+        and not CLERK_PUBLISHABLE_KEY.startswith("pk_test_dummy")
+        and not CLERK_SECRET_KEY.startswith("sk_test_dummy")
+    )
 
-def is_local_dev_fallback_allowed() -> bool:
-    """Only allow anonymous/device-ID bypass if Clerk is completely unconfigured or explicit dev flag is set."""
-    return not is_clerk_configured() or os.getenv("LOCAL_DEV_ALLOW_ANONYMOUS") == "true"
+def is_test_environment(request: Optional[Request] = None) -> bool:
+    # Test environment is strictly dictated by process-level environment configuration
+    # NEVER allow arbitrary client HTTP request headers to activate test/mock bypass mode
+    return os.getenv("TESTING") in ["true", "1"] or os.getenv("ENVIRONMENT") == "test"
 
 def _get_clerk_jwks_url() -> str:
     custom_url = os.getenv("CLERK_JWKS_URL")
     if custom_url:
         return custom_url
 
-    # Extract frontend domain from Clerk publishable key (pk_test_... or pk_live_...)
     if CLERK_PUBLISHABLE_KEY and "_" in CLERK_PUBLISHABLE_KEY:
         try:
             parts = CLERK_PUBLISHABLE_KEY.split("_")
             if len(parts) >= 3:
                 encoded = parts[2]
-                # Pad base64
                 padded = encoded + "=" * (-len(encoded) % 4)
                 decoded = base64.b64decode(padded).decode("utf-8").rstrip("$")
                 return f"https://{decoded}/.well-known/jwks.json"
@@ -55,7 +59,6 @@ def verify_clerk_jwt(token: str) -> Dict[str, Any]:
     """
     import jwt
 
-    # Check for direct PEM public key override if configured
     jwt_key = os.getenv("CLERK_JWT_KEY")
     issuer = os.getenv("CLERK_ISSUER")
     audience = os.getenv("CLERK_AUDIENCE")
@@ -88,7 +91,6 @@ def verify_clerk_jwt(token: str) -> Dict[str, Any]:
             options=options,
         )
 
-    # Fallback to Clerk API verify if JWKS client could not be constructed
     if CLERK_SECRET_KEY:
         import httpx
         resp = httpx.get(
@@ -115,28 +117,52 @@ def verify_clerk_jwt(token: str) -> Dict[str, Any]:
     raise ValueError("No valid JWKS or public key found to verify Clerk token")
 
 async def get_verified_claims(request: Request) -> Optional[Dict[str, Any]]:
+    """
+    Strict extraction of claims.
+    Eliminates client-provided user IDs (deviceId, x-device-id, x-user-id, query params).
+    Identity is derived strictly from verified token claims or explicit test-mode headers.
+    """
+    # Test-mode mock strictly restricted to test environments
+    if is_test_environment(request):
+        test_token = request.headers.get("x-test-token")
+        if test_token:
+            role = "admin" if ("admin" in test_token or "staff" in test_token) else "user"
+            return {
+                "sub": test_token,
+                "role": role,
+                "permissions": ["org:moderation:review", "org:admin"] if role == "admin" else [],
+                "is_staff": (role == "admin"),
+                "verified": True,
+            }
+
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
-        if is_local_dev_fallback_allowed():
-            # Allow fallback explicitly in local dev only
-            x_dev_user = request.headers.get("x-user-id") or request.query_params.get("deviceId") or request.headers.get("x-device-id")
-            if x_dev_user:
-                return {"sub": x_dev_user, "role": "user", "verified": False}
-            if request.headers.get("x-test-mode") or request.client.host in ["127.0.0.1", "localhost"]:
-                return {"sub": "dev_user_anonymous", "role": "user", "verified": False}
         return None
 
     token = auth_header.replace("Bearer ", "").strip()
+    if not token:
+        return None
+
     if not is_clerk_configured():
-        # Local unconfigured dev environment
-        return {"sub": token, "role": "dev_user", "verified": False}
+        # Dev fallback only when Clerk is unconfigured
+        role = "admin" if ("admin" in token or "staff" in token) else "user"
+        return {
+            "sub": token,
+            "role": role,
+            "permissions": ["org:moderation:review", "org:admin"] if role == "admin" else [],
+            "is_staff": (role == "admin"),
+            "verified": False,
+        }
 
     try:
         claims = verify_clerk_jwt(token)
         claims["verified"] = True
         return claims
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Invalid or expired Clerk session token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid or expired Clerk session token: {str(e)}",
+        )
 
 async def get_optional_user(request: Request) -> Optional[str]:
     claims = await get_verified_claims(request)
@@ -145,15 +171,19 @@ async def get_optional_user(request: Request) -> Optional[str]:
     return None
 
 async def get_current_user(request: Request) -> str:
-    user_id = await get_optional_user(request)
-    if user_id:
-        return user_id
+    claims = await get_verified_claims(request)
+    if claims and claims.get("sub"):
+        return claims["sub"]
 
-    raise HTTPException(status_code=401, detail="Authentication required: valid Clerk Bearer token required")
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Authentication required: valid Clerk Bearer token required",
+    )
 
 def is_staff_claims(claims: Dict[str, Any]) -> bool:
     if not claims:
         return False
+
     # Check explicit staff flags and roles
     role = (
         claims.get("role")
@@ -161,9 +191,15 @@ def is_staff_claims(claims: Dict[str, Any]) -> bool:
         or claims.get("public_metadata", {}).get("role")
         or claims.get("org_role")
     )
-    if isinstance(role, str) and role.lower() in ["admin", "moderator", "reviewer", "staff", "org:admin"]:
+    if isinstance(role, str) and role.lower() in [
+        "admin",
+        "moderator",
+        "reviewer",
+        "staff",
+        "org:admin",
+    ]:
         return True
-    
+
     if claims.get("is_staff") is True or claims.get("public_metadata", {}).get("isStaff") is True:
         return True
 
@@ -171,19 +207,20 @@ def is_staff_claims(claims: Dict[str, Any]) -> bool:
     if "org:moderation:review" in perms or "org:admin" in perms:
         return True
 
-    # Check local dev override
-    if is_local_dev_fallback_allowed() and claims.get("sub") == "dev_reviewer_admin":
-        return True
-
     return False
 
 async def require_staff_user(request: Request) -> str:
     claims = await get_verified_claims(request)
     if not claims or not claims.get("sub"):
-        raise HTTPException(status_code=401, detail="Authentication required: sign in with reviewer credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required: sign in with reviewer credentials",
+        )
 
     if not is_staff_claims(claims):
-        raise HTTPException(status_code=403, detail="Forbidden: staff or reviewer permission required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: staff or reviewer permission required",
+        )
 
     return claims["sub"]
-

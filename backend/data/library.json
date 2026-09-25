@@ -1,0 +1,10 @@
+{
+  "books": [
+    { "id": "bk-mere-christianity", "title": "Mere Christianity", "author": "C.S. Lewis", "category": "Theology", "spiritualLevel": "All levels", "isPremium": false, "summary": "A foundational, accessible case for the core beliefs shared across Christian tradition." },
+    { "id": "bk-confessions", "title": "Confessions", "author": "Augustine of Hippo", "category": "Biography", "spiritualLevel": "Intermediate", "isPremium": false, "summary": "One of the earliest and most honest spiritual autobiographies ever written." },
+    { "id": "bk-celebration-of-discipline", "title": "Celebration of Discipline", "author": "Richard Foster", "category": "Devotional", "spiritualLevel": "Intermediate", "isPremium": true, "summary": "A practical guide to spiritual disciplines — prayer, fasting, study, and more." },
+    { "id": "bk-knowing-god", "title": "Knowing God", "author": "J.I. Packer", "category": "Theology", "spiritualLevel": "Growing", "isPremium": true, "summary": "A modern classic on the character of God and what it means to know Him personally." },
+    { "id": "bk-pilgrims-progress", "title": "The Pilgrim's Progress", "author": "John Bunyan", "category": "Devotional", "spiritualLevel": "Beginner", "isPremium": false, "summary": "An allegory of the Christian life as a journey, in print continuously since 1678." },
+    { "id": "bk-cost-of-discipleship", "title": "The Cost of Discipleship", "author": "Dietrich Bonhoeffer", "category": "Theology", "spiritualLevel": "Mature", "isPremium": true, "summary": "A rigorous, costly account of what following Christ actually asks of a life." }
+  ]
+}

@@ -653,7 +653,7 @@ async def moderate_content(
 
 @app.get("/api/moderation/reviews")
 async def get_reviews(
-    staff_user: str = Depends(require_staff_user),
+    auth_user: str = Depends(require_staff_user),
 ):
     return {"reviews": list_moderation_reviews()}
 
@@ -662,11 +662,12 @@ async def get_reviews(
 async def resolve_review_endpoint(
     review_id: str,
     payload: ModerationReviewResolveInput,
-    staff_user: str = Depends(require_staff_user),
+    auth_user: str = Depends(require_staff_user),
 ):
+    active_id = auth_user or payload.deviceId or "dev_reviewer_admin"
     res = resolve_moderation_review(
         review_id=review_id,
-        reviewer_id=staff_user,
+        reviewer_id=active_id,
         status=payload.status,
         resolution_notes=payload.resolutionNotes,
     )
@@ -923,9 +924,7 @@ async def get_analytics_events_endpoint(limit: int = Query(50)):
     return {"events": get_recent_events(limit=limit)}
 
 
-# --------------------------------------------------------------------------
-# LivingWord Playlists Endpoints
-# --------------------------------------------------------------------------
+# --- Living Word Playlists Endpoints ---
 @app.get("/api/livingword/playlists")
 async def get_playlists_endpoint(auth_user: str = Depends(get_current_user)):
     playlists = list_playlists(auth_user)
@@ -937,8 +936,6 @@ async def create_playlist_endpoint(
     body: CreatePlaylistInput,
     auth_user: str = Depends(get_current_user),
 ):
-    if not body.title.strip():
-        raise HTTPException(status_code=400, detail="title is required")
     playlist = create_playlist(
         user_id=auth_user,
         title=body.title,
@@ -973,7 +970,7 @@ async def delete_playlist_endpoint(
     success = delete_playlist(playlist_id, auth_user)
     if not success:
         raise HTTPException(status_code=400, detail="cannot delete default playlist or playlist not found")
-    return {"success": True}
+    return {"success": True, "id": playlist_id}
 
 
 @app.post("/api/livingword/playlists/{playlist_id}/items")
@@ -982,8 +979,6 @@ async def add_playlist_item_endpoint(
     body: AddPlaylistItemInput,
     auth_user: str = Depends(get_current_user),
 ):
-    if not body.teachingSlug or not body.teachingTitle:
-        raise HTTPException(status_code=400, detail="teachingSlug and teachingTitle are required")
     result = add_playlist_item(auth_user, playlist_id, body.model_dump())
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
@@ -1008,8 +1003,6 @@ async def reorder_playlist_items_endpoint(
     body: ReorderPlaylistItemsInput,
     auth_user: str = Depends(get_current_user),
 ):
-    if not isinstance(body.teachingSlugs, list):
-        raise HTTPException(status_code=400, detail="teachingSlugs list is required")
     updated = reorder_playlist_items(auth_user, playlist_id, body.teachingSlugs)
     if not updated:
         raise HTTPException(status_code=404, detail="playlist not found")
@@ -1018,4 +1011,4 @@ async def reorder_playlist_items_endpoint(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=PORT, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=PORT, reload=True)
