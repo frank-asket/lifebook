@@ -10,6 +10,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import PhoneMockup from "@/components/PhoneMockup";
 import { VisualStreakCounter } from "@/components/VisualStreakCounter";
+import { DailyRitualModal } from "@/components/DailyRitualModal";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -25,6 +26,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("top");
   const [activeStep, setActiveStep] = useState(0);
+  const [isRitualModalOpen, setIsRitualModalOpen] = useState(false);
   const router = useRouter();
   const { user, isSignedIn, signOut } = useChristianAuth();
 
@@ -400,14 +402,15 @@ export default function Home() {
                   {t("hero_cta_start")} <ArrowIcon />
                 </Link>
               )}
-              <a
-                href="#features"
-                className="pill-button pill-light"
+              <button
+                type="button"
+                onClick={() => setIsRitualModalOpen(true)}
+                className="pill-button pill-light cursor-pointer"
                 id="hero-preview-journey-btn"
               >
-                <span>{isFr ? "Découvrir la pratique en 3 étapes" : "Explore 3-Step Daily Practice"}</span>
-                <span>↓</span>
-              </a>
+                <span>✦</span>
+                <span>{isFr ? "Pratiquer le rituel 5-min maintenant" : "Try 5-Min Guided Ritual Now"}</span>
+              </button>
               <span className="rating-note w-full sm:w-auto">
                 <b>{isFr ? "Versions bibliques" : "5 verified translations"}:</b><br />
                 <small>{isFr ? "Louis Segond (LSG), Semeur, ESV, NIV, KJV · Sans publicité" : "ESV, NIV, CSB, KJV, NLT · 100% ad-free"}</small>
@@ -537,6 +540,13 @@ export default function Home() {
                   className={`cursor-pointer transition-colors ${activeStep === 2 ? "text-white font-bold underline" : "text-white/60 hover:text-white"}`}
                 >
                   {t("phase_pray")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsRitualModalOpen(true)}
+                  className="px-3 py-1.5 rounded-lg bg-[#1FB6B0] text-[#081C1B] text-xs font-bold hover:bg-[#199E99] transition-colors cursor-pointer whitespace-nowrap"
+                >
+                  {isFr ? "Démarrer ↗" : "Start Ritual ↗"}
                 </button>
               </div>
             </div>
@@ -809,6 +819,10 @@ export default function Home() {
           </svg>
         </button>
       )}
+      <DailyRitualModal
+        isOpen={isRitualModalOpen}
+        onClose={() => setIsRitualModalOpen(false)}
+      />
     </main>
   );
 }

@@ -46,6 +46,8 @@ import { DailyDevotionGoalCard } from './DailyDevotionGoalCard';
 import { WeeklyConsistencyCard } from './WeeklyConsistencyCard';
 import { VisualStreakCounter } from './VisualStreakCounter';
 import { calculateConsecutiveStreak, isRecordActive } from '../lib/streak-utils';
+import { DailyRitualModal } from './DailyRitualModal';
+import { LIFEBOOK_RITUAL_COMPLETED_EVENT } from '../lib/daily-ritual';
 
 export type { JournalEntry };
 
@@ -584,6 +586,7 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
   });
 
   const [isNotificationSettingsOpen, setIsNotificationSettingsOpen] = useState(false);
+  const [isRitualModalOpen, setIsRitualModalOpen] = useState(false);
 
   const handleSaveNotificationSettings = (newSettings: NotificationSettings) => {
     setNotificationSettings(newSettings);
@@ -738,6 +741,29 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
     }
     return DEFAULT_JOURNAL;
   });
+
+  // Sync calendarRecords, gracePoints, and journal when DailyRitualModal completes
+  useEffect(() => {
+    const syncFromRitual = () => {
+      try {
+        const savedCal = localStorage.getItem('lifebook.calendar.streakHistory');
+        if (savedCal) setCalendarRecords(JSON.parse(savedCal));
+
+        const savedPts = localStorage.getItem('lifebook.gracePoints');
+        if (savedPts) setGracePoints(parseInt(savedPts, 10));
+
+        const savedJ = localStorage.getItem('lifebook.journal');
+        if (savedJ) setJournal(JSON.parse(savedJ));
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener(LIFEBOOK_RITUAL_COMPLETED_EVENT, syncFromRitual);
+    return () => {
+      window.removeEventListener(LIFEBOOK_RITUAL_COMPLETED_EVENT, syncFromRitual);
+    };
+  }, []);
 
   // Calculate current active streak and historical metrics dynamically from genuine data
   const streakCalculation = useMemo(() => {
@@ -1521,21 +1547,33 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
           </button>
         </div>
 
-        {/* Quick Notification Settings Tool Button in Header */}
-        <button
-          id="header-notification-settings-btn"
-          type="button"
-          onClick={() => setIsNotificationSettingsOpen(true)}
-          className="min-h-[40px] px-4 py-2.5 text-xs font-bold rounded-full border border-[#2d2542]/15 dark:border-white/20 bg-white dark:bg-[#1B1630] hover:bg-[#fbfaf7] dark:hover:bg-[#272042] text-[#1e1931] dark:text-white transition-all flex items-center gap-2 shadow-xs cursor-pointer group self-start lg:self-auto"
-          title="Configure daily reminder time and mood check-in flow"
-        >
-          <Bell weight="bold" className="w-4 h-4 text-[#705e8c] dark:text-[#4EE2D8] group-hover:text-[#1e1931] dark:group-hover:text-white group-hover:rotate-12 transition-transform" />
-          <span className="hidden sm:inline">Daily Reminder</span>
-          <span className="text-[#705e8c]">·</span>
-          <span className="font-mono text-[#0E716D] dark:text-[#4EE2D8] font-extrabold">
-            {notificationSettings.enabled ? formatReminderTime12h(notificationSettings.time) : 'Off'}
-          </span>
-        </button>
+        {/* Quick Ritual & Notification Controls in Header */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
+          <button
+            id="progress-start-ritual-btn"
+            type="button"
+            onClick={() => setIsRitualModalOpen(true)}
+            className="min-h-[40px] px-4 py-2.5 text-xs font-bold rounded-full bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] transition-all flex items-center gap-1.5 shadow-xs cursor-pointer whitespace-nowrap"
+          >
+            <span>✦</span>
+            <span>Start 5-Min Ritual</span>
+          </button>
+
+          <button
+            id="header-notification-settings-btn"
+            type="button"
+            onClick={() => setIsNotificationSettingsOpen(true)}
+            className="min-h-[40px] px-4 py-2.5 text-xs font-bold rounded-full border border-[#2d2542]/15 dark:border-white/20 bg-white dark:bg-[#1B1630] hover:bg-[#fbfaf7] dark:hover:bg-[#272042] text-[#1e1931] dark:text-white transition-all flex items-center gap-2 shadow-xs cursor-pointer group"
+            title="Configure daily reminder time and mood check-in flow"
+          >
+            <Bell weight="bold" className="w-4 h-4 text-[#705e8c] dark:text-[#4EE2D8] group-hover:text-[#1e1931] dark:group-hover:text-white group-hover:rotate-12 transition-transform" />
+            <span className="hidden sm:inline">Daily Reminder</span>
+            <span className="text-[#705e8c]">·</span>
+            <span className="font-mono text-[#0E716D] dark:text-[#4EE2D8] font-extrabold">
+              {notificationSettings.enabled ? formatReminderTime12h(notificationSettings.time) : 'Off'}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* USER PROFILE & VISUAL STREAK COUNTER COMPONENT */}
@@ -2949,6 +2987,11 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
         }}
         todayHasMoodLogged={Boolean(calendarRecords[todayStr]?.mood)}
         todayMood={calendarRecords[todayStr]?.mood}
+      />
+
+      <DailyRitualModal
+        isOpen={isRitualModalOpen}
+        onClose={() => setIsRitualModalOpen(false)}
       />
     </div>
   );

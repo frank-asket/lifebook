@@ -13,6 +13,13 @@ import {
   STREAK_CHANGE_EVENT,
   type StreakData,
 } from "@/lib/streak";
+import {
+  getGracePoints,
+  getTodayRitualCompletion,
+  LIFEBOOK_RITUAL_COMPLETED_EVENT,
+  type CompletedRitualPayload,
+} from "@/lib/daily-ritual";
+import { DailyRitualModal } from "@/components/DailyRitualModal";
 
 export interface DashboardJournalEntry {
   id: string;
@@ -138,28 +145,11 @@ export default function DribbbleDashboard() {
 
   // Persistent 14-day streak state using lib/streak.ts
   const [streakData, setStreakData] = useState<StreakData>(() => getStreakData());
-
-  useEffect(() => {
-    const handleStreakChange = (e: Event) => {
-      const customEvt = e as CustomEvent<StreakData>;
-      if (customEvt.detail) {
-        setStreakData(customEvt.detail);
-      } else {
-        setStreakData(getStreakData());
-      }
-    };
-
-    window.addEventListener(STREAK_CHANGE_EVENT, handleStreakChange);
-    window.addEventListener("storage", handleStreakChange);
-    return () => {
-      window.removeEventListener(STREAK_CHANGE_EVENT, handleStreakChange);
-      window.removeEventListener("storage", handleStreakChange);
-    };
-  }, []);
-
-  const milestone = useMemo(() => {
-    return getMilestoneProgress(streakData.currentStreak);
-  }, [streakData.currentStreak]);
+  const [gracePoints, setGracePoints] = useState<number>(() => getGracePoints());
+  const [isRitualModalOpen, setIsRitualModalOpen] = useState<boolean>(false);
+  const [todayRitual, setTodayRitual] = useState<CompletedRitualPayload | null>(() =>
+    getTodayRitualCompletion()
+  );
 
   // Journal tab specific filter & search states
   const [journalSearch, setJournalSearch] = useState("");
@@ -175,6 +165,47 @@ export default function DribbbleDashboard() {
     }
     return INITIAL_JOURNAL_ENTRIES;
   });
+
+  useEffect(() => {
+    const handleStreakChange = (e: Event) => {
+      const customEvt = e as CustomEvent<StreakData>;
+      if (customEvt.detail) {
+        setStreakData(customEvt.detail);
+      } else {
+        setStreakData(getStreakData());
+      }
+      setGracePoints(getGracePoints());
+      setTodayRitual(getTodayRitualCompletion());
+    };
+
+    const handleRitualComplete = (e: Event) => {
+      const customEvt = e as CustomEvent<CompletedRitualPayload>;
+      if (customEvt.detail) {
+        setTodayRitual(customEvt.detail);
+        setStreakData(customEvt.detail.updatedStreak);
+        setGracePoints(customEvt.detail.totalGracePoints);
+      }
+      try {
+        const stored = localStorage.getItem("lifebook.dashboard.journal");
+        if (stored) setJournalEntries(JSON.parse(stored));
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener(STREAK_CHANGE_EVENT, handleStreakChange);
+    window.addEventListener(LIFEBOOK_RITUAL_COMPLETED_EVENT, handleRitualComplete);
+    window.addEventListener("storage", handleStreakChange);
+    return () => {
+      window.removeEventListener(STREAK_CHANGE_EVENT, handleStreakChange);
+      window.removeEventListener(LIFEBOOK_RITUAL_COMPLETED_EVENT, handleRitualComplete);
+      window.removeEventListener("storage", handleStreakChange);
+    };
+  }, []);
+
+  const milestone = useMemo(() => {
+    return getMilestoneProgress(streakData.currentStreak);
+  }, [streakData.currentStreak]);
 
   const scriptures = {
     psalm23: {
@@ -385,14 +416,31 @@ export default function DribbbleDashboard() {
           <div className="relative z-10 flex items-center gap-3 shrink-0 flex-wrap">
             <button
               type="button"
-              onClick={() => setIsAudioPlaying(!isAudioPlaying)}
+              id="dashboard-start-ritual-btn"
+              onClick={() => setIsRitualModalOpen(true)}
               className="min-h-[42px] px-5 py-2.5 rounded-full bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-xs font-bold shadow-lg transition-all flex items-center gap-2 cursor-pointer"
             >
-              <span>{isAudioPlaying ? "⏸ Pause Audio" : "▶ Play 3-Min Expository"}</span>
+              <span>✦</span>
+              <span>
+                {todayRitual
+                  ? isFr
+                    ? "Méditation du jour scellée ✓ (Revoir)"
+                    : "Today's Ritual Sealed ✓ (Review)"
+                  : isFr
+                  ? "Démarrer le Rituel 5-Min (3 Étapes)"
+                  : "Begin 5-Min Guided Ritual (3 Steps)"}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsAudioPlaying(!isAudioPlaying)}
+              className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <span>{isAudioPlaying ? "⏸ Pause Audio" : "▶ 3-Min Audio"}</span>
             </button>
             <Link
               href="/progress"
-              className="min-h-[42px] px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1.5"
+              className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1.5"
             >
               <span>{isFr ? "Voir la Heatmap" : "View Heatmap"}</span>
               <span aria-hidden="true">→</span>
@@ -528,7 +576,7 @@ export default function DribbbleDashboard() {
                 </span>
               </div>
               <div className="my-4">
-                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white">240</span>
+                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white tabular-nums">{gracePoints}</span>
                 <span className="text-sm font-serif text-[#5A4B7C] dark:text-[#C8C2D6] ml-2">
                   {isFr ? "Points de Grâce" : "Grace Points"}
                 </span>
@@ -1070,6 +1118,11 @@ export default function DribbbleDashboard() {
           </div>
         </div>
       </footer>
+
+      <DailyRitualModal
+        isOpen={isRitualModalOpen}
+        onClose={() => setIsRitualModalOpen(false)}
+      />
     </div>
   );
 }
