@@ -10,6 +10,9 @@ import {
 } from '@phosphor-icons/react';
 import type { MoodItem } from './ProgressScreen';
 import { MOODS } from './ProgressScreen';
+import { DailyReminder } from '@/lib/DailyReminder';
+
+export { DailyReminder };
 
 export interface NotificationSettings {
   enabled: boolean;

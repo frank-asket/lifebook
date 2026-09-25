@@ -251,3 +251,10 @@ export function parseTimeString(timeStr: string): { hour: number; minute: number
   if (period === 'AM' && hour === 12) hour = 0;
   return { hour, minute };
 }
+
+export {
+  DailyReminder,
+  DailyReminderService,
+  PROACTIVE_9AM_NOTIFICATION_TYPE,
+  DAILY_REMINDER_9AM_HOUR,
+} from './DailyReminder';

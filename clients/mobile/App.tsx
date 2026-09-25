@@ -18,6 +18,7 @@ import { colors } from './src/theme/colors';
 import { setTokenProvider, tokenCache } from './src/auth/clerk';
 import * as Notifications from 'expo-notifications';
 import { initNotificationHandler } from './src/notifications/localScheduler';
+import { DailyReminder, PROACTIVE_9AM_NOTIFICATION_TYPE } from './src/notifications/DailyReminder';
 
 const ONBOARDED_KEY = 'lifebook.onboarded';
 
@@ -77,7 +78,11 @@ function LifeBookApp() {
     initNotificationHandler();
     const subscription = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response?.notification?.request?.content?.data;
-      if (data?.type === 'daily-morning-reminder' || data?.type === 'test-reminder') {
+      if (
+        data?.type === 'daily-morning-reminder' ||
+        data?.type === 'test-reminder' ||
+        data?.type === PROACTIVE_9AM_NOTIFICATION_TYPE
+      ) {
         goHome();
       }
     });
@@ -131,6 +136,7 @@ function LifeBookApp() {
     setFlowInitialStep('scripture');
     setTab('home');
     setHomeStage('flow');
+    DailyReminder.markDailyActivityCompleted().catch(() => {});
   }
 
   function beginJourneyFlow(active: ActiveJourney, initialStep: 'scripture' | 'meditate-select' | 'pray' = 'scripture') {
@@ -150,6 +156,7 @@ function LifeBookApp() {
         console.error('Failed to mark journey day complete:', e);
       }
     }
+    await DailyReminder.markDailyActivityCompleted().catch(() => {});
     setFlowSession(null);
     setFlowContext(null);
     goHome();

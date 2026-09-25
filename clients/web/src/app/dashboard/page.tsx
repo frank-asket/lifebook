@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useChristianAuth } from "@/lib/christian-auth";
 import {
   getStreakData,
@@ -286,66 +287,67 @@ export default function DribbbleDashboard() {
 
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] text-[#1E1931] flex flex-col font-sans">
-      {/* Top Dribbble-Style Minimalist App Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#2D2542]/10 px-4 sm:px-8 py-3.5">
+    <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#120F1D] text-[#1E1931] dark:text-[#F4EFE6] flex flex-col font-sans transition-colors">
+      {/* Top Sanctuary App Bar */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#171326]/95 backdrop-blur-md border-b border-[#2D2542]/10 dark:border-white/12 px-4 sm:px-8 py-3.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Brand Logo & Wordmark */}
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-[#1E1931] text-white flex items-center justify-center font-serif text-sm font-bold shadow-xs group-hover:scale-105 transition-transform">
+              <div className="w-8 h-8 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-serif text-sm font-bold shadow-xs group-hover:scale-105 transition-transform">
                 LB
               </div>
               <div>
-                <span className="font-serif font-bold text-lg tracking-tight text-[#1E1931] block leading-none">
+                <span className="font-serif font-bold text-lg tracking-tight text-[#1E1931] dark:text-white block leading-none">
                   LifeBook
                 </span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#EA4C89] font-semibold">
-                  STUDIO DASHBOARD
+                <span className="text-xs font-mono uppercase tracking-wider text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
+                  {isFr ? "Sanctuaire Quotidien" : "Daily Sanctuary"}
                 </span>
               </div>
             </Link>
 
             {/* Quick Navigation Links */}
-            <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 text-xs font-semibold text-[#685D7C]">
-              <Link href="/" className="px-3 py-1.5 rounded-full hover:text-[#1E1931] hover:bg-[#F2ECE1] transition-colors">
-                {isFr ? "Accueil" : "Landing"}
+            <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
+              <Link href="/" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
+                {isFr ? "Accueil" : "Home"}
               </Link>
-              <Link href="/living-word" className="px-3 py-1.5 rounded-full hover:text-[#1E1931] hover:bg-[#F2ECE1] transition-colors">
-                {isFr ? "Prédications" : "Teachings"}
+              <Link href="/living-word" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
+                {isFr ? "Enseignements" : "Teachings"}
               </Link>
-              <Link href="/progress" className="px-3 py-1.5 rounded-full hover:text-[#1E1931] hover:bg-[#F2ECE1] transition-colors">
-                {isFr ? "Progrès" : "Habit Tracker"}
+              <Link href="/progress" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
+                {isFr ? "Progrès & Habitudes" : "Progress & Heatmap"}
               </Link>
-              <Link href="/voice" className="px-3 py-1.5 rounded-full hover:text-[#1E1931] hover:bg-[#F2ECE1] transition-colors">
-                {isFr ? "Prière Vocale" : "Voice AI"}
+              <Link href="/voice" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
+                {isFr ? "Prière Vocale" : "Voice Practice"}
               </Link>
             </nav>
           </div>
 
           {/* Search Box & Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <div className="relative hidden sm:block w-48 lg:w-64">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isFr ? "Rechercher passage, thème..." : "Search passage, topic..."}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F2ECE1] rounded-full border border-transparent focus:border-[#2D2542]/20 focus:bg-white outline-none transition-all placeholder:text-[#8D82A0]"
+                className="w-full pl-8 pr-3 py-2 text-xs bg-[#F2ECE1] dark:bg-[#1E1836] text-[#1E1931] dark:text-white rounded-xl border border-transparent focus:border-[#2D2542]/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-[#120E22] outline-none transition-all placeholder:text-[#6E6285] dark:placeholder:text-[#A9A0BC]"
               />
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-[#8D82A0]" aria-hidden="true">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-[#6E6285]" aria-hidden="true">
                 🔍
               </span>
             </div>
 
             <LanguageToggle />
+            <ThemeToggle />
 
-            {/* User Profile Capsule */}
-            <div className="flex items-center gap-2 pl-2 border-l border-[#2D2542]/10">
-              <div className="w-8 h-8 rounded-full bg-[#EA4C89] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            {/* User Profile */}
+            <div className="flex items-center gap-2 pl-2 border-l border-[#2D2542]/10 dark:border-white/12">
+              <div className="w-8 h-8 rounded-full bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-bold text-xs shadow-xs">
                 {user?.firstName?.charAt(0) || "P"}
               </div>
-              <span className="text-xs font-bold text-[#1E1931] hidden lg:inline">
+              <span className="text-xs font-bold text-[#1E1931] dark:text-white hidden lg:inline">
                 {user?.fullName || (isFr ? "Pèlerin" : "Pilgrim")}
               </span>
             </div>
@@ -355,25 +357,25 @@ export default function DribbbleDashboard() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8 space-y-8">
-        {/* Editorial Greeting Header in Dribbble Shot Banner Style */}
+        {/* Editorial Greeting Header */}
         <div className="rounded-3xl bg-gradient-to-r from-[#211B3B] via-[#2F2652] to-[#1A1530] text-white p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-[#EA4C89]/15 blur-3xl pointer-events-none" />
+          <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-[#E3B15E]/15 blur-3xl pointer-events-none" />
           <div className="absolute -left-10 -bottom-10 w-60 h-60 rounded-full bg-[#56C2B4]/15 blur-3xl pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-white/10 text-[#FFD770] border border-white/15">
-                {isFr ? "MEDITATION DU JOUR" : "TODAY'S SACRED SPRINT"}
+            <div className="flex items-center gap-2 mb-2 text-xs font-mono">
+              <span className="font-bold uppercase tracking-wider text-[#FFD770]">
+                {isFr ? "MÉDITATION DU JOUR" : "TODAY'S 5-MINUTE DEVOTION"}
               </span>
-              <span className="text-xs text-white/60">·</span>
-              <span className="text-xs text-white/80 font-mono">5 MIN / 3 STEPS</span>
+              <span className="text-white/60">·</span>
+              <span className="text-white/85">5 MIN / 3 STEPS</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-serif font-bold tracking-tight">
               {isFr
                 ? "« Il me fait reposer dans de verts pâturages. »"
                 : "“He leads me beside still waters. He restores my soul.”"}
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-white/75 leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-white/85 leading-relaxed">
               {isFr
                 ? "Déposez vos urgences avant vos réunions du matin. Écoutez le commentaire d'enseignement, notez votre méditation et préservez votre série de grâce."
                 : "Anchor in quiet confidence before beginning work email. Stream audio commentary, reflect privately, and protect your 14-day discipleship streak."}
@@ -384,13 +386,13 @@ export default function DribbbleDashboard() {
             <button
               type="button"
               onClick={() => setIsAudioPlaying(!isAudioPlaying)}
-              className="px-5 py-2.5 rounded-full bg-[#EA4C89] hover:bg-[#F05E98] text-white text-xs font-bold shadow-lg hover:shadow-pink-500/25 transition-all flex items-center gap-2 cursor-pointer"
+              className="min-h-[42px] px-5 py-2.5 rounded-full bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-xs font-bold shadow-lg transition-all flex items-center gap-2 cursor-pointer"
             >
               <span>{isAudioPlaying ? "⏸ Pause Audio" : "▶ Play 3-Min Expository"}</span>
             </button>
             <Link
               href="/progress"
-              className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1.5"
+              className="min-h-[42px] px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1.5"
             >
               <span>{isFr ? "Voir la Heatmap" : "View Heatmap"}</span>
               <span aria-hidden="true">→</span>
@@ -398,15 +400,14 @@ export default function DribbbleDashboard() {
           </div>
         </div>
 
-        {/* Dribbble Category & Sub-View Filter Segmented Bar */}
-        <div className="flex items-center justify-between gap-4 border-b border-[#2D2542]/10 pb-4 overflow-x-auto no-scrollbar">
+        {/* Category & Sub-View Filter Segmented Bar */}
+        <div className="flex items-center justify-between gap-4 border-b border-[#2D2542]/10 dark:border-white/12 pb-4 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-2">
             {[
-              { id: "overview" as const, label: isFr ? "Vue d'Ensemble" : "Overview Board", icon: "✨" },
-              { id: "audio" as const, label: isFr ? "Studio Audio Sacré" : "Living Word Audio", icon: "🎙️" },
+              { id: "overview" as const, label: isFr ? "Vue d'Ensemble" : "Overview", icon: "✨" },
+              { id: "audio" as const, label: isFr ? "Studio Audio" : "Living Word Audio", icon: "🎙️" },
               { id: "journal" as const, label: isFr ? "Journal Intime" : "Soul Journal", icon: "✍️" },
               { id: "heatmap" as const, label: isFr ? "Heatmap & Sabbat" : "Consistency Heatmap", icon: "🔥" },
-              { id: "community" as const, label: isFr ? "Mur d'Intercession" : "Prayer Wall", icon: "🕊️" },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -414,10 +415,10 @@ export default function DribbbleDashboard() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                     isActive
-                      ? "bg-[#1E1931] text-white shadow-xs"
-                      : "bg-white text-[#65597C] hover:bg-[#EAE4D7] border border-[#2D2542]/10"
+                      ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
+                      : "bg-white dark:bg-[#1B1630] text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#EAE4D7] dark:hover:bg-[#272042] border border-[#2D2542]/10 dark:border-white/12"
                   }`}
                 >
                   <span>{tab.icon}</span>
@@ -427,33 +428,33 @@ export default function DribbbleDashboard() {
             })}
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs text-[#705E8C] font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>{isFr ? "SYNCHRONISÉ LOCALEMENT" : "LOCAL ENCRYPTION ACTIVE"}</span>
+          <div className="hidden sm:flex items-center gap-2 text-xs text-[#5A4B7C] dark:text-[#C8C2D6] font-mono">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>{isFr ? "Synchronisé localement" : "Local storage active"}</span>
           </div>
         </div>
 
-        {/* VIEW 1: OVERVIEW DASHBOARD GRID (Dribbble 3-Card Layout with Staggered Fade-in) */}
+        {/* VIEW 1: OVERVIEW DASHBOARD GRID */}
         {(activeTab === "overview" || activeTab === "heatmap") && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Metric Card 1: Dynamic Streak Persisted in localStorage */}
-            <div className="animate-stagger-card-1 animate-[fade-in-up_0.65s_cubic-bezier(0.16,1,0.3,1)_forwards] rounded-3xl bg-white border border-[#2D2542]/10 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[#1FB6B0]/50 transition-all">
+            <div className="animate-stagger-card-1 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[#1FB6B0]/50 transition-all">
               <div className="flex items-center justify-between">
                 <span className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl">
                   🔥
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  {isFr ? "GRÂCE ACTIVE" : "SHIELD ACTIVE"}
+                <span className="text-xs font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8]">
+                  {isFr ? "Grâce active 🛡️" : "Grace Shield Active 🛡️"}
                 </span>
               </div>
               <div className="my-4">
-                <span className="text-4xl font-serif font-bold text-[#1E1931]">
+                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white">
                   {streakData.currentStreak}
                 </span>
-                <span className="text-sm font-serif text-[#705E8C] ml-2">
+                <span className="text-sm font-serif text-[#5A4B7C] dark:text-[#C8C2D6] ml-2">
                   {isFr ? "Jours consécutifs" : "Continuous Days"}
                 </span>
-                <p className="mt-1 text-xs text-[#766B8A]">
+                <p className="mt-1 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
                   {isFr
                     ? `${streakData.sabbathRestDays} jours de repos du sabbat préservent votre élan spirituel.`
                     : `${streakData.sabbathRestDays} Sabbath rest days safely protect momentum without reset.`}
@@ -461,25 +462,25 @@ export default function DribbbleDashboard() {
               </div>
 
               {/* Dynamic Milestone Progress Bar */}
-              <div className="pt-3 border-t border-[#2D2542]/10 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-semibold text-[#1FB6B0]">
+              <div className="pt-3 border-t border-[#2D2542]/10 dark:border-white/12 space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#0E726D] dark:text-[#4EE2D8]">
                   <span>
                     {isFr ? `Objectif ${milestone.nextMilestoneDays} Jours` : `${milestone.nextMilestoneDays}-Day Milestone`}
-                    <span className="text-[10px] font-mono font-normal text-[#705E8C] ml-1.5">
+                    <span className="text-xs font-mono font-normal text-[#5A4B7C] dark:text-[#C8C2D6] ml-1.5">
                       ({milestone.title})
                     </span>
                   </span>
                   <span className="font-mono">{milestone.progressPercent}%</span>
                 </div>
                 {/* Visual Progress Bar Track */}
-                <div className="w-full h-2 rounded-full bg-[#EBF8F7] overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-[#EBF8F7] dark:bg-white/10 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-[#1FB6B0] to-[#56C2B4] transition-all duration-700 ease-out"
                     style={{ width: `${Math.max(6, milestone.progressPercent)}%` }}
                     title={`${milestone.currentStreak}/${milestone.nextMilestoneDays} days (${milestone.daysRemaining} days remaining)`}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-[#8D82A0] pt-0.5">
+                <div className="flex items-center justify-between text-xs font-mono text-[#5A506B] dark:text-[#C8C2D6] pt-0.5">
                   <span>{milestone.currentStreak} / {milestone.nextMilestoneDays} days</span>
                   <span>{milestone.daysRemaining > 0 ? `${milestone.daysRemaining} days to go` : "Milestone reached!"}</span>
                 </div>
@@ -487,27 +488,27 @@ export default function DribbbleDashboard() {
             </div>
 
             {/* Metric Card 2: Scripture Verses Studied */}
-            <div className="animate-stagger-card-2 animate-[fade-in-up_0.65s_cubic-bezier(0.16,1,0.3,1)_0.12s_forwards] rounded-3xl bg-white border border-[#2D2542]/10 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[#EA4C89]/50 transition-all">
+            <div className="animate-stagger-card-2 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[#705EAA]/50 transition-all">
               <div className="flex items-center justify-between">
-                <span className="w-10 h-10 rounded-2xl bg-pink-100 text-pink-800 flex items-center justify-center text-xl">
+                <span className="w-10 h-10 rounded-2xl bg-[#EFEBF7] text-[#3D2E5C] flex items-center justify-center text-xl">
                   📖
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-pink-50 text-pink-800 border border-pink-200">
-                  {isFr ? "LSG / ESV" : "5 VERSIONS"}
+                <span className="text-xs font-mono font-bold text-[#5A4B7C] dark:text-[#C8C2D6]">
+                  {isFr ? "LSG · ESV · NIV" : "ESV · NIV · KJV"}
                 </span>
               </div>
               <div className="my-4">
-                <span className="text-4xl font-serif font-bold text-[#1E1931]">48</span>
-                <span className="text-sm font-serif text-[#705E8C] ml-2">
+                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white">48</span>
+                <span className="text-sm font-serif text-[#5A4B7C] dark:text-[#C8C2D6] ml-2">
                   {isFr ? "Passages Clés" : "Verses Anchored"}
                 </span>
-                <p className="mt-1 text-xs text-[#766B8A]">
+                <p className="mt-1 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
                   {isFr
                     ? "Méditations ancrées dans les Psaumes, Romains et Jean."
                     : "Rooted across Psalms, Romans, and Gospels."}
                 </p>
               </div>
-              <div className="pt-3 border-t border-[#2D2542]/10 flex items-center justify-between text-xs font-semibold text-[#EA4C89]">
+              <div className="pt-3 border-t border-[#2D2542]/10 dark:border-white/12 flex items-center justify-between text-xs font-semibold text-[#5A4B7C] dark:text-[#4EE2D8]">
                 <Link href="/living-word" className="hover:underline flex items-center gap-1">
                   <span>{isFr ? "Ouvrir le catalogue" : "Browse Expositions"}</span>
                   <span aria-hidden="true">→</span>
@@ -517,27 +518,27 @@ export default function DribbbleDashboard() {
             </div>
 
             {/* Metric Card 3: Grace Points */}
-            <div className="animate-stagger-card-3 animate-[fade-in-up_0.65s_cubic-bezier(0.16,1,0.3,1)_0.24s_forwards] rounded-3xl bg-white border border-[#2D2542]/10 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-amber-400 transition-all">
+            <div className="animate-stagger-card-3 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-amber-400 transition-all">
               <div className="flex items-center justify-between">
                 <span className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
                   ✦
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-100/70 text-amber-800 border border-amber-300">
-                  {isFr ? "NIVEAU 3" : "LEVEL 3"}
+                <span className="text-xs font-mono font-bold text-amber-800 dark:text-[#FFD770]">
+                  {isFr ? "Niveau 3 · Abiding" : "Level 3 · Abiding"}
                 </span>
               </div>
               <div className="my-4">
-                <span className="text-4xl font-serif font-bold text-[#1E1931]">240</span>
-                <span className="text-sm font-serif text-[#705E8C] ml-2">
+                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white">240</span>
+                <span className="text-sm font-serif text-[#5A4B7C] dark:text-[#C8C2D6] ml-2">
                   {isFr ? "Points de Grâce" : "Grace Points"}
                 </span>
-                <p className="mt-1 text-xs text-[#766B8A]">
+                <p className="mt-1 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
                   {isFr
                     ? "+50 points débloqués avec le repos du sabbat."
                     : "Earned by quiet reflection and honoring rest."}
                 </p>
               </div>
-              <div className="pt-3 border-t border-[#2D2542]/10 flex items-center justify-between text-xs font-semibold text-amber-700">
+              <div className="pt-3 border-t border-[#2D2542]/10 dark:border-white/12 flex items-center justify-between text-xs font-semibold text-amber-800 dark:text-[#FFD770]">
                 <span>{isFr ? "Trophée Prochain" : "Next Milestone Seal"}</span>
                 <span>{isFr ? "Flamme Sacrée" : "Sacred Flame"}</span>
               </div>
@@ -549,28 +550,29 @@ export default function DribbbleDashboard() {
         {/* VIEW 2: DEDICATED JOURNAL TAB (Soul Journal with Search & Scripture/Date Filter) */}
         {activeTab === "journal" && (
           <div className="space-y-6 animate-stagger-card-1">
-            {/* Journal Header & Dribbble Search/Filter Bar */}
-            <div className="bg-white rounded-3xl border border-[#2D2542]/10 p-6 sm:p-8 shadow-sm space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#2D2542]/10">
+            {/* Journal Header & Search/Filter Bar */}
+            <div className="bg-white dark:bg-[#1B1630] rounded-3xl border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#2D2542]/10 dark:border-white/12">
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#705E8C] font-semibold">
+                  <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
                     {isFr ? "JOURNAL INTIME DU PÈLERIN" : "PILGRIM'S SOUL JOURNAL"}
                   </span>
-                  <h2 className="text-2xl font-serif font-bold text-[#1E1931] mt-0.5">
+                  <h2 className="text-2xl font-serif font-bold text-[#1E1931] dark:text-white mt-0.5">
                     {isFr ? "Cahier de Méditations & Prières" : "Reflections & Scripture Notes"}
                   </h2>
-                  <p className="text-xs text-[#766B8A] mt-1">
+                  <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] mt-1">
                     {isFr
                       ? "Filtrez vos réflexions intimes par passage biblique, date ou mot-clé."
                       : "Search and filter private journal entries by Scripture reference, date, or tags."}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 self-start md:self-auto">
-                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#F2ECE1] text-[#1E1931]">
+                <div className="flex items-center gap-2 self-start md:self-auto text-xs font-mono">
+                  <span className="font-bold text-[#1E1931] dark:text-white">
                     {filteredJournalEntries.length} {isFr ? "entrées" : "entries"}
                   </span>
-                  <span className="text-xs text-[#0E726D] font-bold flex items-center gap-1 bg-[#E8F6F3] px-3 py-1 rounded-full">
+                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">·</span>
+                  <span className="text-[#0E726D] dark:text-[#4EE2D8] font-bold flex items-center gap-1">
                     <span>🔒</span>
                     <span>{isFr ? "Chiffrement Local" : "Client-Side Only"}</span>
                   </span>
@@ -774,24 +776,24 @@ export default function DribbbleDashboard() {
         {/* INTERACTIVE COMPONENT: SCRIPTURE PASSAGE DRAWER WITH 3-STEP CARDS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Interactive Scripture Reader (7 Cols) */}
-          <div className="lg:col-span-7 bg-white rounded-3xl border border-[#2D2542]/10 p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-[#2D2542]/10">
+          <div className="lg:col-span-7 bg-white dark:bg-[#1B1630] rounded-3xl border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#705E8C]">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#5A4B7C] dark:text-[#4EE2D8]">
                   {isFr ? "ÉTAPE 01 · LECTURE EXPOSITIVE" : "STEP 01 · EXPOSITORY READING"}
                 </span>
-                <h2 className="text-2xl font-serif font-bold text-[#1E1931] mt-0.5">
+                <h2 className="text-2xl font-serif font-bold text-[#1E1931] dark:text-white mt-0.5">
                   {scriptures[selectedScripture].ref}
                 </h2>
               </div>
 
               {/* Version Selector Tabs */}
-              <div className="flex items-center gap-1.5 p-1 bg-[#F2ECE1] rounded-full text-xs font-bold">
+              <div className="flex items-center gap-1.5 p-1 bg-[#F2ECE1] dark:bg-[#120E22] rounded-xl text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => setSelectedScripture("psalm23")}
-                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                    selectedScripture === "psalm23" ? "bg-white text-[#1E1931] shadow-xs" : "text-[#705E8C]"
+                  className={`min-h-[36px] px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    selectedScripture === "psalm23" ? "bg-white dark:bg-[#2D2542] text-[#1E1931] dark:text-white shadow-xs" : "text-[#5A4B7C] dark:text-[#C8C2D6]"
                   }`}
                 >
                   Ps 23
@@ -799,8 +801,8 @@ export default function DribbbleDashboard() {
                 <button
                   type="button"
                   onClick={() => setSelectedScripture("romans8")}
-                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                    selectedScripture === "romans8" ? "bg-white text-[#1E1931] shadow-xs" : "text-[#705E8C]"
+                  className={`min-h-[36px] px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    selectedScripture === "romans8" ? "bg-white dark:bg-[#2D2542] text-[#1E1931] dark:text-white shadow-xs" : "text-[#5A4B7C] dark:text-[#C8C2D6]"
                   }`}
                 >
                   Rom 8
@@ -808,8 +810,8 @@ export default function DribbbleDashboard() {
                 <button
                   type="button"
                   onClick={() => setSelectedScripture("john15")}
-                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
-                    selectedScripture === "john15" ? "bg-white text-[#1E1931] shadow-xs" : "text-[#705E8C]"
+                  className={`min-h-[36px] px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    selectedScripture === "john15" ? "bg-white dark:bg-[#2D2542] text-[#1E1931] dark:text-white shadow-xs" : "text-[#5A4B7C] dark:text-[#C8C2D6]"
                   }`}
                 >
                   Jn 15
@@ -818,14 +820,14 @@ export default function DribbbleDashboard() {
             </div>
 
             {/* Scripture Quotation Canvas */}
-            <div className="p-6 rounded-2xl bg-[#FAF8F5] border border-[#EADBCE] space-y-3 relative overflow-hidden">
-              <span className="absolute right-4 top-2 text-6xl text-[#EADBCE] font-serif select-none pointer-events-none">
+            <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#120E22] border border-[#EADBCE] dark:border-white/12 space-y-3 relative overflow-hidden">
+              <span className="absolute right-4 top-2 text-6xl text-[#EADBCE] dark:text-white/10 font-serif select-none pointer-events-none">
                 “
               </span>
-              <p className="text-base sm:text-lg font-serif italic text-[#1E1931] leading-relaxed relative z-10">
+              <p className="text-base sm:text-lg font-serif italic text-[#1E1931] dark:text-[#F4EFE6] leading-relaxed relative z-10">
                 {scriptures[selectedScripture].text}
               </p>
-              <div className="flex items-center justify-between text-xs text-[#7A6E91] font-mono pt-2 border-t border-[#EADBCE]/50">
+              <div className="flex items-center justify-between text-xs text-[#5A4B7C] dark:text-[#C8C2D6] font-mono pt-2 border-t border-[#EADBCE]/50 dark:border-white/10">
                 <span>{scriptures[selectedScripture].theme}</span>
                 <span>{scriptures[selectedScripture].verseCount}</span>
               </div>
@@ -833,24 +835,24 @@ export default function DribbbleDashboard() {
 
             {/* Step 2 & 3 Guided Prompts */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-[#F6F4FB] border border-[#DDD3EF] space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#6F5B9B]">
+              <div className="p-4 rounded-2xl bg-[#F6F4FB] dark:bg-[#141024] border border-[#DDD3EF] dark:border-white/12 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#5A4B7C] dark:text-[#C8C2D6]">
                   <span>💡</span>
                   <span>{isFr ? "Étape 02 · Méditation" : "Step 02 · Reflection"}</span>
                 </div>
-                <p className="text-xs text-[#4E4166] leading-relaxed">
+                <p className="text-xs text-[#3E3356] dark:text-[#E2DCEF] leading-relaxed">
                   {isFr
                     ? "Où avez-vous besoin de déposer l'urgence et les délais professionnels aujourd'hui ?"
                     : "Where do you need to surrender hurried deadlines before checking work email today?"}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#F1F8F5] border border-[#C5E5D8] space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#0E726D]">
+              <div className="p-4 rounded-2xl bg-[#F1F8F5] dark:bg-[#102222] border border-[#C5E5D8] dark:border-[#1FB6B0]/30 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#0E726D] dark:text-[#4EE2D8]">
                   <span>🙏</span>
                   <span>{isFr ? "Étape 03 · Prière Orale" : "Step 03 · Spoken Prayer"}</span>
                 </div>
-                <p className="text-xs text-[#28574B] leading-relaxed">
+                <p className="text-xs text-[#1F4A3F] dark:text-[#D7F5F2] leading-relaxed">
                   {isFr
                     ? "« Seigneur, sois mon ancre dans le tumulte. Garde mes pensées dans Ta paix. »"
                     : "“Lord, be my anchor in the rush. Keep my thoughts in Your peace. Amen.”"}
@@ -863,10 +865,10 @@ export default function DribbbleDashboard() {
               <button
                 type="button"
                 onClick={() => handleToggleSave("dev-1")}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`min-h-[40px] inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   savedDevotions["dev-1"]
-                    ? "bg-[#1FB6B0]/15 text-[#0E726D] border border-[#1FB6B0]/30"
-                    : "bg-[#F2ECE1] text-[#65597C] hover:bg-[#EADBCE]"
+                    ? "bg-[#1FB6B0]/15 text-[#0E726D] dark:text-[#4EE2D8] border border-[#1FB6B0]/30"
+                    : "bg-[#F2ECE1] dark:bg-[#120E22] text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#EADBCE]"
                 }`}
               >
                 <span>{savedDevotions["dev-1"] ? "✓ Enregistré" : "🔖 Ajouter aux Favoris"}</span>
@@ -874,7 +876,7 @@ export default function DribbbleDashboard() {
 
               <Link
                 href="/progress#journal"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#705EAA] hover:text-[#1E1931] transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5A4B7C] dark:text-[#4EE2D8] hover:text-[#1E1931] dark:hover:text-white transition-colors"
               >
                 <span>{isFr ? "Ouvrir dans le Journal Spirituel" : "Expand to Journal Notebook"}</span>
                 <span aria-hidden="true">→</span>
@@ -884,20 +886,20 @@ export default function DribbbleDashboard() {
 
           {/* Right Column: Audio Equalizer & Interactive Prayer Composer (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
-            {/* Mini Player Widget (Dribbble styled audio preview) */}
+            {/* Mini Player Widget */}
             <div className="rounded-3xl bg-[#201A38] text-white p-6 shadow-md border border-[#3A2F5E] space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#56C2B4]">
+                <span className="text-xs font-mono uppercase tracking-widest text-[#56C2B4]">
                   EXPOSITORY AUDIO STUDIO
                 </span>
-                <span className="w-2 h-2 rounded-full bg-[#56C2B4] animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-[#56C2B4]" />
               </div>
 
               <div>
                 <h3 className="text-base font-serif font-bold text-white">
                   The Cost of Discipleship & Romans 8
                 </h3>
-                <p className="text-xs text-white/60">Timothy Keller · Expository Series · 12:45</p>
+                <p className="text-xs text-white/75">Timothy Keller · Expository Series · 12:45</p>
               </div>
 
               {/* Dynamic Equalizer Bars */}
@@ -914,11 +916,11 @@ export default function DribbbleDashboard() {
                 ))}
               </div>
 
-              <div className="flex items-center justify-between text-xs text-white/70">
+              <div className="flex items-center justify-between text-xs text-white/80">
                 <button
                   type="button"
                   onClick={() => setIsAudioPlaying(!isAudioPlaying)}
-                  className="px-4 py-2 rounded-full bg-[#56C2B4] text-[#120F24] font-bold text-xs hover:bg-[#68D8CA] transition-colors cursor-pointer"
+                  className="min-h-[40px] px-4 py-2 rounded-full bg-[#56C2B4] text-[#120F24] font-bold text-xs hover:bg-[#68D8CA] transition-colors cursor-pointer"
                 >
                   {isAudioPlaying ? "⏸ Pause" : "▶ Play Lossless Audio"}
                 </button>
@@ -929,12 +931,12 @@ export default function DribbbleDashboard() {
             </div>
 
             {/* Quick Prayer Notepad Widget */}
-            <div className="rounded-3xl bg-white border border-[#2D2542]/10 p-6 shadow-sm space-y-4">
+            <div className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#705E8C] font-semibold">
+                <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
                   {isFr ? "PRIÈRE DU MATIN DIRECTE" : "INSTANT PRIVATE PRAYER"}
                 </span>
-                <span className="text-xs text-[#0E726D] font-bold">🔒 Chiffré Localement</span>
+                <span className="text-xs text-[#0E726D] dark:text-[#4EE2D8] font-bold">🔒 Chiffré Localement</span>
               </div>
 
               <form onSubmit={handlePostPrayer} className="space-y-3">
@@ -947,24 +949,24 @@ export default function DribbbleDashboard() {
                       : "Type your honest morning prayer or burden to God..."
                   }
                   rows={3}
-                  className="w-full p-3 text-xs rounded-xl bg-[#FAF8F5] border border-[#2D2542]/15 focus:border-[#705EAA] focus:bg-white outline-none resize-none transition-all placeholder:text-[#8C809F]"
+                  className="w-full p-3 text-xs rounded-xl bg-[#FAF8F5] dark:bg-[#120E22] text-[#1E1931] dark:text-white border border-[#2D2542]/15 dark:border-white/15 focus:border-[#705EAA] focus:bg-white dark:focus:bg-[#161129] outline-none resize-none transition-all placeholder:text-[#6E6285] dark:placeholder:text-[#A9A0BC]"
                 />
 
                 {prayerSubmitted && (
-                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1.5">
+                  <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-semibold flex items-center gap-1.5">
                     <span>✓</span>
                     <span>{isFr ? "Prière ancrée dans votre journal privé." : "Prayer recorded in your private journal."}</span>
                   </div>
                 )}
 
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[#7E7394]">
+                  <span className="text-xs text-[#5A506B] dark:text-[#C8C2D6]">
                     {quickPrayerText.length} {isFr ? "caractères" : "characters"}
                   </span>
                   <button
                     type="submit"
                     disabled={!quickPrayerText.trim()}
-                    className="px-4 py-2 rounded-full bg-[#1E1931] hover:bg-[#342952] disabled:opacity-40 text-white text-xs font-bold transition-all cursor-pointer"
+                    className="min-h-[40px] px-4 py-2 rounded-full bg-[#2D2542] dark:bg-[#4EE2D8] hover:bg-[#3D315B] disabled:opacity-40 text-white dark:text-[#0E0C18] text-xs font-bold transition-all cursor-pointer"
                   >
                     {isFr ? "Conserver la Prière" : "Save to Journal"}
                   </button>
@@ -974,29 +976,29 @@ export default function DribbbleDashboard() {
           </div>
         </div>
 
-        {/* 30-Day Heatmap Preview in Modern Dribbble Aesthetics */}
-        <div className="rounded-3xl bg-white border border-[#2D2542]/10 p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2D2542]/10">
+        {/* 30-Day Heatmap Preview */}
+        <div className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#705E8C] font-semibold">
+              <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
                 DWELL-TIME & CONSISTENCY MATRIX
               </span>
-              <h3 className="text-xl font-serif font-bold text-[#1E1931]">
+              <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white">
                 {isFr ? "Régularité Spirituelle sur 30 Jours" : "30-Day Spiritual Rhythm Heatmap"}
               </h3>
             </div>
             <div className="flex items-center gap-4 text-xs font-mono">
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-xs bg-[#BCEBE7]" />
-                <span className="text-[#65597C]">Light</span>
+                <span className="text-[#5A506B] dark:text-[#C8C2D6]">Light</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-xs bg-[#1FB6B0]" />
-                <span className="text-[#65597C]">Deep</span>
+                <span className="text-[#5A506B] dark:text-[#C8C2D6]">Deep</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-xs bg-[#F28C38]" />
-                <span className="text-[#65597C]">Peak Rhythm 🔥</span>
+                <span className="text-[#5A506B] dark:text-[#C8C2D6]">Peak Rhythm 🔥</span>
               </span>
             </div>
           </div>
@@ -1017,8 +1019,8 @@ export default function DribbbleDashboard() {
                 : isLight
                 ? "bg-[#BCEBE7] text-[#0E6C68]"
                 : isRest
-                ? "bg-[#EFE8F7] text-[#705EAA] border border-[#DDD3EF]"
-                : "bg-[#F3EFE8] text-[#8C809F]";
+                ? "bg-[#EFE8F7] dark:bg-[#2A2145] text-[#5A4B7C] dark:text-[#D5CEE6] border border-[#DDD3EF] dark:border-white/15"
+                : "bg-[#F3EFE8] dark:bg-[#141024] text-[#5A506B] dark:text-[#A9A0BC]";
 
               return (
                 <div
@@ -1026,8 +1028,8 @@ export default function DribbbleDashboard() {
                   className={`h-11 sm:h-12 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-105 ${bgClass}`}
                   title={`Day ${day}: ${isPeak ? "Peak devotion & prayer" : isDeep ? "Scripture & Stillness" : "Daily check-in"}`}
                 >
-                  <span className="text-[11px] font-bold font-mono leading-none">{day}</span>
-                  <span className="text-[8px] uppercase tracking-tighter opacity-80 mt-0.5">
+                  <span className="text-xs font-bold font-mono leading-none">{day}</span>
+                  <span className="text-xs uppercase tracking-tighter opacity-90 mt-0.5 leading-none">
                     {isPeak ? "🔥" : isRest ? "🌿" : isDeep ? "✓" : "·"}
                   </span>
                 </div>
@@ -1035,7 +1037,7 @@ export default function DribbbleDashboard() {
             })}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2D2542]/10 text-xs text-[#705E8C]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2D2542]/10 dark:border-white/12 text-xs text-[#5A4B7C] dark:text-[#C8C2D6]">
             <p>
               {isFr
                 ? "Le repos du sabbat (🌿) préserve votre élan spirituel sans jamais remettre votre série à zéro."
@@ -1043,7 +1045,7 @@ export default function DribbbleDashboard() {
             </p>
             <Link
               href="/progress"
-              className="inline-flex items-center gap-1 font-bold text-[#1E1931] hover:text-[#705EAA] transition-colors"
+              className="inline-flex items-center gap-1 font-bold text-[#1E1931] dark:text-[#4EE2D8] hover:text-[#705EAA] transition-colors"
             >
               <span>{isFr ? "Accéder à la Heatmap complète" : "Open Full Interactive Matrix"}</span>
               <span aria-hidden="true">→</span>
@@ -1052,19 +1054,19 @@ export default function DribbbleDashboard() {
         </div>
       </main>
 
-      {/* Footer minimaliste Dribbble style */}
-      <footer className="mt-auto border-t border-[#2D2542]/10 bg-white py-6 px-4 sm:px-8 text-xs text-[#766B8A]">
+      {/* Sanctuary Footer */}
+      <footer className="mt-auto border-t border-[#2D2542]/10 dark:border-white/12 bg-white dark:bg-[#171326] py-6 px-4 sm:px-8 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-sm text-[#1E1931]">LifeBook</span>
+            <span className="font-serif font-bold text-sm text-[#1E1931] dark:text-white">LifeBook</span>
             <span>·</span>
-            <span>Dribbble-Inspired Sanctuary UI & Architecture</span>
+            <span>{isFr ? "Sanctuaire quotidien de méditation et de prière" : "Daily Scripture, Stillness & Prayer Sanctuary"}</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-[#1E1931] transition-colors">{isFr ? "Accueil" : "Home"}</Link>
-            <Link href="/living-word" className="hover:text-[#1E1931] transition-colors">{isFr ? "Studio" : "Studio"}</Link>
-            <Link href="/progress" className="hover:text-[#1E1931] transition-colors">{isFr ? "Progrès" : "Progress"}</Link>
-            <Link href="/privacy" className="hover:text-[#1E1931] transition-colors">{isFr ? "Confidentialité" : "Privacy"}</Link>
+            <Link href="/" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Accueil" : "Home"}</Link>
+            <Link href="/living-word" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Enseignements" : "Teachings"}</Link>
+            <Link href="/progress" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Progrès" : "Progress"}</Link>
+            <Link href="/privacy" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Confidentialité" : "Privacy"}</Link>
           </div>
         </div>
       </footer>

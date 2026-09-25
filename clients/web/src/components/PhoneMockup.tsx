@@ -127,27 +127,27 @@ export function PhoneMockup() {
 
       {/* Floating Card: Study Track (Top Right on desktop) with Dynamic Recommendation Reasoning */}
       <div
-        className="hidden lg:flex flex-col gap-2 absolute -top-2 right-2 xl:-right-6 z-20 w-[240px] p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#2d2542]/12 shadow-[0_14px_32px_-6px_rgba(45,37,66,0.16)] transform rotate-[2deg] hover:rotate-0 transition-all duration-300 pointer-events-auto"
+        className="hidden lg:flex flex-col gap-2.5 absolute -top-2 right-2 xl:-right-6 z-20 w-[256px] p-4 rounded-2xl bg-white/95 dark:bg-[#1B1630]/95 backdrop-blur-md border border-[#2d2542]/12 dark:border-white/15 shadow-[0_14px_32px_-6px_rgba(45,37,66,0.16)] transform rotate-[2deg] hover:rotate-0 transition-all duration-300 pointer-events-auto"
         id="preview-study-floating-card"
       >
-        <div className="flex items-center justify-between text-[10px] font-bold text-[#705e8c] tracking-wider uppercase">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center justify-between text-xs font-bold text-[#5A4B7C] dark:text-[#C8C2D6] tracking-wider uppercase">
+          <span className="flex items-center gap-1.5">
             <span>{currentMood.icon}</span>
             <span>{isFr ? "Parcours recommandé" : "Recommended Track"}</span>
           </span>
           <span className="w-2 h-2 rounded-full bg-[#3bb582]" />
         </div>
 
-        <strong className="font-serif text-[13px] text-[#2d2542] leading-tight font-medium">
+        <strong className="font-serif text-sm text-[#2d2542] dark:text-white leading-tight font-semibold">
           {currentMood.journeyTitle}
         </strong>
 
-        <div className="flex items-center justify-between text-[10px] text-[#6b6279]">
+        <div className="flex items-center justify-between text-xs text-[#5A506B] dark:text-[#C8C2D6]">
           <span>{isFr ? `Jour ${currentMood.journeyDay} sur ${currentMood.journeyTotal}` : `Day ${currentMood.journeyDay} of ${currentMood.journeyTotal}`}</span>
-          <span className="font-bold text-[#3bb582]">{currentMood.journeyPercent}%</span>
+          <span className="font-bold text-[#1D8A5F] dark:text-[#4EE2D8]">{currentMood.journeyPercent}%</span>
         </div>
 
-        <div className="w-full h-1.5 rounded-full bg-[#2d2542]/10 overflow-hidden">
+        <div className="w-full h-1.5 rounded-full bg-[#2d2542]/10 dark:bg-white/15 overflow-hidden">
           <div
             className="h-full rounded-full bg-[#3bb582] transition-all duration-500"
             style={{ width: `${currentMood.journeyPercent}%` }}
@@ -155,19 +155,19 @@ export function PhoneMockup() {
         </div>
 
         {/* Dynamic Reasoning Callout on Floating Card */}
-        <div className="bg-[#f4effa] border border-[#dccff3] rounded-xl p-2 text-[9.5px] leading-tight text-[#473b61]">
-          <div className="flex items-center gap-1 font-bold text-[#705e8c] text-[8.5px] uppercase tracking-wider mb-0.5">
+        <div className="bg-[#f4effa] dark:bg-[#120E22] border border-[#dccff3] dark:border-white/15 rounded-xl p-2.5 text-xs leading-snug text-[#3E3356] dark:text-[#E2DCEF]">
+          <div className="flex items-center gap-1 font-bold text-[#5A4B7C] dark:text-[#4EE2D8] text-xs uppercase tracking-wider mb-1">
             <span>💡</span>
             <span>{isFr ? "Raison de la recommandation :" : "Why recommended:"}</span>
           </div>
-          <p className="m-0 italic text-[#2d2542] line-clamp-2">
+          <p className="m-0 italic text-[#2d2542] dark:text-white line-clamp-2">
             “{currentMood.recommendationReason}”
           </p>
         </div>
 
         <a
           href="#journey-preview"
-          className="text-[10px] font-bold text-[#705e8c] hover:text-[#2d2542] flex items-center justify-between pt-1 border-t border-[#2d2542]/10 transition-colors"
+          className="text-xs font-bold text-[#5A4B7C] dark:text-[#4EE2D8] hover:text-[#2d2542] dark:hover:text-white flex items-center justify-between pt-1.5 border-t border-[#2d2542]/10 dark:border-white/15 transition-colors"
         >
           <span>{isFr ? "Aperçu complet du plan (5j)" : "Preview 5-day curriculum"}</span>
           <span>↓</span>
@@ -176,28 +176,28 @@ export function PhoneMockup() {
 
       {/* Floating Card: Grace Streak (Bottom Left on desktop) */}
       <div
-        className="hidden lg:flex flex-col gap-2 absolute -bottom-3 left-2 xl:-left-6 z-20 w-[210px] p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-[#2d2542]/10 shadow-[0_12px_30px_-6px_rgba(45,37,66,0.14)] transform -rotate-[3deg] hover:rotate-0 transition-transform duration-300 pointer-events-auto"
+        className="hidden lg:flex flex-col gap-2 absolute -bottom-3 left-2 xl:-left-6 z-20 w-[236px] p-4 rounded-2xl bg-white/95 dark:bg-[#1B1630]/95 backdrop-blur-md border border-[#2d2542]/10 dark:border-white/15 shadow-[0_12px_30px_-6px_rgba(45,37,66,0.14)] transform -rotate-[3deg] hover:rotate-0 transition-transform duration-300 pointer-events-auto"
         id="preview-streak-floating-card"
       >
-        <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-amber-800 text-xs shrink-0">
             🔥
           </span>
           <div>
-            <strong className="block text-xs font-bold text-[#2d2542] leading-none">
+            <strong className="block text-xs font-bold text-[#2d2542] dark:text-white leading-snug">
               {isFr ? "Série de 7 jours · 2 Jours de Grâce" : "7-Day Streak · 2 Grace Days"}
             </strong>
-            <small className="text-[10px] text-[#705e8c]">
+            <small className="text-xs text-[#5A4B7C] dark:text-[#C8C2D6]">
               {isFr ? "Protection de parcours active 🛡️" : "Journey Shield Active 🛡️"}
             </small>
           </div>
         </div>
-        <p className="text-[11px] text-[#6b6279] leading-snug m-0">
+        <p className="text-xs text-[#5A506B] dark:text-[#D5CEE6] leading-snug m-0">
           {isFr
             ? "Le repos du sabbat préserve votre élan sans réinitialisation."
             : "Sabbath rest protects your quiet habit without zeroing your streak."}
         </p>
-        <div className="flex items-center gap-1 text-[10px] text-[#3bb582] font-semibold">
+        <div className="flex items-center gap-1 text-xs text-[#1D8A5F] dark:text-[#4EE2D8] font-semibold">
           <span>✓</span>
           <span>{isFr ? "Régularité active" : "Consistency secured"}</span>
         </div>

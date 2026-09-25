@@ -11,6 +11,7 @@ import {
   triggerTestMorningReminder,
   formatReminderTime,
   MORNING_TIME_PRESETS,
+  DailyReminder,
 } from '../notifications/localScheduler';
 
 export function SettingsScreen({ deviceId }: { deviceId: string }) {
@@ -19,6 +20,7 @@ export function SettingsScreen({ deviceId }: { deviceId: string }) {
 
   // Local Daily 5-Minute Morning Reminder state
   const [dailyReminder, setDailyReminder] = useState(false);
+  const [proactive9Am, setProactive9Am] = useState(true);
   const [reminderHour, setReminderHour] = useState(7);
   const [reminderMinute, setReminderMinute] = useState(0);
   const [schedulingStatus, setSchedulingStatus] = useState<string | null>(null);
@@ -43,7 +45,26 @@ export function SettingsScreen({ deviceId }: { deviceId: string }) {
         setSchedulingStatus(`Scheduled daily at ${formatReminderTime(config.hour, config.minute)}`);
       }
     });
+
+    DailyReminder.getState().then(state => {
+      setProactive9Am(state.proactive9AmEnabled);
+    });
   }, [deviceId]);
+
+  async function handleToggleProactive9Am(value: boolean) {
+    setProactive9Am(value);
+    const res = await DailyReminder.setProactive9AmEnabled(value);
+    if (res.ok) {
+      setSchedulingStatus(
+        value
+          ? 'Proactive 9:00 AM 5-minute session check enabled.'
+          : 'Proactive 9:00 AM reminder turned off.'
+      );
+    } else {
+      setProactive9Am(false);
+      setSchedulingStatus(res.error || 'Could not enable 9:00 AM reminder.');
+    }
+  }
 
   async function handleToggleDailyReminder(value: boolean) {
     setDailyReminder(value);
@@ -236,6 +257,23 @@ export function SettingsScreen({ deviceId }: { deviceId: string }) {
             {schedulingStatus}
           </Text>
         )}
+
+        <View style={styles.divider} />
+
+        {/* Proactive 9:00 AM Incomplete Activity Reminder */}
+        <View style={styles.row}>
+          <View style={styles.reminderInfo}>
+            <Text style={styles.rowLabel}>Proactive 9:00 AM check-in nudge</Text>
+            <Text style={styles.rowSubLabel}>
+              Suggests a 5-minute LifeBook session if daily activity isn&apos;t done by 9 AM
+            </Text>
+          </View>
+          <Switch
+            value={proactive9Am}
+            onValueChange={handleToggleProactive9Am}
+            trackColor={{ true: colors.teal, false: 'rgba(255,255,255,0.18)' }}
+          />
+        </View>
 
         <View style={styles.divider} />
 

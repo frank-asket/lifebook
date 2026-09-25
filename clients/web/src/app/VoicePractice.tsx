@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "@/lib/i18n";
+import { AudioWaveform } from "@/components/AudioWaveform";
+
+export { AudioWaveform };
 
 type VoiceStatus = "idle" | "listening" | "thinking" | "answered" | "unsupported";
 
@@ -96,13 +99,24 @@ export default function VoicePractice() {
   const [answer, setAnswer] = useState<ReturnType<typeof answerQuestion> | null>(null);
   const [saved, setSaved] = useState(false);
   const barsRef = useRef<HTMLSpanElement | null>(null);
+  const liveVolumeRef = useRef<number | null>(null);
 
-  // Simulated audio intensity loop that drives natural fluid pulsing
+  const handleVolumeChange = useCallback((volume: number) => {
+    liveVolumeRef.current = volume;
+    const el = barsRef.current;
+    if (el) {
+      const scaled = Math.max(0.35, Math.min(1.55, 0.45 + volume * 1.1));
+      el.style.setProperty("--voice-intensity", scaled.toFixed(3));
+    }
+  }, []);
+
+  // Audio intensity loop that drives natural fluid pulsing when live volume is not overriding
   useEffect(() => {
     const el = barsRef.current;
     if (!el) return;
 
     if (status !== "listening") {
+      liveVolumeRef.current = null;
       el.style.setProperty("--voice-intensity", status === "thinking" ? "0.75" : "1");
       return;
     }
@@ -111,14 +125,15 @@ export default function VoicePractice() {
     const startTime = performance.now();
 
     const updateIntensity = (now: number) => {
-      const elapsed = (now - startTime) / 1000;
-      const phrase = Math.sin(elapsed * 1.75) * 0.35 + 0.65;
-      const syllables = Math.sin(elapsed * 4.6) * 0.26 + Math.cos(elapsed * 9.2) * 0.14;
-      const microTremor = Math.sin(elapsed * 24.3) * 0.06 + Math.cos(elapsed * 38.7) * 0.04;
-      const rawIntensity = phrase * (0.85 + syllables) + microTremor;
-      const clampedIntensity = Math.max(0.32, Math.min(1.45, rawIntensity));
-
-      el.style.setProperty("--voice-intensity", clampedIntensity.toFixed(3));
+      if (liveVolumeRef.current === null) {
+        const elapsed = (now - startTime) / 1000;
+        const phrase = Math.sin(elapsed * 1.75) * 0.35 + 0.65;
+        const syllables = Math.sin(elapsed * 4.6) * 0.26 + Math.cos(elapsed * 9.2) * 0.14;
+        const microTremor = Math.sin(elapsed * 24.3) * 0.06 + Math.cos(elapsed * 38.7) * 0.04;
+        const rawIntensity = phrase * (0.85 + syllables) + microTremor;
+        const clampedIntensity = Math.max(0.32, Math.min(1.45, rawIntensity));
+        el.style.setProperty("--voice-intensity", clampedIntensity.toFixed(3));
+      }
       animationFrameId = requestAnimationFrame(updateIntensity);
     };
 
@@ -237,17 +252,17 @@ export default function VoicePractice() {
               ? "Exprimez vos questions, doutes ou combats du jour pour obtenir des passages pertinents, des explications contextualisées et une direction de prière immédiate."
               : "Speak or type what you are wrestling with today to get relevant Bible passages, contextual explanations, and a guided prayer step immediately."}
           </p>
-          <ul className="space-y-2 my-4 text-xs text-[#5D5276] list-disc pl-4">
+          <ul className="space-y-2.5 my-5 text-sm text-[#E8E2F2] list-disc pl-4">
             <li>
-              <strong>{isFr ? "Réponses instantanées :" : "Instant answers:"}</strong>{" "}
+              <strong className="text-white">{isFr ? "Réponses instantanées :" : "Instant answers:"}</strong>{" "}
               {isFr ? "recherchez des Écritures pour l'anxiété, les décisions, la paix ou le pardon" : "search Scripture for anxiety, work decisions, burnout, or forgiveness"}
             </li>
             <li>
-              <strong>{isFr ? "Contexte vérifié :" : "Verified context:"}</strong>{" "}
+              <strong className="text-white">{isFr ? "Contexte vérifié :" : "Verified context:"}</strong>{" "}
               {isFr ? "textes complets en version Louis Segond (LSG) et Bible du Semeur sans versets tronqués" : "read full passages in ESV, NIV, and CSB with zero cherry-picked fragments"}
             </li>
             <li>
-              <strong>{isFr ? "Confidentialité totale :" : "Private to your phone:"}</strong>{" "}
+              <strong className="text-white">{isFr ? "Confidentialité totale :" : "Private to your phone:"}</strong>{" "}
               {isFr ? "enregistrez vos méditations directement dans votre journal en un geste" : "save reflections straight to your personal journal in one tap"}
             </li>
           </ul>
@@ -270,11 +285,17 @@ export default function VoicePractice() {
               <button
                 type="button"
                 onClick={() => handlePromptClick(isFr ? "Bonjour LifeBook, j'aimerais comprendre le sens de la Trinité." : "Hey LifeBook, I would like to understand the Trinity.")}
-                className="text-left font-bold text-[#1E1931] hover:text-[#705EAA] transition-colors cursor-pointer block mt-1"
+                className="text-left font-bold text-[#1E1931] dark:text-white hover:text-[#705EAA] dark:hover:text-[#4EE2D8] transition-colors cursor-pointer block mt-1"
               >
                 {isFr ? "« Bonjour LifeBook, j'aimerais comprendre le sens de la Trinité. »" : "“Hey LifeBook, I would like to understand the Trinity.”"}
               </button>
             </div>
+            <AudioWaveform
+              status={status}
+              isFr={isFr}
+              onVolumeChange={handleVolumeChange}
+              className="mt-3"
+            />
             {transcript && (
               <div className="voice-transcript">
                 <small>{isFr ? "Vous avez dit" : "You said"}</small>
@@ -321,25 +342,25 @@ export default function VoicePractice() {
               </span>
               <span className="voice-button-label">{buttonLabel}</span>
             </button>
-            <div className="flex flex-wrap gap-1.5 justify-center mt-2">
+            <div className="flex flex-wrap gap-2 justify-center mt-1">
               <button
                 type="button"
                 onClick={() => handlePromptClick(isFr ? "Versets pour apaiser l'anxiété" : "Bible verses for anxiety")}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-white/70 hover:bg-white text-[#4D4560] border border-[#2D2542]/10 transition-all cursor-pointer"
+                className="min-h-[38px] text-xs font-semibold px-3.5 py-1.5 rounded-full bg-white dark:bg-[#221C38] hover:bg-[#F2ECE1] dark:hover:bg-[#2E264A] text-[#2D2542] dark:text-[#FDFCFB] border border-[#2D2542]/15 dark:border-white/20 transition-all cursor-pointer"
               >
                 {isFr ? "✦ Anxiété" : "✦ Anxiety"}
               </button>
               <button
                 type="button"
                 onClick={() => handlePromptClick(isFr ? "Sagesse pour un choix difficile" : "Wisdom for decisions")}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-white/70 hover:bg-white text-[#4D4560] border border-[#2D2542]/10 transition-all cursor-pointer"
+                className="min-h-[38px] text-xs font-semibold px-3.5 py-1.5 rounded-full bg-white dark:bg-[#221C38] hover:bg-[#F2ECE1] dark:hover:bg-[#2E264A] text-[#2D2542] dark:text-[#FDFCFB] border border-[#2D2542]/15 dark:border-white/20 transition-all cursor-pointer"
               >
                 {isFr ? "✦ Sagesse" : "✦ Wisdom"}
               </button>
               <button
                 type="button"
                 onClick={() => handlePromptClick(isFr ? "Rendre grâce aujourd'hui" : "Gratitude in prayer")}
-                className="text-[11px] px-2.5 py-1 rounded-full bg-white/70 hover:bg-white text-[#4D4560] border border-[#2D2542]/10 transition-all cursor-pointer"
+                className="min-h-[38px] text-xs font-semibold px-3.5 py-1.5 rounded-full bg-white dark:bg-[#221C38] hover:bg-[#F2ECE1] dark:hover:bg-[#2E264A] text-[#2D2542] dark:text-[#FDFCFB] border border-[#2D2542]/15 dark:border-white/20 transition-all cursor-pointer"
               >
                 {isFr ? "✦ Gratitude" : "✦ Gratitude"}
               </button>

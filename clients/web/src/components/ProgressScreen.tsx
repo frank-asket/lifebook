@@ -1413,15 +1413,19 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
   };
 
   return (
-    <div id="progress-screen" className="page-shell text-[#1e1931]">
+    <div id="progress-screen" className="page-shell text-[#1e1931] dark:text-[#F4EFE6]">
       {deviceId && <div className="sr-only">Device: {deviceId}</div>}
 
       {/* Section Header matching landing page design system */}
       <div className="section-heading mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <Link href="/" className="text-xs font-bold text-[#705e8c] hover:underline flex items-center gap-1 uppercase tracking-[0.14em]">
+          <div className="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-[0.14em]">
+            <Link href="/" className="text-[#5A4B7C] dark:text-[#4EE2D8] hover:underline flex items-center gap-1">
               ← Home
+            </Link>
+            <span className="text-[#705e8c]">·</span>
+            <Link href="/dashboard" className="text-[#5A4B7C] dark:text-[#C8C2D6] hover:underline">
+              Daily Sanctuary
             </Link>
             <span className="text-[#705e8c]">·</span>
             <span className="showcase-eyebrow m-0">Spiritual Rhythm & Consistency</span>
@@ -1447,17 +1451,17 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
         </div>
       </div>
 
-      {/* Tab Switcher & Reminder Tool matching landing page pill styling */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[#2d2542]/10 mb-8">
-        <div id="progress-tabs" className="inline-flex rounded-full bg-[#f3edf7] border border-[#2d2542]/10 p-1.5 shadow-inner flex-wrap gap-1">
+      {/* Tab Switcher & Reminder Tool matching landing page styling */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[#2d2542]/10 dark:border-white/12 mb-8">
+        <div id="progress-tabs" className="inline-flex rounded-2xl bg-[#f3edf7] dark:bg-[#1B1630] border border-[#2d2542]/10 dark:border-white/12 p-1.5 shadow-inner flex-wrap gap-1">
           <button
             id="tab-calendar"
             type="button"
             onClick={() => setTab('calendar')}
-            className={`px-4 sm:px-5 py-2 text-xs rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[40px] px-4 sm:px-5 py-2 text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               tab === 'calendar'
-                ? 'bg-[#17151a] text-white font-bold shadow-sm'
-                : 'text-[#5d5177] hover:text-[#17151a] hover:bg-white/70 font-semibold'
+                ? 'bg-[#17151a] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] font-bold shadow-sm'
+                : 'text-[#4E4366] dark:text-[#C8C2D6] hover:text-[#17151a] dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/10 font-semibold'
             }`}
           >
             <CalendarBlank weight="bold" className="w-4 h-4" />
@@ -1467,10 +1471,10 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             id="tab-milestones"
             type="button"
             onClick={() => setTab('milestones')}
-            className={`px-4 sm:px-5 py-2 text-xs rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[40px] px-4 sm:px-5 py-2 text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               tab === 'milestones'
-                ? 'bg-[#17151a] text-white font-bold shadow-sm'
-                : 'text-[#5d5177] hover:text-[#17151a] hover:bg-white/70 font-semibold'
+                ? 'bg-[#17151a] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] font-bold shadow-sm'
+                : 'text-[#4E4366] dark:text-[#C8C2D6] hover:text-[#17151a] dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/10 font-semibold'
             }`}
           >
             <Trophy weight="bold" className="w-4 h-4" />
@@ -1480,10 +1484,10 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             id="tab-trends"
             type="button"
             onClick={() => setTab('trends')}
-            className={`px-4 sm:px-5 py-2 text-xs rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[40px] px-4 sm:px-5 py-2 text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               tab === 'trends'
-                ? 'bg-[#17151a] text-white font-bold shadow-sm'
-                : 'text-[#5d5177] hover:text-[#17151a] hover:bg-white/70 font-semibold'
+                ? 'bg-[#17151a] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] font-bold shadow-sm'
+                : 'text-[#4E4366] dark:text-[#C8C2D6] hover:text-[#17151a] dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/10 font-semibold'
             }`}
           >
             <ChartLineUp weight="bold" className="w-4 h-4" />
@@ -1493,10 +1497,10 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             id="tab-journal"
             type="button"
             onClick={() => setTab('journal')}
-            className={`px-4 sm:px-5 py-2 text-xs rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[40px] px-4 sm:px-5 py-2 text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               tab === 'journal'
-                ? 'bg-[#17151a] text-white font-bold shadow-sm'
-                : 'text-[#5d5177] hover:text-[#17151a] hover:bg-white/70 font-semibold'
+                ? 'bg-[#17151a] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] font-bold shadow-sm'
+                : 'text-[#4E4366] dark:text-[#C8C2D6] hover:text-[#17151a] dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/10 font-semibold'
             }`}
           >
             <PencilSimpleLine weight="bold" className="w-4 h-4" />
@@ -1506,10 +1510,10 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
             id="tab-pulse"
             type="button"
             onClick={() => setTab('pulse')}
-            className={`px-4 sm:px-5 py-2 text-xs rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[40px] px-4 sm:px-5 py-2 text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
               tab === 'pulse'
-                ? 'bg-[#17151a] text-white font-bold shadow-sm'
-                : 'text-[#5d5177] hover:text-[#17151a] hover:bg-white/70 font-semibold'
+                ? 'bg-[#17151a] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] font-bold shadow-sm'
+                : 'text-[#4E4366] dark:text-[#C8C2D6] hover:text-[#17151a] dark:hover:text-white hover:bg-white/70 dark:hover:bg-white/10 font-semibold'
             }`}
           >
             <Sparkle weight="bold" className="w-4 h-4" />
@@ -1522,12 +1526,13 @@ export function ProgressScreen({ deviceId }: { deviceId?: string }) {
           id="header-notification-settings-btn"
           type="button"
           onClick={() => setIsNotificationSettingsOpen(true)}
-          className="px-4 py-2.5 text-xs font-bold rounded-full border border-[#2d2542]/15 bg-white hover:bg-[#fbfaf7] text-[#1e1931] transition-all flex items-center gap-2 shadow-xs cursor-pointer group self-start lg:self-auto"
+          className="min-h-[40px] px-4 py-2.5 text-xs font-bold rounded-full border border-[#2d2542]/15 dark:border-white/20 bg-white dark:bg-[#1B1630] hover:bg-[#fbfaf7] dark:hover:bg-[#272042] text-[#1e1931] dark:text-white transition-all flex items-center gap-2 shadow-xs cursor-pointer group self-start lg:self-auto"
           title="Configure daily reminder time and mood check-in flow"
         >
-          <Bell weight="bold" className="w-4 h-4 text-[#705e8c] group-hover:text-[#1e1931] group-hover:rotate-12 transition-transform" />
-          <span className="hidden sm:inline">Daily Reminder:</span>
-          <span className="font-mono text-[#0E716D] font-extrabold bg-[#E7F7F6] px-2.5 py-0.5 rounded-full border border-[#9DE1DD]">
+          <Bell weight="bold" className="w-4 h-4 text-[#705e8c] dark:text-[#4EE2D8] group-hover:text-[#1e1931] dark:group-hover:text-white group-hover:rotate-12 transition-transform" />
+          <span className="hidden sm:inline">Daily Reminder</span>
+          <span className="text-[#705e8c]">·</span>
+          <span className="font-mono text-[#0E716D] dark:text-[#4EE2D8] font-extrabold">
             {notificationSettings.enabled ? formatReminderTime12h(notificationSettings.time) : 'Off'}
           </span>
         </button>

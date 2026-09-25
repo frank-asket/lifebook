@@ -185,28 +185,27 @@ export default function Home() {
             <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""}>{t("nav_audio_teachings")}</Link>
             <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>{t("nav_voice_search")}</Link>
           </div>
-          <div className="auth-actions flex items-center gap-2 sm:gap-3">
+          <div className="auth-actions flex items-center gap-2.5">
             <LanguageToggle />
             <ThemeToggle />
             {isSignedIn ? (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <VisualStreakCounter variant="compact" />
+              <div className="flex items-center gap-2.5">
                 <Link
                   href="/progress"
                   id="user-profile-nav-pill"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FAF8F5] border border-[#EADBFC] hover:bg-[#F2ECE1] transition-colors text-xs font-semibold text-[#2A2146]"
+                  className="pill-button pill-dark"
                   title={isFr ? "Voir vos progrès et séries" : "View your devotional progress and streaks"}
                 >
-                  <span className="w-6 h-6 rounded-full bg-[#2A2146] text-white flex items-center justify-center text-xs font-bold">
+                  <span className="w-5 h-5 rounded-full bg-white/20 text- currentColor flex items-center justify-center text-[11px] font-bold">
                     {user?.avatarInitial || "LB"}
                   </span>
-                  <span>{user?.firstName || (isFr ? "Pèlerin" : "Pilgrim")}</span>
+                  <span>{user?.firstName || (isFr ? "Mon Sanctuaire" : "My Sanctuary")}</span>
                 </Link>
                 <button
                   type="button"
                   id="nav-sign-out-btn"
                   onClick={() => signOut()}
-                  className="text-xs text-[#8A7E9F] hover:text-[#2A2146] transition-colors cursor-pointer"
+                  className="text-xs font-semibold text-[#5E5470] dark:text-[#C8C2D6] hover:text-[#1E1931] dark:hover:text-white transition-colors cursor-pointer px-2 py-1"
                 >
                   {t("nav_sign_out")}
                 </button>
@@ -357,23 +356,23 @@ export default function Home() {
             </h1>
             <p>{t("hero_desc")}</p>
 
-            <ul className="space-y-2 mb-6 text-sm text-[#463B5D]">
-              <li className="flex items-start gap-2">
-                <span className="text-[#705EAA] font-bold shrink-0">✓</span>
+            <ul className="space-y-2.5 mb-6 text-sm text-[#3D354E] dark:text-[#E2DCEF]">
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#1FB6B0] font-bold shrink-0">✓</span>
                 <span>
                   <strong>{isFr ? "Directement sur le verset du jour :" : "Open directly to today's verse:"}</strong>{" "}
                   {isFr ? "aucun temps perdu à chercher dans de longs plans" : "zero flipping through long reading plans"}
                 </span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#705EAA] font-bold shrink-0">✓</span>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#1FB6B0] font-bold shrink-0">✓</span>
                 <span>
                   <strong>{isFr ? "Prières authentiques :" : "Write honest prayers:"}</strong>{" "}
                   {isFr ? "sauvegardées en toute sécurité et intimité sur votre appareil" : "saved securely and privately on your device"}
                 </span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#705EAA] font-bold shrink-0">✓</span>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#1FB6B0] font-bold shrink-0">✓</span>
                 <span>
                   <strong>{isFr ? "Pas de découragement :" : "Never lose momentum:"}</strong>{" "}
                   {isFr ? "des jours de grâce intégrés protègent votre régularité" : "built-in grace days protect your consistency when life gets busy"}
@@ -381,10 +380,10 @@ export default function Home() {
               </li>
             </ul>
 
-            <p className="text-xs text-[#5D5276] mb-3 font-medium">
+            <p className="text-xs text-[#4E4462] dark:text-[#C8C2D6] mb-4 font-medium">
               {isFr
-                ? "Gratuit pour commencer. Aucune carte bancaire requise. Zéro engagement lourd."
-                : "Free to start. No credit card required. No 50-chapter commitments."}
+                ? "Gratuit pour commencer · Aucune carte bancaire requise · Zéro engagement lourd"
+                : "Free to start · No credit card required · No 50-chapter commitments"}
             </p>
 
             <div className="showcase-actions flex-wrap gap-3">
@@ -446,7 +445,7 @@ export default function Home() {
                 ? "Beaucoup de croyants désirent lire la Bible chaque matin, mais se heurtent à des plannings surchargés. LifeBook vous propose un rythme simple et apaisant que vous achèverez chaque jour."
                 : "Most Christians want to read the Bible daily, but struggle with busy schedules and long reading plans. LifeBook gives you a simple, repeatable morning routine you will actually finish."}
             </p>
-            <ul className="mt-4 space-y-1 text-xs text-[#5D5276] list-disc pl-4">
+            <ul className="mt-4 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
               <li>
                 <strong>{isFr ? "S'intègre à votre café :" : "Fits into your morning coffee:"}</strong>{" "}
                 {isFr ? "exactement 5 minutes du début à la fin" : "exactly 5 minutes from start to finish"}
@@ -557,7 +556,7 @@ export default function Home() {
             <p className="showcase-eyebrow">{t("journeys_eyebrow")}</p>
             <h2>{isFr ? "Terminez une étude biblique de 5 jours sans jamais décrocher." : "Finish a 5-day topical study without falling behind."}</h2>
             <p>{isFr ? "Traitez les défis concrets de la vie en séries courtes de 5 jours plutôt que dans des plans de 6 mois qu'on abandonne après deux semaines." : "Tackle real-world challenges in short 5-day sprints instead of 6-month commitments you abandon after week two."}</p>
-            <ul className="space-y-2 my-4 text-xs text-[#5D5276] list-disc pl-4">
+            <ul className="space-y-2 my-4 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
               <li>
                 <strong>{isFr ? "Allez jusqu'au bout :" : "Finish what you start:"}</strong>{" "}
                 {isFr ? "des parcours de 5 jours offrent une ligne d'arrivée claire et un vrai accomplissement" : "5-day tracks give you a clear finish line and real sense of accomplishment"}
@@ -571,8 +570,8 @@ export default function Home() {
                 {isFr ? "chaque parcours s'achève par un pas d'obéissance et de prière" : "every track concludes with practical steps for daily obedience"}
               </li>
             </ul>
-            <p className="text-xs text-[#705EAA] font-semibold mb-3">
-              {isFr ? "5 minutes par jour. Commencez ou suspendez à tout moment sans pénalité." : "Takes 5 minutes per day. Start or pause anytime without penalty."}
+            <p className="text-xs text-[#5B4894] dark:text-[#4EE2D8] font-semibold mb-4">
+              {isFr ? "5 minutes par jour · Commencez ou suspendez à tout moment sans pénalité" : "Takes 5 minutes per day · Start or pause anytime without penalty"}
             </p>
             <Link className="underlined-link" href="/sign-up">
               {isFr ? "Découvrir les parcours thématiques" : "Browse 5-day topical studies"} <ArrowIcon />
@@ -599,7 +598,7 @@ export default function Home() {
               ? "LifeBook repose sur un ancrage théologique fidèle, une stricte confidentialité des données et l'absence totale de régies publicitaires pour que votre recueillement reste centré sur Dieu."
               : "LifeBook is built with orthodox theological grounding, strict data privacy, and zero ad networks so your quiet time stays focused on God."}
           </p>
-          <ul className="space-y-2 my-4 text-xs text-[#5D5276] list-disc pl-4">
+          <ul className="space-y-2 my-4 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
             <li>
               <strong>{isFr ? "Traductions reconnues :" : "5 major translations:"}</strong>{" "}
               {isFr ? "lisez et comparez en Louis Segond (LSG), Semeur, ESV, NIV, KJV" : "read and compare passages in ESV, NIV, CSB, KJV, and NLT"}
@@ -636,7 +635,7 @@ export default function Home() {
               ? "LifeBook est conçu et relu par des pasteurs et enseignants engagés pour une doctrine solide et une vie de disciple pratique."
               : "LifeBook is curated and reviewed by pastors and biblical educators committed to sound doctrine and practical discipleship."}
           </p>
-          <ul className="mt-4 space-y-1 text-xs text-[#5D5276] list-disc pl-4 text-left max-w-md mx-auto">
+          <ul className="mt-4 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4 text-left max-w-md mx-auto">
             <li>
               <strong>{isFr ? "Veille pastorale :" : "Pastoral oversight:"}</strong>{" "}
               {isFr ? "enseignements vérifiés pour leur justesse biblique et leur sensibilité humaine" : "teachings checked for doctrinal clarity and pastoral sensitivity"}
@@ -699,8 +698,8 @@ export default function Home() {
           </div>
           <div className="closing-form">
             <p>{t("cta_desc")}</p>
-            <p className="text-xs text-[#6B5E82] font-medium mb-3">
-              {isFr ? "Sans spam. Sans carte bancaire. Désinscription en un clic à tout moment." : "No spam. No credit card. Unsubscribe in one click anytime."}
+            <p className="text-xs text-[#D5CEE6] font-medium mb-3">
+              {isFr ? "Sans spam · Sans carte bancaire · Désinscription en un clic à tout moment" : "No spam · No credit card · Unsubscribe in one click anytime"}
             </p>
             {joined ? (
               <div className="success-message">{t("cta_success")} <span>✦</span></div>
@@ -801,7 +800,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed right-6 bottom-20 md:bottom-6 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-[#1e1931] text-[#fbfaf7] shadow-lg hover:bg-[#34294f] hover:scale-105 active:scale-95 transition-all cursor-pointer border border-[#fbfaf7]/15"
+          className="hidden md:flex fixed right-6 bottom-6 z-40 items-center justify-center w-11 h-11 rounded-full bg-[#1e1931] text-[#fbfaf7] shadow-lg hover:bg-[#34294f] hover:scale-105 active:scale-95 transition-all cursor-pointer border border-[#fbfaf7]/15"
           aria-label={t("footer_back_to_top")}
           title={t("footer_back_to_top")}
         >

@@ -55,7 +55,7 @@ export default function LivingWord() {
           </div>
           <div>
             <p>{t("audio_desc")}</p>
-            <ul className="mt-3 space-y-1 text-xs text-[#5D5276] list-disc pl-4">
+            <ul className="mt-3 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
               <li><strong>{t("audio_point1_bold")}</strong> {t("audio_point1_text")}</li>
               <li><strong>{t("audio_point2_bold")}</strong> {t("audio_point2_text")}</li>
               <li><strong>{t("audio_point3_bold")}</strong> {t("audio_point3_text")}</li>
@@ -64,15 +64,15 @@ export default function LivingWord() {
         </div>
 
         {/* Main Tab Navigation: Teachings vs Playlists */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-2 border-b border-[#E3DEED]">
-          <div className="flex items-center gap-2 p-1 bg-[#ECE7F6] rounded-xl">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-3 border-b border-[#E3DEED] dark:border-white/15">
+          <div className="flex items-center gap-2 p-1 bg-[#ECE7F6] dark:bg-[#1E1836] rounded-xl">
             <button
               type="button"
               onClick={() => setMainTab("teachings")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                 mainTab === "teachings"
-                  ? "bg-[#3D2E5C] text-white shadow-sm"
-                  : "text-[#5D5276] hover:text-[#2D2542]"
+                  ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-sm"
+                  : "text-[#4E4462] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
               }`}
             >
               {isFr ? "Tous les enseignements" : "All Teachings"} ({teachings.length})
@@ -80,27 +80,24 @@ export default function LivingWord() {
             <button
               type="button"
               onClick={() => setMainTab("playlists")}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+              className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                 mainTab === "playlists"
-                  ? "bg-[#3D2E5C] text-white shadow-sm"
-                  : "text-[#5D5276] hover:text-[#2D2542]"
+                  ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-sm"
+                  : "text-[#4E4462] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
               }`}
             >
-              <span>{isFr ? "Mes listes de lecture" : "My Playlists"}</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-200 text-purple-900 font-mono">
-                {playlists.length}
-              </span>
+              <span>{isFr ? "Mes listes de lecture" : "My Playlists"} ({playlists.length})</span>
             </button>
           </div>
 
           <div className="flex items-center gap-3 text-xs">
             <Link
               href="/living-word/cms"
-              className="inline-flex items-center gap-1 font-semibold text-[#705eaa] hover:text-[#2d2542] transition-colors"
+              className="inline-flex items-center gap-1 font-semibold text-[#5B4894] dark:text-[#4EE2D8] hover:text-[#2d2542] dark:hover:text-white transition-colors"
             >
               <span>{isFr ? "Audit Pastoral CMS" : "Pastoral Review CMS"} ↗</span>
             </Link>
-            <span className="hidden sm:inline text-[#5D5276]">{t("audio_curated")}</span>
+            <span className="hidden sm:inline text-[#4E4462] dark:text-[#C8C2D6]">{t("audio_curated")}</span>
           </div>
         </div>
 
@@ -154,7 +151,7 @@ export default function LivingWord() {
                         type="button"
                         onClick={() => setActiveModalTeaching(teaching)}
                         title={isFr ? "Enregistrer dans une liste" : "Save to playlist"}
-                        className="px-3 py-2.5 rounded-xl border border-[#D5CBE4] bg-white/80 hover:bg-white text-xs font-semibold text-[#483769] hover:border-[#8E7BBF] transition-all flex items-center gap-1 shadow-xs"
+                        className="min-h-[40px] px-3.5 py-2 rounded-full border border-[#D5CBE4] dark:border-white/25 bg-white/90 dark:bg-[#1B1630] hover:bg-white dark:hover:bg-[#272042] text-xs font-semibold text-[#3D2E5C] dark:text-white transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <span>➕</span>
                         <span className="hidden sm:inline">{isFr ? "Liste" : "Playlist"}</span>
@@ -168,12 +165,12 @@ export default function LivingWord() {
         ) : (
           /* Playlists View */
           <div className="space-y-6 animate-fade-in">
-            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-gradient-to-r from-[#F4F1F9] to-[#EBE5F5] border border-[#DDD6EA]">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#F4F1F9] to-[#EBE5F5] dark:from-[#1B1630] dark:to-[#141024] border border-[#DDD6EA] dark:border-white/15">
               <div>
-                <h3 className="text-base font-bold text-[#2D2542]">
+                <h3 className="text-base font-bold text-[#2D2542] dark:text-white">
                   {isFr ? "Listes d'écoute personnalisées" : "Curated Devotional Playlists"}
                 </h3>
-                <p className="text-xs text-[#5D5276]">
+                <p className="text-xs text-[#4E4462] dark:text-[#C8C2D6] mt-0.5">
                   {isFr
                     ? "Rassemblez vos enseignements préférés pour une écoute continue le matin ou le soir."
                     : "Collect your favorite teachings for continuous morning meditation or quiet evening study."}
@@ -182,7 +179,7 @@ export default function LivingWord() {
               <button
                 type="button"
                 onClick={() => setIsCreatingInline(!isCreatingInline)}
-                className="px-4 py-2 rounded-xl bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold transition-colors shadow-xs flex items-center gap-2"
+                className="min-h-[40px] px-4 py-2 rounded-xl bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold transition-colors shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <span>+</span>
                 <span>{isFr ? "Créer une liste" : "New Playlist"}</span>
@@ -191,21 +188,21 @@ export default function LivingWord() {
 
             {/* Inline creation form */}
             {isCreatingInline && (
-              <form onSubmit={handleCreatePlaylist} className="p-5 rounded-2xl bg-white border border-[#DDD6EA] shadow-sm space-y-4 max-w-lg">
+              <form onSubmit={handleCreatePlaylist} className="p-5 rounded-2xl bg-white dark:bg-[#18142B] border border-[#DDD6EA] dark:border-white/15 shadow-sm space-y-4 max-w-lg">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-[#2D2542]">
+                  <h4 className="text-sm font-bold text-[#2D2542] dark:text-white">
                     {isFr ? "Nouvelle liste de lecture" : "Create New Playlist"}
                   </h4>
                   <button
                     type="button"
                     onClick={() => setIsCreatingInline(false)}
-                    className="text-xs text-[#8E80B4] hover:text-[#2D2542]"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-[#6E628A] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
                   >
                     ✕
                   </button>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#5D5276] mb-1">
+                  <label className="block text-xs font-medium text-[#4E4462] dark:text-[#C8C2D6] mb-1">
                     {isFr ? "Titre de la liste" : "Playlist Title"}
                   </label>
                   <input
@@ -213,12 +210,12 @@ export default function LivingWord() {
                     value={inlineTitle}
                     onChange={(e) => setInlineTitle(e.target.value)}
                     placeholder={isFr ? "Ex: Calme & Repos" : "E.g. Peace & Stillness"}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-[#D5CBE4] focus:outline-none focus:border-[#7F67B5]"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-[#D5CBE4] dark:border-white/20 bg-white dark:bg-[#120E22] text-[#2D2542] dark:text-white focus:outline-none focus:border-[#7F67B5]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#5D5276] mb-1">
+                  <label className="block text-xs font-medium text-[#4E4462] dark:text-[#C8C2D6] mb-1">
                     {isFr ? "Description facultative" : "Optional Description"}
                   </label>
                   <input
@@ -226,21 +223,21 @@ export default function LivingWord() {
                     value={inlineDesc}
                     onChange={(e) => setInlineDesc(e.target.value)}
                     placeholder={isFr ? "À propos de cette sélection..." : "What this playlist is for..."}
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D5CBE4] focus:outline-none focus:border-[#7F67B5]"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D5CBE4] dark:border-white/20 bg-white dark:bg-[#120E22] text-[#2D2542] dark:text-white focus:outline-none focus:border-[#7F67B5]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#5D5276] mb-1">
+                  <label className="block text-xs font-medium text-[#4E4462] dark:text-[#C8C2D6] mb-1">
                     {isFr ? "Icône" : "Icon"}
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {["🎧", "⏳", "🕊️", "🌱", "📖", "✝️", "🙏", "🕯️"].map((ic) => (
                       <button
                         key={ic}
                         type="button"
                         onClick={() => setInlineIcon(ic)}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm border transition-all ${
-                          inlineIcon === ic ? "bg-[#3D2E5C] text-white border-[#3D2E5C]" : "bg-white border-[#D5CBE4]"
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm border transition-all cursor-pointer ${
+                          inlineIcon === ic ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-[#3D2E5C] dark:border-[#4EE2D8]" : "bg-white dark:bg-[#120E22] border-[#D5CBE4] dark:border-white/20"
                         }`}
                       >
                         {ic}
@@ -251,7 +248,7 @@ export default function LivingWord() {
                 <button
                   type="submit"
                   disabled={!inlineTitle.trim()}
-                  className="w-full py-2.5 rounded-lg bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold shadow-xs disabled:opacity-50"
+                  className="w-full min-h-[40px] py-2.5 rounded-lg bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold shadow-xs disabled:opacity-50 cursor-pointer"
                 >
                   {isFr ? "Enregistrer la liste" : "Create Playlist"}
                 </button>
@@ -263,7 +260,7 @@ export default function LivingWord() {
               {playlists.map((playlist) => (
                 <div
                   key={playlist.id}
-                  className="bg-white rounded-2xl border border-[#E3DEED] overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                  className="bg-white dark:bg-[#18142B] rounded-2xl border border-[#E3DEED] dark:border-white/15 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
                 >
                   {/* Playlist Header Banner */}
                   <div className={`p-5 bg-gradient-to-br ${playlist.color || "from-[#5D4E7B] to-[#3B2D54]"} text-white relative`}>
@@ -271,10 +268,10 @@ export default function LivingWord() {
                       <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-2xl shadow-inner">
                         {playlist.icon || "🎧"}
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {playlist.isDefault && (
-                          <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">
-                            {isFr ? "Défaut" : "Curated"}
+                          <span className="text-xs text-white/85 font-medium">
+                            {isFr ? "Sélection LifeBook" : "Curated"}
                           </span>
                         )}
                         {!playlist.isDefault && (
@@ -282,7 +279,7 @@ export default function LivingWord() {
                             type="button"
                             onClick={() => deletePlaylist(playlist.id)}
                             title={isFr ? "Supprimer la liste" : "Delete playlist"}
-                            className="w-7 h-7 rounded-lg bg-black/20 hover:bg-rose-600/80 text-white/80 hover:text-white flex items-center justify-center text-xs transition-colors"
+                            className="w-9 h-9 rounded-lg bg-black/25 hover:bg-rose-600/85 text-white/90 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer"
                           >
                             ✕
                           </button>
@@ -290,10 +287,10 @@ export default function LivingWord() {
                       </div>
                     </div>
                     <h4 className="text-base font-bold leading-tight">{playlist.title}</h4>
-                    <p className="text-xs text-white/80 mt-1 line-clamp-2">
+                    <p className="text-xs text-white/85 mt-1 line-clamp-2">
                       {playlist.description || (isFr ? "Sélection personnalisée" : "Personal collection")}
                     </p>
-                    <div className="flex items-center gap-3 mt-3 text-[11px] text-white/70 font-mono">
+                    <div className="flex items-center gap-2 mt-3 text-xs text-white/85 font-mono">
                       <span>{playlist.itemCount} {isFr ? "titres" : "tracks"}</span>
                       <span>·</span>
                       <span>{playlist.totalDuration || "0 min"}</span>
@@ -301,41 +298,41 @@ export default function LivingWord() {
                   </div>
 
                   {/* Playlist Preview List */}
-                  <div className="p-4 flex-1 flex flex-col justify-between bg-[#FAF8FC]">
-                    <div className="space-y-1.5 mb-4">
+                  <div className="p-4 flex-1 flex flex-col justify-between bg-[#FAF8FC] dark:bg-[#141024]">
+                    <div className="space-y-2 mb-4">
                       {playlist.items && playlist.items.length > 0 ? (
                         playlist.items.slice(0, 3).map((item, idx) => (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between text-xs py-1 border-b border-[#EFEBF4] last:border-0"
+                            className="flex items-center justify-between text-xs py-1.5 border-b border-[#EFEBF4] dark:border-white/10 last:border-0"
                           >
-                            <span className="truncate font-medium text-[#2D2542]">
+                            <span className="truncate font-medium text-[#2D2542] dark:text-[#FDFCFB]">
                               {idx + 1}. {item.teachingTitle}
                             </span>
-                            <span className="text-[10px] text-[#8E80B4] flex-shrink-0 ml-2">
+                            <span className="text-xs text-[#6E628A] dark:text-[#B8B0C8] flex-shrink-0 ml-2">
                               {item.duration}
                             </span>
                           </div>
                         ))
                       ) : (
-                        <p className="text-xs text-[#8E80B4] italic py-2">
+                        <p className="text-xs text-[#6E628A] dark:text-[#B8B0C8] italic py-2">
                           {isFr ? "Aucun enseignement pour l'instant." : "No teachings added yet."}
                         </p>
                       )}
                       {playlist.items && playlist.items.length > 3 && (
-                        <p className="text-[10px] text-[#7F67B5] font-semibold pt-1">
+                        <p className="text-xs text-[#5B4894] dark:text-[#4EE2D8] font-semibold pt-1">
                           +{playlist.items.length - 3} {isFr ? "autres enseignements" : "more teachings"}
                         </p>
                       )}
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-[#EFEBF4]">
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#EFEBF4] dark:border-white/10">
                       <button
                         type="button"
                         onClick={() => setPlayingPlaylist(playlist)}
                         disabled={!playlist.items || playlist.items.length === 0}
-                        className="flex-1 py-2 px-3 rounded-xl bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40"
+                        className="flex-1 min-h-[40px] py-2 px-3 rounded-xl bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40 cursor-pointer"
                       >
                         <span>▶</span>
                         <span>{isFr ? "Écouter en continu" : "Play All"}</span>
@@ -343,7 +340,7 @@ export default function LivingWord() {
                       <button
                         type="button"
                         onClick={() => setSelectedPlaylistDetail(selectedPlaylistDetail?.id === playlist.id ? null : playlist)}
-                        className="py-2 px-3 rounded-xl border border-[#D5CBE4] hover:border-[#8E7BBF] text-[#483769] text-xs font-semibold hover:bg-white transition-colors"
+                        className="min-h-[40px] py-2 px-3.5 rounded-xl border border-[#D5CBE4] dark:border-white/20 hover:border-[#8E7BBF] text-[#483769] dark:text-[#E2DCEF] text-xs font-semibold hover:bg-white dark:hover:bg-white/10 transition-colors cursor-pointer"
                       >
                         {selectedPlaylistDetail?.id === playlist.id ? "✕" : (isFr ? "Détails" : "Manage")}
                       </button>
@@ -352,21 +349,21 @@ export default function LivingWord() {
 
                   {/* Expanded detail drawer if clicked */}
                   {selectedPlaylistDetail?.id === playlist.id && (
-                    <div className="p-4 bg-white border-t border-[#DDD6EA] space-y-2 animate-fade-in">
-                      <h5 className="text-xs font-bold text-[#2D2542] uppercase tracking-wider mb-2">
+                    <div className="p-4 bg-white dark:bg-[#18142B] border-t border-[#DDD6EA] dark:border-white/15 space-y-2 animate-fade-in">
+                      <h5 className="text-xs font-bold text-[#2D2542] dark:text-white uppercase tracking-wider mb-2">
                         {isFr ? "Tous les enseignements de la liste" : "All Teachings in Playlist"}
                       </h5>
                       {playlist.items && playlist.items.length > 0 ? (
                         playlist.items.map((item, idx) => (
-                          <div key={item.id} className="flex items-center justify-between p-2 rounded-lg bg-[#F8F6FB] text-xs">
+                          <div key={item.id} className="flex items-center justify-between p-2.5 rounded-lg bg-[#F8F6FB] dark:bg-[#120E22] text-xs">
                             <div className="min-w-0 flex-1 pr-2">
-                              <p className="font-semibold text-[#2D2542] truncate">{idx + 1}. {item.teachingTitle}</p>
-                              <p className="text-[10px] text-[#8E80B4]">{item.teacher} · {item.duration}</p>
+                              <p className="font-semibold text-[#2D2542] dark:text-white truncate">{idx + 1}. {item.teachingTitle}</p>
+                              <p className="text-xs text-[#5E5279] dark:text-[#C8C2D6] mt-0.5">{item.teacher} · {item.duration}</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <Link
                                 href={`/living-word/${item.teachingSlug}`}
-                                className="text-[10px] text-[#7F67B5] hover:underline"
+                                className="text-xs font-semibold text-[#5B4894] dark:text-[#4EE2D8] hover:underline"
                               >
                                 {isFr ? "Ouvrir ↗" : "Open ↗"}
                               </Link>
@@ -374,7 +371,7 @@ export default function LivingWord() {
                                 <button
                                   type="button"
                                   onClick={() => removeFromPlaylist(playlist.id, item.teachingSlug)}
-                                  className="text-rose-500 hover:text-rose-700 text-xs px-1"
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 dark:text-rose-400 hover:text-rose-700 text-xs"
                                   title={isFr ? "Retirer" : "Remove"}
                                 >
                                   ✕
@@ -384,7 +381,7 @@ export default function LivingWord() {
                           </div>
                         ))
                       ) : (
-                        <p className="text-xs text-[#8E80B4] italic">
+                        <p className="text-xs text-[#6E628A] dark:text-[#C8C2D6] italic">
                           {isFr ? "Utilisez le bouton ➕ sur un enseignement pour l'ajouter." : "Use the ➕ button on any teaching to add it."}
                         </p>
                       )}

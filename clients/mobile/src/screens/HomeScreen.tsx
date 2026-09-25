@@ -5,6 +5,7 @@ import { MoodChip } from '../components/MoodChip';
 import { StreakBadge } from '../components/StreakBadge';
 import { checkIn, fetchStreak, fetchPreferences, CheckinResponse, StreakRecord, ActiveJourney } from '../api/client';
 import { JourneySection } from '../components/JourneySection';
+import { DailyReminder, DAILY_REMINDER_9AM_HOUR } from '../notifications/DailyReminder';
 
 interface Props {
   deviceId: string;
@@ -30,9 +31,19 @@ export function HomeScreen({ deviceId, onContentReady, onOpenCommunity, onOpenSa
   const [pendingMood, setPendingMood] = useState<MoodId | null>(null);
   const [loadingText, setLoadingText] = useState(LOADING_MESSAGES[0]);
   const [error, setError] = useState<string | null>(null);
+  const [showProactive9AmCard, setShowProactive9AmCard] = useState(false);
 
   useEffect(() => {
-    fetchStreak(deviceId).then(r => setStreak(r.streak)).catch(() => {});
+    fetchStreak(deviceId)
+      .then(async r => {
+        setStreak(r.streak);
+        const evalRes = await DailyReminder.evaluateAndSuggestIfIncomplete({
+          streakLastCheckIn: r.streak?.lastCheckIn,
+        });
+        const isPast9Am = new Date().getHours() >= DAILY_REMINDER_9AM_HOUR;
+        setShowProactive9AmCard(!evalRes.completedToday && isPast9Am);
+      })
+      .catch(() => {});
     fetchPreferences(deviceId).then(r => setDisplayName(r.preferences?.displayName || null)).catch(() => {});
   }, [deviceId]);
 
@@ -56,6 +67,8 @@ export function HomeScreen({ deviceId, onContentReady, onOpenCommunity, onOpenSa
     try {
       const result = await checkIn(deviceId, moodId);
       setStreak(result.streak);
+      setShowProactive9AmCard(false);
+      await DailyReminder.markDailyActivityCompleted();
       onContentReady(result);
     } catch (e: any) {
       setError(e.message || 'Something went wrong. Please try again.');
@@ -87,6 +100,25 @@ export function HomeScreen({ deviceId, onContentReady, onOpenCommunity, onOpenSa
       <Text style={styles.greetingSub}>Take a moment to reflect, grow, and reconnect today.</Text>
 
       <StreakBadge streak={streak} />
+
+      {showProactive9AmCard && (
+        <View style={styles.proactiveCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.proactiveEyebrow}>☀️ 9:00 AM DAILY REMINDER</Text>
+            <Text style={styles.proactiveTitle}>Ready for a 5-minute LifeBook session?</Text>
+            <Text style={styles.proactiveDesc}>
+              You haven&apos;t completed today&apos;s activity yet. Start a quick 5-minute session to stay rooted in Scripture.
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => handleSelect('peaceful')}
+            disabled={pendingMood !== null}
+            style={styles.proactiveBtn}
+          >
+            <Text style={styles.proactiveBtnText}>Start 5-Min</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* Mood check-in */}
       <Text style={styles.eyebrow}>HOW ARE YOU FEELING TODAY?</Text>
@@ -163,4 +195,44 @@ const styles = StyleSheet.create({
   quickIcon: { fontSize: 18, marginBottom: 6 },
   quickLabel: { color: '#D8CFEC', fontSize: 11, fontWeight: '600', textAlign: 'center' },
   safety: { color: '#8A7DAD', fontSize: 11, textAlign: 'center', marginTop: 10 },
+  proactiveCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: 'rgba(31,182,176,0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(31,182,176,0.35)',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 18,
+  },
+  proactiveEyebrow: {
+    color: colors.teal,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 3,
+  },
+  proactiveTitle: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  proactiveDesc: {
+    color: '#D8CFEC',
+    fontSize: 11.5,
+    lineHeight: 16,
+  },
+  proactiveBtn: {
+    backgroundColor: colors.teal,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  proactiveBtnText: {
+    color: colors.bgDeep,
+    fontWeight: '700',
+    fontSize: 12,
+  },
 });
