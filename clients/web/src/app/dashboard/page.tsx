@@ -1,1279 +1,1292 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useLanguage } from "@/lib/i18n";
-import { LanguageToggle } from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/lib/theme";
 import { useChristianAuth } from "@/lib/christian-auth";
+import { BIBLE_CANON, getDailyMeditation, BibleBook } from "@/lib/bible-canon";
 import {
-  getStreakData,
-  getMilestoneProgress,
-  recordDailyActivity,
-  STREAK_CHANGE_EVENT,
-  type StreakData,
-} from "@/lib/streak";
-import {
-  getGracePoints,
-  getTodayRitualCompletion,
-  LIFEBOOK_RITUAL_COMPLETED_EVENT,
-  type CompletedRitualPayload,
-} from "@/lib/daily-ritual";
-import { DailyRitualModal } from "@/components/DailyRitualModal";
-import { CloudSyncBadge } from "@/components/CloudSyncBadge";
-import { PWAInstallButton } from "@/components/PWAInstallPrompt";
-import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
+  SanctuaryCloudState,
+  ReflectionEntry,
+  DailyRitualState,
+  fetchCloudState,
+  saveCloudState,
+  loadLocalState,
+  saveLocalState,
+  mergeSanctuaryStates,
+  computeNextStreak,
+} from "@/lib/cloud-sync";
+import LivingWord from "../LivingWord";
+import VoicePractice from "../VoicePractice";
 import ProgressScreen from "@/components/ProgressScreen";
-import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
-import { SanctuaryWalkthroughModal } from "@/components/SanctuaryWalkthroughModal";
-import { triggerOpenWalkthrough } from "@/lib/live-call";
-import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
-import { ChristianMelodySelector } from "@/components/ChristianMelodySelector";
-import { speakWithHumanVoice, stopHumanVoice } from "@/lib/human-voice";
+import DailyRitualModal from "@/components/DailyRitualModal";
+import CloudSyncBadge, { SyncStatus } from "@/components/CloudSyncBadge";
+import ChristianTeachingsSection from "@/components/ChristianTeachingsSection";
+import HumanVoiceSelector from "@/components/HumanVoiceSelector";
+import ChristianMelodySelector from "@/components/ChristianMelodySelector";
+import TeacherLiveCallModal from "@/components/TeacherLiveCallModal";
+import SanctuaryWalkthroughModal from "@/components/SanctuaryWalkthroughModal";
 import {
-  startChristianMelody,
-  stopChristianMelody,
-  getSavedChristianMelody,
-} from "@/lib/christian-melodies";
+  fetchActiveLiveCall,
+  ActiveTeacherLiveCall,
+  OneOnOneWebRTCSession,
+  shouldTriggerFirstLoginWalkthrough,
+  hasCompletedWalkthrough,
+} from "@/lib/live-call";
+import {
+  VoiceProfile,
+  getPreferredVoiceProfile,
+  speakWithHumanVoice,
+} from "@/lib/human-voices";
 
-export interface DashboardJournalEntry {
-  id: string;
-  date: string; // e.g. "2026-09-22" or "Yesterday · 8:30 AM"
-  isoDate: string; // "YYYY-MM-DD" for date filtering
-  time?: string;
-  text: string;
-  mood: "grateful" | "peaceful" | "seeking" | "convicted" | "doubting" | "distant" | "sabbath";
-  moodEmoji: string;
-  moodLabel: string;
-  moodColor: string;
-  scriptureRef: string;
-  scriptureSnippet?: string;
-  tags?: string[];
-  isFavorite?: boolean;
-}
+type ActiveTab = "overview" | "bible" | "voice" | "journal" | "teachers";
+type MoodKey = "peaceful" | "grateful" | "hopeful" | "seeking" | "rejoicing";
 
-const INITIAL_JOURNAL_ENTRIES: DashboardJournalEntry[] = [
-  {
-    id: "dj-1",
-    date: "2026-09-22 · 8:30 AM",
-    isoDate: "2026-09-22",
-    time: "8:30 AM",
-    text: "“The Lord is my shepherd, I shall not want.” Learning to let go of the pressure to control tomorrow and simply rest in His goodness and sovereign providence.",
-    mood: "peaceful",
-    moodEmoji: "🕊",
-    moodLabel: "Peaceful",
-    moodColor: "#37C6C2",
-    scriptureRef: "Psalm 23:1-3",
-    scriptureSnippet: "He restores my soul. He leads me in paths of righteousness for his name’s sake.",
-    tags: ["#Peace", "#Surrender", "#Abiding"],
-    isFavorite: true,
-  },
-  {
-    id: "dj-2",
-    date: "2026-09-20 · 7:15 AM",
-    isoDate: "2026-09-20",
-    time: "7:15 AM",
-    text: "Felt unsettled in the morning with impending client deadlines, but sitting quietly with Psalm 46:10 reminded me that being still before God is never wasted time.",
-    mood: "grateful",
-    moodEmoji: "🙏",
-    moodLabel: "Grateful",
-    moodColor: "#E3B15E",
-    scriptureRef: "Psalm 46:10",
-    scriptureSnippet: "Be still, and know that I am God.",
-    tags: ["#Gratitude", "#Stillness"],
-    isFavorite: false,
-  },
-  {
-    id: "dj-3",
-    date: "2026-09-18 · 9:40 PM",
-    isoDate: "2026-09-18",
-    time: "9:40 PM",
-    text: "Wrestling with direction for my work this season. Asking for wisdom from above and trusting His guidance step-by-step rather than rushing ahead.",
-    mood: "seeking",
-    moodEmoji: "🔍",
-    moodLabel: "Seeking",
-    moodColor: "#7B62B8",
-    scriptureRef: "Proverbs 3:5-6",
-    scriptureSnippet: "Trust in the Lord with all your heart, and do not lean on your own understanding.",
-    tags: ["#SeekingWisdom", "#Discernment"],
-    isFavorite: true,
-  },
-  {
-    id: "dj-4",
-    date: "2026-09-15 · 6:50 AM",
-    isoDate: "2026-09-15",
-    time: "6:50 AM",
-    text: "Nothing in all creation will be able to separate us from the love of God in Christ Jesus. Whatever the week holds, this covenant promise is immovable.",
-    mood: "peaceful",
-    moodEmoji: "🕊",
-    moodLabel: "Peaceful",
-    moodColor: "#37C6C2",
-    scriptureRef: "Romans 8:38-39",
-    scriptureSnippet: "Neither death nor life, nor angels nor rulers... will be able to separate us from the love of God.",
-    tags: ["#EternalSecurity", "#Grace"],
-    isFavorite: true,
-  },
-  {
-    id: "dj-5",
-    date: "2026-09-12 · 8:10 AM",
-    isoDate: "2026-09-12",
-    time: "8:10 AM",
-    text: "Sabbath morning stillness. Put devices on silent. Remembered that my worth is not anchored in my productivity but in Christ's finished sacrifice.",
-    mood: "sabbath",
-    moodEmoji: "🌿",
-    moodLabel: "Sabbath Rest",
-    moodColor: "#1FB6B0",
-    scriptureRef: "Genesis 2:2-3",
-    scriptureSnippet: "And on the seventh day God ended His work which He had done.",
-    tags: ["#Sabbath", "#Rest", "#Grace"],
-    isFavorite: false,
-  },
-  {
-    id: "dj-6",
-    date: "2026-09-08 · 7:00 AM",
-    isoDate: "2026-09-08",
-    time: "7:00 AM",
-    text: "“Abide in me, and I in you.” Without Him I can do nothing of eternal weight. Starting the day surrendered to the true Vine.",
-    mood: "grateful",
-    moodEmoji: "🙏",
-    moodLabel: "Grateful",
-    moodColor: "#E3B15E",
-    scriptureRef: "John 15:4-5",
-    scriptureSnippet: "As the branch cannot bear fruit by itself, unless it abides in the vine, neither can you.",
-    tags: ["#Abiding", "#VineAndBranches"],
-    isFavorite: false,
-  },
-];
+const TODAY_KEY = new Date().toISOString().split("T")[0];
 
-export default function DribbbleDashboard() {
-  const router = useRouter();
-  const { isFr } = useLanguage();
-  const { user, isSignedIn, signOut } = useChristianAuth();
-  const { playTrack, currentTrack, isPlaying: isGlobalAudioPlaying, togglePlay: toggleGlobalAudio } = useSanctuaryAudio();
+export default function DashboardPage() {
+  const { language, setLanguage, t } = useLanguage();
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const { isLoaded, isSignedIn, user, signOut } = useChristianAuth();
+  const isFr = language === "fr";
 
-  // Active view filters: 'overview' | 'audio' | 'journal' | 'heatmap' | 'community'
-  const [activeTab, setActiveTab] = useState<"overview" | "audio" | "journal" | "heatmap" | "community">(() => {
-    if (typeof window !== "undefined") {
-      const tabParam = new URLSearchParams(window.location.search).get("tab");
-      if (tabParam === "progress" || tabParam === "heatmap") return "heatmap";
-      if (tabParam === "journal") return "journal";
-      if (tabParam === "audio") return "audio";
-    }
-    return "overview";
-  });
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedScripture, setSelectedScripture] = useState<"psalm23" | "romans8" | "john15">("psalm23");
-  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [savedDevotions, setSavedDevotions] = useState<Record<string, boolean>>({ "dev-1": true });
-  const [quickPrayerText, setQuickPrayerText] = useState("");
-  const [prayerSubmitted, setPrayerSubmitted] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
+  const [selectedBookId, setSelectedBookId] = useState<string>("psalms");
+  const [selectedChapter, setSelectedChapter] = useState<number>(23);
 
-  // Persistent 14-day streak state using lib/streak.ts
-  const [streakData, setStreakData] = useState<StreakData>(() => getStreakData());
-  const [gracePoints, setGracePoints] = useState<number>(() => getGracePoints());
-  const [isRitualModalOpen, setIsRitualModalOpen] = useState<boolean>(false);
-  const [todayRitual, setTodayRitual] = useState<CompletedRitualPayload | null>(() =>
-    getTodayRitualCompletion()
+  // Cloud & Local Persisted State
+  const [sanctuaryState, setSanctuaryState] = useState<SanctuaryCloudState>(() =>
+    loadLocalState()
+  );
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("local");
+  const [isInitialCloudLoaded, setIsInitialCloudLoaded] = useState(false);
+
+  // Modals
+  const [isRitualModalOpen, setIsRitualModalOpen] = useState(false);
+  const [isLiveCallModalOpen, setIsLiveCallModalOpen] = useState(false);
+  const [isWalkthroughOpen, setIsWalkthroughOpen] = useState(false);
+  const [activeLiveCall, setActiveLiveCall] =
+    useState<ActiveTeacherLiveCall | null>(null);
+  const [activeOneOnOneCall, setActiveOneOnOneCall] =
+    useState<OneOnOneWebRTCSession | null>(null);
+
+  // Daily Meditation
+  const [dailyMeditation, setDailyMeditation] = useState(() =>
+    getDailyMeditation(0)
+  );
+  const [isSpeakingDaily, setIsSpeakingDaily] = useState(false);
+  const [selectedVoiceProfile, setSelectedVoiceProfile] = useState<VoiceProfile>(
+    () => getPreferredVoiceProfile(language)
   );
 
-  // Journal tab specific filter & search states
+  // Journal Form State
+  const [reflectionTitle, setReflectionTitle] = useState("");
+  const [reflectionContent, setReflectionContent] = useState("");
+  const [reflectionReference, setReflectionReference] = useState("");
+  const [reflectionMood, setReflectionMood] = useState<MoodKey>("peaceful");
   const [journalSearch, setJournalSearch] = useState("");
-  const [journalDateFilter, setJournalDateFilter] = useState(""); // YYYY-MM-DD
-  const [journalEntries, setJournalEntries] = useState<DashboardJournalEntry[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("lifebook.dashboard.journal");
-        if (stored) return JSON.parse(stored);
-      } catch {
-        // fallback
-      }
-    }
-    return INITIAL_JOURNAL_ENTRIES;
-  });
+  const [journalMoodFilter, setJournalMoodFilter] = useState<MoodKey | "all">(
+    "all"
+  );
+  const [savedToast, setSavedToast] = useState(false);
+
+  // Voice Note Recording inside Journal
+  const [isRecordingPrayer, setIsRecordingPrayer] = useState(false);
+  const [recordedVoiceTranscript, setRecordedVoiceTranscript] = useState("");
+  const [recordingDurationSec, setRecordingDurationSec] = useState(0);
+  const recognitionRef = useRef<any>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const handleStreakChange = (e: Event) => {
-      const customEvt = e as CustomEvent<StreakData>;
-      if (customEvt.detail) {
-        setStreakData(customEvt.detail);
-      } else {
-        setStreakData(getStreakData());
-      }
-      setGracePoints(getGracePoints());
-      setTodayRitual(getTodayRitualCompletion());
-    };
+    const dayOfYear = Math.floor(
+      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) /
+        86400000
+    );
+    const med = getDailyMeditation(dayOfYear);
+    setDailyMeditation(med);
+    setReflectionReference(
+      isFr
+        ? `${med.book.name.fr} ${med.chapter.chapter}:${med.verse.verse}`
+        : `${med.book.name.en} ${med.chapter.chapter}:${med.verse.verse}`
+    );
+  }, [isFr]);
 
-    const handleRitualComplete = (e: Event) => {
-      const customEvt = e as CustomEvent<CompletedRitualPayload>;
-      if (customEvt.detail) {
-        setTodayRitual(customEvt.detail);
-        setStreakData(customEvt.detail.updatedStreak);
-        setGracePoints(customEvt.detail.totalGracePoints);
-      }
-      try {
-        const stored = localStorage.getItem("lifebook.dashboard.journal");
-        if (stored) setJournalEntries(JSON.parse(stored));
-      } catch {
-        // ignore
+  // Keep voice profile synced when language changes
+  useEffect(() => {
+    setSelectedVoiceProfile(getPreferredVoiceProfile(language));
+  }, [language]);
+
+  // Poll for active teacher live call & 1-on-1 WebRTC session
+  useEffect(() => {
+    let mounted = true;
+    const checkCalls = async () => {
+      const state = await fetchActiveLiveCall();
+      if (mounted) {
+        setActiveLiveCall(state.activeCall);
+        setActiveOneOnOneCall(state.oneOnOneSession);
       }
     };
-
-    window.addEventListener(STREAK_CHANGE_EVENT, handleStreakChange);
-    window.addEventListener(LIFEBOOK_RITUAL_COMPLETED_EVENT, handleRitualComplete);
-    window.addEventListener("storage", handleStreakChange);
+    checkCalls();
+    const interval = setInterval(checkCalls, 5000);
     return () => {
-      window.removeEventListener(STREAK_CHANGE_EVENT, handleStreakChange);
-      window.removeEventListener(LIFEBOOK_RITUAL_COMPLETED_EVENT, handleRitualComplete);
-      window.removeEventListener("storage", handleStreakChange);
+      mounted = false;
+      clearInterval(interval);
     };
   }, []);
 
-  const milestone = useMemo(() => {
-    return getMilestoneProgress(streakData.currentStreak);
-  }, [streakData.currentStreak]);
+  // Trigger interactive step-by-step walkthrough automatically on first login
+  useEffect(() => {
+    if (!isLoaded) return;
+    const email = user?.email;
+    if (
+      shouldTriggerFirstLoginWalkthrough(email) ||
+      !hasCompletedWalkthrough(email)
+    ) {
+      setIsWalkthroughOpen(true);
+    }
+  }, [isLoaded, user?.email]);
 
-  const scriptures = {
-    psalm23: {
-      ref: isFr ? "Psaume 23:1-3 (LSG)" : "Psalm 23:1-3 (ESV)",
-      text: isFr
-        ? "« L'Éternel est mon berger : je ne manquerai de rien. Il me fait reposer dans de verts pâturages, Il me dirige près des eaux paisibles. Il restaure mon âme. »"
-        : "“The Lord is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul.”",
-      theme: isFr ? "Repos et Providence Divine" : "Rest & Divine Providence",
-      verseCount: "3 verses · 90s read",
+  // Initial Load & Merge from Cloud if signed in
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const local = loadLocalState();
+    setSanctuaryState(local);
+
+    if (isSignedIn) {
+      setSyncStatus("syncing");
+      fetchCloudState()
+        .then((res) => {
+          if (res.authenticated && res.state) {
+            const merged = mergeSanctuaryStates(local, res.state);
+            setSanctuaryState(merged);
+            saveLocalState(merged);
+            setSyncStatus("synced");
+          } else {
+            setSyncStatus("local");
+          }
+          setIsInitialCloudLoaded(true);
+        })
+        .catch(() => {
+          setSyncStatus("local");
+          setIsInitialCloudLoaded(true);
+        });
+    } else {
+      setSyncStatus("local");
+      setIsInitialCloudLoaded(true);
+    }
+  }, [isLoaded, isSignedIn]);
+
+  // Helper to update state & persist to Local + Cloud
+  const updateSanctuaryState = useCallback(
+    (updater: (prev: SanctuaryCloudState) => SanctuaryCloudState) => {
+      setSanctuaryState((prev) => {
+        const next = updater(prev);
+        const stamped: SanctuaryCloudState = {
+          ...next,
+          updatedAt: new Date().toISOString(),
+        };
+        saveLocalState(stamped);
+
+        if (isSignedIn) {
+          setSyncStatus("syncing");
+          saveCloudState(stamped)
+            .then((ok) => {
+              setSyncStatus(ok ? "synced" : "local");
+            })
+            .catch(() => {
+              setSyncStatus("local");
+            });
+        }
+        return stamped;
+      });
     },
-    romans8: {
-      ref: isFr ? "Romains 8:38-39 (LSG)" : "Romans 8:38-39 (ESV)",
-      text: isFr
-        ? "« Car j'ai l'assurance que ni la mort ni la vie, ni les anges ni les dominations... ne pourra nous séparer de l'amour de Dieu manifesté en Jésus-Christ notre Seigneur. »"
-        : "“For I am sure that neither death nor life, nor angels nor rulers... will be able to separate us from the love of God in Christ Jesus our Lord.”",
-      theme: isFr ? "Sécurité Éternelle & Grâce" : "Eternal Security & Grace",
-      verseCount: "2 verses · 60s read",
-    },
-    john15: {
-      ref: isFr ? "Jean 15:4-5 (LSG)" : "John 15:4-5 (ESV)",
-      text: isFr
-        ? "« Demeurez en moi, et je demeurerai en vous. Comme le sarment ne peut de lui-même porter du fruit... ainsi vous ne le pouvez non plus, si vous ne demeurez en moi. »"
-        : "“Abide in me, and I in you. As the branch cannot bear fruit by itself, unless it abides in the vine, neither can you, unless you abide in me.”",
-      theme: isFr ? "Demeurer dans la Vigne" : "Abiding in the True Vine",
-      verseCount: "2 verses · 75s read",
-    },
+    [isSignedIn]
+  );
+
+  const handleManualSync = async () => {
+    if (!isSignedIn) return;
+    setSyncStatus("syncing");
+    const ok = await saveCloudState(sanctuaryState);
+    setSyncStatus(ok ? "synced" : "local");
   };
 
-  const handleToggleSave = (id: string) => {
-    setSavedDevotions((prev) => ({
+  // Speak daily verse with authentic regional voice
+  const toggleSpeakDailyVerse = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (isSpeakingDaily) {
+      window.speechSynthesis.cancel();
+      setIsSpeakingDaily(false);
+      return;
+    }
+
+    const text = isFr ? dailyMeditation.verse.fr : dailyMeditation.verse.en;
+    speakWithHumanVoice({
+      text,
+      profile: selectedVoiceProfile,
+      onStart: () => setIsSpeakingDaily(true),
+      onEnd: () => setIsSpeakingDaily(false),
+      onError: () => setIsSpeakingDaily(false),
+    });
+  };
+
+  // Mark chapter completed
+  const handleMarkChapterRead = (bookId: string, chapter: number) => {
+    const chapterKey = `${bookId}-${chapter}`;
+    updateSanctuaryState((prev) => {
+      const alreadyCompleted = prev.completedChapters.includes(chapterKey);
+      const nextCompleted = alreadyCompleted
+        ? prev.completedChapters
+        : [...prev.completedChapters, chapterKey];
+      const streakUpdate = computeNextStreak(prev.streak, prev.lastActiveDate);
+
+      return {
+        ...prev,
+        completedChapters: nextCompleted,
+        streak: streakUpdate.streak,
+        lastActiveDate: streakUpdate.lastActiveDate,
+      };
+    });
+  };
+
+  // Record spoken verse from VoicePractice
+  const handleVerseSpoken = () => {
+    updateSanctuaryState((prev) => {
+      const streakUpdate = computeNextStreak(prev.streak, prev.lastActiveDate);
+      const isTodayRitual = prev.dailyRitual?.date === TODAY_KEY;
+      const updatedRitual: DailyRitualState = isTodayRitual
+        ? { ...prev.dailyRitual, stepSpeakDone: true }
+        : {
+            date: TODAY_KEY,
+            stepReadDone: false,
+            stepSpeakDone: true,
+            stepReflectDone: false,
+            completedAt: null,
+          };
+
+      return {
+        ...prev,
+        versesSpoken: prev.versesSpoken + 1,
+        streak: streakUpdate.streak,
+        lastActiveDate: streakUpdate.lastActiveDate,
+        dailyRitual: updatedRitual,
+      };
+    });
+  };
+
+  // Update Daily Ritual state
+  const handleUpdateRitual = (nextRitual: DailyRitualState) => {
+    updateSanctuaryState((prev) => {
+      const streakUpdate = computeNextStreak(prev.streak, prev.lastActiveDate);
+      return {
+        ...prev,
+        dailyRitual: nextRitual,
+        streak: streakUpdate.streak,
+        lastActiveDate: streakUpdate.lastActiveDate,
+      };
+    });
+  };
+
+  // Complete Daily Ritual & save reflection
+  const handleCompleteRitualWithReflection = (
+    reflectionText: string,
+    reference: string
+  ) => {
+    const newEntry: ReflectionEntry = {
+      id: `ritual-${Date.now()}`,
+      title: isFr
+        ? `Méditation du Rituel Quotidien (${reference})`
+        : `Daily Ritual Meditation (${reference})`,
+      content: reflectionText,
+      scriptureReference: reference,
+      mood: "peaceful",
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    updateSanctuaryState((prev) => {
+      const streakUpdate = computeNextStreak(prev.streak, prev.lastActiveDate);
+      return {
+        ...prev,
+        reflections: [newEntry, ...prev.reflections],
+        versesSpoken: prev.versesSpoken + 1,
+        streak: streakUpdate.streak,
+        lastActiveDate: streakUpdate.lastActiveDate,
+        dailyRitual: {
+          date: TODAY_KEY,
+          stepReadDone: true,
+          stepSpeakDone: true,
+          stepReflectDone: true,
+          completedAt: new Date().toISOString(),
+        },
+      };
+    });
+  };
+
+  // Voice Note Prayer Recording in Journal
+  const toggleRecordPrayerVoiceNote = () => {
+    if (isRecordingPrayer) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+      setIsRecordingPrayer(false);
+      return;
+    }
+
+    setRecordedVoiceTranscript("");
+    setRecordingDurationSec(0);
+    setIsRecordingPrayer(true);
+
+    recordingTimerRef.current = setInterval(() => {
+      setRecordingDurationSec((prev) => prev + 1);
+    }, 1000);
+
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = isFr ? "fr-FR" : "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onresult = (event: any) => {
+          let transcript = "";
+          for (let i = 0; i < event.results.length; i++) {
+            transcript += event.results[i][0].transcript + " ";
+          }
+          setRecordedVoiceTranscript(transcript.trim());
+          setReflectionContent((prev) => {
+            if (!prev.trim()) return transcript.trim();
+            return prev;
+          });
+        };
+
+        recognition.onerror = () => {
+          setIsRecordingPrayer(false);
+          if (recordingTimerRef.current)
+            clearInterval(recordingTimerRef.current);
+        };
+
+        recognition.onend = () => {
+          setIsRecordingPrayer(false);
+          if (recordingTimerRef.current)
+            clearInterval(recordingTimerRef.current);
+        };
+
+        recognitionRef.current = recognition;
+        try {
+          recognition.start();
+        } catch {}
+      }
+    }
+  };
+
+  // Save Journal Reflection
+  const handleSaveReflection = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reflectionTitle.trim() && !reflectionContent.trim()) return;
+
+    const newEntry: ReflectionEntry = {
+      id: `ref-${Date.now()}`,
+      title:
+        reflectionTitle.trim() ||
+        (isFr ? "Prière du Sanctuaire" : "Sanctuary Prayer"),
+      content: reflectionContent.trim(),
+      scriptureReference:
+        reflectionReference.trim() || (isFr ? "Psaumes 23:1" : "Psalms 23:1"),
+      mood: reflectionMood,
+      createdAt: new Date().toISOString().split("T")[0],
+      voiceNoteTranscript: recordedVoiceTranscript || undefined,
+      voiceNoteDurationSec:
+        recordingDurationSec > 0 ? recordingDurationSec : undefined,
+    };
+
+    updateSanctuaryState((prev) => {
+      const streakUpdate = computeNextStreak(prev.streak, prev.lastActiveDate);
+      return {
+        ...prev,
+        reflections: [newEntry, ...prev.reflections],
+        streak: streakUpdate.streak,
+        lastActiveDate: streakUpdate.lastActiveDate,
+      };
+    });
+
+    setReflectionTitle("");
+    setReflectionContent("");
+    setRecordedVoiceTranscript("");
+    setRecordingDurationSec(0);
+    setSavedToast(true);
+    setTimeout(() => setSavedToast(false), 3000);
+  };
+
+  const handleDeleteReflection = (id: string) => {
+    updateSanctuaryState((prev) => ({
       ...prev,
-      [id]: !prev[id],
+      reflections: prev.reflections.filter((r) => r.id !== id),
     }));
   };
 
-  const handlePostPrayer = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quickPrayerText.trim()) return;
-
-    // Add entry to journalEntries
-    const today = new Date();
-    const isoDate = today.toISOString().slice(0, 10);
-    const timeFormatted = today.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    const newEntry: DashboardJournalEntry = {
-      id: `dj-${Date.now()}`,
-      date: `${isoDate} · ${timeFormatted}`,
-      isoDate,
-      time: timeFormatted,
-      text: quickPrayerText.trim(),
-      mood: "peaceful",
-      moodEmoji: "🕊",
-      moodLabel: isFr ? "Prière & Paix" : "Peaceful Prayer",
-      moodColor: "#37C6C2",
-      scriptureRef: scriptures[selectedScripture].ref,
-      scriptureSnippet: scriptures[selectedScripture].text.slice(0, 80) + "...",
-      tags: ["#Prayer", "#MorningQuietTime"],
-      isFavorite: false,
-    };
-
-    setJournalEntries((prev) => {
-      const updated = [newEntry, ...prev];
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("lifebook.dashboard.journal", JSON.stringify(updated));
-        } catch {
-          // ignore
-        }
-      }
-      return updated;
-    });
-
-    // Record daily activity into streak tracker
-    const updatedStreak = recordDailyActivity(false);
-    setStreakData(updatedStreak);
-
-    setPrayerSubmitted(true);
-    setTimeout(() => {
-      setQuickPrayerText("");
-      setPrayerSubmitted(false);
-    }, 3000);
+  const openBookInBible = (book: BibleBook, chapter = 1) => {
+    setSelectedBookId(book.id);
+    setSelectedChapter(chapter);
+    setActiveTab("bible");
   };
 
-  // Filter journal entries based on Scripture reference or date or search query
-  const filteredJournalEntries = useMemo(() => {
-    return journalEntries.filter((entry) => {
-      // Date filter check
-      if (journalDateFilter) {
-        if (entry.isoDate !== journalDateFilter && !entry.date.includes(journalDateFilter)) {
-          return false;
-        }
-      }
+  // Interactive Walkthrough Feature Action Handler
+  const handleWalkthroughFeatureAction = (actionId: string) => {
+    if (actionId === "open-daily-ritual") {
+      setIsRitualModalOpen(true);
+    } else if (actionId === "open-voice-tab") {
+      setActiveTab("voice");
+    } else if (actionId === "open-live-call") {
+      setIsLiveCallModalOpen(true);
+    } else if (actionId === "focus-melodies") {
+      setActiveTab("overview");
+      const el = document.getElementById("christian-melodies-panel");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
-      // Search query check: matches Scripture reference, text, tags, or mood
-      if (journalSearch.trim()) {
-        const query = journalSearch.toLowerCase().trim();
-        const refMatch = entry.scriptureRef.toLowerCase().includes(query);
-        const textMatch = entry.text.toLowerCase().includes(query);
-        const dateMatch = entry.date.toLowerCase().includes(query) || entry.isoDate.includes(query);
-        const tagMatch = Boolean(entry.tags?.some((t) => t.toLowerCase().includes(query)));
-        const moodMatch = entry.moodLabel.toLowerCase().includes(query);
+  const verseReference = isFr
+    ? `${dailyMeditation.book.name.fr} ${dailyMeditation.chapter.chapter}:${dailyMeditation.verse.verse}`
+    : `${dailyMeditation.book.name.en} ${dailyMeditation.chapter.chapter}:${dailyMeditation.verse.verse}`;
 
-        if (!refMatch && !textMatch && !dateMatch && !tagMatch && !moodMatch) {
-          return false;
-        }
-      }
+  const verseText = isFr ? dailyMeditation.verse.fr : dailyMeditation.verse.en;
+  const meditationNote = isFr
+    ? dailyMeditation.verse.meditation.fr
+    : dailyMeditation.verse.meditation.en;
 
-      return true;
-    });
-  }, [journalEntries, journalDateFilter, journalSearch]);
+  const isTodayRitualComplete =
+    sanctuaryState.dailyRitual?.date === TODAY_KEY &&
+    Boolean(sanctuaryState.dailyRitual?.completedAt);
 
+  const moodLabels: Record<MoodKey, string> = {
+    peaceful: t("journal.moods.peaceful"),
+    grateful: t("journal.moods.grateful"),
+    hopeful: t("journal.moods.hopeful"),
+    seeking: t("journal.moods.seeking"),
+    rejoicing: t("journal.moods.rejoicing"),
+  };
+
+  const filteredReflections = sanctuaryState.reflections.filter((entry) => {
+    const matchesMood =
+      journalMoodFilter === "all" || entry.mood === journalMoodFilter;
+    const q = journalSearch.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      entry.title.toLowerCase().includes(q) ||
+      entry.content.toLowerCase().includes(q) ||
+      entry.scriptureReference.toLowerCase().includes(q);
+    return matchesMood && matchesSearch;
+  });
+
+  const displayName =
+    user?.firstName ||
+    user?.fullName ||
+    (isFr ? "Pèlerin Bien-Aimé" : "Beloved Pilgrim");
+
+  const hasAnyLiveSession = Boolean(activeLiveCall || activeOneOnOneCall);
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#120F1D] text-[#1E1931] dark:text-[#F4EFE6] flex flex-col font-sans transition-colors">
-      {/* Top Sanctuary App Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#171326]/95 backdrop-blur-md border-b border-[#2D2542]/10 dark:border-white/12 px-4 sm:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          {/* Brand Logo & Wordmark */}
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-serif text-sm font-bold shadow-xs group-hover:scale-105 transition-transform">
+    <div className="min-h-screen flex flex-col bg-[#FAF8F5] dark:bg-[#12100E] text-stone-900 dark:text-stone-100">
+      {/* Disciplined 3-Zone Sanctuary Header */}
+      <header className="sticky top-0 z-30 border-b border-stone-300/80 dark:border-stone-800 bg-[#FAF8F5]/95 dark:bg-[#12100E]/95 backdrop-blur-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          {/* Zone 1: Brand & Cloud Ledger Status */}
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded bg-stone-900 dark:bg-stone-100 flex items-center justify-center text-stone-50 dark:text-stone-900 font-serif font-bold text-sm tracking-wider">
                 LB
               </div>
-              <div>
-                <span className="font-serif font-bold text-lg tracking-tight text-[#1E1931] dark:text-white block leading-none">
-                  LifeBook
-                </span>
-                <span className="text-xs font-mono uppercase tracking-wider text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
-                  {isFr ? "Sanctuaire Quotidien" : "Daily Sanctuary"}
-                </span>
-              </div>
+              <span className="text-base sm:text-lg font-serif font-bold tracking-tight text-stone-900 dark:text-stone-100">
+                LifeBook
+              </span>
             </Link>
 
-            {/* Quick Navigation Links */}
-            <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
-              <button
-                type="button"
-                onClick={() => setActiveTab("overview")}
-                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                  activeTab !== "heatmap"
-                    ? "text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10"
-                    : "hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10"
-                }`}
-              >
-                {isFr ? "Tableau de Bord" : "Dashboard"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("heatmap")}
-                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
-                  activeTab === "heatmap"
-                    ? "text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10"
-                    : "hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10"
-                }`}
-              >
-                {isFr ? "Progrès & Habitudes" : "Progress & Rhythm"}
-              </button>
-              <Link href="/living-word" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
-                {isFr ? "Enseignements" : "Teachings"}
-              </Link>
-              <Link href="/teachers" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
-                {isFr ? "Portail des Pasteurs" : "Teachers Portal"}
-              </Link>
-              <Link href="/voice" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
-                {isFr ? "Prière Vocale" : "Voice Practice"}
-              </Link>
-              <button
-                type="button"
-                onClick={triggerOpenWalkthrough}
-                className="px-3 py-2 rounded-lg text-[#0E726D] dark:text-[#4EE2D8] hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors cursor-pointer whitespace-nowrap"
-              >
-                {isFr ? "Guide des Fonctionnalités" : "Feature Walkthrough"}
-              </button>
-            </nav>
-          </div>
-
-          {/* Search Box & Controls */}
-          <div className="flex items-center gap-2.5">
-            <div className="relative hidden sm:block w-48 lg:w-64">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={isFr ? "Rechercher passage, thème..." : "Search passage, topic..."}
-                className="w-full pl-8 pr-3 py-2 text-xs bg-[#F2ECE1] dark:bg-[#1E1836] text-[#1E1931] dark:text-white rounded-xl border border-transparent focus:border-[#2D2542]/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-[#120E22] outline-none transition-all placeholder:text-[#6E6285] dark:placeholder:text-[#A9A0BC]"
-              />
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-[#6E6285]" aria-hidden="true">
-                🔍
-              </span>
-            </div>
-
-            <LanguageToggle />
-            <ThemeToggle />
-
-            {/* User Profile & Session Controls */}
-            <div className="flex items-center gap-2 pl-2 border-l border-[#2D2542]/10 dark:border-white/12">
-              <div className="w-8 h-8 rounded-full bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-bold text-xs shadow-xs">
-                {user?.firstName?.charAt(0) || "P"}
+            {isInitialCloudLoaded && (
+              <div className="hidden lg:block">
+                <CloudSyncBadge
+                  status={syncStatus}
+                  lastSyncedAt={sanctuaryState.updatedAt}
+                  onManualSync={handleManualSync}
+                />
               </div>
-              <span className="text-xs font-bold text-[#1E1931] dark:text-white hidden lg:inline">
-                {user?.fullName || (isFr ? "Pèlerin" : "Pilgrim")}
-              </span>
-              {isSignedIn ? (
-                <button
-                  type="button"
-                  id="dashboard-sign-out-btn"
-                  onClick={async () => {
-                    await signOut();
-                    router.push("/?marketing=1");
-                  }}
-                  className="text-xs font-semibold text-[#6E6285] dark:text-[#B8B0C8] hover:text-[#1E1931] dark:hover:text-white transition-colors cursor-pointer px-2 py-1"
-                >
-                  {isFr ? "Déconnexion" : "Sign out"}
-                </button>
-              ) : (
-                <Link
-                  href="/sign-in"
-                  className="text-xs font-semibold text-[#2D2542] dark:text-[#4EE2D8] hover:underline px-2 py-1 whitespace-nowrap"
-                >
-                  {isFr ? "Connexion" : "Sign in"}
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8 space-y-8">
-        {/* Editorial Greeting Header */}
-        <div className="rounded-3xl bg-gradient-to-r from-[#211B3B] via-[#2F2652] to-[#1A1530] text-white p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-[#E3B15E]/15 blur-3xl pointer-events-none" />
-          <div className="absolute -left-10 -bottom-10 w-60 h-60 rounded-full bg-[#56C2B4]/15 blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 max-w-2xl">
-            <div className="flex items-center gap-2 mb-2 text-xs font-mono">
-              <span className="font-bold uppercase tracking-wider text-[#FFD770]">
-                {isFr ? "MÉDITATION DU JOUR" : "TODAY'S 5-MINUTE DEVOTION"}
-              </span>
-              <span className="text-white/60">·</span>
-              <span className="text-white/85">5 MIN / 3 STEPS</span>
-            </div>
-            <h1 className="text-2xl sm:text-4xl font-serif font-bold tracking-tight">
-              {isFr
-                ? "« Il me fait reposer dans de verts pâturages. »"
-                : "“He leads me beside still waters. He restores my soul.”"}
-            </h1>
-            <p className="mt-2 text-xs sm:text-sm text-white/85 leading-relaxed">
-              {isFr
-                ? "Déposez vos urgences avant vos réunions du matin. Écoutez le commentaire d'enseignement, notez votre méditation et préservez votre série de grâce."
-                : "Anchor in quiet confidence before beginning work email. Stream audio commentary, reflect privately, and protect your 14-day discipleship streak."}
-            </p>
+            )}
           </div>
 
-          <div className="relative z-10 flex items-center gap-3 shrink-0 flex-wrap">
-            <button
-              type="button"
-              id="dashboard-start-ritual-btn"
-              onClick={() => setIsRitualModalOpen(true)}
-              className="min-h-[42px] px-5 py-2.5 rounded-full bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-xs font-bold shadow-lg transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <span>✦</span>
-              <span>
-                {todayRitual
-                  ? isFr
-                    ? "Méditation du jour scellée ✓ (Revoir)"
-                    : "Today's Ritual Sealed ✓ (Review)"
-                  : isFr
-                  ? "Démarrer le Rituel 5-Min (3 Étapes)"
-                  : "Begin 5-Min Guided Ritual (3 Steps)"}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (currentTrack) {
-                  toggleGlobalAudio();
-                } else {
-                  playTrack("psalm-23-still-waters");
-                }
-                setIsAudioPlaying(!isAudioPlaying);
-              }}
-              className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <span>{isGlobalAudioPlaying ? "⏸ Pause Audio" : "▶ 3-Min Audio"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("heatmap")}
-              className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>{isFr ? "Progrès & Graphiques" : "Progress & Rhythm"}</span>
-              <span aria-hidden="true">→</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Category & Sub-View Filter Segmented Bar */}
-        <div className="flex items-center justify-between gap-4 border-b border-[#2D2542]/10 dark:border-white/12 pb-4 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-2">
-            {[
-              { id: "overview" as const, label: isFr ? "Vue d'Ensemble" : "Overview", icon: "✨" },
-              { id: "heatmap" as const, label: isFr ? "Progrès, Graphiques & Sabbat" : "Progress, Charts & Heatmap", icon: "🔥" },
-              { id: "journal" as const, label: isFr ? "Journal Intime" : "Soul Journal", icon: "✍️" },
-              { id: "audio" as const, label: isFr ? "Studio Audio" : "Living Word Audio", icon: "🎙️" },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
+          {/* Zone 2: Primary Sanctuary Navigation Tabs (Desktop) */}
+          <nav className="hidden md:flex items-center gap-1">
+            {(
+              [
+                { id: "overview", label: t("dashboard.tabs.overview") },
+                { id: "bible", label: t("dashboard.tabs.bible") },
+                { id: "voice", label: t("dashboard.tabs.voice") },
+                { id: "journal", label: t("dashboard.tabs.journal") },
+                { id: "teachers", label: t("dashboard.tabs.teachers") },
+              ] as { id: ActiveTab; label: string }[]
+            ).map((tab) => {
+              const active = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`min-h-[40px] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    isActive
-                      ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
-                      : "bg-white dark:bg-[#1B1630] text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#EAE4D7] dark:hover:bg-[#272042] border border-[#2D2542]/10 dark:border-white/12"
+                  className={`px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer border-b-2 ${
+                    active
+                      ? "border-amber-800 dark:border-amber-400 text-stone-900 dark:text-stone-100 font-semibold"
+                      : "border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200"
                   }`}
                 >
-                  <span>{tab.icon}</span>
-                  <span>{tab.label}</span>
+                  {tab.label}
                 </button>
               );
             })}
-          </div>
+          </nav>
 
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Zone 3: Consolidated Utility & Live WebRTC Controls */}
+          <div className="flex items-center gap-2">
+            {/* WebRTC Live Call Button (1-on-1 & 40-Seat) */}
             <button
               type="button"
-              onClick={triggerOpenWalkthrough}
-              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/15 dark:border-white/15 text-xs font-bold text-[#1E1931] dark:text-white hover:bg-[#F2ECE1] dark:hover:bg-[#272042] transition-colors cursor-pointer whitespace-nowrap"
+              onClick={() => setIsLiveCallModalOpen(true)}
+              className={`px-3 py-1.5 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors flex items-center gap-2 cursor-pointer border ${
+                hasAnyLiveSession
+                  ? "bg-emerald-800 text-white border-emerald-900"
+                  : "border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-200/60 dark:hover:bg-stone-800"
+              }`}
             >
-              ✦ {isFr ? "Guide d'Utilisation (6)" : "Walkthrough Guide (6)"}
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${
+                  hasAnyLiveSession
+                    ? "bg-emerald-300 animate-pulse"
+                    : "bg-amber-700 dark:bg-amber-400"
+                }`}
+              />
+              <span>
+                {activeOneOnOneCall
+                  ? isFr
+                    ? "Appel 1-à-1"
+                    : "1-on-1 Live"
+                  : activeLiveCall
+                  ? `${isFr ? "Direct" : "Live"} (${activeLiveCall.participants.length}/40)`
+                  : isFr
+                  ? "Appel WebRTC"
+                  : "WebRTC Call"}
+              </span>
             </button>
-            <CloudSyncBadge />
-            <PWAInstallButton />
-          </div>
-        </div>
 
-        {/* TEACHER-HOSTED LIVE SANCTUARY CALL (MAX 40 USERS · TEACHERS ONLY START) */}
-        <section id="dashboard-live-call-section">
-          <TeacherLiveCallBanner />
-        </section>
+            {/* Walkthrough Orientation Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsWalkthroughOpen(true)}
+              title={
+                isFr
+                  ? "Ouvrir le guide d'orientation étape par étape"
+                  : "Open interactive step-by-step orientation"
+              }
+              className="px-2.5 py-1.5 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono uppercase tracking-wider text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-colors cursor-pointer"
+            >
+              {isFr ? "Guide" : "Guide"}
+            </button>
 
-        {/* FULL HUMAN VOICE STUDIO WHEN ON AUDIO TAB */}
-        {activeTab === "audio" && (
-          <section>
-            <HumanVoiceSelector />
-          </section>
-        )}
-
-        {/* VIEW 1: OVERVIEW DASHBOARD GRID */}
-        {(activeTab === "overview" || activeTab === "heatmap") && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Metric Card 1: Dynamic Streak Persisted in localStorage */}
-            <div className="animate-stagger-card-1 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[#1FB6B0]/50 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl">
-                  🔥
-                </span>
-                <span className="text-xs font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                  {isFr ? "Grâce active 🛡️" : "Grace Shield Active 🛡️"}
-                </span>
-              </div>
-              <div className="my-4">
-                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white">
-                  {streakData.currentStreak}
-                </span>
-                <span className="text-sm font-serif text-[#5A4B7C] dark:text-[#C8C2D6] ml-2">
-                  {isFr ? "Jours consécutifs" : "Continuous Days"}
-                </span>
-                <p className="mt-1 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
-                  {isFr
-                    ? `${streakData.sabbathRestDays} jours de repos du sabbat préservent votre élan spirituel.`
-                    : `${streakData.sabbathRestDays} Sabbath rest days safely protect momentum without reset.`}
-                </p>
-              </div>
-
-              {/* Dynamic Milestone Progress Bar */}
-              <div className="pt-3 border-t border-[#2D2542]/10 dark:border-white/12 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-semibold text-[#0E726D] dark:text-[#4EE2D8]">
-                  <span>
-                    {isFr ? `Objectif ${milestone.nextMilestoneDays} Jours` : `${milestone.nextMilestoneDays}-Day Milestone`}
-                    <span className="text-xs font-mono font-normal text-[#5A4B7C] dark:text-[#C8C2D6] ml-1.5">
-                      ({milestone.title})
-                    </span>
-                  </span>
-                  <span className="font-mono">{milestone.progressPercent}%</span>
-                </div>
-                {/* Visual Progress Bar Track */}
-                <div className="w-full h-2 rounded-full bg-[#EBF8F7] dark:bg-white/10 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#1FB6B0] to-[#56C2B4] transition-all duration-700 ease-out"
-                    style={{ width: `${Math.max(6, milestone.progressPercent)}%` }}
-                    title={`${milestone.currentStreak}/${milestone.nextMilestoneDays} days (${milestone.daysRemaining} days remaining)`}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-xs font-mono text-[#5A506B] dark:text-[#C8C2D6] pt-0.5">
-                  <span>{milestone.currentStreak} / {milestone.nextMilestoneDays} days</span>
-                  <span>{milestone.daysRemaining > 0 ? `${milestone.daysRemaining} days to go` : "Milestone reached!"}</span>
-                </div>
-              </div>
+            {/* Language Switcher */}
+            <div className="hidden sm:inline-flex items-center border border-stone-300 dark:border-stone-800 rounded p-0.5 bg-[#F3EFE6] dark:bg-[#1C1917]">
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`px-2 py-0.5 text-[11px] font-mono uppercase transition-colors cursor-pointer rounded-xs ${
+                  language === "en"
+                    ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 font-semibold"
+                    : "text-stone-500"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("fr")}
+                className={`px-2 py-0.5 text-[11px] font-mono uppercase transition-colors cursor-pointer rounded-xs ${
+                  language === "fr"
+                    ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 font-semibold"
+                    : "text-stone-500"
+                }`}
+              >
+                FR
+              </button>
             </div>
 
-            {/* Metric Card 2: Scripture Verses Studied */}
-            <div className="animate-stagger-card-2 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-[#705EAA]/50 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="w-10 h-10 rounded-2xl bg-[#EFEBF7] text-[#3D2E5C] flex items-center justify-center text-xl">
-                  📖
-                </span>
-                <span className="text-xs font-mono font-bold text-[#5A4B7C] dark:text-[#C8C2D6]">
-                  {isFr ? "LSG · ESV · NIV" : "ESV · NIV · KJV"}
-                </span>
-              </div>
-              <div className="my-4">
-                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white">48</span>
-                <span className="text-sm font-serif text-[#5A4B7C] dark:text-[#C8C2D6] ml-2">
-                  {isFr ? "Passages Clés" : "Verses Anchored"}
-                </span>
-                <p className="mt-1 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
-                  {isFr
-                    ? "Méditations ancrées dans les Psaumes, Romains et Jean."
-                    : "Rooted across Psalms, Romans, and Gospels."}
-                </p>
-              </div>
-              <div className="pt-3 border-t border-[#2D2542]/10 dark:border-white/12 flex items-center justify-between text-xs font-semibold text-[#5A4B7C] dark:text-[#4EE2D8]">
-                <Link href="/living-word" className="hover:underline flex items-center gap-1">
-                  <span>{isFr ? "Ouvrir le catalogue" : "Browse Expositions"}</span>
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <span>3.4 hrs</span>
-              </div>
-            </div>
+            {/* Theme Toggle */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={t("theme.toggle")}
+              className="p-1.5 rounded border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+            >
+              {resolvedTheme === "dark" ? (
+                <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
 
-            {/* Metric Card 3: Grace Points */}
-            <div className="animate-stagger-card-3 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-amber-400 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
-                  ✦
-                </span>
-                <span className="text-xs font-mono font-bold text-amber-800 dark:text-[#FFD770]">
-                  {isFr ? "Niveau 3 · Abiding" : "Level 3 · Abiding"}
-                </span>
-              </div>
-              <div className="my-4">
-                <span className="text-4xl font-serif font-bold text-[#1E1931] dark:text-white tabular-nums">{gracePoints}</span>
-                <span className="text-sm font-serif text-[#5A4B7C] dark:text-[#C8C2D6] ml-2">
-                  {isFr ? "Points de Grâce" : "Grace Points"}
-                </span>
-                <p className="mt-1 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
-                  {isFr
-                    ? "+50 points débloqués avec le repos du sabbat."
-                    : "Earned by quiet reflection and honoring rest."}
-                </p>
-              </div>
-              <div className="pt-3 border-t border-[#2D2542]/10 dark:border-white/12 flex items-center justify-between text-xs font-semibold text-amber-800 dark:text-[#FFD770]">
-                <span>{isFr ? "Trophée Prochain" : "Next Milestone Seal"}</span>
-                <span>{isFr ? "Flamme Sacrée" : "Sacred Flame"}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-        {/* VIEW 2: DEDICATED JOURNAL TAB (Soul Journal with Search & Scripture/Date Filter) */}
-        {activeTab === "journal" && (
-          <div className="space-y-6 animate-stagger-card-1">
-            {/* Journal Header & Search/Filter Bar */}
-            <div className="bg-white dark:bg-[#1B1630] rounded-3xl border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#2D2542]/10 dark:border-white/12">
-                <div>
-                  <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
-                    {isFr ? "JOURNAL INTIME DU PÈLERIN" : "PILGRIM'S SOUL JOURNAL"}
-                  </span>
-                  <h2 className="text-2xl font-serif font-bold text-[#1E1931] dark:text-white mt-0.5">
-                    {isFr ? "Cahier de Méditations & Prières" : "Reflections & Scripture Notes"}
-                  </h2>
-                  <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] mt-1">
-                    {isFr
-                      ? "Filtrez vos réflexions intimes par passage biblique, date ou mot-clé."
-                      : "Search and filter private journal entries by Scripture reference, date, or tags."}
-                  </p>
+            {/* User Profile / Sign Out */}
+            {isSignedIn ? (
+              <div className="flex items-center gap-2 pl-2 border-l border-stone-300 dark:border-stone-800">
+                <div
+                  title={user?.email || displayName}
+                  className="w-7 h-7 rounded bg-amber-900/15 dark:bg-amber-500/20 border border-amber-800/30 text-amber-900 dark:text-amber-300 flex items-center justify-center font-serif font-bold text-xs"
+                >
+                  {displayName.charAt(0).toUpperCase()}
                 </div>
-
-                <div className="flex items-center gap-2 self-start md:self-auto text-xs font-mono">
-                  <span className="font-bold text-[#1E1931] dark:text-white">
-                    {filteredJournalEntries.length} {isFr ? "entrées" : "entries"}
-                  </span>
-                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">·</span>
-                  <span className="text-[#0E726D] dark:text-[#4EE2D8] font-bold flex items-center gap-1">
-                    <span>🔒</span>
-                    <span>{isFr ? "Chiffrement Local" : "Client-Side Only"}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Dribbble-Styled Filter Control Bar */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                {/* Search Bar for Scripture or Content */}
-                <div className="sm:col-span-7 lg:col-span-8 relative">
-                  <div className="relative flex items-center">
-                    <span className="absolute left-3.5 text-sm text-[#8D82A0]" aria-hidden="true">
-                      🔍
-                    </span>
-                    <input
-                      type="text"
-                      value={journalSearch}
-                      onChange={(e) => setJournalSearch(e.target.value)}
-                      placeholder={
-                        isFr
-                          ? "Rechercher par référence biblique (ex: Psaume 23), mot-clé, #tag..."
-                          : "Search by Scripture ref (e.g. Psalm 23, Romans 8), keyword, #tag..."
-                      }
-                      className="w-full pl-10 pr-9 py-2.5 text-xs bg-[#FAF8F5] hover:bg-[#F5F1E9] focus:bg-white rounded-2xl border border-[#2D2542]/15 focus:border-[#EA4C89] outline-none transition-all placeholder:text-[#8D82A0] text-[#1E1931]"
-                    />
-                    {journalSearch && (
-                      <button
-                        type="button"
-                        onClick={() => setJournalSearch("")}
-                        className="absolute right-3 text-xs text-[#8D82A0] hover:text-[#1E1931] cursor-pointer"
-                        title={isFr ? "Effacer" : "Clear"}
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Date Filter Input */}
-                <div className="sm:col-span-5 lg:col-span-4 flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type="date"
-                      value={journalDateFilter}
-                      onChange={(e) => setJournalDateFilter(e.target.value)}
-                      className="w-full px-3 py-2.5 text-xs bg-[#FAF8F5] hover:bg-[#F5F1E9] focus:bg-white rounded-2xl border border-[#2D2542]/15 focus:border-[#EA4C89] outline-none transition-all text-[#1E1931] cursor-pointer font-mono"
-                      title={isFr ? "Filtrer par date" : "Filter by calendar date"}
-                    />
-                  </div>
-
-                  {(journalDateFilter || journalSearch) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setJournalSearch("");
-                        setJournalDateFilter("");
-                      }}
-                      className="px-3 py-2.5 rounded-2xl bg-[#F2ECE1] hover:bg-[#EAE4D7] text-[#1E1931] text-xs font-bold shrink-0 transition-colors cursor-pointer"
-                      title={isFr ? "Réinitialiser les filtres" : "Reset filters"}
-                    >
-                      {isFr ? "Effacer" : "Reset"}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Quick Scripture Reference Filter Chips */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
-                <span className="text-[11px] font-semibold text-[#8D82A0] shrink-0">
-                  {isFr ? "Passages rapides :" : "Quick Scriptures:"}
-                </span>
-                {["Psalm 23", "Psalm 46", "Romans 8", "Proverbs 3", "John 15", "Genesis 2"].map((refChip) => {
-                  const isSelected = journalSearch.toLowerCase() === refChip.toLowerCase();
-                  return (
-                    <button
-                      key={refChip}
-                      type="button"
-                      onClick={() => setJournalSearch(isSelected ? "" : refChip)}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-[#1E1931] text-white shadow-xs"
-                          : "bg-[#F2ECE1] text-[#554A6B] hover:bg-[#E8E1D3]"
-                      }`}
-                    >
-                      {refChip}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Filtered Journal Entries List */}
-            {filteredJournalEntries.length === 0 ? (
-              <div className="bg-white rounded-3xl border border-[#2D2542]/10 p-12 text-center max-w-md mx-auto space-y-3">
-                <div className="w-12 h-12 rounded-full bg-[#FAF8F5] border border-[#2D2542]/10 text-2xl flex items-center justify-center mx-auto">
-                  📖
-                </div>
-                <h3 className="text-base font-serif font-bold text-[#1E1931]">
-                  {isFr ? "Aucune entrée correspondante" : "No Matching Journal Entries"}
-                </h3>
-                <p className="text-xs text-[#766B8A] leading-relaxed">
-                  {isFr
-                    ? "Aucune réflexion ne correspond à vos critères de recherche ou de date. Essayez un autre passage biblique ou réinitialisez les filtres."
-                    : "No reflection notes match the selected Scripture reference or date. Try clearing your query to see all notes."}
-                </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    setJournalSearch("");
-                    setJournalDateFilter("");
-                  }}
-                  className="px-4 py-2 rounded-full bg-[#1E1931] text-white text-xs font-bold hover:bg-[#342952] transition-colors cursor-pointer"
+                  onClick={() => signOut()}
+                  className="hidden sm:inline-block text-[11px] font-mono uppercase tracking-wider text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 cursor-pointer"
                 >
-                  {isFr ? "Réinitialiser la recherche" : "Clear All Filters"}
+                  {t("nav.signOut")}
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredJournalEntries.map((entry, idx) => (
-                  <article
-                    key={entry.id}
-                    className="rounded-3xl bg-white border border-[#2D2542]/10 p-6 shadow-sm hover:border-[#EA4C89]/40 hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
-                    style={{
-                      animation: `dribbble-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 0.08}s forwards`,
-                    }}
-                  >
-                    <div className="space-y-3">
-                      {/* Top Meta Bar */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs"
-                            style={{ backgroundColor: `${entry.moodColor}20` }}
-                          >
-                            {entry.moodEmoji}
-                          </span>
-                          <div>
-                            <span className="text-[11px] font-bold text-[#1E1931] block leading-none">
-                              {entry.moodLabel}
-                            </span>
-                            <span className="text-[10px] font-mono text-[#8D82A0]">
-                              {entry.date}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Scripture Reference Badge */}
-                        <button
-                          type="button"
-                          onClick={() => setJournalSearch(entry.scriptureRef)}
-                          className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-[#F4EFE6] text-[#705E8C] hover:bg-[#EA4C89] hover:text-white transition-colors cursor-pointer"
-                          title={isFr ? "Filtrer par ce passage" : "Filter by this passage"}
-                        >
-                          {entry.scriptureRef}
-                        </button>
-                      </div>
-
-                      {/* Entry Body Text */}
-                      <p className="text-xs sm:text-sm text-[#2D2542] leading-relaxed font-serif">
-                        {entry.text}
-                      </p>
-
-                      {/* Scripture Snippet Quotation */}
-                      {entry.scriptureSnippet && (
-                        <div className="p-3 rounded-2xl bg-[#FAF8F5] border-l-2 border-[#EA4C89] text-xs text-[#554A6B] italic font-serif">
-                          « {entry.scriptureSnippet} »
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Footer Tags & Actions */}
-                    <div className="pt-3 border-t border-[#2D2542]/10 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {entry.tags?.map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => setJournalSearch(tag)}
-                            className="text-[10px] font-mono text-[#705E8C] hover:text-[#EA4C89] hover:underline cursor-pointer"
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-xs text-[#8D82A0]">
-                        {entry.isFavorite && <span title="Favorite">❤️</span>}
-                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                          ✓ Saved
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <Link
+                href="/sign-in"
+                className="px-3 py-1.5 rounded bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 text-xs font-mono uppercase tracking-wider font-semibold"
+              >
+                {t("nav.signIn")}
+              </Link>
             )}
-          </div>
-        )}
-
-
-        {/* INTERACTIVE COMPONENT: SCRIPTURE PASSAGE DRAWER WITH 3-STEP CARDS */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Interactive Scripture Reader (7 Cols) */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#1B1630] rounded-3xl border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
-              <div>
-                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#5A4B7C] dark:text-[#4EE2D8]">
-                  {isFr ? "ÉTAPE 01 · LECTURE EXPOSITIVE" : "STEP 01 · EXPOSITORY READING"}
-                </span>
-                <h2 className="text-2xl font-serif font-bold text-[#1E1931] dark:text-white mt-0.5">
-                  {scriptures[selectedScripture].ref}
-                </h2>
-              </div>
-
-              {/* Version Selector Tabs */}
-              <div className="flex items-center gap-1.5 p-1 bg-[#F2ECE1] dark:bg-[#120E22] rounded-xl text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => setSelectedScripture("psalm23")}
-                  className={`min-h-[36px] px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    selectedScripture === "psalm23" ? "bg-white dark:bg-[#2D2542] text-[#1E1931] dark:text-white shadow-xs" : "text-[#5A4B7C] dark:text-[#C8C2D6]"
-                  }`}
-                >
-                  Ps 23
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedScripture("romans8")}
-                  className={`min-h-[36px] px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    selectedScripture === "romans8" ? "bg-white dark:bg-[#2D2542] text-[#1E1931] dark:text-white shadow-xs" : "text-[#5A4B7C] dark:text-[#C8C2D6]"
-                  }`}
-                >
-                  Rom 8
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedScripture("john15")}
-                  className={`min-h-[36px] px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    selectedScripture === "john15" ? "bg-white dark:bg-[#2D2542] text-[#1E1931] dark:text-white shadow-xs" : "text-[#5A4B7C] dark:text-[#C8C2D6]"
-                  }`}
-                >
-                  Jn 15
-                </button>
-              </div>
-            </div>
-
-            {/* Scripture Quotation Canvas */}
-            <div className="p-6 rounded-2xl bg-[#FAF8F5] dark:bg-[#120E22] border border-[#EADBCE] dark:border-white/12 space-y-3 relative overflow-hidden">
-              <span className="absolute right-4 top-2 text-6xl text-[#EADBCE] dark:text-white/10 font-serif select-none pointer-events-none">
-                “
-              </span>
-              <p className="text-base sm:text-lg font-serif italic text-[#1E1931] dark:text-[#F4EFE6] leading-relaxed relative z-10">
-                {scriptures[selectedScripture].text}
-              </p>
-              <div className="flex items-center justify-between text-xs text-[#5A4B7C] dark:text-[#C8C2D6] font-mono pt-2 border-t border-[#EADBCE]/50 dark:border-white/10">
-                <span>{scriptures[selectedScripture].theme}</span>
-                <span>{scriptures[selectedScripture].verseCount}</span>
-              </div>
-            </div>
-
-            {/* Step 2 & 3 Guided Prompts */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-2xl bg-[#F6F4FB] dark:bg-[#141024] border border-[#DDD3EF] dark:border-white/12 space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#5A4B7C] dark:text-[#C8C2D6]">
-                  <span>💡</span>
-                  <span>{isFr ? "Étape 02 · Méditation" : "Step 02 · Reflection"}</span>
-                </div>
-                <p className="text-xs text-[#3E3356] dark:text-[#E2DCEF] leading-relaxed">
-                  {isFr
-                    ? "Où avez-vous besoin de déposer l'urgence et les délais professionnels aujourd'hui ?"
-                    : "Where do you need to surrender hurried deadlines before checking work email today?"}
-                </p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[#F1F8F5] dark:bg-[#102222] border border-[#C5E5D8] dark:border-[#1FB6B0]/30 space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                  <span>🙏</span>
-                  <span>{isFr ? "Étape 03 · Prière Orale" : "Step 03 · Spoken Prayer"}</span>
-                </div>
-                <p className="text-xs text-[#1F4A3F] dark:text-[#D7F5F2] leading-relaxed">
-                  {isFr
-                    ? "« Seigneur, sois mon ancre dans le tumulte. Garde mes pensées dans Ta paix. »"
-                    : "“Lord, be my anchor in the rush. Keep my thoughts in Your peace. Amen.”"}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Action Button Bar */}
-            <div className="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                onClick={() => handleToggleSave("dev-1")}
-                className={`min-h-[40px] inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  savedDevotions["dev-1"]
-                    ? "bg-[#1FB6B0]/15 text-[#0E726D] dark:text-[#4EE2D8] border border-[#1FB6B0]/30"
-                    : "bg-[#F2ECE1] dark:bg-[#120E22] text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#EADBCE]"
-                }`}
-              >
-                <span>{savedDevotions["dev-1"] ? "✓ Enregistré" : "🔖 Ajouter aux Favoris"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("journal")}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5A4B7C] dark:text-[#4EE2D8] hover:text-[#1E1931] dark:hover:text-white transition-colors cursor-pointer"
-              >
-                <span>{isFr ? "Ouvrir dans le Journal Spirituel" : "Expand to Journal Notebook"}</span>
-                <span aria-hidden="true">→</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Right Column: Audio Equalizer & Interactive Prayer Composer (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            {/* Mini Player Widget */}
-            <div className="rounded-3xl bg-[#201A38] text-white p-6 shadow-md border border-[#3A2F5E] space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono uppercase tracking-widest text-[#56C2B4]">
-                  EXPOSITORY AUDIO STUDIO
-                </span>
-                <span className="w-2 h-2 rounded-full bg-[#56C2B4]" />
-              </div>
-
-              <div>
-                <h3 className="text-base font-serif font-bold text-white">
-                  The Cost of Discipleship & Romans 8
-                </h3>
-                <p className="text-xs text-white/75">Pastor Samuel Ndlovu · Expository Series · 16:00</p>
-              </div>
-
-              {/* Dynamic Equalizer Bars */}
-              <div className="flex items-center justify-between gap-1 h-8 px-2 bg-white/5 rounded-xl border border-white/10">
-                {[12, 24, 18, 28, 14, 20, 32, 10, 22, 16, 30, 24, 18, 26, 14].map((h, i) => (
-                  <span
-                    key={i}
-                    className="w-1 rounded-full bg-[#56C2B4] transition-all"
-                    style={{
-                      height: isAudioPlaying ? `${Math.max(6, (h * (i % 2 === 0 ? 1.2 : 0.8))) % 30}px` : "6px",
-                      opacity: isAudioPlaying ? 0.9 : 0.4,
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-white/80">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isAudioPlaying) {
-                      stopHumanVoice();
-                      stopChristianMelody();
-                      setIsAudioPlaying(false);
-                    } else {
-                      setIsAudioPlaying(true);
-                      const savedMelody = getSavedChristianMelody();
-                      if (savedMelody.melodyId !== "none") {
-                        startChristianMelody(savedMelody.melodyId);
-                      }
-                      speakWithHumanVoice({
-                        text: `${scriptures[selectedScripture].ref}. ${scriptures[selectedScripture].text}`,
-                        isFrFallback: isFr,
-                        onEnd: () => setIsAudioPlaying(false),
-                      });
-                    }
-                  }}
-                  className="min-h-[40px] px-4 py-2 rounded-full bg-[#56C2B4] text-[#120F24] font-bold text-xs hover:bg-[#68D8CA] transition-colors cursor-pointer"
-                >
-                  {isAudioPlaying
-                    ? isFr
-                      ? "⏸ Arrêter la Voix"
-                      : "⏸ Stop Human Voice"
-                    : isFr
-                    ? "▶ Écouter la Parole (Voix Humaine)"
-                    : "▶ Listen with Human Voice"}
-                </button>
-                <div className="flex items-center gap-3">
-                  <Link href="/teachers" className="hover:text-white transition-colors underline">
-                    {isFr ? "Portail des Pasteurs" : "Teachers Portal"}
-                  </Link>
-                  <Link href="/living-word" className="hover:text-white transition-colors underline">
-                    {isFr ? "Mode Plein Écran" : "Dedicated Studio"}
-                  </Link>
-                </div>
-              </div>
-
-              {/* Quick Selector for Nigerian EN, Côte d'Ivoire FR, and American EN Voices */}
-              <HumanVoiceSelector compact darkSurface />
-
-              {/* Christian Melodies & Worship Instrumentals for Meditation */}
-              <ChristianMelodySelector compact darkSurface />
-            </div>
-
-            {/* Quick Prayer Notepad Widget */}
-            <div className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
-                  {isFr ? "PRIÈRE DU MATIN DIRECTE" : "INSTANT PRIVATE PRAYER"}
-                </span>
-                <span className="text-xs text-[#0E726D] dark:text-[#4EE2D8] font-bold">🔒 Chiffré Localement</span>
-              </div>
-
-              <form onSubmit={handlePostPrayer} className="space-y-3">
-                <textarea
-                  value={quickPrayerText}
-                  onChange={(e) => setQuickPrayerText(e.target.value)}
-                  placeholder={
-                    isFr
-                      ? "Écrivez ou dictez votre prière sincère du matin..."
-                      : "Type your honest morning prayer or burden to God..."
-                  }
-                  rows={3}
-                  className="w-full p-3 text-xs rounded-xl bg-[#FAF8F5] dark:bg-[#120E22] text-[#1E1931] dark:text-white border border-[#2D2542]/15 dark:border-white/15 focus:border-[#705EAA] focus:bg-white dark:focus:bg-[#161129] outline-none resize-none transition-all placeholder:text-[#6E6285] dark:placeholder:text-[#A9A0BC]"
-                />
-
-                {prayerSubmitted && (
-                  <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-semibold flex items-center gap-1.5">
-                    <span>✓</span>
-                    <span>{isFr ? "Prière ancrée dans votre journal privé." : "Prayer recorded in your private journal."}</span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#5A506B] dark:text-[#C8C2D6]">
-                    {quickPrayerText.length} {isFr ? "caractères" : "characters"}
-                  </span>
-                  <button
-                    type="submit"
-                    disabled={!quickPrayerText.trim()}
-                    className="min-h-[40px] px-4 py-2 rounded-full bg-[#2D2542] dark:bg-[#4EE2D8] hover:bg-[#3D315B] disabled:opacity-40 text-white dark:text-[#0E0C18] text-xs font-bold transition-all cursor-pointer"
-                  >
-                    {isFr ? "Conserver la Prière" : "Save to Journal"}
-                  </button>
-                </div>
-              </form>
-            </div>
           </div>
         </div>
 
-        {/* INTEGRATED PROGRESS & SPIRITUAL RHYTHM ANALYTICS (Recharts, Sabbath Shield, Full 30-Day Matrix) */}
-        {activeTab === "heatmap" ? (
-          <div className="pt-2">
-            <ProgressScreen />
-          </div>
-        ) : (
-          /* 30-Day Heatmap Preview */
-          <div className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
-              <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
-                  DWELL-TIME & CONSISTENCY MATRIX
-                </span>
-                <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white">
-                  {isFr ? "Régularité Spirituelle sur 30 Jours" : "30-Day Spiritual Rhythm Heatmap"}
-                </h3>
-              </div>
-              <div className="flex items-center gap-4 text-xs font-mono">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-xs bg-[#BCEBE7]" />
-                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">Light</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-xs bg-[#1FB6B0]" />
-                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">Deep</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-xs bg-[#F28C38]" />
-                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">Peak Rhythm 🔥</span>
-                </span>
-              </div>
+        {/* Mobile Tab Strip */}
+        <div className="md:hidden flex items-center overflow-x-auto border-t border-stone-200 dark:border-stone-800 px-4 bg-[#FAF8F5] dark:bg-[#12100E]">
+          {(
+            [
+              { id: "overview", label: t("dashboard.tabs.overview") },
+              { id: "bible", label: t("dashboard.tabs.bible") },
+              { id: "voice", label: t("dashboard.tabs.voice") },
+              { id: "journal", label: t("dashboard.tabs.journal") },
+              { id: "teachers", label: t("dashboard.tabs.teachers") },
+            ] as { id: ActiveTab; label: string }[]
+          ).map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3 py-2.5 text-xs font-mono uppercase tracking-wider whitespace-nowrap border-b-2 ${
+                  active
+                    ? "border-amber-800 dark:border-amber-400 text-stone-900 dark:text-stone-100 font-semibold"
+                    : "border-transparent text-stone-500 dark:text-stone-400"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </header>
+
+      {/* Active 1-on-1 WebRTC or Group Call Banner */}
+      {(activeOneOnOneCall || activeLiveCall) && (
+        <div className="bg-emerald-950 text-emerald-50 border-b border-emerald-800 px-4 sm:px-6 py-2.5">
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-mono uppercase tracking-wider text-emerald-300 font-semibold">
+                {activeOneOnOneCall
+                  ? isFr
+                    ? "SESSION AUDIO WEBRTC 1-À-1 EN COURS"
+                    : "ACTIVE 1-ON-1 WEBRTC AUDIO SESSION"
+                  : isFr
+                  ? "SALLE PASTORALE EN DIRECT (40 PLACES)"
+                  : "ACTIVE 40-SEAT PASTORAL ROOM"}
+              </span>
+              <span className="text-emerald-200 font-serif italic">
+                {activeOneOnOneCall
+                  ? `${activeOneOnOneCall.teacherName} ↔ ${activeOneOnOneCall.targetUserName} (${activeOneOnOneCall.topic})`
+                  : `${activeLiveCall?.teacherName} — ${activeLiveCall?.topic}`}
+              </span>
             </div>
+            <button
+              type="button"
+              onClick={() => setIsLiveCallModalOpen(true)}
+              className="px-3 py-1 rounded bg-emerald-400 hover:bg-emerald-300 text-emerald-950 text-xs font-mono uppercase tracking-wider font-bold transition-colors cursor-pointer"
+            >
+              {isFr ? "Rejoindre / Ouvrir Console →" : "Join / Open Console →"}
+            </button>
+          </div>
+        </div>
+      )}
 
-            {/* 30-Cell Interactive Grid */}
-            <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-15 gap-2 sm:gap-2.5">
-              {Array.from({ length: 30 }).map((_, i) => {
-                const day = i + 1;
-                const isPeak = day % 7 === 0 || day === 14;
-                const isDeep = day % 3 === 0 && !isPeak;
-                const isLight = day % 2 === 0 && !isDeep && !isPeak;
-                const isRest = day % 5 === 0 && !isPeak && !isDeep;
-
-                const bgClass = isPeak
-                  ? "bg-gradient-to-br from-[#E3B15E] to-[#F28C38] text-white shadow-xs"
-                  : isDeep
-                  ? "bg-[#1FB6B0] text-white"
-                  : isLight
-                  ? "bg-[#BCEBE7] text-[#0E6C68]"
-                  : isRest
-                  ? "bg-[#EFE8F7] dark:bg-[#2A2145] text-[#5A4B7C] dark:text-[#D5CEE6] border border-[#DDD3EF] dark:border-white/15"
-                  : "bg-[#F3EFE8] dark:bg-[#141024] text-[#5A506B] dark:text-[#A9A0BC]";
-
-                return (
-                  <div
-                    key={i}
-                    onClick={() => setActiveTab("heatmap")}
-                    className={`h-11 sm:h-12 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-105 ${bgClass}`}
-                    title={`Day ${day}: ${isPeak ? "Peak devotion & prayer" : isDeep ? "Scripture & Stillness" : "Daily check-in"}`}
-                  >
-                    <span className="text-xs font-bold font-mono leading-none">{day}</span>
-                    <span className="text-xs uppercase tracking-tighter opacity-90 mt-0.5 leading-none">
-                      {isPeak ? "🔥" : isRest ? "🌿" : isDeep ? "✓" : "·"}
+      {/* Main Content Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+        {activeTab === "overview" && (
+          <div className="space-y-10">
+            {/* Editorial Welcome & Daily Sacred Ritual Banner */}
+            <div className="p-6 sm:p-8 rounded-lg bg-[#F3EFE6] dark:bg-[#1C1917] border border-stone-300 dark:border-stone-800">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="space-y-2 max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-3 text-xs font-mono uppercase tracking-[0.16em] text-amber-900 dark:text-amber-400">
+                    <span>
+                      {t("dashboard.welcome")}, {displayName}
+                    </span>
+                    <span className="text-stone-300 dark:text-stone-700">|</span>
+                    <span className="text-stone-600 dark:text-stone-400">
+                      {isTodayRitualComplete
+                        ? isFr
+                          ? "Rituel Quotidien Accompli"
+                          : "Daily Ritual Completed"
+                        : isFr
+                        ? "Rituel Quotidien en 3 Étapes"
+                        : "3-Step Daily Sacred Ritual"}
                     </span>
                   </div>
-                );
-              })}
+
+                  <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100">
+                    {t("dashboard.subtitle")}
+                  </h1>
+
+                  <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed">
+                    {isFr
+                      ? "Commencez par le Rituel Sacré Quotidien, écoutez la Parole avec des voix régionales authentiques ou initiez un appel pastoral WebRTC 1-à-1."
+                      : "Begin with your 3-Step Daily Sacred Ritual, listen to Scripture in authentic regional voices, or enter a 1-on-1 WebRTC pastoral audio session."}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsRitualModalOpen(true)}
+                    className={`px-5 py-3 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer ${
+                      isTodayRitualComplete
+                        ? "bg-emerald-800 hover:bg-emerald-900 text-white"
+                        : "bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-stone-50 dark:text-stone-900"
+                    }`}
+                  >
+                    {isTodayRitualComplete
+                      ? isFr
+                        ? "Revoir le Rituel du Jour"
+                        : "Review Today's Ritual"
+                      : isFr
+                      ? "Commencer le Rituel (3 Étapes) →"
+                      : "Start 3-Step Daily Ritual →"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsLiveCallModalOpen(true)}
+                    className="px-4 py-3 rounded border border-stone-400 dark:border-stone-700 hover:border-stone-900 dark:hover:border-stone-300 text-stone-800 dark:text-stone-200 text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                  >
+                    {isFr ? "Appel Audio 1-à-1" : "1-on-1 Audio Call"}
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2D2542]/10 dark:border-white/12 text-xs text-[#5A4B7C] dark:text-[#C8C2D6]">
-              <p>
-                {isFr
-                  ? "Le repos du sabbat (🌿) préserve votre élan spirituel sans jamais remettre votre série à zéro."
-                  : "Intentional Sabbath rest (🌿) protects your momentum without guilt resets."}
-              </p>
-              <button
-                type="button"
-                onClick={() => setActiveTab("heatmap")}
-                className="inline-flex items-center gap-1 font-bold text-[#1E1931] dark:text-[#4EE2D8] hover:text-[#705EAA] transition-colors cursor-pointer"
-              >
-                <span>{isFr ? "Ouvrir Progrès, Graphiques & Heatmap complète" : "Open Full Progress, Charts & Interactive Matrix"}</span>
-                <span aria-hidden="true">→</span>
-              </button>
+            {/* Progress Metrics Ledger */}
+            <ProgressScreen
+              streak={sanctuaryState.streak}
+              completedChaptersCount={sanctuaryState.completedChapters.length}
+              versesSpoken={sanctuaryState.versesSpoken}
+              reflectionsCount={sanctuaryState.reflections.length}
+            />
+
+            {/* Two-Column Core Sanctuary Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left 7 Cols: Daily Scripture Meditation & Authentic Voice Controls */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="p-6 sm:p-8 rounded-lg sanctuary-card space-y-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 dark:border-stone-800 pb-4">
+                    <div>
+                      <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-amber-900 dark:text-amber-400 font-semibold">
+                        {t("dashboard.dailyMeditation")}
+                      </span>
+                      <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                        {verseReference}
+                      </h2>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <HumanVoiceSelector
+                        selectedProfile={selectedVoiceProfile}
+                        onSelectProfile={(profile) => {
+                          setSelectedVoiceProfile(profile);
+                          if (
+                            typeof window !== "undefined" &&
+                            "speechSynthesis" in window
+                          ) {
+                            window.speechSynthesis.cancel();
+                            setIsSpeakingDaily(false);
+                          }
+                        }}
+                        compact
+                      />
+
+                      <button
+                        type="button"
+                        onClick={toggleSpeakDailyVerse}
+                        className={`px-3.5 py-2 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
+                          isSpeakingDaily
+                            ? "bg-amber-800 text-white"
+                            : "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 hover:opacity-90"
+                        }`}
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        </svg>
+                        <span>
+                          {isSpeakingDaily
+                            ? t("scripture.stopReading")
+                            : t("scripture.listenAloud")}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <blockquote className="text-xl sm:text-2xl font-serif italic text-stone-900 dark:text-stone-100 leading-relaxed">
+                    &ldquo;{verseText}&rdquo;
+                  </blockquote>
+
+                  <div className="p-4 rounded bg-[#F3EFE6] dark:bg-[#171412] border border-stone-300/80 dark:border-stone-800">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-900 dark:text-amber-400 font-semibold mb-1">
+                      {t("scripture.meditationNote")}
+                    </p>
+                    <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
+                      {meditationNote}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openBookInBible(
+                          dailyMeditation.book,
+                          dailyMeditation.chapter.chapter
+                        )
+                      }
+                      className="px-4 py-2.5 rounded bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-stone-50 dark:text-stone-900 text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                    >
+                      {t("dashboard.openBible")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("voice")}
+                      className="px-4 py-2.5 rounded border border-stone-300 dark:border-stone-700 hover:border-stone-800 dark:hover:border-stone-400 text-stone-800 dark:text-stone-200 text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                    >
+                      {t("dashboard.practiceVoice")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("journal")}
+                      className="px-4 py-2.5 rounded border border-stone-300 dark:border-stone-700 hover:border-stone-800 dark:hover:border-stone-400 text-stone-800 dark:text-stone-200 text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                    >
+                      {t("dashboard.writeReflection")}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Canonical Quick-Access Shelf */}
+                <div className="p-6 rounded-lg sanctuary-card space-y-4">
+                  <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+                    <h3 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+                      {isFr
+                        ? "Accès Rapide au Canon Biblique (66 Livres)"
+                        : "Canonical Scripture Shelf (66 Books)"}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("bible")}
+                      className="text-xs font-mono uppercase tracking-wider text-amber-900 dark:text-amber-400 hover:underline cursor-pointer"
+                    >
+                      {isFr ? "Tout voir →" : "Full Canon →"}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {BIBLE_CANON.filter((b) =>
+                      [
+                        "genesis",
+                        "psalms",
+                        "proverbs",
+                        "isaiah",
+                        "matthew",
+                        "john",
+                        "romans",
+                        "revelation",
+                      ].includes(b.id)
+                    ).map((book) => {
+                      const isDone = sanctuaryState.completedChapters.some((k) =>
+                        k.startsWith(`${book.id}-`)
+                      );
+                      return (
+                        <button
+                          key={book.id}
+                          type="button"
+                          onClick={() => openBookInBible(book, 1)}
+                          className="p-3 rounded border border-stone-200 dark:border-stone-800 hover:border-amber-800 dark:hover:border-amber-500 bg-[#FAF8F5] dark:bg-[#141210] text-left transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-stone-500">
+                            <span>{book.testament === "OT" ? "OT" : "NT"}</span>
+                            {isDone && (
+                              <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                                {isFr ? "Lu" : "Read"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-serif font-bold text-sm text-stone-900 dark:text-stone-100 truncate mt-1">
+                            {isFr ? book.name.fr : book.name.en}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right 5 Cols: Christian Melodies Panel & Recent Reflections Ledger */}
+              <div className="lg:col-span-5 space-y-6">
+                <div
+                  id="christian-melodies-panel"
+                  className="p-6 rounded-lg sanctuary-card"
+                >
+                  <ChristianMelodySelector />
+                </div>
+
+                {/* Recent Reflections Archive */}
+                <div className="p-6 rounded-lg sanctuary-card space-y-4">
+                  <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+                    <h3 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
+                      {t("dashboard.recentReflections")}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("journal")}
+                      className="text-xs font-mono uppercase tracking-wider text-amber-900 dark:text-amber-400 hover:underline cursor-pointer"
+                    >
+                      {isFr ? "Ouvrir Journal →" : "Open Journal →"}
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-stone-200 dark:divide-stone-800">
+                    {sanctuaryState.reflections.slice(0, 3).map((item) => (
+                      <div key={item.id} className="py-3.5 first:pt-0 last:pb-0">
+                        <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-stone-500 dark:text-stone-400 mb-1">
+                          <span className="text-amber-900 dark:text-amber-400 font-semibold">
+                            {item.scriptureReference}
+                          </span>
+                          <span className="tabular-nums">{item.createdAt}</span>
+                        </div>
+                        <h4 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-sm mb-1">
+                          {item.title}
+                        </h4>
+                        <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                          {item.content}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* Featured Christian Teachings Section */}
+            <div className="pt-6 border-t border-stone-300 dark:border-stone-800">
+              <ChristianTeachingsSection maxItems={3} showHeader={true} />
+            </div>
+          </div>
+        )}
+
+        {activeTab === "bible" && (
+          <LivingWord
+            initialBookId={selectedBookId}
+            initialChapter={selectedChapter}
+            completedChapters={sanctuaryState.completedChapters}
+            onMarkChapterRead={handleMarkChapterRead}
+            onOpenVoicePractice={(bookId, chapter) => {
+              setSelectedBookId(bookId);
+              setSelectedChapter(chapter);
+              setActiveTab("voice");
+            }}
+          />
+        )}
+
+        {activeTab === "voice" && (
+          <VoicePractice
+            bookId={selectedBookId}
+            chapterNumber={selectedChapter}
+            onVerseCompleted={handleVerseSpoken}
+          />
+        )}
+
+        {activeTab === "journal" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left 5 Cols: New Reflection & Voice Prayer Note Form */}
+            <div className="lg:col-span-5">
+              <form
+                onSubmit={handleSaveReflection}
+                className="p-6 rounded-lg sanctuary-card space-y-5 sticky top-24"
+              >
+                <div className="border-b border-stone-200 dark:border-stone-800 pb-3">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-900 dark:text-amber-400 font-semibold">
+                    {isFr ? "NOUVELLE ENTRÉE D'ARCHIVE" : "NEW ARCHIVE ENTRY"}
+                  </span>
+                  <h2 className="text-xl font-serif font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                    {t("journal.title")}
+                  </h2>
+                </div>
+
+                {savedToast && (
+                  <div className="p-3 rounded bg-emerald-900/10 border border-emerald-700/30 text-emerald-800 dark:text-emerald-300 text-xs font-mono uppercase tracking-wider">
+                    {t("journal.savedSuccess")}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1.5">
+                    {t("journal.entryTitlePlaceholder")}
+                  </label>
+                  <input
+                    type="text"
+                    value={reflectionTitle}
+                    onChange={(e) => setReflectionTitle(e.target.value)}
+                    placeholder={t("journal.entryTitlePlaceholder")}
+                    className="w-full px-3.5 py-2.5 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:border-amber-800"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1.5">
+                      {t("journal.scriptureRefPlaceholder")}
+                    </label>
+                    <input
+                      type="text"
+                      value={reflectionReference}
+                      onChange={(e) => setReflectionReference(e.target.value)}
+                      placeholder={t("journal.scriptureRefPlaceholder")}
+                      className="w-full px-3 py-2 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:border-amber-800"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 mb-1.5">
+                      {t("journal.moodLabel")}
+                    </label>
+                    <select
+                      value={reflectionMood}
+                      onChange={(e) =>
+                        setReflectionMood(e.target.value as MoodKey)
+                      }
+                      className="w-full px-3 py-2 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:border-amber-800"
+                    >
+                      {(Object.keys(moodLabels) as MoodKey[]).map((m) => (
+                        <option key={m} value={m}>
+                          {moodLabels[m]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Voice Prayer Memo Recorder */}
+                <div className="p-3.5 rounded bg-[#F3EFE6] dark:bg-[#171412] border border-stone-300 dark:border-stone-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-mono uppercase tracking-wider text-stone-800 dark:text-stone-200 font-semibold">
+                        {isFr ? "Mémo Vocal de Prière" : "Voice Prayer Memo"}
+                      </p>
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                        {isRecordingPrayer
+                          ? isFr
+                            ? `Enregistrement... (${recordingDurationSec}s)`
+                            : `Recording prayer... (${recordingDurationSec}s)`
+                          : isFr
+                          ? "Dictez votre prière à haute voix"
+                          : "Dictate your spoken prayer directly"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleRecordPrayerVoiceNote}
+                      className={`px-3 py-1.5 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer ${
+                        isRecordingPrayer
+                          ? "bg-red-700 text-white"
+                          : "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900"
+                      }`}
+                    >
+                      {isRecordingPrayer
+                        ? isFr
+                          ? "Arrêter"
+                          : "Stop"
+                        : isFr
+                        ? "Dicter"
+                        : "Dictate"}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <textarea
+                    rows={5}
+                    value={reflectionContent}
+                    onChange={(e) => setReflectionContent(e.target.value)}
+                    placeholder={t("journal.contentPlaceholder")}
+                    className="w-full px-3.5 py-2.5 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:border-amber-800 leading-relaxed"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded bg-amber-800 hover:bg-amber-900 dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-mono text-xs uppercase tracking-wider font-semibold transition-colors cursor-pointer"
+                >
+                  {t("journal.saveEntry")}
+                </button>
+              </form>
+            </div>
+
+            {/* Right 7 Cols: Searchable Reflections Ledger */}
+            <div className="lg:col-span-7 space-y-5">
+              <div className="p-4 rounded-lg sanctuary-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={journalSearch}
+                    onChange={(e) => setJournalSearch(e.target.value)}
+                    placeholder={
+                      isFr
+                        ? "Rechercher par titre, verset ou prière..."
+                        : "Search by title, Scripture reference, or prayer..."
+                    }
+                    className="w-full px-3.5 py-2 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:border-amber-800"
+                  />
+                </div>
+
+                <select
+                  value={journalMoodFilter}
+                  onChange={(e) =>
+                    setJournalMoodFilter(e.target.value as MoodKey | "all")
+                  }
+                  className="px-3 py-2 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-stone-300"
+                >
+                  <option value="all">
+                    {isFr ? "Tous les états" : "All Dispositions"}
+                  </option>
+                  {(Object.keys(moodLabels) as MoodKey[]).map((m) => (
+                    <option key={m} value={m}>
+                      {moodLabels[m]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {filteredReflections.length === 0 ? (
+                <div className="p-12 rounded-lg sanctuary-card text-center text-stone-500 dark:text-stone-400 font-serif italic">
+                  {t("journal.emptyState")}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredReflections.map((entry) => (
+                    <article
+                      key={entry.id}
+                      className="p-6 rounded-lg sanctuary-card space-y-3"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 dark:border-stone-800 pb-2.5 text-xs font-mono">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-amber-900 dark:text-amber-400 font-semibold">
+                            {entry.scriptureReference}
+                          </span>
+                          <span className="text-stone-300 dark:text-stone-700">
+                            |
+                          </span>
+                          <span className="uppercase tracking-wider text-stone-500">
+                            {moodLabels[entry.mood]}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-stone-400 tabular-nums">
+                            {entry.createdAt}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteReflection(entry.id)}
+                            className="text-stone-400 hover:text-red-600 transition-colors cursor-pointer"
+                            title={isFr ? "Supprimer" : "Delete"}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+
+                      <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                        {entry.title}
+                      </h3>
+
+                      <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed whitespace-pre-line">
+                        {entry.content}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "teachers" && (
+          <div className="space-y-6">
+            <ChristianTeachingsSection showHeader={true} />
           </div>
         )}
       </main>
 
-      {/* Sanctuary Footer */}
-      <footer className="mt-auto border-t border-[#2D2542]/10 dark:border-white/12 bg-white dark:bg-[#171326] py-6 px-4 sm:px-8 text-xs text-[#5A506B] dark:text-[#C8C2D6]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-sm text-[#1E1931] dark:text-white">LifeBook</span>
-            <span>·</span>
-            <span>{isFr ? "Sanctuaire quotidien de méditation et de prière" : "Daily Scripture, Stillness & Prayer Sanctuary"}</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Tableau de Bord" : "Dashboard"}</Link>
-            <Link href="/living-word" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Enseignements" : "Teachings"}</Link>
-            <Link href="/teachers" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Portail des Pasteurs" : "Teachers Portal"}</Link>
-            <Link href="/privacy" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Confidentialité" : "Privacy"}</Link>
-          </div>
-        </div>
-      </footer>
-
+      {/* 3-Step Daily Sacred Ritual Modal */}
       <DailyRitualModal
         isOpen={isRitualModalOpen}
         onClose={() => setIsRitualModalOpen(false)}
+        meditation={dailyMeditation}
+        ritualState={
+          sanctuaryState.dailyRitual?.date === TODAY_KEY
+            ? sanctuaryState.dailyRitual
+            : {
+                date: TODAY_KEY,
+                stepReadDone: false,
+                stepSpeakDone: false,
+                stepReflectDone: false,
+                completedAt: null,
+              }
+        }
+        onUpdateRitual={handleUpdateRitual}
+        onCompleteRitualWithReflection={handleCompleteRitualWithReflection}
       />
 
+      {/* Real-Time WebRTC 1-on-1 & 40-Seat Live Call Console Modal */}
+      <TeacherLiveCallModal
+        isOpen={isLiveCallModalOpen}
+        onClose={() => setIsLiveCallModalOpen(false)}
+      />
+
+      {/* Interactive First-Login Step-by-Step Walkthrough Modal */}
       <SanctuaryWalkthroughModal
-        onSelectDashboardTab={(tab) => setActiveTab(tab)}
-        onOpenDailyRitual={() => setIsRitualModalOpen(true)}
-        onFocusLiveCall={() => {
-          const el = document.getElementById("dashboard-live-call-section");
-          el?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }}
+        isOpen={isWalkthroughOpen}
+        onClose={() => setIsWalkthroughOpen(false)}
+        userName={displayName}
+        userEmail={user?.email}
+        onSelectFeatureAction={handleWalkthroughFeatureAction}
       />
     </div>
   );

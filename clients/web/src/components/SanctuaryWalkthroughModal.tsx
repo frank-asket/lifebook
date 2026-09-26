@@ -3,447 +3,527 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
-import {
-  shouldAutoOpenWalkthrough,
-  markWalkthroughCompleted,
-  WALKTHROUGH_OPEN_EVENT,
-} from "@/lib/live-call";
+import { markWalkthroughCompleted } from "@/lib/live-call";
 
-export interface WalkthroughStep {
-  stepNumber: string;
+interface SanctuaryWalkthroughModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  userName?: string;
+  userEmail?: string;
+  onSelectFeatureAction?: (actionId: string) => void;
+}
+
+interface WalkthroughStep {
   id: string;
+  roman: string;
+  categoryEn: string;
+  categoryFr: string;
   titleEn: string;
   titleFr: string;
   subtitleEn: string;
   subtitleFr: string;
   descriptionEn: string;
   descriptionFr: string;
-  howToStepsEn: string[];
-  howToStepsFr: string[];
-  actionLabelEn: string;
-  actionLabelFr: string;
-  targetAction: "ritual" | "progress" | "teachers" | "live-call" | "journal" | "voice";
+  keyPointsEn: string[];
+  keyPointsFr: string[];
+  howToUseEn: string;
+  howToUseFr: string;
+  interactivePromptEn: string;
+  interactivePromptFr: string;
+  interactiveActionLabelEn: string;
+  interactiveActionLabelFr: string;
+  interactiveRoute?: string;
+  interactiveCallbackId?: string;
 }
 
 const WALKTHROUGH_STEPS: WalkthroughStep[] = [
   {
-    stepNumber: "01",
-    id: "daily-sanctuary",
-    titleEn: "01. Daily 5-Minute Sanctuary & Guided Ritual",
-    titleFr: "01. Sanctuaire Quotidien de 5 Minutes & Rituel Guidé",
-    subtitleEn: "Your morning home base (/dashboard)",
-    subtitleFr: "Votre point d'ancrage chaque matin (/dashboard)",
+    id: "sanctuary-command",
+    roman: "I",
+    categoryEn: "Sanctuary Ledger & Daily Rhythm",
+    categoryFr: "Registre du Sanctuaire & Rythme Quotidien",
+    titleEn: "Welcome to LifeBook Sanctuary",
+    titleFr: "Bienvenue dans le Sanctuaire LifeBook",
+    subtitleEn: "Your personal sacred archive for Scripture, prayer, and pastoral communion",
+    subtitleFr: "Votre archive sacrée personnelle pour l'Écriture, la prière et la communion pastorale",
     descriptionEn:
-      "Every morning, LifeBook opens directly into your Sanctuary Dashboard—never a marketing page. Anchor your heart in Scripture before checking email or messages.",
+      "LifeBook is structured as a quiet, distraction-free contemplative ledger. Every day opens with a curated Scripture meditation, a 3-Step Daily Sacred Ritual, and persistent cloud synchronization across your devices.",
     descriptionFr:
-      "Chaque matin, LifeBook s'ouvre directement sur votre Tableau de Bord Sanctuaire. Ancrez votre cœur dans la Parole avant vos réunions.",
-    howToStepsEn: [
-      "Read Today's Anchor Scripture and switch between Psalm 23, Romans 8, or John 15.",
-      "Click “Begin 5-Min Guided Ritual” to walk through 4 unhurried steps: Scripture → Audio Meditation → Personal Reflection → Amen Seal.",
-      "Click “3-Min Audio” anytime to listen to the pastoral audio commentary in the persistent player.",
+      "LifeBook est conçu comme un registre contemplatif calme et sans distraction. Chaque journée s'ouvre sur une méditation biblique, un Rituel Sacré Quotidien en 3 étapes et une synchronisation cloud continue.",
+    keyPointsEn: [
+      "Daily Sacred Ritual: Read today's verse, speak your affirmation aloud, and seal a written reflection",
+      "66-Book Biblical Canon: Track chapters read and verses meditated across Old and New Testaments",
+      " Bilingual Switching: Toggle seamlessly between English (KJV) and French (Louis Segond 1910)",
     ],
-    howToStepsFr: [
-      "Lisez le passage biblique du jour (Psaume 23, Romains 8 ou Jean 15).",
-      "Cliquez sur « Démarrer le Rituel 5-Min » pour vivre les 4 étapes : Écriture → Audio → Méditation → Amen.",
-      "Écoutez le commentaire audio pastoral de 3 minutes à tout moment.",
+    keyPointsFr: [
+      "Rituel Sacré Quotidien : Lisez le verset du jour, proclamez votre affirmation et scellez une réflexion",
+      "Canon Biblique de 66 Livres : Suivez les chapitres lus et les versets médités dans l'Ancien et le Nouveau Testament",
+      "Basculement Bilingue : Passez instantanément de l'anglais (KJV) au français (Louis Segond 1910)",
     ],
-    actionLabelEn: "Open 5-Min Daily Ritual",
-    actionLabelFr: "Ouvrir le Rituel 5-Min",
-    targetAction: "ritual",
+    howToUseEn:
+      "Use the top navigation bar to switch between Sanctuary, Living Word, Voice Room, Reflection Journal, and the Teachers Portal.",
+    howToUseFr:
+      "Utilisez la barre de navigation supérieure pour passer entre Sanctuaire, Parole Vivante, Salle Vocale, Journal et Portail Enseignants.",
+    interactivePromptEn: "Acknowledge your daily rhythm or open the 3-Step Daily Ritual directly from your dashboard.",
+    interactivePromptFr: "Validez votre rythme quotidien ou ouvrez le Rituel Quotidien en 3 étapes depuis votre tableau de bord.",
+    interactiveActionLabelEn: "Preview Daily Sacred Ritual",
+    interactiveActionLabelFr: "Aperçu du Rituel Sacré Quotidien",
+    interactiveCallbackId: "open-daily-ritual",
   },
   {
-    stepNumber: "02",
-    id: "progress-heatmap",
-    titleEn: "02. Progress, Streaks, Sabbath Shield & 30-Day Heatmap",
-    titleFr: "02. Progrès, Séries, Bouclier du Sabbat & Heatmap 30 Jours",
-    subtitleEn: "Integrated inside your Dashboard ('Progress, Charts & Heatmap' tab)",
-    subtitleFr: "Intégré directement dans votre Tableau de Bord",
+    id: "living-word-voices",
+    roman: "II",
+    categoryEn: "Scripture Narration & Regional Voices",
+    categoryFr: "Narration Biblique & Voix Régionales",
+    titleEn: "The Living Word & Authentic Accents",
+    titleFr: "La Parole Vivante & Accents Authentiques",
+    subtitleEn: "Contextually warm human-cadence voices in Nigerian English, Côte d'Ivoire French, and American English",
+    subtitleFr: "Voix humaines chaleureuses en anglais nigérian, français de Côte d'Ivoire et anglais américain",
     descriptionEn:
-      "Your spiritual rhythm is tracked without legalism or guilt. Intentional Sabbath rest days protect your streak momentum automatically.",
+      "Hear the Scriptures read with natural pastoral cadence and breath. The HumanVoiceSelector lets you filter and toggle between Nigerian English (Lagos & Abuja warmth), Côte d'Ivoire French (Abidjan West African cadence), and American English.",
     descriptionFr:
-      "Suivez votre régularité spirituelle sans culpabilité. Les jours de repos du Sabbat protègent automatiquement votre série.",
-    howToStepsEn: [
-      "View your Continuous Days streak and next milestone progress bar at the top of the Dashboard.",
-      "Switch to the “Progress, Charts & Heatmap” tab inside /dashboard to inspect Weekly Insight Charts (Reflection, Prayer & Consistency).",
-      "Activate Sabbath Shield on rest days (🌿) so your streak is preserved without resetting to zero.",
+      "Écoutez les Écritures lues avec une cadence pastorale naturelle. Le sélecteur vocal vous permet de choisir entre l'anglais nigérian, le français de Côte d'Ivoire (cadence d'Abidjan) et l'anglais américain.",
+    keyPointsEn: [
+      "Regional Accent Filter: Switch between Nigerian (EN-NG), Ivorian (FR-CI), and American (EN-US) presets",
+      "Acoustic Warmth & Breath: Tuned pitch, pastoral pacing, and gentle room resonance for lifelike reading",
+      "Verse-by-Verse Sync: Follow along visually as each Scripture passage is narrated aloud",
     ],
-    howToStepsFr: [
-      "Consultez vos jours consécutifs et votre prochain palier en haut du Tableau de Bord.",
-      "Ouvrez l'onglet « Progrès, Graphiques & Sabbat » pour voir vos graphiques hebdomadaires et la matrice 30 jours.",
-      "Activez le repos du Sabbat (🌿) pour préserver votre élan sans remise à zéro.",
+    keyPointsFr: [
+      "Filtre d'Accents Régionaux : Basculez entre les profils Nigérian (EN-NG), Ivoirien (FR-CI) et Américain (EN-US)",
+      "Chaleur Acoustique : Timbre ajusté, rythme pastoral et résonance douce pour une lecture vivante",
+      "Synchronisation Verset par Verset : Suivez visuellement chaque passage biblique pendant la narration",
     ],
-    actionLabelEn: "View Progress & Charts Tab",
-    actionLabelFr: "Voir Progrès & Graphiques",
-    targetAction: "progress",
+    howToUseEn:
+      "Open 'Living Word' or click the Voice Selector in any Scripture card to audition and lock in your preferred regional narrator.",
+    howToUseFr:
+      "Ouvrez « Parole Vivante » ou cliquez sur le sélecteur de voix dans une carte biblique pour choisir votre narrateur régional.",
+    interactivePromptEn: "Test a short audio sample of pastoral Scripture narration right now.",
+    interactivePromptFr: "Testez dès maintenant un court extrait audio de narration biblique pastorale.",
+    interactiveActionLabelEn: "Audition Scripture Voice Sample",
+    interactiveActionLabelFr: "Écouter un Extrait Vocal",
+    interactiveCallbackId: "test-voice-sample",
   },
   {
-    stepNumber: "03",
-    id: "teachers-portal",
-    titleEn: "03. Teachers Portal & Pastor Contributor Pages",
-    titleFr: "03. Portail des Pasteurs & Pages Contributeurs",
-    subtitleEn: "Curated by LifeBook Leadership (/teachers)",
-    subtitleFr: "Choisis par la Direction LifeBook (/teachers)",
+    id: "christian-melodies",
+    roman: "III",
+    categoryEn: "Sacred Acoustic Overlay",
+    categoryFr: "Fond Musical Sacré",
+    titleEn: "Christian Melodies & Instrumental Worship",
+    titleFr: "Mélodies Chrétiennes & Louange Instrumentale",
+    subtitleEn: "Harmonic worship pads, altar piano, and contemplative strings layered beneath your meditation",
+    subtitleFr: "Nappes d'adoration, piano d'autel et cordes contemplatives superposés à votre méditation",
     descriptionEn:
-      "To safeguard sound doctrine, contributor pages are not open to random public uploads. LifeBook Leadership appoints trusted pastors and publishes their teachings inside each teacher’s page.",
+      "Powered by the SanctuaryAudioProvider and lib/christian-melodies, you can overlay continuous, harmonic Christian instrumentals during prayer, journaling, or spoken Scripture narration without drowning out the voice.",
     descriptionFr:
-      "La direction de LifeBook choisit chaque pasteur contributeur et ajoute leurs enseignements directement dans la page de l'enseignant.",
-    howToStepsEn: [
-      "Filter the Teachers Directory by Theological Specialty or sort by Most Teachings Published.",
-      "Leadership can review total listen counts and completion rates in the Performance Analytics panel.",
-      "Open any Pastor’s Contributor Page (/teachers/[slug]) to listen to their teachings or add new teachings.",
+      "Grâce au SanctuaryAudioProvider et à lib/christian-melodies, superposez des instrumentaux chrétiens harmonieux pendant la prière, le journal ou la narration biblique sans couvrir la voix.",
+    keyPointsEn: [
+      "6 Curated Instrumentals: Cathedral Grand Piano, String Adagio, Acoustic Harp, Warm Organ, and Kora & Pad",
+      "Independent Volume Ducking: Balance background instrumental volume separately from spoken teaching audio",
+      "Persistent Sanctuary Playback: Melodies continue smoothly while you move between Bible chapters and journal entries",
     ],
-    howToStepsFr: [
-      "Filtrez l'annuaire des pasteurs par Spécialité Théologique ou triez par nombre d'enseignements publiés.",
-      "Consultez le panneau d'Analytique de Performance (écoutes totales et taux de complétion).",
-      "Ouvrez la page dédiée d'un pasteur pour écouter ou publier un enseignement.",
+    keyPointsFr: [
+      "6 Instrumentaux Sacrés : Piano de Cathédrale, Adagio à Cordes, Harpe Acoustique, Orgue Doux et Kora & Pad",
+      "Volume Indépendant : Équilibrez le volume instrumental séparément de la voix parlée",
+      "Lecture Continue : Les mélodies se poursuivent pendant votre navigation entre la Bible et le journal",
     ],
-    actionLabelEn: "Explore Teachers Portal",
-    actionLabelFr: "Explorer le Portail des Pasteurs",
-    targetAction: "teachers",
+    howToUseEn:
+      "Use the Christian Melodies panel on your dashboard or inside the global audio bar at the bottom of the screen to start or change instrumentals.",
+    howToUseFr:
+      "Utilisez le panneau Mélodies Chrétiennes sur le tableau de bord ou dans la barre audio inférieure pour lancer un instrumental.",
+    interactivePromptEn: "Preview the Christian Melodies selector or toggle ambient worship accompaniment.",
+    interactivePromptFr: "Prévisualisez le sélecteur de Mélodies Chrétiennes ou activez l'accompagnement instrumental.",
+    interactiveActionLabelEn: "Focus Christian Melodies Panel",
+    interactiveActionLabelFr: "Voir le Panneau des Mélodies",
+    interactiveCallbackId: "focus-melodies",
   },
   {
-    stepNumber: "04",
-    id: "live-teacher-call",
-    titleEn: "04. Teacher-Hosted Live Sanctuary Calls (40 Users Max)",
-    titleFr: "04. Appels en Direct des Enseignants (40 Participants Max)",
-    subtitleEn: "Strict Teacher-Only Host Control · WhatsApp-style Mid-Call Invites",
-    subtitleFr: "Création réservée aux enseignants · Invitations en direct",
+    id: "voice-practice-journal",
+    roman: "IV",
+    categoryEn: "Spoken Affirmation & Sacred Archive",
+    categoryFr: "Affirmation Parlée & Archive Sacrée",
+    titleEn: "Voice Room & Contemplative Journal",
+    titleFr: "Salle Vocale & Journal Contemplatif",
+    subtitleEn: "Speak Scripture aloud with real-time word tracking and record prayers in your personal archive",
+    subtitleFr: "Proclamez l'Écriture à haute voix avec suivi mot à mot et inscrivez vos prières dans votre archive",
     descriptionEn:
-      "Only appointed LifeBook Teachers can start a Live Sanctuary Call, capped at 40 participants maximum for intimate pastoral fellowship. Members can join active calls or accept mid-call invitations.",
+      "Faith is strengthened when spoken and written. In the Voice Room, read verses aloud while real-time speech recognition highlights each word and computes your accuracy. In the Journal, preserve prayers and gratitude notes with automatic cloud backup.",
     descriptionFr:
-      "Seuls les enseignants nommés peuvent démarrer un appel en direct (limité à 40 croyants maximum). Les membres peuvent rejoindre l'appel ou accepter une invitation.",
-    howToStepsEn: [
-      "Teacher-Only Start Rule: Regular users cannot start a call—only Teachers can launch a Live Audio/Video Fellowship room (up to 40 users).",
-      "Mid-Call Invitations: While a call is live, the Host Teacher can dynamically invite & ring additional believers mid-call up to the 40-person cap.",
-      "Member Participation: Click “Join Teacher's Call” on the Dashboard or Teachers Portal, toggle your mic/camera, or raise your hand (✋) for prayer.",
+      "La foi s'affermit lorsqu'elle est proclamée et écrite. Dans la Salle Vocale, lisez les versets à haute voix avec suivi mot à mot. Dans le Journal, conservez vos prières et notes de gratitude.",
+    keyPointsEn: [
+      "Live Speech Tracking: Word-by-word visual verification as you recite verses in English or French",
+      "Voice Prayer Memos: Record spoken prayers directly into your reflection timeline",
+      "Searchable Prayer Ledger: Filter your written reflections by mood, Scripture reference, or date",
     ],
-    howToStepsFr: [
-      "Règle Hôte Enseignant : Seul un enseignant peut démarrer un appel en direct (maximum 40 participants).",
-      "Invitation en cours d'appel : L'enseignant peut inviter dynamiquement des membres pendant l'appel jusqu'à 40 personnes.",
-      "Participation : Rejoignez l'appel depuis le Tableau de Bord, activez votre micro/caméra ou levez la main (✋) pour la prière.",
+    keyPointsFr: [
+      "Suivi Vocal en Direct : Vérification visuelle mot à mot pendant votre récitation en anglais ou en français",
+      "Mémos Vocaux de Prière : Enregistrez vos prières parlées directement dans votre chronologie",
+      "Registre de Prière Consultable : Filtrez vos réflexions écrites par état d'esprit, référence ou date",
     ],
-    actionLabelEn: "Focus Live Call Sanctuary",
-    actionLabelFr: "Voir l'Appel en Direct",
-    targetAction: "live-call",
+    howToUseEn:
+      "Select 'Voice Room' to practice speaking Scripture aloud, or 'Journal' to write and archive a personal meditation.",
+    howToUseFr:
+      "Sélectionnez « Salle Vocale » pour réciter l'Écriture, ou « Journal » pour rédiger et archiver une méditation personnelle.",
+    interactivePromptEn: "Open the Voice Room or Journal tab on your dashboard to begin.",
+    interactivePromptFr: "Ouvrez l'onglet Salle Vocale ou Journal sur votre tableau de bord pour commencer.",
+    interactiveActionLabelEn: "Switch to Voice Practice Tab",
+    interactiveActionLabelFr: "Ouvrir la Salle Vocale",
+    interactiveCallbackId: "open-voice-tab",
   },
   {
-    stepNumber: "05",
-    id: "soul-journal-prayer",
-    titleEn: "05. Private Soul Journal & Community Prayer Wall",
-    titleFr: "05. Journal Intime de l'Âme & Mur de Prière",
-    subtitleEn: "Encrypted local reflection, mood tagging & PDF export",
-    subtitleFr: "Méditation privée, états d'âme & export PDF",
+    id: "webrtc-live-calling",
+    roman: "V",
+    categoryEn: "WebRTC Pastoral Communion & Teachers Portal",
+    categoryFr: "Communion Pastorale WebRTC & Portail Enseignants",
+    titleEn: "1-on-1 WebRTC Audio & 40-Seat Live Rooms",
+    titleFr: "Audio WebRTC 1-à-1 & Salles en Direct (40 Places)",
+    subtitleEn: "Teacher-initiated real-time 1-on-1 pastoral audio calls and SFU group rooms with microphone permission verification",
+    subtitleFr: "Appels audio pastoraux 1-à-1 en temps réel initiés par l'enseignant et salles de groupe avec gestion du microphone",
     descriptionEn:
-      "Record your honest prayers and reflections tagged by spiritual season (Peaceful, Grateful, Seeking, or Sabbath Rest) and pray alongside the global LifeBook community.",
+      "Only verified Teachers can initiate live calls. Teachers can launch either a direct 1-on-1 WebRTC Audio Call with a specific pilgrim (complete with SDP offer/answer handshake, ICE candidate exchange, and explicit navigator.mediaDevices.getUserMedia microphone permission handling) or a 40-seat group sanctuary session.",
     descriptionFr:
-      "Notez vos prières et réflexions par saison spirituelle, filtrez vos archives et priez avec la communauté.",
-    howToStepsEn: [
-      "Open the “Soul Journal” tab in /dashboard to filter entries by date, keyword, or spiritual mood.",
-      "Use the “Instant Private Prayer” box on your Dashboard to save quick morning prayers.",
-      "Click “Praying Hands (🙏)” in the Community Prayer Wall to intercede for fellow believers.",
+      "Seuls les enseignants vérifiés peuvent initier des appels en direct : soit un appel audio WebRTC 1-à-1 direct avec un pèlerin (avec négociation SDP/ICE et vérification de permission microphone), soit une session de groupe jusqu'à 40 participants.",
+    keyPointsEn: [
+      "Real-Time 1-on-1 WebRTC Audio: Direct teacher-to-user pastoral counseling with live microphone level diagnostics",
+      "Microphone Permission Guard: Clear browser permission request flow with fallback recovery if access is blocked",
+      "Teachers Directory & Analytics: Filter teachers by Theological Specialty, sort by Most Teachings Published, and inspect completion rates",
     ],
-    howToStepsFr: [
-      "Ouvrez l'onglet « Journal Intime » pour rechercher vos notes par date ou par état spirituel.",
-      "Utilisez la boîte « Prière du Matin Directe » pour enregistrer rapidement une prière.",
-      "Soutenez les autres croyants dans la prière communautaire.",
+    keyPointsFr: [
+      "Audio WebRTC 1-à-1 en Temps Réel : Accompagnement pastoral direct enseignant-pèlerin avec diagnostic micro",
+      "Gestion des Permissions Micro : Demande explicite d'accès au microphone avec guide de dépannage",
+      "Répertoire & Analytique : Filtrez par spécialité théologique, triez par enseignements publiés et consultez les statistiques",
     ],
-    actionLabelEn: "Open Soul Journal Tab",
-    actionLabelFr: "Ouvrir le Journal Intime",
-    targetAction: "journal",
-  },
-  {
-    stepNumber: "06",
-    id: "voice-and-pwa",
-    titleEn: "06. LifeBook Voice & Offline Home-Screen App (PWA)",
-    titleFr: "06. Prière Vocale LifeBook & Application Hors-Ligne (PWA)",
-    subtitleEn: "Bilingual EN/FR Voice Companion & Direct /dashboard Launch",
-    subtitleFr: "Compagnon vocal bilingue FR/EN & lancement direct",
-    descriptionEn:
-      "Bring your questions or burdens to LifeBook Voice for Scripture-anchored encouragement, and install LifeBook to your phone or desktop so it opens straight into /dashboard even offline.",
-    descriptionFr:
-      "Posez vos questions spirituelles à LifeBook Voice et installez l'application sur votre écran d'accueil pour un accès hors-ligne direct.",
-    howToStepsEn: [
-      "Visit “Voice Practice” (/voice) to speak or type questions in English or French and receive Scripture-grounded guidance.",
-      "Click “Install App” in the top bar to add LifeBook to your Home Screen—configured to launch directly into /dashboard.",
-      "Toggle EN/FR language and Light/Dark sanctuary themes anytime in the top navigation bar.",
-    ],
-    howToStepsFr: [
-      "Visitez « Prière Vocale » (/voice) pour poser vos questions en français ou en anglais.",
-      "Cliquez sur « Installer l'App » pour ajouter LifeBook à votre écran d'accueil avec ouverture directe sur /dashboard.",
-      "Basculez entre Français/Anglais et le mode Clair/Sombre à tout moment.",
-    ],
-    actionLabelEn: "Visit LifeBook Voice",
-    actionLabelFr: "Découvrir Prière Vocale",
-    targetAction: "voice",
+    howToUseEn:
+      "Click 'Live Call' in the top bar to open the WebRTC Console, test your microphone permissions, or initiate a 1-on-1 pastoral session.",
+    howToUseFr:
+      "Cliquez sur « Appel Direct » dans la barre supérieure pour ouvrir la console WebRTC, tester votre micro ou lancer un appel 1-à-1.",
+    interactivePromptEn: "Open the Live Call WebRTC Console to inspect 1-on-1 calling and microphone permission checks.",
+    interactivePromptFr: "Ouvrez la console d'appel WebRTC pour découvrir l'appel 1-à-1 et la vérification du microphone.",
+    interactiveActionLabelEn: "Open WebRTC Live Call Console",
+    interactiveActionLabelFr: "Ouvrir la Console d'Appel WebRTC",
+    interactiveCallbackId: "open-live-call",
   },
 ];
 
-interface SanctuaryWalkthroughModalProps {
-  onSelectDashboardTab?: (tab: "overview" | "audio" | "journal" | "heatmap" | "community") => void;
-  onOpenDailyRitual?: () => void;
-  onFocusLiveCall?: () => void;
-}
-
-export function SanctuaryWalkthroughModal({
-  onSelectDashboardTab,
-  onOpenDailyRitual,
-  onFocusLiveCall,
+export default function SanctuaryWalkthroughModal({
+  isOpen,
+  onClose,
+  userName,
+  userEmail,
+  onSelectFeatureAction,
 }: SanctuaryWalkthroughModalProps) {
+  const { language } = useLanguage();
   const router = useRouter();
-  const { isFr } = useLanguage();
+  const isFr = language === "fr";
 
-  const [isOpen, setIsOpen] = useState<boolean>(() => shouldAutoOpenWalkthrough());
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [viewAllOverview, setViewAllOverview] = useState(false);
+  const [acknowledgedSteps, setAcknowledgedSteps] = useState<Record<string, boolean>>({});
+  const [voicePreviewPlaying, setVoicePreviewPlaying] = useState(false);
+  const [interactiveFeedback, setInteractiveFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleExplicitOpen = () => {
+    if (isOpen) {
       setCurrentStepIndex(0);
-      setViewAllOverview(false);
-      setIsOpen(true);
-    };
-
-    window.addEventListener(WALKTHROUGH_OPEN_EVENT, handleExplicitOpen);
-    return () => {
-      window.removeEventListener(WALKTHROUGH_OPEN_EVENT, handleExplicitOpen);
-    };
-  }, []);
-
-  const handleCompleteAndClose = () => {
-    markWalkthroughCompleted();
-    setIsOpen(false);
-  };
-
-  const handleFeatureAction = (action: WalkthroughStep["targetAction"]) => {
-    markWalkthroughCompleted();
-    setIsOpen(false);
-
-    if (action === "ritual") {
-      onOpenDailyRitual?.();
-    } else if (action === "progress") {
-      onSelectDashboardTab?.("heatmap");
-    } else if (action === "journal") {
-      onSelectDashboardTab?.("journal");
-    } else if (action === "live-call") {
-      onFocusLiveCall?.();
-    } else if (action === "teachers") {
-      router.push("/teachers");
-    } else if (action === "voice") {
-      router.push("/voice");
+      setInteractiveFeedback(null);
     }
-  };
+  }, [isOpen]);
+
+  useEffect(() => {
+    setInteractiveFeedback(null);
+  }, [currentStepIndex]);
 
   if (!isOpen) return null;
 
   const step = WALKTHROUGH_STEPS[currentStepIndex];
+  const isLastStep = currentStepIndex === WALKTHROUGH_STEPS.length - 1;
+  const completedCount = Object.keys(acknowledgedSteps).length;
+
+  const handleCompleteWalkthrough = () => {
+    markWalkthroughCompleted(userEmail);
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    onClose();
+  };
+
+  const handleNext = () => {
+    setAcknowledgedSteps((prev) => ({ ...prev, [step.id]: true }));
+    if (isLastStep) {
+      handleCompleteWalkthrough();
+    } else {
+      setCurrentStepIndex((prev) => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleInteractiveAction = () => {
+    setAcknowledgedSteps((prev) => ({ ...prev, [step.id]: true }));
+
+    if (step.interactiveCallbackId === "test-voice-sample") {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const sampleText = isFr
+          ? "L'Éternel est mon berger: je ne manquerai de rien. Il me fait reposer dans de verts pâturages."
+          : "The Lord is my shepherd; I shall not want. He maketh me to lie down in green pastures.";
+        const utterance = new SpeechSynthesisUtterance(sampleText);
+        utterance.lang = isFr ? "fr-FR" : "en-NG";
+        utterance.rate = 0.92;
+        utterance.pitch = 0.96;
+        utterance.onstart = () => setVoicePreviewPlaying(true);
+        utterance.onend = () => setVoicePreviewPlaying(false);
+        utterance.onerror = () => setVoicePreviewPlaying(false);
+        window.speechSynthesis.speak(utterance);
+        setInteractiveFeedback(
+          isFr
+            ? "Lecture de l'extrait vocal pastoral en cours (Psaume 23:1-2)..."
+            : "Playing pastoral Scripture voice sample (Psalm 23:1-2)..."
+        );
+      } else {
+        setInteractiveFeedback(
+          isFr
+            ? "Synthèse vocale prête dans l'onglet Parole Vivante."
+            : "Voice synthesis ready inside the Living Word tab."
+        );
+      }
+      return;
+    }
+
+    if (step.interactiveCallbackId && onSelectFeatureAction) {
+      markWalkthroughCompleted(userEmail);
+      onClose();
+      onSelectFeatureAction(step.interactiveCallbackId);
+      return;
+    }
+
+    if (step.interactiveRoute) {
+      markWalkthroughCompleted(userEmail);
+      onClose();
+      router.push(step.interactiveRoute);
+    }
+  };
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/70 backdrop-blur-xs p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="walkthrough-modal-title"
     >
-      <div className="bg-[#FAF8F5] dark:bg-[#171229] border border-[#2D2542]/15 dark:border-white/15 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl space-y-6 my-auto">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-[#0E726D] dark:text-[#4EE2D8] font-semibold">
-              <span>✦</span>
-              <span>
-                {isFr
-                  ? "GUIDE D'ACCUEIL DES NOUVEAUX MEMBRES · 6 FONCTIONNALITÉS"
-                  : "NEW USER INTERACTIVE WALKTHROUGH · ALL 6 FEATURES EXPLAINED"}
-              </span>
-            </div>
-            <h2
-              id="walkthrough-modal-title"
-              className="text-xl sm:text-2xl font-serif font-bold text-[#1E1931] dark:text-white mt-1"
-            >
+      <div className="relative w-full max-w-3xl bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-800 rounded-xl shadow-xl overflow-hidden my-auto">
+        {/* Top Archival Ledger Header */}
+        <div className="px-6 py-4 bg-[#F3EFE6] dark:bg-[#1C1917] border-b border-stone-300/80 dark:border-stone-800 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-900 dark:text-amber-400 font-semibold">
+              {isFr ? "MANUEL D'ORIENTATION" : "FIRST-LOGIN ORIENTATION"}
+            </span>
+            <span className="text-stone-300 dark:text-stone-700">|</span>
+            <span className="font-mono text-xs text-stone-600 dark:text-stone-400 tabular-nums">
               {isFr
-                ? "Bienvenue dans votre Sanctuaire LifeBook"
-                : "Welcome to Your LifeBook Sanctuary"}
-            </h2>
+                ? `Étape ${currentStepIndex + 1} sur ${WALKTHROUGH_STEPS.length}`
+                : `Step ${currentStepIndex + 1} of ${WALKTHROUGH_STEPS.length}`}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setViewAllOverview(!viewAllOverview)}
-              className="px-3 py-1.5 rounded-xl bg-white dark:bg-white/10 border border-[#2D2542]/15 dark:border-white/15 text-xs font-semibold text-[#1E1931] dark:text-white cursor-pointer whitespace-nowrap"
+          <button
+            type="button"
+            onClick={handleCompleteWalkthrough}
+            className="text-xs font-mono uppercase tracking-wider text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors px-2.5 py-1 border border-transparent hover:border-stone-300 dark:hover:border-stone-700 rounded"
+          >
+            {isFr ? "Fermer le guide" : "Skip & Enter"}
+          </button>
+        </div>
+
+        {/* Step Navigation Ledger Strip */}
+        <div className="grid grid-cols-5 border-b border-stone-200 dark:border-stone-800/80 bg-[#FAF8F5] dark:bg-[#141210]">
+          {WALKTHROUGH_STEPS.map((item, idx) => {
+            const isCurrent = idx === currentStepIndex;
+            const isDone = idx < currentStepIndex || acknowledgedSteps[item.id];
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setCurrentStepIndex(idx)}
+                className={`px-3 py-3 text-left border-r last:border-r-0 border-stone-200 dark:border-stone-800/80 transition-colors ${
+                  isCurrent
+                    ? "bg-amber-900/8 dark:bg-amber-500/10 border-b-2 border-b-amber-800 dark:border-b-amber-500"
+                    : "hover:bg-stone-100 dark:hover:bg-stone-900/60"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-1 mb-0.5">
+                  <span
+                    className={`font-serif text-xs font-bold ${
+                      isCurrent
+                        ? "text-amber-900 dark:text-amber-400"
+                        : isDone
+                        ? "text-emerald-800 dark:text-emerald-400"
+                        : "text-stone-400 dark:text-stone-600"
+                    }`}
+                  >
+                    {item.roman}.
+                  </span>
+                  {isDone && (
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                      {isFr ? "Lu" : "Read"}
+                    </span>
+                  )}
+                </div>
+                <p
+                  className={`text-[11px] font-medium truncate ${
+                    isCurrent
+                      ? "text-stone-900 dark:text-stone-100"
+                      : "text-stone-500 dark:text-stone-400"
+                  }`}
+                >
+                  {isFr ? item.titleFr : item.titleEn}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Main Step Body */}
+        <div className="p-6 sm:p-8 space-y-6">
+          {/* Category & Personalized Greeting */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-mono text-xs uppercase tracking-[0.16em] text-amber-900 dark:text-amber-400 font-semibold">
+                {step.roman} — {isFr ? step.categoryFr : step.categoryEn}
+              </span>
+              {userName && currentStepIndex === 0 && (
+                <span className="text-xs font-serif italic text-stone-600 dark:text-stone-400">
+                  {isFr ? `Préparé pour ${userName}` : `Prepared for ${userName}`}
+                </span>
+              )}
+            </div>
+
+            <h2
+              id="walkthrough-modal-title"
+              className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100 tracking-tight"
             >
-              {viewAllOverview
-                ? isFr
-                  ? "Mode Étape par Étape"
-                  : "Step-by-Step Guide"
-                : isFr
-                ? "Voir Toutes les Fonctionnalités (6)"
-                : "View All 6 Features at Once"}
-            </button>
-            <button
-              type="button"
-              onClick={handleCompleteAndClose}
-              className="px-3 py-1.5 rounded-xl bg-[#2D2542]/10 dark:bg-white/10 hover:bg-[#2D2542]/20 text-xs font-bold text-[#1E1931] dark:text-white cursor-pointer"
-              title={isFr ? "Fermer le guide" : "Skip / Close Walkthrough"}
-            >
-              ✕
-            </button>
+              {isFr ? step.titleFr : step.titleEn}
+            </h2>
+
+            <p className="text-sm font-serif italic text-stone-600 dark:text-stone-300">
+              {isFr ? step.subtitleFr : step.subtitleEn}
+            </p>
+          </div>
+
+          {/* Core Explanation */}
+          <p className="text-sm sm:text-base text-stone-700 dark:text-stone-300 leading-relaxed">
+            {isFr ? step.descriptionFr : step.descriptionEn}
+          </p>
+
+          {/* Architectural Ledger of Capabilities */}
+          <div className="border-t border-b border-stone-200 dark:border-stone-800 py-4 space-y-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-stone-500 dark:text-stone-400 font-semibold">
+              {isFr ? "CAPACITÉS CLÉS DE CE PILIER" : "CORE CAPABILITIES IN THIS PILLAR"}
+            </p>
+
+            <div className="grid grid-cols-1 gap-2.5">
+              {(isFr ? step.keyPointsFr : step.keyPointsEn).map((point, idx) => {
+                const [headline, ...rest] = point.split(":");
+                const detail = rest.join(":");
+                return (
+                  <div
+                    key={idx}
+                    className="flex items-baseline gap-3 text-sm text-stone-800 dark:text-stone-200"
+                  >
+                    <span className="font-mono text-xs text-amber-800 dark:text-amber-400 font-semibold shrink-0 tabular-nums">
+                      0{idx + 1}
+                    </span>
+                    <p className="leading-snug">
+                      {detail ? (
+                        <>
+                          <strong className="font-semibold text-stone-900 dark:text-stone-100">
+                            {headline}:
+                          </strong>
+                          <span className="text-stone-600 dark:text-stone-300">{detail}</span>
+                        </>
+                      ) : (
+                        point
+                      )}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Interactive Try-It Box */}
+          <div className="p-4 rounded-lg bg-[#F3EFE6] dark:bg-[#1C1917] border border-stone-300/80 dark:border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-amber-900 dark:text-amber-400 font-semibold">
+                {isFr ? "ACTION DIRECTE & PRATIQUE" : "HANDS-ON ORIENTATION"}
+              </p>
+              <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300">
+                {isFr ? step.howToUseFr : step.howToUseEn}
+              </p>
+              {interactiveFeedback && (
+                <p className="text-xs font-medium text-emerald-800 dark:text-emerald-400 pt-1">
+                  {interactiveFeedback}
+                </p>
+              )}
+            </div>
+
+            {step.interactiveCallbackId && (
+              <button
+                type="button"
+                onClick={handleInteractiveAction}
+                className="shrink-0 px-4 py-2.5 rounded-lg bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-stone-50 dark:text-stone-900 text-xs font-semibold tracking-wide transition-colors cursor-pointer"
+              >
+                {voicePreviewPlaying && step.interactiveCallbackId === "test-voice-sample"
+                  ? isFr
+                    ? "Lecture en cours..."
+                    : "Playing Voice..."
+                  : isFr
+                  ? step.interactiveActionLabelFr
+                  : step.interactiveActionLabelEn}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Step Selector Tabs */}
-        {!viewAllOverview && (
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {WALKTHROUGH_STEPS.map((s, idx) => {
-              const active = idx === currentStepIndex;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setCurrentStepIndex(idx)}
-                  className={`p-2.5 rounded-xl text-left transition-all cursor-pointer border ${
-                    active
-                      ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-transparent"
-                      : "bg-white dark:bg-[#1E1836] text-[#5A506B] dark:text-[#C8C2D6] border-[#2D2542]/10 dark:border-white/10 hover:border-[#2D2542]/30"
-                  }`}
-                >
-                  <div className="text-[11px] font-mono tabular-nums font-bold">
-                    {isFr ? `Étape ${s.stepNumber}` : `Step ${s.stepNumber}`}
-                  </div>
-                  <div className="text-xs font-semibold truncate mt-0.5">
-                    {(isFr ? s.titleFr : s.titleEn).replace(/^\d+\.\s*/, "")}
-                  </div>
-                </button>
-              );
-            })}
+        {/* Footer Controls */}
+        <div className="px-6 py-4 bg-[#F3EFE6] dark:bg-[#1C1917] border-t border-stone-300/80 dark:border-stone-800 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrev}
+              disabled={currentStepIndex === 0}
+              className="px-3.5 py-2 rounded-lg border border-stone-300 dark:border-stone-700 text-xs font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+            >
+              {isFr ? "← Précédent" : "← Previous"}
+            </button>
+
+            <span className="text-xs font-mono text-stone-500 dark:text-stone-400 px-2">
+              {completedCount}/{WALKTHROUGH_STEPS.length}{" "}
+              {isFr ? "piliers explorés" : "pillars reviewed"}
+            </span>
           </div>
-        )}
-
-        {/* Content Area: Either Single Step Detail OR All 6 Features Summary */}
-        {viewAllOverview ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[55vh] overflow-y-auto pr-1">
-            {WALKTHROUGH_STEPS.map((s) => (
-              <div
-                key={s.id}
-                className="p-4 rounded-2xl bg-white dark:bg-[#1E1836] border border-[#2D2542]/10 dark:border-white/12 flex flex-col justify-between space-y-3"
-              >
-                <div className="space-y-1.5">
-                  <div className="text-xs font-mono text-[#0E726D] dark:text-[#4EE2D8] font-bold">
-                    {isFr ? s.subtitleFr : s.subtitleEn}
-                  </div>
-                  <h3 className="text-sm font-serif font-bold text-[#1E1931] dark:text-white">
-                    {isFr ? s.titleFr : s.titleEn}
-                  </h3>
-                  <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] leading-relaxed">
-                    {isFr ? s.descriptionFr : s.descriptionEn}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleFeatureAction(s.targetAction)}
-                  className="self-start px-3 py-1.5 rounded-lg bg-[#F2ECE1] dark:bg-white/10 hover:bg-[#2D2542] hover:text-white dark:hover:bg-[#4EE2D8] dark:hover:text-[#0E0C18] text-xs font-bold text-[#1E1931] dark:text-white transition-colors cursor-pointer"
-                >
-                  {isFr ? s.actionLabelFr : s.actionLabelEn} →
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#1E1836] border border-[#2D2542]/10 dark:border-white/12 space-y-5">
-            <div className="space-y-1.5">
-              <div className="text-xs font-mono text-[#0E726D] dark:text-[#4EE2D8] font-bold">
-                {isFr ? step.subtitleFr : step.subtitleEn}
-              </div>
-              <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white">
-                {isFr ? step.titleFr : step.titleEn}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5A506B] dark:text-[#C8C2D6] leading-relaxed">
-                {isFr ? step.descriptionFr : step.descriptionEn}
-              </p>
-            </div>
-
-            {/* Numbered How-It-Works Instructions */}
-            <div className="space-y-2.5 pt-2 border-t border-[#2D2542]/10 dark:border-white/10">
-              <div className="text-xs font-bold text-[#1E1931] dark:text-white">
-                {isFr ? "Comment utiliser cette fonctionnalité :" : "How to use this feature:"}
-              </div>
-              <ol className="space-y-2">
-                {(isFr ? step.howToStepsFr : step.howToStepsEn).map((instruction, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2.5 text-xs text-[#2D2542] dark:text-[#E2DCEF] leading-relaxed"
-                  >
-                    <span className="w-5 h-5 rounded-full bg-[#F2ECE1] dark:bg-white/10 text-[#1E1931] dark:text-[#4EE2D8] font-mono tabular-nums font-bold flex items-center justify-center shrink-0 mt-0.5">
-                      {i + 1}
-                    </span>
-                    <span>{instruction}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => handleFeatureAction(step.targetAction)}
-                className="px-4 py-2 rounded-xl bg-[#1FB6B0]/15 hover:bg-[#1FB6B0]/25 border border-[#1FB6B0]/40 text-[#0E726D] dark:text-[#4EE2D8] text-xs font-bold transition-colors cursor-pointer"
-              >
-                {isFr ? step.actionLabelFr : step.actionLabelEn} →
-              </button>
-
-              <span className="text-xs font-mono tabular-nums text-[#5A506B] dark:text-[#C8C2D6]">
-                {currentStepIndex + 1} / {WALKTHROUGH_STEPS.length}{" "}
-                {isFr ? "fonctionnalités" : "features explained"}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Footer Navigation Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <button
-            type="button"
-            onClick={handleCompleteAndClose}
-            className="text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6] hover:text-[#1E1931] dark:hover:text-white cursor-pointer"
-          >
-            {isFr
-              ? "Marquer comme lu & entrer dans le Sanctuaire"
-              : "Mark Walkthrough Complete & Enter Sanctuary"}
-          </button>
 
           <div className="flex items-center gap-2.5">
-            {!viewAllOverview && currentStepIndex > 0 && (
-              <button
-                type="button"
-                onClick={() => setCurrentStepIndex((i) => Math.max(0, i - 1))}
-                className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/10 border border-[#2D2542]/15 dark:border-white/15 text-xs font-bold text-[#1E1931] dark:text-white cursor-pointer"
-              >
-                ← {isFr ? "Précédent" : "Previous"}
-              </button>
-            )}
-
-            {!viewAllOverview && currentStepIndex < WALKTHROUGH_STEPS.length - 1 ? (
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentStepIndex((i) => Math.min(WALKTHROUGH_STEPS.length - 1, i + 1))
-                }
-                className="px-5 py-2.5 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold cursor-pointer whitespace-nowrap"
-              >
-                {isFr ? "Fonctionnalité Suivante →" : "Next Feature →"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleCompleteAndClose}
-                className="px-5 py-2.5 rounded-xl bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-xs font-bold cursor-pointer whitespace-nowrap"
-              >
-                {isFr ? "Commencer dans le Sanctuaire ✓" : "Finish Walkthrough & Begin ✓"}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleNext}
+              className="px-5 py-2.5 rounded-lg bg-amber-800 hover:bg-amber-900 dark:bg-amber-600 dark:hover:bg-amber-500 text-white text-xs sm:text-sm font-semibold tracking-wide transition-colors cursor-pointer"
+            >
+              {isLastStep
+                ? isFr
+                  ? "Terminer & Entrer dans le Sanctuaire"
+                  : "Complete & Enter Sanctuary"
+                : isFr
+                ? "Étape Suivante →"
+                : "Next Feature →"}
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+export { SanctuaryWalkthroughModal };

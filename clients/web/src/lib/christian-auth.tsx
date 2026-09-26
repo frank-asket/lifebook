@@ -3,7 +3,10 @@
 import React, { createContext, useContext, useSyncExternalStore, useCallback, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
-import { markNewUserForWalkthrough } from "@/lib/live-call";
+import {
+  markNewUserForWalkthrough,
+  triggerFirstLoginWalkthroughIfNeeded,
+} from "@/lib/live-call";
 
 export interface ChristianUser {
   id: string;
@@ -123,6 +126,7 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userObj));
+      triggerFirstLoginWalkthroughIfNeeded(cleanEmail);
       notifyAuthChange();
     } catch {}
 
@@ -177,7 +181,7 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userObj));
-      markNewUserForWalkthrough();
+      markNewUserForWalkthrough(cleanEmail);
       notifyAuthChange();
     } catch {}
 
@@ -222,6 +226,7 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userObj));
+      triggerFirstLoginWalkthroughIfNeeded(demoEmail);
       notifyAuthChange();
     } catch {}
     router.replace("/dashboard");

@@ -523,10 +523,165 @@ const translations: Record<Language, Translations> = {
   },
 };
 
+const DOT_KEY_TRANSLATIONS: Record<Language, Record<string, string>> = {
+  en: {
+    "theme.toggle": "Toggle theme",
+    "nav.signIn": "Sign In",
+    "nav.signUp": "Create Account",
+    "nav.signOut": "Sign Out",
+    "auth.demoLogin": "Instant Sanctuary Demo",
+    "landing.openDashboard": "Open Sanctuary",
+    "landing.heroTitle": "A Quiet Sanctuary for",
+    "landing.heroTitleHighlight": "Scripture, Prayer & Pastoral Communion",
+    "landing.heroSubtitle":
+      "Immerse yourself in the 66 books of the Bible with authentic Nigerian, Ivorian, and American pastoral voices, harmonic Christian melodies, and 1-on-1 WebRTC pastoral audio sessions.",
+    "landing.enterSanctuary": "Enter the Sanctuary",
+    "landing.dailyVerseLabel": "Daily Canonical Reading",
+    "landing.feature1Title": "The Living Word & Regional Voices",
+    "landing.feature1Desc":
+      "Read and listen to all 66 books of Scripture in English and French with warm Nigerian, Ivorian, and American voice cadences.",
+    "landing.feature2Title": "Spoken Scripture Affirmation",
+    "landing.feature2Desc":
+      "Proclaim verses aloud with word-by-word visual tracking and real-time pronunciation accuracy.",
+    "landing.feature3Title": "Contemplative Prayer Ledger",
+    "landing.feature3Desc":
+      "Archive written reflections and spoken prayer memos with automatic Sanctuary Cloud synchronization.",
+    "footer.tagline": "Bilingual Christian Scripture & Pastoral Sanctuary",
+    "dashboard.welcome": "Grace & Peace",
+    "dashboard.subtitle": "Your Contemplative Sanctuary & Daily Rhythm",
+    "dashboard.dailyMeditation": "Today's Canonical Meditation",
+    "dashboard.openBible": "Open in Bible Reader",
+    "dashboard.practiceVoice": "Speak Verse Aloud",
+    "dashboard.writeReflection": "Write Reflection",
+    "dashboard.recentReflections": "Recent Prayer Ledger Entries",
+    "dashboard.tabs.overview": "I. Sanctuary",
+    "dashboard.tabs.bible": "II. Living Word",
+    "dashboard.tabs.voice": "III. Voice Room",
+    "dashboard.tabs.journal": "IV. Journal",
+    "dashboard.tabs.teachers": "V. Teachers",
+    "dashboard.stats.streak": "Consecutive Days",
+    "dashboard.stats.days": "days in the Word",
+    "dashboard.stats.chaptersRead": "Chapters Completed",
+    "dashboard.stats.voiceSessions": "Spoken Affirmations",
+    "dashboard.stats.reflections": "Prayer Archive",
+    "a11y.progressSummary": "Sanctuary spiritual rhythm metrics",
+    "scripture.title": "The Living Word & Pastoral Library",
+    "scripture.searchPlaceholder": "Search books or verses...",
+    "scripture.allBooks": "All (66)",
+    "scripture.oldTestament": "Old (39)",
+    "scripture.newTestament": "New (27)",
+    "scripture.meditationNote": "Pastoral Reflection Note",
+    "scripture.listenAloud": "Listen Aloud",
+    "scripture.stopReading": "Stop Audio",
+    "scripture.speakVerse": "Practice Speaking",
+    "scripture.completed": "Completed",
+    "scripture.markCompleted": "Mark Chapter Read",
+    "voice.title": "Spoken Scripture & Prayer Room",
+    "voice.subtitle":
+      "Recite Scripture aloud with word-by-word verification and harmonic worship accompaniment.",
+    "voice.selectVerse": "Select Passage to Proclaim",
+    "voice.startSpeaking": "Start Speaking Verse",
+    "voice.stopSpeaking": "Stop Microphone",
+    "voice.accuracy": "Recitation Match",
+    "voice.recognizedText": "Live Spoken Transcript",
+    "voice.noSpeechYet": "Press 'Start Speaking Verse' and read the passage aloud...",
+    "journal.title": "Contemplative Prayer & Reflection Ledger",
+    "journal.savedSuccess": "Reflection sealed in your Sanctuary Ledger.",
+    "journal.entryTitlePlaceholder": "Reflection or Prayer Title",
+    "journal.scriptureRefPlaceholder": "Scripture Anchor (e.g. Psalm 23:1)",
+    "journal.moodLabel": "Spiritual Disposition",
+    "journal.contentPlaceholder":
+      "Write your prayer, gratitude, or meditation before the Lord...",
+    "journal.saveEntry": "Seal Reflection in Archive",
+    "journal.emptyState": "No reflections match your current filter.",
+    "journal.moods.peaceful": "Peaceful",
+    "journal.moods.grateful": "Grateful",
+    "journal.moods.hopeful": "Hopeful",
+    "journal.moods.seeking": "Seeking",
+    "journal.moods.rejoicing": "Rejoicing",
+  },
+  fr: {
+    "theme.toggle": "Changer le thème",
+    "nav.signIn": "Connexion",
+    "nav.signUp": "Créer un Compte",
+    "nav.signOut": "Déconnexion",
+    "auth.demoLogin": "Accès Démo Immédiat",
+    "landing.openDashboard": "Ouvrir le Sanctuaire",
+    "landing.heroTitle": "Un Sanctuaire Paisible pour",
+    "landing.heroTitleHighlight": "l'Écriture, la Prière et la Communion Pastorale",
+    "landing.heroSubtitle":
+      "Plongez dans les 66 livres de la Bible avec d'authentiques voix pastorales nigérianes, ivoiriennes et américaines, des mélodies chrétiennes harmonieuses et des appels audio WebRTC 1-à-1.",
+    "landing.enterSanctuary": "Entrer dans le Sanctuaire",
+    "landing.dailyVerseLabel": "Lecture Canonique du Jour",
+    "landing.feature1Title": "La Parole Vivante & Voix Régionales",
+    "landing.feature1Desc":
+      "Lisez et écoutez les 66 livres bibliques en français et en anglais avec des voix chaleureuses de Côte d'Ivoire, du Nigéria et des États-Unis.",
+    "landing.feature2Title": "Proclamation Vocale de l'Écriture",
+    "landing.feature2Desc":
+      "Récitez les versets à haute voix avec suivi visuel mot à mot et mesure de précision en temps réel.",
+    "landing.feature3Title": "Registre de Prière Contemplative",
+    "landing.feature3Desc":
+      "Archivez vos réflexions écrites et mémos vocaux de prière avec synchronisation cloud automatique.",
+    "footer.tagline": "Sanctuaire Biblique et Pastoral Bilingue",
+    "dashboard.welcome": "Grâce & Paix",
+    "dashboard.subtitle": "Votre Sanctuaire Contemplatif & Rythme Quotidien",
+    "dashboard.dailyMeditation": "Méditation Canonique du Jour",
+    "dashboard.openBible": "Ouvrir dans la Bible",
+    "dashboard.practiceVoice": "Proclamer à Haute Voix",
+    "dashboard.writeReflection": "Écrire une Réflexion",
+    "dashboard.recentReflections": "Entrées Récentes du Registre",
+    "dashboard.tabs.overview": "I. Sanctuaire",
+    "dashboard.tabs.bible": "II. Parole Vivante",
+    "dashboard.tabs.voice": "III. Salle Vocale",
+    "dashboard.tabs.journal": "IV. Journal",
+    "dashboard.tabs.teachers": "V. Enseignants",
+    "dashboard.stats.streak": "Jours Consécutifs",
+    "dashboard.stats.days": "jours dans la Parole",
+    "dashboard.stats.chaptersRead": "Chapitres Lus",
+    "dashboard.stats.voiceSessions": "Versets Proclamés",
+    "dashboard.stats.reflections": "Archive de Prière",
+    "a11y.progressSummary": "Indicateurs du rythme spirituel",
+    "scripture.title": "La Parole Vivante & Bibliothèque Pastorale",
+    "scripture.searchPlaceholder": "Rechercher un livre ou un verset...",
+    "scripture.allBooks": "Tous (66)",
+    "scripture.oldTestament": "Ancien (39)",
+    "scripture.newTestament": "Nouveau (27)",
+    "scripture.meditationNote": "Note de Méditation Pastorale",
+    "scripture.listenAloud": "Écouter",
+    "scripture.stopReading": "Arrêter l'Audio",
+    "scripture.speakVerse": "Pratiquer la Voix",
+    "scripture.completed": "Chapitre Lu",
+    "scripture.markCompleted": "Marquer comme Lu",
+    "voice.title": "Chambre de Proclamation Vocale",
+    "voice.subtitle":
+      "Récitez l'Écriture à haute voix avec suivi mot à mot et accompagnement instrumental sacré.",
+    "voice.selectVerse": "Choisir le Passage à Proclamer",
+    "voice.startSpeaking": "Commencer la Récitation",
+    "voice.stopSpeaking": "Arrêter le Microphone",
+    "voice.accuracy": "Précision Vocale",
+    "voice.recognizedText": "Transcription Vocale en Direct",
+    "voice.noSpeechYet": "Cliquez sur « Commencer la Récitation » et lisez le verset à haute voix...",
+    "journal.title": "Registre de Prière & Réflexion",
+    "journal.savedSuccess": "Réflexion scellée dans votre registre.",
+    "journal.entryTitlePlaceholder": "Titre de la prière ou réflexion",
+    "journal.scriptureRefPlaceholder": "Référence biblique (ex. Psaume 23:1)",
+    "journal.moodLabel": "Disposition Spirituelle",
+    "journal.contentPlaceholder":
+      "Écrivez votre prière, gratitude ou méditation devant le Seigneur...",
+    "journal.saveEntry": "Sceller dans l'Archive",
+    "journal.emptyState": "Aucune réflexion ne correspond à ce filtre.",
+    "journal.moods.peaceful": "Paisible",
+    "journal.moods.grateful": "Reconnaissant",
+    "journal.moods.hopeful": "Espérant",
+    "journal.moods.seeking": "En quête",
+    "journal.moods.rejoicing": "Dans la joie",
+  },
+};
+
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: keyof Translations) => string;
+  t: (key: keyof Translations | string) => string;
   isFr: boolean;
   toggleLanguage: () => void;
 }
@@ -584,9 +739,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguage(nextLang);
   };
 
-  const t = (key: keyof Translations): string => {
+  const t = (key: keyof Translations | string): string => {
+    const dotDict = DOT_KEY_TRANSLATIONS[language] || DOT_KEY_TRANSLATIONS.en;
+    if (key in dotDict) {
+      return dotDict[key];
+    }
     const dict = translations[language] || translations.en;
-    return dict[key] || translations.en[key] || key;
+    return (
+      (dict as Record<string, string>)[key] ||
+      (translations.en as Record<string, string>)[key] ||
+      key
+    );
   };
 
   return (
@@ -611,7 +774,10 @@ export function useLanguage(): LanguageContextType {
     return {
       language: "en",
       setLanguage: () => {},
-      t: (key: keyof Translations) => translations.en[key] || key,
+      t: (key: keyof Translations | string) =>
+        DOT_KEY_TRANSLATIONS.en[key] ||
+        (translations.en as Record<string, string>)[key] ||
+        key,
       isFr: false,
       toggleLanguage: () => {},
     };

@@ -275,8 +275,8 @@ export function ChristianMelodySelector({
               </p>
 
               <div className="pt-2 border-t border-current/10 flex items-center justify-between text-[11px] font-mono opacity-80">
-                <span>📖 {isFr ? preset.scriptureRefFr : preset.scriptureRefEn}</span>
-                <span>{active && isPlaying ? "♪ ♫ ♪" : isFr ? "Écouter →" : "Listen →"}</span>
+                <span>{isFr ? preset.scriptureRefFr : preset.scriptureRefEn}</span>
+                <span>{active && isPlaying ? "Playing" : isFr ? "Écouter →" : "Listen →"}</span>
               </div>
             </button>
           );
@@ -285,3 +285,5 @@ export function ChristianMelodySelector({
     </div>
   );
 }
+
+export default ChristianMelodySelector;

@@ -1,849 +1,498 @@
 "use client";
 
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { FormEvent, useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useChristianAuth } from "@/lib/christian-auth";
+import Image from "next/image";
 import { useLanguage } from "@/lib/i18n";
-import { LanguageToggle } from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import PhoneMockup from "@/components/PhoneMockup";
-import { VisualStreakCounter } from "@/components/VisualStreakCounter";
-import { DailyRitualModal } from "@/components/DailyRitualModal";
-import { PWAInstallButton } from "@/components/PWAInstallPrompt";
-import { CloudSyncBadge } from "@/components/CloudSyncBadge";
-import LivingWord from "./LivingWord";
-import VoicePractice from "./VoicePractice";
+import { useTheme } from "@/lib/theme";
+import { useChristianAuth } from "@/lib/christian-auth";
+import { getDailyMeditation, BIBLE_CANON } from "@/lib/bible-canon";
+import {
+  getPreferredVoiceProfile,
+  speakWithHumanVoice,
+} from "@/lib/human-voices";
 
-function ArrowIcon() { return <span aria-hidden="true">↗</span>; }
-function Mark() { return <span className="brand-logo" aria-hidden="true"><Image src="/logol.png" alt="" fill unoptimized /></span>; }
+export default function HomePage() {
+  const { language, setLanguage, t } = useLanguage();
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const { isSignedIn, user, loginAsDemo } = useChristianAuth();
+  const isFr = language === "fr";
 
-export default function Home() {
-  const { isFr, t } = useLanguage();
-  const [email, setEmail] = useState("");
-  const [joined, setJoined] = useState(false);
-  const [openFaq, setOpenFaq] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState("top");
-  const [activeStep, setActiveStep] = useState(0);
-  const [isRitualModalOpen, setIsRitualModalOpen] = useState(false);
-  const router = useRouter();
-  const { user, isSignedIn, signOut } = useChristianAuth();
-
-  // Direct signed-in users and installed standalone PWA launches straight to /dashboard
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("marketing") === "1") return;
-
-    const isStandalonePWA =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-
-    if (isSignedIn || isStandalonePWA) {
-      router.replace("/dashboard");
-    }
-  }, [isSignedIn, router]);
-
-  const benefits = useMemo(() => isFr ? [
-    {
-      title: "Lire le verset du jour sans chercher",
-      text: "Ouvrez l'application et trouvez le passage du jour prêt dans votre version préférée (Louis Segond, Semeur, etc.). Zéro recherche superflue.",
-      tone: "benefit-lilac",
-      icon: "📖",
-    },
-    {
-      title: "Prier avec des questions guidées",
-      text: "Répondez à trois questions concrètes basées sur la lecture du matin pour ancrer la vérité biblique dans vos actions quotidiennes.",
-      tone: "benefit-blue",
-      icon: "✍️",
-    },
-    {
-      title: "Garder votre habitude sans culpabilité",
-      text: "Une journée chargée ? Le repos du sabbat et la protection de grâce préservent votre élan spirituel sans jamais remettre votre série à zéro.",
-      tone: "benefit-mint",
-      icon: "🌿",
-    },
-  ] : [
-    {
-      title: "Read today's verse without searching",
-      text: "Open the app and find today's curated passage ready in your preferred translation (ESV, NIV, CSB, KJV, NLT). Zero flipping or guessing.",
-      tone: "benefit-lilac",
-      icon: "📖",
-    },
-    {
-      title: "Pray with guided reflection prompts",
-      text: "Answer three short, practical questions based on the morning reading to turn biblical truth into real-world action.",
-      tone: "benefit-blue",
-      icon: "✍️",
-    },
-    {
-      title: "Keep your habit without guilt",
-      text: "Missed a hectic day? Sabbath rest and grace protection keep your spiritual rhythm alive without resetting your streak to zero.",
-      tone: "benefit-mint",
-      icon: "🌿",
-    },
-  ], [isFr]);
-
-  const steps = useMemo(() => isFr ? [
-    ["Lire le passage quotidien", "Prenez 90 secondes pour lire un texte biblique ciblé avec son contexte historique vérifié."],
-    ["Répondre à 3 questions de réflexion", "Passez 2 minutes à relier le verset à votre travail, votre famille et vos défis."],
-    ["Enregistrer une prière de 60 secondes", "Clôturez votre recueillement par une prière sincère conservée en toute intimité sur votre appareil."],
-  ] : [
-    ["Read the daily passage", "Take 90 seconds to read one focused Scripture text with verified historical context."],
-    ["Answer 3 reflection prompts", "Spend 2 minutes applying the verse directly to your work, family, and relationships."],
-    ["Record a 60-second prayer", "Close your quiet time with an honest prayer stored privately on your device."],
-  ], [isFr]);
-
-  const stepCards = useMemo(() => isFr ? [
-    {
-      step: "01",
-      label: "Étape 01 / 03 · Lire",
-      quote: "Il restaure\nmon âme.",
-      ref: "Psaume 23:3 (Louis Segond)",
-      phase: "Lire (90s)",
-    },
-    {
-      step: "02",
-      label: "Étape 02 / 03 · Méditer",
-      quote: "Où avez-vous besoin de\nla paix de Dieu aujourd'hui ?",
-      ref: "Question 01 sur 03",
-      phase: "Méditer (2m)",
-    },
-    {
-      step: "03",
-      label: "Étape 03 / 03 · Prier",
-      quote: "« Seigneur, guide mes pas\net apaise mes inquiétudes. »",
-      ref: "Sauvegardé sur l'appareil",
-      phase: "Prier (60s)",
-    },
-  ] : [
-    {
-      step: "01",
-      label: "Step 01 / 03 · Read",
-      quote: "He restores\nmy soul.",
-      ref: "Psalm 23:3 (ESV)",
-      phase: "Read (90s)",
-    },
-    {
-      step: "02",
-      label: "Step 02 / 03 · Reflect",
-      quote: "Where do you need\nGod's peace today?",
-      ref: "Prompt 01 of 03",
-      phase: "Reflect (2m)",
-    },
-    {
-      step: "03",
-      label: "Step 03 / 03 · Pray",
-      quote: "“Lord, guide my steps\nand quiet my worry.”",
-      ref: "Saved securely on device",
-      phase: "Pray (60s)",
-    },
-  ], [isFr]);
-
-  const faqs = useMemo(() => isFr ? [
-    ["Combien de temps prend chaque méditation ?", "Exactement 5 minutes. Vous lisez un passage clé (90 secondes), répondez à trois questions de réflexion (2 minutes) et enregistrez une prière privée (90 secondes)."],
-    ["Que se passe-t-il si je manque un jour ?", "Vous n'êtes jamais pénalisé. LifeBook intègre le repos du sabbat et la protection de grâce pour préserver votre élan spirituel."],
-    ["Quelles versions de la Bible sont proposées ?", "LifeBook propose la version Louis Segond (LSG) et la Bible du Semeur en français, ainsi que ESV, NIV, CSB, KJV et NLT en anglais."],
-    ["Mes prières et notes restent-elles privées ?", "Oui. Vos réflexions et prières restent exclusivement stockées sur votre appareil avec un chiffrement local."],
-  ] : [
-    ["How much time does each devotion take?", "Exactly 5 minutes. You read one key passage (90 seconds), answer three reflection prompts (2 minutes), and record a private prayer (90 seconds)."],
-    ["What happens if I miss a day?", "You never get penalized. LifeBook includes built-in Sabbath rest and grace protection, so your momentum stays intact when life gets busy."],
-    ["Which Bible translations do you provide?", "LifeBook includes the English Standard Version (ESV), New International Version (NIV), Christian Standard Bible (CSB), King James Version (KJV), and New Living Translation (NLT), as well as Louis Segond (LSG) in French."],
-    ["Are my prayers and notes kept private?", "Yes. Your journal entries and prayers remain securely stored on your own device with local encryption. We never sell your data or serve third-party ads."],
-  ], [isFr]);
+  const [dailyMeditation, setDailyMeditation] = useState(() =>
+    getDailyMeditation(0)
+  );
+  const [meditationIndex, setMeditationIndex] = useState(0);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-
-      const sectionIds = ["top", "features", "how-it-works", "journey-preview", "journeys", "voice", "living-word", "questions", "join"];
-      const scrollPos = window.scrollY + 100;
-      for (let i = sectionIds.length - 1; i >= 0; i--) {
-        const id = sectionIds[i];
-        const el = document.getElementById(id);
-        if (el && el.offsetTop <= scrollPos) {
-          setActiveSection(id);
-          break;
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const dayOfYear = Math.floor(
+      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) /
+        86400000
+    );
+    setMeditationIndex(dayOfYear);
+    setDailyMeditation(getDailyMeditation(dayOfYear));
   }, []);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && menuOpen) {
-        setMenuOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [menuOpen]);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (email.trim()) {
-      setJoined(true);
-      router.push("/sign-up");
+  const cycleDailyVerse = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
     }
-  }
+    const nextIdx = meditationIndex + 1;
+    setMeditationIndex(nextIdx);
+    setDailyMeditation(getDailyMeditation(nextIdx));
+  };
+
+  const speakDailyVerse = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+    const text = isFr ? dailyMeditation.verse.fr : dailyMeditation.verse.en;
+    const profile = getPreferredVoiceProfile(language);
+    speakWithHumanVoice({
+      text,
+      profile,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false),
+    });
+  };
+
+  const verseReference = isFr
+    ? `${dailyMeditation.book.name.fr} ${dailyMeditation.chapter.chapter}:${dailyMeditation.verse.verse}`
+    : `${dailyMeditation.book.name.en} ${dailyMeditation.chapter.chapter}:${dailyMeditation.verse.verse}`;
+
+  const verseText = isFr ? dailyMeditation.verse.fr : dailyMeditation.verse.en;
+  const meditationNote = isFr
+    ? dailyMeditation.verse.meditation.fr
+    : dailyMeditation.verse.meditation.en;
+
+  const totalCanonChapters = BIBLE_CANON.reduce(
+    (acc, b) => acc + b.totalChapters,
+    0
+  );
 
   return (
-    <main className="showcase-page">
-      <header className={`sticky-nav-header ${scrolled ? "header-scrolled" : ""}`}>
-        <nav className="showcase-nav page-shell" aria-label="Main navigation">
-          <a className="wordmark" href="#top" aria-label="LifeBook home"><Mark /><span>LifeBook</span></a>
-          <div className="showcase-links">
-            <a href="#features" className={activeSection === "features" ? "active-link" : ""}>{t("nav_daily_practice")}</a>
-            <a href="#journeys" className={activeSection === "journeys" ? "active-link" : ""}>{t("nav_journeys")}</a>
-            <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""}>{t("nav_audio_teachings")}</Link>
-            <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""}>{t("nav_voice_search")}</Link>
-          </div>
-          <div className="auth-actions flex items-center gap-2.5">
-            <LanguageToggle />
-            <ThemeToggle />
+    <div className="min-h-screen flex flex-col bg-[#FAF8F5] dark:bg-[#12100E] text-stone-900 dark:text-stone-100">
+      {/* Archival 3-Zone Header */}
+      <header className="sticky top-0 z-30 border-b border-stone-300/80 dark:border-stone-800 bg-[#FAF8F5]/95 dark:bg-[#12100E]/95 backdrop-blur-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-4">
+          {/* Zone 1: Brand Identity */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded bg-stone-900 dark:bg-stone-100 flex items-center justify-center text-stone-50 dark:text-stone-900 font-serif font-bold text-sm tracking-wider">
+              LB
+            </div>
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-lg font-serif font-bold tracking-tight text-stone-900 dark:text-stone-100">
+                LifeBook
+              </span>
+              <span className="hidden sm:inline-block text-[10px] font-mono uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
+                {isFr ? "Sanctuaire & Canon" : "Sanctuary & Canon"}
+              </span>
+            </div>
+          </Link>
+
+          {/* Zone 2: Editorial Navigation */}
+          <nav className="hidden md:flex items-center gap-6 text-xs font-mono uppercase tracking-[0.14em] text-stone-600 dark:text-stone-400">
+            <Link
+              href="/living-word"
+              className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
+            >
+              {isFr ? "I. Parole Vivante" : "I. Living Word"}
+            </Link>
+            <Link
+              href="/teachers"
+              className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
+            >
+              {isFr ? "II. Enseignants" : "II. Teachers Portal"}
+            </Link>
+            <Link
+              href="/dashboard"
+              className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
+            >
+              {isFr ? "III. Sanctuaire" : "III. Sanctuary"}
+            </Link>
+          </nav>
+
+          {/* Zone 3: Locale, Theme & Entry */}
+          <div className="flex items-center gap-2.5">
+            <div className="inline-flex items-center border border-stone-300 dark:border-stone-800 rounded p-0.5 bg-[#F3EFE6] dark:bg-[#1C1917]">
+              <button
+                type="button"
+                onClick={() => setLanguage("en")}
+                className={`px-2 py-1 text-[11px] font-mono uppercase transition-colors cursor-pointer rounded-xs ${
+                  language === "en"
+                    ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 font-semibold"
+                    : "text-stone-500 hover:text-stone-800 dark:text-stone-400"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage("fr")}
+                className={`px-2 py-1 text-[11px] font-mono uppercase transition-colors cursor-pointer rounded-xs ${
+                  language === "fr"
+                    ? "bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 font-semibold"
+                    : "text-stone-500 hover:text-stone-800 dark:text-stone-400"
+                }`}
+              >
+                FR
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={t("theme.toggle")}
+              className="p-2 rounded border border-stone-300 dark:border-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+            >
+              {resolvedTheme === "dark" ? (
+                <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+
             {isSignedIn ? (
-              <div className="flex items-center gap-2.5">
-                <Link
-                  href="/dashboard"
-                  id="user-profile-nav-pill"
-                  className="pill-button pill-dark"
-                  title={isFr ? "Ouvrir votre Tableau de Bord du Sanctuaire" : "Open your Daily Sanctuary Dashboard"}
-                >
-                  <span className="w-5 h-5 rounded-full bg-white/20 text- currentColor flex items-center justify-center text-[11px] font-bold">
-                    {user?.avatarInitial || "LB"}
-                  </span>
-                  <span>{user?.firstName || (isFr ? "Mon Sanctuaire" : "My Sanctuary")}</span>
-                </Link>
-                <button
-                  type="button"
-                  id="nav-sign-out-btn"
-                  onClick={() => signOut()}
-                  className="text-xs font-semibold text-[#5E5470] dark:text-[#C8C2D6] hover:text-[#1E1931] dark:hover:text-white transition-colors cursor-pointer px-2 py-1"
-                >
-                  {t("nav_sign_out")}
-                </button>
-              </div>
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 rounded bg-amber-800 hover:bg-amber-900 dark:bg-amber-600 dark:hover:bg-amber-500 text-white text-xs font-mono uppercase tracking-wider font-semibold transition-colors"
+              >
+                {t("landing.openDashboard")}
+              </Link>
             ) : (
-              <>
-                <Link href="/sign-in" className="nav-sign-in" id="nav-sign-in-btn">
-                  {t("nav_sign_in")}
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/sign-in"
+                  className="hidden sm:inline-block px-3 py-2 text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-colors"
+                >
+                  {t("nav.signIn")}
                 </Link>
-                <Link href="/sign-up" className="pill-button pill-dark" id="nav-begin-journey-btn">
-                  {t("nav_start_devotion")}
+                <Link
+                  href="/sign-up"
+                  className="px-4 py-2 rounded bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-stone-50 dark:text-stone-900 text-xs font-mono uppercase tracking-wider font-semibold transition-colors"
+                >
+                  {t("nav.signUp")}
                 </Link>
-              </>
+              </div>
             )}
           </div>
-          <button
-            className={`mobile-menu-button ${menuOpen ? "menu-open" : ""}`}
-            type="button"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-navigation"
-            aria-label={menuOpen ? t("nav_close") : t("nav_menu")}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <span className="mobile-menu-icon" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </span>
-            <b>{menuOpen ? t("nav_close") : t("nav_menu")}</b>
-          </button>
-        </nav>
-        {menuOpen && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/25 backdrop-blur-xs z-40 lg:hidden"
-              onClick={() => setMenuOpen(false)}
-              aria-hidden="true"
-            />
-            <div className="mobile-navigation page-shell" id="mobile-navigation" role="dialog" aria-label="Navigation menu">
-              <div className="flex items-center justify-between pb-2.5 border-b border-[#2d2542]/10 mb-2">
-                <span className="text-xs font-semibold text-[#6a6078]">{isFr ? "Langue :" : "Language:"}</span>
-                <LanguageToggle />
+        </div>
+      </header>
+
+      <main className="flex-1">
+        {/* Editorial Hero Section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-8 pt-10 pb-14 lg:pt-14 lg:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+            {/* Left Column: Editorial Manifesto & Primary Actions */}
+            <div className="lg:col-span-7 space-y-8">
+              <div className="flex items-center gap-3 border-b border-stone-300 dark:border-stone-800 pb-3">
+                <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-900 dark:text-amber-400 font-semibold">
+                  {isFr ? "ARCHIVE SPIRITUELLE BILINGUE" : "BILINGUAL SCRIPTURE & PASTORAL ARCHIVE"}
+                </span>
+                <span className="text-stone-300 dark:text-stone-700">·</span>
+                <span className="font-mono text-xs text-stone-500 dark:text-stone-400 tabular-nums">
+                  66 {isFr ? "Livres" : "Books"} / {totalCanonChapters} {isFr ? "Chapitres" : "Chapters"}
+                </span>
               </div>
-              <div className="flex items-center justify-between pb-3 border-b border-[#2d2542]/10 mb-2">
-                <span className="text-xs font-semibold text-[#6a6078]">{isFr ? "Thème nuit HD :" : "Night Mode:"}</span>
-                <ThemeToggle variant="segmented" showLabel showIndicator={false} />
+
+              <div className="space-y-5">
+                <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-serif font-bold tracking-tight leading-[1.08] text-stone-900 dark:text-stone-100">
+                  {t("landing.heroTitle")}{" "}
+                  <span className="italic font-normal text-amber-900 dark:text-amber-400">
+                    {t("landing.heroTitleHighlight")}
+                  </span>
+                </h1>
+
+                <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 leading-relaxed max-w-2xl">
+                  {t("landing.heroSubtitle")}
+                </p>
               </div>
-              <div className="mobile-nav-group">
-                <p className="mobile-nav-heading">{t("mobile_nav_devotion")}</p>
-                <a href="#features" className={activeSection === "features" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_daily_practice")}</span>
-                  <span className="text-xs text-[#8c8297]">5 mins</span>
-                </a>
-                <a href="#how-it-works" className={activeSection === "how-it-works" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_how_it_works")}</span>
-                  <span className="text-xs text-[#8c8297]">3 {isFr ? "étapes" : "steps"}</span>
-                </a>
-                <a href="#journeys" className={activeSection === "journeys" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_journeys")}</span>
-                  <span className="text-xs text-[#8c8297]">{isFr ? "Thématiques" : "Topical"}</span>
-                </a>
-              </div>
-              <div className="mobile-nav-group">
-                <p className="mobile-nav-heading">{t("mobile_nav_scripture_audio")}</p>
-                <Link href="/voice" className={activeSection === "voice" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_voice_search")}</span>
-                  <span className="text-xs text-[#8c8297]">{isFr ? "Instantané" : "Instant"}</span>
-                </Link>
-                <Link href="/living-word" className={activeSection === "living-word" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_audio_teachings")}</span>
-                  <span className="text-xs text-[#8c8297]">10 mins</span>
-                </Link>
-              </div>
-              <div className="mobile-nav-group">
-                <p className="mobile-nav-heading">{t("mobile_nav_community_help")}</p>
-                <Link href="/waitlist" onClick={() => setMenuOpen(false)}>
-                  <span>{isFr ? "Cohortes & Liste d'attente" : "Waitlist Cohorts"}</span>
-                </Link>
-                <Link href="/progress" onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_my_progress")}</span>
-                  <span className="text-xs text-[#8c8297]">{isFr ? "Suivi" : "Track"}</span>
-                </Link>
-                <a href="#questions" className={activeSection === "questions" ? "active-link" : ""} onClick={() => setMenuOpen(false)}>
-                  <span>{t("nav_faq")}</span>
-                </a>
-              </div>
-              {isSignedIn ? (
-                <div className="mobile-account flex flex-col gap-2 pt-2 border-t border-[#2d2542]/10 w-full">
-                  <div className="flex items-center justify-between">
+
+              {/* Primary & Secondary Action Row */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                {isSignedIn ? (
+                  <Link
+                    href="/dashboard"
+                    className="px-6 py-3.5 rounded bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-stone-50 dark:text-stone-900 text-xs font-mono uppercase tracking-wider font-semibold transition-colors inline-flex items-center gap-2.5"
+                  >
+                    <span>
+                      {isFr
+                        ? `Entrer dans le Sanctuaire (${user?.firstName || "Pèlerin"})`
+                        : `Enter Your Sanctuary (${user?.firstName || "Pilgrim"})`}
+                    </span>
+                    <span>→</span>
+                  </Link>
+                ) : (
+                  <>
                     <Link
-                      href="/dashboard"
-                      onClick={() => setMenuOpen(false)}
-                      className="text-xs font-semibold text-[#2d2542] flex items-center gap-2"
+                      href="/sign-up"
+                      className="px-6 py-3.5 rounded bg-stone-900 hover:bg-stone-800 dark:bg-stone-100 dark:hover:bg-white text-stone-50 dark:text-stone-900 text-xs font-mono uppercase tracking-wider font-semibold transition-colors inline-flex items-center gap-2"
                     >
-                      <span className="w-6 h-6 rounded-full bg-[#2d2542] text-[#fbfaf7] flex items-center justify-center text-[10px] font-bold">
-                        {user?.avatarInitial || "LB"}
-                      </span>
-                      <span>{user?.fullName || (isFr ? "Mon Tableau de Bord" : "My Sanctuary Dashboard")} →</span>
+                      <span>{t("landing.enterSanctuary")}</span>
+                      <span>→</span>
                     </Link>
-                    <VisualStreakCounter variant="compact" />
-                  </div>
-                  <div className="flex justify-end">
+
                     <button
                       type="button"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        signOut();
-                      }}
-                      className="text-xs text-[#776e82] hover:text-[#1e1931]"
+                      onClick={loginAsDemo}
+                      className="px-5 py-3.5 rounded border border-stone-400 dark:border-stone-700 hover:border-stone-900 dark:hover:border-stone-300 text-stone-800 dark:text-stone-200 text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer"
                     >
-                      {t("nav_sign_out")}
+                      {t("auth.demoLogin")}
+                    </button>
+                  </>
+                )}
+
+                <Link
+                  href="/teachers"
+                  className="px-5 py-3.5 rounded border border-amber-800/40 dark:border-amber-500/30 bg-amber-900/5 dark:bg-amber-500/10 text-amber-900 dark:text-amber-300 hover:bg-amber-900/10 text-xs font-mono uppercase tracking-wider font-semibold transition-colors"
+                >
+                  {isFr ? "Portail des Enseignants" : "Teachers Portal"}
+                </Link>
+              </div>
+
+              {/* Architectural Ledger Metrics (Replacing Floating Pill Badges) */}
+              <div className="grid grid-cols-3 border-t border-b border-stone-300 dark:border-stone-800 py-4 gap-4">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
+                    {isFr ? "VOIX RÉGIONALES" : "REGIONAL VOICES"}
+                  </p>
+                  <p className="font-serif text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                    {isFr ? "Nigéria · Côte d'Ivoire · US" : "Nigerian · Ivorian · US"}
+                  </p>
+                </div>
+                <div className="border-l border-stone-300 dark:border-stone-800 pl-4">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
+                    {isFr ? "AUDIO PASTORAL" : "PASTORAL AUDIO"}
+                  </p>
+                  <p className="font-serif text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                    {isFr ? "WebRTC 1-à-1 & 40 Places" : "1-on-1 WebRTC & 40-Seat"}
+                  </p>
+                </div>
+                <div className="border-l border-stone-300 dark:border-stone-800 pl-4">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
+                    {isFr ? "ACCOMPAGNEMENT" : "ACOUSTIC WORSHIP"}
+                  </p>
+                  <p className="font-serif text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                    {isFr ? "6 Instrumentaux Sacrés" : "6 Sacred Instrumentals"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Curated Daily Scripture Ledger & Sanctuary Visual */}
+            <div className="lg:col-span-5 space-y-5">
+              {/* Illuminated Manuscript Hero Visual */}
+              <div className="relative h-56 sm:h-64 rounded-lg overflow-hidden border border-stone-300 dark:border-stone-800">
+                <Image
+                  src="/images/sanctuary-hero.png"
+                  alt="Sanctuary Illuminated Scripture"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/30 to-transparent" />
+                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-300 font-semibold">
+                      {isFr ? "LECTURE CONTEMPLATIVE" : "DAILY CANONICAL READING"}
+                    </p>
+                    <p className="text-white font-serif text-lg font-bold">
+                      {verseReference}
+                    </p>
+                  </div>
+                  <span className="font-mono text-[11px] text-stone-300 uppercase tracking-wider">
+                    {isFr ? "Louis Segond 1910" : "King James Version"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Daily Verse Interactive Reading Card */}
+              <div className="p-6 rounded-lg bg-[#F3EFE6] dark:bg-[#1C1917] border border-stone-300 dark:border-stone-800 space-y-5">
+                <div className="flex items-center justify-between gap-2 border-b border-stone-300/80 dark:border-stone-800 pb-3">
+                  <span className="font-mono text-xs uppercase tracking-[0.16em] text-amber-900 dark:text-amber-400 font-semibold">
+                    {t("landing.dailyVerseLabel")} — {verseReference}
+                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={speakDailyVerse}
+                      className={`px-2.5 py-1 rounded text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1.5 ${
+                        isSpeaking
+                          ? "bg-amber-800 text-white"
+                          : "border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-200/60 dark:hover:bg-stone-800"
+                      }`}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      </svg>
+                      <span>{isSpeaking ? (isFr ? "Arrêter" : "Stop") : (isFr ? "Écouter" : "Listen")}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={cycleDailyVerse}
+                      title={isFr ? "Autre verset" : "Another verse"}
+                      className="px-2.5 py-1 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors cursor-pointer"
+                    >
+                      {isFr ? "Suivant" : "Next"}
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="flex flex-col gap-2 pt-2 border-t border-[#2d2542]/10 w-full">
-                  <Link
-                    href="/sign-in"
-                    className="nav-sign-in w-full text-center py-2.5 block text-[#2d2542] hover:text-[#1e1931] border border-[#2d2542]/15 rounded-full"
-                    id="mobile-sign-in-btn"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {t("nav_sign_in")}
-                  </Link>
-                  <Link
-                    href="/sign-up"
-                    className="mobile-join w-full text-center block"
-                    id="mobile-begin-journey-btn"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {t("nav_start_devotion")} ↗
-                  </Link>
+
+                <blockquote className="text-lg sm:text-xl font-serif italic leading-relaxed text-stone-900 dark:text-stone-100">
+                  &ldquo;{verseText}&rdquo;
+                </blockquote>
+
+                <div className="pt-3 border-t border-stone-300/70 dark:border-stone-800">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400 mb-1">
+                    {t("scripture.meditationNote")}
+                  </p>
+                  <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed">
+                    {meditationNote}
+                  </p>
                 </div>
-              )}
+              </div>
             </div>
-          </>
-        )}
-      </header>
+          </div>
+        </section>
 
-      <section className="showcase-hero" id="top">
-        <div className="showcase-hero-grid page-shell">
-          <div className="showcase-hero-copy">
-            <p className="showcase-eyebrow">{t("hero_eyebrow")}</p>
-            <h1>
-              {t("hero_title_part1")}
-              <em>{t("hero_title_em")}</em>
-              {t("hero_title_part2")}
-            </h1>
-            <p>{t("hero_desc")}</p>
-
-            <ul className="space-y-2.5 mb-6 text-sm text-[#3D354E] dark:text-[#E2DCEF]">
-              <li className="flex items-start gap-2.5">
-                <span className="text-[#1FB6B0] font-bold shrink-0">✓</span>
-                <span>
-                  <strong>{isFr ? "Directement sur le verset du jour :" : "Open directly to today's verse:"}</strong>{" "}
-                  {isFr ? "aucun temps perdu à chercher dans de longs plans" : "zero flipping through long reading plans"}
-                </span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <span className="text-[#1FB6B0] font-bold shrink-0">✓</span>
-                <span>
-                  <strong>{isFr ? "Prières authentiques :" : "Write honest prayers:"}</strong>{" "}
-                  {isFr ? "sauvegardées en toute sécurité et intimité sur votre appareil" : "saved securely and privately on your device"}
-                </span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <span className="text-[#1FB6B0] font-bold shrink-0">✓</span>
-                <span>
-                  <strong>{isFr ? "Pas de découragement :" : "Never lose momentum:"}</strong>{" "}
-                  {isFr ? "des jours de grâce intégrés protègent votre régularité" : "built-in grace days protect your consistency when life gets busy"}
-                </span>
-              </li>
-            </ul>
-
-            <p className="text-xs text-[#4E4462] dark:text-[#C8C2D6] mb-4 font-medium">
-              {isFr
-                ? "Gratuit pour commencer · Aucune carte bancaire requise · Zéro engagement lourd"
-                : "Free to start · No credit card required · No 50-chapter commitments"}
-            </p>
-
-            <div className="showcase-actions flex-wrap gap-3">
-              {isSignedIn ? (
-                <Link className="pill-button pill-dark" href="/dashboard" id="hero-continue-journey-btn">
-                  {isFr ? "Ouvrir mon Tableau de Bord" : "Open My Sanctuary Dashboard"} <ArrowIcon />
-                </Link>
-              ) : (
-                <Link
-                  href="/sign-up"
-                  className="pill-button pill-dark"
-                  id="hero-begin-journey-btn"
-                >
-                  {t("hero_cta_start")} <ArrowIcon />
-                </Link>
-              )}
-              <button
-                type="button"
-                onClick={() => setIsRitualModalOpen(true)}
-                className="pill-button pill-light cursor-pointer"
-                id="hero-preview-journey-btn"
+        {/* Four Editorial Pillars (Museum / Exhibition Catalog Layout) */}
+        <section className="border-t border-stone-300 dark:border-stone-800 bg-[#F3EFE6]/60 dark:bg-[#171412] py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-stone-300 dark:border-stone-800 pb-5">
+              <div>
+                <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber-900 dark:text-amber-400 font-semibold">
+                  {isFr ? "ARCHITECTURE DU SANCTUAIRE" : "SANCTUARY ARCHITECTURE"}
+                </p>
+                <h2 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100 mt-1">
+                  {isFr
+                    ? "Quatre disciplines pour la vie intérieure"
+                    : "Four Disciplines for the Contemplative Life"}
+                </h2>
+              </div>
+              <Link
+                href="/living-word"
+                className="text-xs font-mono uppercase tracking-wider text-amber-900 dark:text-amber-400 hover:underline"
               >
-                <span>✦</span>
-                <span>{isFr ? "Pratiquer le rituel 5-min maintenant" : "Try 5-Min Guided Ritual Now"}</span>
-              </button>
-              <div className="flex flex-wrap items-center gap-2 w-full pt-1">
-                <PWAInstallButton />
-                <CloudSyncBadge />
-              </div>
-              <span className="rating-note w-full sm:w-auto">
-                <b>{isFr ? "Versions bibliques" : "5 verified translations"}:</b><br />
-                <small>{isFr ? "Louis Segond (LSG), Semeur, ESV, NIV, KJV · Sans publicité" : "ESV, NIV, CSB, KJV, NLT · 100% ad-free"}</small>
-              </span>
+                {isFr ? "Explorer les 66 livres →" : "Explore all 66 books →"}
+              </Link>
             </div>
-          </div>
-          <div className="preview-stage-container w-full max-w-[480px] mx-auto">
-            <PhoneMockup />
-          </div>
-        </div>
-        <a
-          href="#how-it-works"
-          className="hero-scroll page-shell cursor-pointer hover:opacity-80 transition-opacity inline-flex items-center gap-3"
-          aria-label={t("hero_scroll")}
-        >
-          <span>{t("hero_scroll")}</span>
-          <i />
-        </a>
-      </section>
 
-      <section className="benefits-section page-shell" id="features">
-        <div className="section-heading">
-          <div>
-            <p className="showcase-eyebrow">{isFr ? "Pratique quotidienne essentielle" : "Core daily practice"}</p>
-            <h2>
-              {isFr
-                ? "Remplacez les matinées dispersées par un "
-                : "Replace distracted mornings with a "}
-              <em>{isFr ? "moment de recueillement en 3 étapes." : "focused 3-step quiet time."}</em>
-            </h2>
-          </div>
-          <div>
-            <p>
-              {isFr
-                ? "Beaucoup de croyants désirent lire la Bible chaque matin, mais se heurtent à des plannings surchargés. LifeBook vous propose un rythme simple et apaisant que vous achèverez chaque jour."
-                : "Most Christians want to read the Bible daily, but struggle with busy schedules and long reading plans. LifeBook gives you a simple, repeatable morning routine you will actually finish."}
-            </p>
-            <ul className="mt-4 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
-              <li>
-                <strong>{isFr ? "S'intègre à votre café :" : "Fits into your morning coffee:"}</strong>{" "}
-                {isFr ? "exactement 5 minutes du début à la fin" : "exactly 5 minutes from start to finish"}
-              </li>
-              <li>
-                <strong>{isFr ? "Zéro préparation requise :" : "Zero preparation needed:"}</strong>{" "}
-                {isFr ? "passage, question de méditation et prière prêts à votre réveil" : "Scripture, reflection, and prayer prompt ready when you wake up"}
-              </li>
-              <li>
-                <strong>{isFr ? "Régularité bienveillante :" : "Guilt-free consistency:"}</strong>{" "}
-                {isFr ? "des jours de grâce sauvent votre série en cas d'imprévu" : "grace days protect your streak when unexpected emergencies hit"}
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div className="benefit-grid">
-          {benefits.map((benefit) => (
-            <article className={`benefit-card ${benefit.tone}`} key={benefit.title}>
-              <span className="benefit-icon">{benefit.icon}</span>
-              <h3>{benefit.title}</h3>
-              <p>{benefit.text}</p>
-              <span className="benefit-arrow">↗</span>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="how-section" id="how-it-works">
-        <div className="page-shell">
-          <div className="how-heading">
-            <p className="showcase-eyebrow">{t("how_eyebrow")}</p>
-            <h2>{t("how_heading")}</h2>
-            <p>{t("how_sub")}</p>
-          </div>
-          <div className="how-grid">
-            <div className="step-list" role="tablist" aria-label={isFr ? "Étapes de la routine du matin" : "Morning routine steps"}>
-              {steps.map(([title, text], index) => (
-                <div
-                  className={`how-step ${index === activeStep ? "selected-step" : ""}`}
-                  key={title}
-                  onClick={() => setActiveStep(index)}
-                  role="tab"
-                  tabIndex={0}
-                  aria-selected={index === activeStep}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setActiveStep(index);
-                    }
-                  }}
-                >
-                  <span>0{index + 1}</span>
-                  <div>
-                    <h3>{title}</h3>
-                    <p>{text}</p>
-                  </div>
-                  <b aria-hidden="true">↗</b>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {/* Pillar I */}
+              <div className="border-t-2 border-stone-900 dark:border-stone-200 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-serif text-lg font-bold text-amber-900 dark:text-amber-400">
+                    I.
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                    {isFr ? "Écriture & Voix" : "Scripture & Voice"}
+                  </span>
                 </div>
-              ))}
-            </div>
-            <div className="scripture-preview" aria-live="polite">
-              <div className="scripture-top">
-                <span>{isFr ? "Lecture du jour" : "Today's Reading"}</span>
-                <span>{stepCards[activeStep].label}</span>
+                <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                  {t("landing.feature1Title")}
+                </h3>
+                <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
+                  {t("landing.feature1Desc")}
+                </p>
               </div>
-              <div className="scripture-art">
-                <span>“</span>
-                <p style={{ whiteSpace: "pre-line" }}>{stepCards[activeStep].quote}</p>
-                <small>{stepCards[activeStep].ref}</small>
-              </div>
-              <div className="scripture-bottom flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => setActiveStep(0)}
-                  className={`cursor-pointer transition-colors ${activeStep === 0 ? "text-white font-bold underline" : "text-white/60 hover:text-white"}`}
-                >
-                  {t("phase_read")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveStep(1)}
-                  className={`cursor-pointer transition-colors ${activeStep === 1 ? "text-white font-bold underline" : "text-white/60 hover:text-white"}`}
-                >
-                  {t("phase_reflect")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveStep(2)}
-                  className={`cursor-pointer transition-colors ${activeStep === 2 ? "text-white font-bold underline" : "text-white/60 hover:text-white"}`}
-                >
-                  {t("phase_pray")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsRitualModalOpen(true)}
-                  className="px-3 py-1.5 rounded-lg bg-[#1FB6B0] text-[#081C1B] text-xs font-bold hover:bg-[#199E99] transition-colors cursor-pointer whitespace-nowrap"
-                >
-                  {isFr ? "Démarrer ↗" : "Start Ritual ↗"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section className="journeys-section page-shell" id="journeys">
-        <div className="journey-panel">
-          <div className="journey-panel-art">
-            <span className="journey-orbit" />
-            <span className="journey-sun">✦</span>
-            <b>05</b>
-            <small>{isFr ? "jours pour\nfinir un parcours" : "days to\ncomplete each track"}</small>
+              {/* Pillar II */}
+              <div className="border-t-2 border-stone-900 dark:border-stone-200 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-serif text-lg font-bold text-amber-900 dark:text-amber-400">
+                    II.
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                    {isFr ? "Proclamation" : "Spoken Word"}
+                  </span>
+                </div>
+                <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                  {t("landing.feature2Title")}
+                </h3>
+                <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
+                  {t("landing.feature2Desc")}
+                </p>
+              </div>
+
+              {/* Pillar III */}
+              <div className="border-t-2 border-stone-900 dark:border-stone-200 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-serif text-lg font-bold text-amber-900 dark:text-amber-400">
+                    III.
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                    {isFr ? "Archive & Prière" : "Prayer Ledger"}
+                  </span>
+                </div>
+                <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                  {t("landing.feature3Title")}
+                </h3>
+                <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
+                  {t("landing.feature3Desc")}
+                </p>
+              </div>
+
+              {/* Pillar IV */}
+              <div className="border-t-2 border-stone-900 dark:border-stone-200 pt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-serif text-lg font-bold text-amber-900 dark:text-amber-400">
+                    IV.
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-stone-500">
+                    {isFr ? "Appel WebRTC 1-à-1" : "1-on-1 WebRTC Audio"}
+                  </span>
+                </div>
+                <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                  {isFr
+                    ? "Enseignants & Appels Pastoraux"
+                    : "Teachers & Live Pastoral Calls"}
+                </h3>
+                <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">
+                  {isFr
+                    ? "Écoutez des maîtres spirituels vérifiés et participez à des appels audio WebRTC 1-à-1 ou des salles de 40 places."
+                    : "Listen to verified spiritual teachers and join teacher-initiated 1-on-1 WebRTC audio sessions or 40-seat live rooms."}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="journey-panel-copy">
-            <p className="showcase-eyebrow">{t("journeys_eyebrow")}</p>
-            <h2>{isFr ? "Terminez une étude biblique de 5 jours sans jamais décrocher." : "Finish a 5-day topical study without falling behind."}</h2>
-            <p>{isFr ? "Traitez les défis concrets de la vie en séries courtes de 5 jours plutôt que dans des plans de 6 mois qu'on abandonne après deux semaines." : "Tackle real-world challenges in short 5-day sprints instead of 6-month commitments you abandon after week two."}</p>
-            <ul className="space-y-2 my-4 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
-              <li>
-                <strong>{isFr ? "Allez jusqu'au bout :" : "Finish what you start:"}</strong>{" "}
-                {isFr ? "des parcours de 5 jours offrent une ligne d'arrivée claire et un vrai accomplissement" : "5-day tracks give you a clear finish line and real sense of accomplishment"}
-              </li>
-              <li>
-                <strong>{isFr ? "Sujets ancrés dans la vie :" : "Relevant topics:"}</strong>{" "}
-                {isFr ? "études sur l'anxiété, les décisions pro, la patience et la famille" : "studies focused on anxiety, career decisions, patience, and family relationships"}
-              </li>
-              <li>
-                <strong>{isFr ? "Applications concrètes :" : "Actionable takeaways:"}</strong>{" "}
-                {isFr ? "chaque parcours s'achève par un pas d'obéissance et de prière" : "every track concludes with practical steps for daily obedience"}
-              </li>
-            </ul>
-            <p className="text-xs text-[#5B4894] dark:text-[#4EE2D8] font-semibold mb-4">
-              {isFr ? "5 minutes par jour · Commencez ou suspendez à tout moment sans pénalité" : "Takes 5 minutes per day · Start or pause anytime without penalty"}
-            </p>
-            <Link className="underlined-link" href="/sign-up">
-              {isFr ? "Découvrir les parcours thématiques" : "Browse 5-day topical studies"} <ArrowIcon />
+        </section>
+      </main>
+
+      {/* Archival Footer */}
+      <footer className="border-t border-stone-300 dark:border-stone-800 py-6 px-4 sm:px-8 bg-[#FAF8F5] dark:bg-[#12100E]">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-stone-500 dark:text-stone-400">
+          <div className="flex items-center gap-2">
+            <span className="font-serif font-bold text-stone-900 dark:text-stone-100">
+              LifeBook
+            </span>
+            <span>—</span>
+            <span>{t("footer.tagline")}</span>
+          </div>
+          <div className="flex items-center gap-5">
+            <Link href="/living-word" className="hover:text-stone-900 dark:hover:text-stone-100">
+              {isFr ? "Parole Vivante" : "Living Word"}
+            </Link>
+            <Link href="/teachers" className="hover:text-stone-900 dark:hover:text-stone-100">
+              {isFr ? "Enseignants" : "Teachers"}
+            </Link>
+            <Link href="/dashboard" className="hover:text-stone-900 dark:hover:text-stone-100">
+              {isFr ? "Sanctuaire" : "Sanctuary"}
             </Link>
           </div>
         </div>
-      </section>
-
-      <VoicePractice />
-
-      <LivingWord />
-
-      <section className="community-proof-section page-shell">
-        <div>
-          <p className="showcase-eyebrow">{isFr ? "Intégrité biblique et respect de la vie privée" : "Biblical integrity and privacy"}</p>
-          <h2>
-            {isFr ? "Lisez l'Écriture avec une " : "Read Scripture with "}
-            <em>{isFr ? "totale confiance." : "absolute confidence."}</em>
-          </h2>
-        </div>
-        <div className="proof-copy">
-          <p>
-            {isFr
-              ? "LifeBook repose sur un ancrage théologique fidèle, une stricte confidentialité des données et l'absence totale de régies publicitaires pour que votre recueillement reste centré sur Dieu."
-              : "LifeBook is built with orthodox theological grounding, strict data privacy, and zero ad networks so your quiet time stays focused on God."}
-          </p>
-          <ul className="space-y-2 my-4 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
-            <li>
-              <strong>{isFr ? "Traductions reconnues :" : "5 major translations:"}</strong>{" "}
-              {isFr ? "lisez et comparez en Louis Segond (LSG), Semeur, ESV, NIV, KJV" : "read and compare passages in ESV, NIV, CSB, KJV, and NLT"}
-            </li>
-            <li>
-              <strong>{isFr ? "Chiffrement local :" : "Local device encryption:"}</strong>{" "}
-              {isFr ? "vos prières et notes privées ne quittent jamais votre appareil" : "your private prayers and journal notes stay on your phone"}
-            </li>
-            <li>
-              <strong>{isFr ? "Zéro publicité :" : "Zero ads or sponsored interruptions:"}</strong>{" "}
-              {isFr ? "ni bannières, ni popups intrusifs, ni suivi publicitaire" : "no banners, popups, or tracking algorithms"}
-            </li>
-          </ul>
-          <div className="proof-note">
-            <span>✦</span>
-            <strong>{isFr ? "Enraciné dans la Parole vérifiée" : "Grounded in verified Scripture"}</strong>
-            <small>{isFr ? "Chaque passage quotidien est remis dans le contexte de son chapitre." : "Every daily passage is paired with verified chapter context."}</small>
-          </div>
-          <Link className="underlined-link" href="/sign-up">
-            {isFr ? "Créer mon compte gratuit" : "Create your free account"} <ArrowIcon />
-          </Link>
-        </div>
-      </section>
-
-      <section className="team-section page-shell">
-        <div className="team-heading">
-          <p className="showcase-eyebrow">{isFr ? "Engagement pastoral" : "Biblical stewardship"}</p>
-          <h2>
-            {isFr ? "Porté par le soin pastoral et un " : "Rooted in pastoral care and "}
-            <em>{isFr ? "enseignement fidèle." : "faithful teaching."}</em>
-          </h2>
-          <p>
-            {isFr
-              ? "LifeBook est conçu et relu par des pasteurs et enseignants engagés pour une doctrine solide et une vie de disciple pratique."
-              : "LifeBook is curated and reviewed by pastors and biblical educators committed to sound doctrine and practical discipleship."}
-          </p>
-          <ul className="mt-4 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4 text-left max-w-md mx-auto">
-            <li>
-              <strong>{isFr ? "Veille pastorale :" : "Pastoral oversight:"}</strong>{" "}
-              {isFr ? "enseignements vérifiés pour leur justesse biblique et leur sensibilité humaine" : "teachings checked for doctrinal clarity and pastoral sensitivity"}
-            </li>
-            <li>
-              <strong>{isFr ? "Centré sur Christ :" : "Christ-centered focus:"}</strong>{" "}
-              {isFr ? "chaque méditation mène du texte à la prière et à l'obéissance concrète" : "every devotional moves from Scripture to prayerful obedience"}
-            </li>
-          </ul>
-        </div>
-        <div className="team-portraits">
-          <div>
-            <Image src="/AsketOfficialPic (1).png" alt="Pastor Asket, teaching contributor" width={180} height={220} />
-            <span>Pastor Asket · {isFr ? "Contributeur d'enseignement" : "Teaching contributor"}</span>
-          </div>
-          <div>
-            <Image src="/myself.jpeg" alt="LifeBook contributor" width={180} height={220} />
-            <span>{isFr ? "Contributeur éditorial et pastoral" : "Editorial and Pastoral contributor"}</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="questions-section page-shell" id="questions">
-        <div className="questions-heading">
-          <p className="showcase-eyebrow">{t("faq_eyebrow")}</p>
-          <h2>{t("faq_heading")}</h2>
-          <span className="question-mark">?</span>
-        </div>
-        <div className="faq-list" role="region" aria-label={isFr ? "Foire aux questions" : "Frequently asked questions list"}>
-          {faqs.map(([question, answer], index) => {
-            const isOpen = openFaq === index;
-            return (
-              <div className={`faq-row ${isOpen ? "faq-open" : ""}`} key={question}>
-                <button
-                  type="button"
-                  id={`faq-btn-${index}`}
-                  aria-expanded={isOpen}
-                  aria-controls={`faq-answer-${index}`}
-                  onClick={() => setOpenFaq(isOpen ? -1 : index)}
-                >
-                  <span>{question}</span>
-                  <b aria-hidden="true">{isOpen ? "−" : "+"}</b>
-                </button>
-                {isOpen && (
-                  <p id={`faq-answer-${index}`} role="region" aria-labelledby={`faq-btn-${index}`}>
-                    {answer}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="closing-section" id="join">
-        <div className="closing-band page-shell">
-          <div>
-            <p className="showcase-eyebrow">{t("cta_eyebrow")}</p>
-            <h2>{t("cta_heading")}</h2>
-          </div>
-          <div className="closing-form">
-            <p>{t("cta_desc")}</p>
-            <p className="text-xs text-[#D5CEE6] font-medium mb-3">
-              {isFr ? "Sans spam · Sans carte bancaire · Désinscription en un clic à tout moment" : "No spam · No credit card · Unsubscribe in one click anytime"}
-            </p>
-            {joined ? (
-              <div className="success-message">{t("cta_success")} <span>✦</span></div>
-            ) : (
-              <form onSubmit={handleSubmit}>
-                <label htmlFor="email">{t("cta_placeholder")}</label>
-                <div>
-                  <input
-                    id="email"
-                    type="email"
-                    placeholder={isFr ? "nom@exemple.com" : "name@example.com"}
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                  />
-                  <button type="submit" aria-label={t("cta_button")}>
-                    <ArrowIcon />
-                  </button>
-                </div>
-              </form>
-            )}
-            <small>{t("cta_note")}</small>
-          </div>
-        </div>
-      </section>
-
-      <footer className="site-footer">
-        <div className="page-shell">
-          <div className="footer-lead">
-            <a className="footer-logo" href="#top" aria-label="LifeBook home">
-              <Image src="/logol.png" alt="LifeBook" width={78} height={78} unoptimized />
-            </a>
-            <p>
-              {isFr
-                ? "« Approchez-vous de Dieu, et il s'approchera de vous. »"
-                : "“Draw near to God, and he will draw near to you.”"}
-              <small>{isFr ? "Jacques 4:8 (LSG)" : "James 4:8 (ESV)"}</small>
-            </p>
-          </div>
-          <div className="footer-nav">
-            <div className="footer-column">
-              <h3>{t("nav_daily_practice")}</h3>
-              <a href="#features">{isFr ? "Verset du jour" : "Today's Scripture"}</a>
-              <a href="#how-it-works">{isFr ? "Routine en 3 étapes" : "3-Step Routine"}</a>
-              <a href="#journeys">{t("nav_journeys")}</a>
-              <Link href="/voice">{t("nav_voice_search")}</Link>
-            </div>
-            <div className="footer-column">
-              <h3>{isFr ? "Étudier et grandir" : "Study and Grow"}</h3>
-              <Link href="/living-word">{t("nav_audio_teachings")}</Link>
-              <Link href="/progress">{isFr ? "Suivi d'habitude" : "Habit Tracker"}</Link>
-              <a href="#questions">{t("nav_faq")}</a>
-              <a href="#join">{isFr ? "Méditation par e-mail" : "Email Devotional"}</a>
-            </div>
-            <div className="footer-column">
-              <h3>{isFr ? "Communauté" : "Community"}</h3>
-              <Link href="/progress">{isFr ? "Journal de prière" : "Prayer Journal"}</Link>
-              <a href="#questions">{isFr ? "Questions pastorales" : "Pastoral Questions"}</a>
-              <Link href="/moderation">{isFr ? "Normes de modération" : "Moderation Standards"}</Link>
-              <Link href="/analytics">{isFr ? "Télémétrie & Habitude" : "Funnel & Habit Telemetry"}</Link>
-            </div>
-            <div className="footer-column">
-              <h3>{isFr ? "Confiance et vie privée" : "Trust and Privacy"}</h3>
-              <span className="footer-note">
-                {isFr
-                  ? "Bilingue Français & Anglais. Versions LSG, Semeur, ESV, NIV. Sauvegarde locale privée."
-                  : "Bilingual English & French. Versions ESV, NIV, CSB, KJV, LSG. Private local device storage."}
-              </span>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <span>© 2026 LifeBook</span>
-            <span>{t("footer_copyright")}</span>
-            <div>
-              <Link href="/privacy">{t("footer_privacy")}</Link>
-              <a href="#top">{t("footer_terms")}</a>
-              <a href="#top">{isFr ? "Accessibilité" : "Accessibility"}</a>
-            </div>
-          </div>
-        </div>
       </footer>
-
-      {isSignedIn ? (
-        <Link className="sticky-mobile-cta" href="/dashboard" id="sticky-continue-journey-btn">
-          {isFr ? "Ouvrir le Tableau de Bord (5 min)" : "Open Sanctuary Dashboard"} <ArrowIcon />
-        </Link>
-      ) : (
-        <Link
-          href="/sign-up"
-          className="sticky-mobile-cta"
-          id="sticky-begin-journey-btn"
-        >
-          {t("nav_start_devotion")} <ArrowIcon />
-        </Link>
-      )}
-
-      {scrolled && (
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="hidden md:flex fixed right-6 bottom-6 z-40 items-center justify-center w-11 h-11 rounded-full bg-[#1e1931] text-[#fbfaf7] shadow-lg hover:bg-[#34294f] hover:scale-105 active:scale-95 transition-all cursor-pointer border border-[#fbfaf7]/15"
-          aria-label={t("footer_back_to_top")}
-          title={t("footer_back_to_top")}
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-          </svg>
-        </button>
-      )}
-      <DailyRitualModal
-        isOpen={isRitualModalOpen}
-        onClose={() => setIsRitualModalOpen(false)}
-      />
-    </main>
+    </div>
   );
 }

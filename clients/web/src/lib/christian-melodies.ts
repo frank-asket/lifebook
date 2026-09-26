@@ -823,6 +823,39 @@ export function isChristianMelodyPlaying(): boolean {
   return currentPlayingState;
 }
 
+export function setChristianMelodyVolume(volume: number): void {
+  saveChristianMelodyPreference(currentMelodyIdState, volume);
+}
+
+/**
+ * High-level service in `lib/christian-melodies` to manage polyphonic
+ * instrumental worship music and meditation overlays across LifeBook.
+ */
+export const ChristianMelodiesService = {
+  getPresets: (): ChristianMelodyPreset[] => CHRISTIAN_MELODY_PRESETS,
+  getPresetById: (id: ChristianMelodyId): ChristianMelodyPreset => getMelodyPresetById(id),
+  getState: () => ({
+    ...getSavedChristianMelody(),
+    isPlaying: isChristianMelodyPlaying(),
+    isVoiceDucked,
+  }),
+  startOverlay: (melodyId?: ChristianMelodyId, volume?: number) => {
+    startChristianMelody(melodyId, volume);
+  },
+  stopOverlay: () => {
+    stopChristianMelody(true);
+  },
+  toggleOverlay: (melodyId?: ChristianMelodyId): boolean => {
+    return toggleChristianMelody(melodyId);
+  },
+  setVolume: (volume: number) => {
+    setChristianMelodyVolume(volume);
+  },
+  setVoiceDucking: (ducked: boolean) => {
+    setChristianMelodyVoiceDucking(ducked);
+  },
+};
+
 /**
  * React hook for controlling Christian Melodies & Worship Instrumentals in any meditation component.
  */

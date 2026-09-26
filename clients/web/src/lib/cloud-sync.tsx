@@ -325,3 +325,162 @@ export function useCloudSync() {
   }
   return ctx;
 }
+
+export interface ReflectionEntry {
+  id: string;
+  title: string;
+  content: string;
+  scriptureReference: string;
+  mood: "peaceful" | "grateful" | "hopeful" | "seeking" | "rejoicing";
+  createdAt: string;
+  voiceNoteTranscript?: string;
+  voiceNoteDurationSec?: number;
+}
+
+export interface DailyRitualState {
+  date: string;
+  stepReadDone: boolean;
+  stepSpeakDone: boolean;
+  stepReflectDone: boolean;
+  completedAt: string | null;
+}
+
+export interface SanctuaryCloudState {
+  streak: number;
+  lastActiveDate: string;
+  completedChapters: string[];
+  versesSpoken: number;
+  reflections: ReflectionEntry[];
+  dailyRitual: DailyRitualState;
+  updatedAt: string;
+}
+
+const SANCTUARY_LOCAL_KEY = "lifebook.sanctuary.state.v1";
+
+const DEFAULT_SANCTUARY_STATE: SanctuaryCloudState = {
+  streak: 7,
+  lastActiveDate: new Date().toISOString().split("T")[0],
+  completedChapters: ["psalms-23", "john-14", "romans-8", "genesis-1"],
+  versesSpoken: 18,
+  reflections: [
+    {
+      id: "seed-1",
+      title: "Beside Still Waters",
+      content:
+        "Lord, thank You that even when my schedule presses in, Your Shepherd's voice leads me to quiet trust.",
+      scriptureReference: "Psalms 23:2",
+      mood: "peaceful",
+      createdAt: new Date().toISOString().split("T")[0],
+    },
+    {
+      id: "seed-2",
+      title: "Strength for the Weary",
+      content:
+        "Waiting on the Lord today for wisdom and renewed endurance in my calling.",
+      scriptureReference: "Isaiah 40:31",
+      mood: "hopeful",
+      createdAt: new Date(Date.now() - 86400000).toISOString().split("T")[0],
+    },
+  ],
+  dailyRitual: {
+    date: new Date().toISOString().split("T")[0],
+    stepReadDone: false,
+    stepSpeakDone: false,
+    stepReflectDone: false,
+    completedAt: null,
+  },
+  updatedAt: new Date().toISOString(),
+};
+
+export function loadLocalState(): SanctuaryCloudState {
+  if (typeof window === "undefined") return DEFAULT_SANCTUARY_STATE;
+  try {
+    const raw = localStorage.getItem(SANCTUARY_LOCAL_KEY);
+    if (!raw) return DEFAULT_SANCTUARY_STATE;
+    return { ...DEFAULT_SANCTUARY_STATE, ...JSON.parse(raw) };
+  } catch {
+    return DEFAULT_SANCTUARY_STATE;
+  }
+}
+
+export function saveLocalState(state: SanctuaryCloudState): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(SANCTUARY_LOCAL_KEY, JSON.stringify(state));
+  } catch {}
+}
+
+export async function fetchCloudState(): Promise<{
+  authenticated: boolean;
+  state: SanctuaryCloudState | null;
+}> {
+  try {
+    const res = await fetch("/api/cloud-sync", { cache: "no-store" });
+    if (!res.ok) return { authenticated: false, state: null };
+    const data = await res.json();
+    if (data?.snapshot?.sanctuaryState) {
+      return { authenticated: true, state: data.snapshot.sanctuaryState };
+    }
+    return { authenticated: true, state: loadLocalState() };
+  } catch {
+    return { authenticated: false, state: null };
+  }
+}
+
+export async function saveCloudState(
+  state: SanctuaryCloudState
+): Promise<boolean> {
+  try {
+    const res = await fetch("/api/cloud-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: "sanctuary-user",
+        sanctuaryState: state,
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export function mergeSanctuaryStates(
+  local: SanctuaryCloudState,
+  cloud: SanctuaryCloudState
+): SanctuaryCloudState {
+  const chapters = Array.from(
+    new Set([...local.completedChapters, ...(cloud.completedChapters || [])])
+  );
+  const seenIds = new Set<string>();
+  const reflections: ReflectionEntry[] = [];
+  for (const r of [...local.reflections, ...(cloud.reflections || [])]) {
+    if (!seenIds.has(r.id)) {
+      seenIds.add(r.id);
+      reflections.push(r);
+    }
+  }
+  return {
+    streak: Math.max(local.streak, cloud.streak || 0),
+    lastActiveDate:
+      local.lastActiveDate >= (cloud.lastActiveDate || "")
+        ? local.lastActiveDate
+        : cloud.lastActiveDate,
+    completedChapters: chapters,
+    versesSpoken: Math.max(local.versesSpoken, cloud.versesSpoken || 0),
+    reflections,
+    dailyRitual: local.dailyRitual || cloud.dailyRitual,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function computeNextStreak(
+  currentStreak: number,
+  lastActiveDate: string
+): { streak: number; lastActiveDate: string } {
+  const today = new Date().toISOString().split("T")[0];
+  if (lastActiveDate === today) {
+    return { streak: Math.max(1, currentStreak), lastActiveDate: today };
+  }
+  return { streak: currentStreak + 1, lastActiveDate: today };
+}

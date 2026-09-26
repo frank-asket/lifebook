@@ -28,6 +28,40 @@ export interface MidCallInvitation {
   status: "ringing" | "accepted" | "declined";
 }
 
+export interface WebRTCSignalCandidate {
+  candidate: string;
+  sdpMid: string | null;
+  sdpMLineIndex: number | null;
+  fromRole: "teacher" | "pilgrim";
+  createdAt: string;
+}
+
+export interface OneOnOneWebRTCSession {
+  sessionId: string;
+  roomId: string;
+  hostTeacherSlug: string;
+  hostTeacherName: string;
+  hostTeacherTitle: string;
+  hostTeacherPortrait: string;
+  targetUserId: string;
+  targetUserName: string;
+  targetUserEmail?: string;
+  scriptureRef: string;
+  scriptureText: string;
+  counselingTopic: string;
+  status: "ringing" | "connecting" | "connected" | "ended";
+  startedAt: string;
+  connectedAt?: string;
+  teacherMicMuted: boolean;
+  userMicMuted: boolean;
+  teacherMicPermission: "granted" | "denied" | "prompt" | "fallback";
+  userMicPermission: "granted" | "denied" | "prompt" | "fallback";
+  sdpOffer?: { type: "offer"; sdp: string };
+  sdpAnswer?: { type: "answer"; sdp: string };
+  iceCandidates: WebRTCSignalCandidate[];
+  audioCodec: string;
+}
+
 export interface ActiveTeacherLiveCall {
   roomId: string;
   hostTeacherSlug: string;
@@ -37,15 +71,16 @@ export interface ActiveTeacherLiveCall {
   topic: string;
   scriptureRef: string;
   scriptureText: string;
-  callMode: "video-fellowship" | "audio-prayer-circle";
+  callMode: "video-fellowship" | "audio-prayer-circle" | "one-on-one-audio";
   maxParticipants: number;
   startedAt: string;
   isActive: boolean;
   participants: LiveCallParticipant[];
   pendingInvitations: MidCallInvitation[];
+  activeOneOnOneSession?: OneOnOneWebRTCSession | null;
 }
 
-// Server-authoritative in-memory state seeded with an active Teacher Call so users can test joining immediately
+// Server-authoritative in-memory state seeded with an active Teacher Call and ready for 1-on-1 WebRTC sessions
 let currentLiveCall: ActiveTeacherLiveCall | null = {
   roomId: "room-sanctuary-psalm23",
   hostTeacherSlug: "pastor-asket",
@@ -54,7 +89,8 @@ let currentLiveCall: ActiveTeacherLiveCall | null = {
   hostTeacherPortrait: "/AsketOfficialPic (1).png",
   topic: "Abiding in Still Waters: Mid-Week Scripture & Prayer Fellowship",
   scriptureRef: "Psalm 23:1-3",
-  scriptureText: "The Lord is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul.",
+  scriptureText:
+    "The Lord is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul.",
   callMode: "video-fellowship",
   maxParticipants: MAX_LIVE_CALL_PARTICIPANTS,
   startedAt: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
@@ -119,6 +155,7 @@ let currentLiveCall: ActiveTeacherLiveCall | null = {
     },
   ],
   pendingInvitations: [],
+  activeOneOnOneSession: null,
 };
 
 export async function GET() {
@@ -133,12 +170,157 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action } = body;
 
+    if (action === "initiate-1on1-call") {
+      if (body.actorRole !== "teacher" || !body.hostTeacherSlug || !body.hostTeacherName) {
+        return NextResponse.json(
+          {
+            error:
+              "Only appointed LifeBook Teachers can initiate a 1-on-1 WebRTC Pastoral Audio Session.",
+          },
+          { status: 403 }
+        );
+      }
+
+      const session: OneOnOneWebRTCSession = {
+        sessionId: `webrtc-1on1-${Date.now()}`,
+        roomId: `room-1on1-${body.hostTeacherSlug}-${Date.now().toString().slice(-4)}`,
+        hostTeacherSlug: body.hostTeacherSlug,
+        hostTeacherName: body.hostTeacherName,
+        hostTeacherTitle: body.hostTeacherTitle || "Appointed Pastoral Contributor",
+        hostTeacherPortrait: body.hostTeacherPortrait || "/AsketOfficialPic (1).png",
+        targetUserId: body.targetUserId || `pilgrim-${Date.now()}`,
+        targetUserName: body.targetUserName || "Pilgrim Believer",
+        targetUserEmail: body.targetUserEmail,
+        scriptureRef: body.scriptureRef || "Psalm 23:1-3",
+        scriptureText:
+          body.scriptureText ||
+          "The Lord is my shepherd; I shall not want. He leads me beside still waters. He restores my soul.",
+        counselingTopic:
+          body.counselingTopic || "1-on-1 Pastoral Prayer & Scripture Encouragement",
+        status: body.autoConnectPeer ? "connected" : "ringing",
+        startedAt: new Date().toISOString(),
+        connectedAt: body.autoConnectPeer ? new Date().toISOString() : undefined,
+        teacherMicMuted: false,
+        userMicMuted: false,
+        teacherMicPermission: body.teacherMicPermission || "granted",
+        userMicPermission: body.userMicPermission || "granted",
+        sdpOffer: body.sdpOffer,
+        sdpAnswer: body.sdpAnswer,
+        iceCandidates: Array.isArray(body.iceCandidates) ? body.iceCandidates : [],
+        audioCodec: "Opus 48kHz / WebRTC SRTP (Echo Cancellation + Noise Suppression)",
+      };
+
+      if (!currentLiveCall) {
+        currentLiveCall = {
+          roomId: session.roomId,
+          hostTeacherSlug: session.hostTeacherSlug,
+          hostTeacherName: session.hostTeacherName,
+          hostTeacherTitle: session.hostTeacherTitle,
+          hostTeacherPortrait: session.hostTeacherPortrait,
+          topic: session.counselingTopic,
+          scriptureRef: session.scriptureRef,
+          scriptureText: session.scriptureText,
+          callMode: "one-on-one-audio",
+          maxParticipants: MAX_LIVE_CALL_PARTICIPANTS,
+          startedAt: session.startedAt,
+          isActive: true,
+          participants: [],
+          pendingInvitations: [],
+          activeOneOnOneSession: session,
+        };
+      } else {
+        currentLiveCall.activeOneOnOneSession = session;
+      }
+
+      return NextResponse.json({
+        call: currentLiveCall,
+        oneOnOneSession: session,
+      });
+    }
+
+    if (action === "answer-1on1-call") {
+      if (!currentLiveCall?.activeOneOnOneSession) {
+        return NextResponse.json(
+          { error: "No active 1-on-1 pastoral audio call to answer." },
+          { status: 404 }
+        );
+      }
+
+      const session = currentLiveCall.activeOneOnOneSession;
+      session.status = "connected";
+      session.connectedAt = new Date().toISOString();
+      if (body.userMicPermission) {
+        session.userMicPermission = body.userMicPermission;
+      }
+      if (body.sdpAnswer) {
+        session.sdpAnswer = body.sdpAnswer;
+      }
+      if (Array.isArray(body.iceCandidates)) {
+        session.iceCandidates = [...session.iceCandidates, ...body.iceCandidates];
+      }
+
+      return NextResponse.json({
+        call: currentLiveCall,
+        oneOnOneSession: session,
+      });
+    }
+
+    if (action === "signal-1on1-webrtc") {
+      if (!currentLiveCall?.activeOneOnOneSession) {
+        return NextResponse.json({ error: "No active 1-on-1 session." }, { status: 404 });
+      }
+      const session = currentLiveCall.activeOneOnOneSession;
+      if (body.sdpOffer) session.sdpOffer = body.sdpOffer;
+      if (body.sdpAnswer) {
+        session.sdpAnswer = body.sdpAnswer;
+        session.status = "connected";
+        if (!session.connectedAt) session.connectedAt = new Date().toISOString();
+      }
+      if (body.candidate) {
+        session.iceCandidates.push({
+          candidate: body.candidate.candidate || "",
+          sdpMid: body.candidate.sdpMid ?? null,
+          sdpMLineIndex: body.candidate.sdpMLineIndex ?? null,
+          fromRole: body.fromRole === "teacher" ? "teacher" : "pilgrim",
+          createdAt: new Date().toISOString(),
+        });
+      }
+      if (typeof body.teacherMicMuted === "boolean") {
+        session.teacherMicMuted = body.teacherMicMuted;
+      }
+      if (typeof body.userMicMuted === "boolean") {
+        session.userMicMuted = body.userMicMuted;
+      }
+      if (body.teacherMicPermission) {
+        session.teacherMicPermission = body.teacherMicPermission;
+      }
+      if (body.userMicPermission) {
+        session.userMicPermission = body.userMicPermission;
+      }
+      return NextResponse.json({
+        call: currentLiveCall,
+        oneOnOneSession: session,
+      });
+    }
+
+    if (action === "end-1on1-call") {
+      if (currentLiveCall?.activeOneOnOneSession) {
+        currentLiveCall.activeOneOnOneSession.status = "ended";
+        currentLiveCall.activeOneOnOneSession = null;
+      }
+      return NextResponse.json({
+        call: currentLiveCall,
+        oneOnOneSession: null,
+      });
+    }
+
     if (action === "start-call") {
       // STRICT RULE: Only an appointed Teacher can start a live call
       if (body.actorRole !== "teacher" || !body.hostTeacherSlug || !body.hostTeacherName) {
         return NextResponse.json(
           {
-            error: "Only appointed LifeBook Teachers can start a Live Sanctuary Call (maximum 40 participants).",
+            error:
+              "Only appointed LifeBook Teachers can start a Live Sanctuary Call (maximum 40 participants).",
           },
           { status: 403 }
         );
@@ -156,7 +338,12 @@ export async function POST(request: Request) {
         scriptureText:
           body.scriptureText ||
           "Abide in me, and I in you. As the branch cannot bear fruit by itself, unless it abides in the vine, neither can you, unless you abide in me.",
-        callMode: body.callMode === "audio-prayer-circle" ? "audio-prayer-circle" : "video-fellowship",
+        callMode:
+          body.callMode === "audio-prayer-circle"
+            ? "audio-prayer-circle"
+            : body.callMode === "one-on-one-audio"
+            ? "one-on-one-audio"
+            : "video-fellowship",
         maxParticipants: MAX_LIVE_CALL_PARTICIPANTS,
         startedAt: new Date().toISOString(),
         isActive: true,
@@ -176,6 +363,7 @@ export async function POST(request: Request) {
           },
         ],
         pendingInvitations: [],
+        activeOneOnOneSession: currentLiveCall?.activeOneOnOneSession || null,
       };
 
       return NextResponse.json({ call: currentLiveCall });
@@ -308,7 +496,6 @@ export async function POST(request: Request) {
     }
 
     if (action === "simulate-capacity") {
-      // Helper for Teacher to test the 40-participant cap behavior
       if (!currentLiveCall || body.actorRole !== "teacher") {
         return NextResponse.json({ error: "Teacher role required" }, { status: 403 });
       }
@@ -319,7 +506,7 @@ export async function POST(request: Request) {
       const sampleNames = [
         "Miriam Okafor", "Jean-Baptiste L.", "Hannah Mensah", "Lucas Vance", "Grace Kim",
         "Samuel Adeyemi", "Chloe Tremblay", "Daniel Boateng", "Esther Ndiaye", "Caleb Wright",
-        "Naomi Diop", "jared Miller", "Ruth Kamau", "Micah Chen", "Lydia Laurent",
+        "Naomi Diop", "Jared Miller", "Ruth Kamau", "Micah Chen", "Lydia Laurent",
         "Josiah Brooks", "Abigail Owusu", "Gideon Park", "Deborah Silva", "Ezra Foster",
         "Priscilla Tan", "Solomon B.", "Martha K.", "Timothy G.", "Phoebe R.",
         "Titus W.", "Rebekah H.", "Silas M.", "Tabitha J.", "Barnabas C.",

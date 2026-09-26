@@ -34,6 +34,8 @@ export function GlobalAudioPlayer() {
     ambientBed,
     activeChapter,
     voicePersona,
+    activeMelodyPreset,
+    isMelodyOverlayPlaying,
     isExpanded,
     isMinimized,
     playTrack,
@@ -47,6 +49,9 @@ export function GlobalAudioPlayer() {
     cyclePlaybackSpeed,
     setSleepTimer,
     setAmbientBed,
+    startMelodyOverlay,
+    stopMelodyOverlay,
+    toggleMelodyOverlay,
     setIsExpanded,
     setIsMinimized,
   } = useSanctuaryAudio();
@@ -54,7 +59,33 @@ export function GlobalAudioPlayer() {
   // If no track is loaded yet, provide a non-intrusive floating sanctuary audio trigger
   if (!currentTrack) {
     return (
-      <div className="fixed bottom-4 right-4 z-40 print:hidden">
+      <div className="fixed bottom-4 right-4 z-40 print:hidden flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => toggleMelodyOverlay()}
+          className={`min-h-[44px] px-3.5 py-2.5 rounded-full border shadow-xl backdrop-blur-md flex items-center gap-2 text-xs font-semibold transition-all cursor-pointer ${
+            isMelodyOverlayPlaying
+              ? "bg-[#1FB6B0] text-[#071F1E] border-[#4EE2D8]"
+              : "bg-[#1E1931]/95 dark:bg-[#221C38]/95 hover:bg-[#2A2146] text-white border-white/15"
+          }`}
+          title={
+            isFr
+              ? "Superposer une mélodie chrétienne pendant la méditation"
+              : "Overlay Christian worship instrumental during meditation"
+          }
+        >
+          <span>{isMelodyOverlayPlaying ? "⏸" : activeMelodyPreset.icon}</span>
+          <span className="hidden sm:inline whitespace-nowrap">
+            {isMelodyOverlayPlaying
+              ? isFr
+                ? activeMelodyPreset.titleFr
+                : activeMelodyPreset.titleEn
+              : isFr
+              ? "Mélodie de Méditation"
+              : "Worship Melody"}
+          </span>
+        </button>
+
         <button
           type="button"
           id="global-audio-launcher-btn"
@@ -67,7 +98,7 @@ export function GlobalAudioPlayer() {
           }
         >
           <span className="w-2 h-2 rounded-full bg-[#4EE2D8] animate-pulse" />
-          <span>🎧</span>
+          <span>{voicePersona.countryFlag}</span>
           <span className="whitespace-nowrap">
             {isFr ? "Sanctuaire Audio · Psaume 23" : "Sanctuary Audio · Psalm 23"}
           </span>
@@ -274,7 +305,16 @@ export function GlobalAudioPlayer() {
                         <button
                           key={amb.value}
                           type="button"
-                          onClick={() => setAmbientBed(amb.value)}
+                          onClick={() => {
+                            setAmbientBed(amb.value);
+                            if (amb.value === "none") {
+                              stopMelodyOverlay();
+                            } else {
+                              startMelodyOverlay(
+                                amb.value as Parameters<typeof startMelodyOverlay>[0]
+                              );
+                            }
+                          }}
                           className={`py-1.5 px-2.5 rounded-lg text-xs font-medium text-left truncate transition-colors cursor-pointer ${
                             active
                               ? "bg-[#7F67B5] text-white font-semibold"
@@ -448,8 +488,34 @@ export function GlobalAudioPlayer() {
               </button>
             </div>
 
-            {/* Right: Speed, Sleep Timer, Chapters Drawer & Close */}
+            {/* Right: Melody Overlay, Speed, Sleep Timer, Chapters Drawer & Close */}
             <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => toggleMelodyOverlay()}
+                className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                  isMelodyOverlayPlaying
+                    ? "bg-[#1FB6B0]/25 text-[#4EE2D8] border border-[#4EE2D8]/40"
+                    : "bg-white/10 hover:bg-white/15 text-white/80"
+                }`}
+                title={
+                  isFr
+                    ? "Superposer ou couper la mélodie chrétienne"
+                    : "Toggle Christian melody overlay"
+                }
+              >
+                <span>{isMelodyOverlayPlaying ? activeMelodyPreset.icon : "🎹"}</span>
+                <span className="hidden md:inline">
+                  {isMelodyOverlayPlaying
+                    ? isFr
+                      ? "Mélodie ON"
+                      : "Melody ON"
+                    : isFr
+                    ? "Mélodie"
+                    : "Melody"}
+                </span>
+              </button>
+
               <button
                 type="button"
                 id="global-audio-speed-btn"

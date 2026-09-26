@@ -29,6 +29,10 @@ interface DailyRitualModalProps {
   onClose: () => void;
   initialMood?: RitualSoulMood;
   onCompleted?: (payload: CompletedRitualPayload) => void;
+  meditation?: unknown;
+  ritualState?: unknown;
+  onUpdateRitual?: (nextRitual: any) => void;
+  onCompleteRitualWithReflection?: (reflectionText: string, reference: string) => void;
 }
 
 const MOOD_LIST: RitualSoulMood[] = [
@@ -871,3 +875,5 @@ export function DailyRitualModal({
     </div>
   );
 }
+
+export default DailyRitualModal;

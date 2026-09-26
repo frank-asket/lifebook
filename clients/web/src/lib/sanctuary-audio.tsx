@@ -16,13 +16,22 @@ import {
   stopHumanVoice,
   getSavedVoicePersona,
   setSavedVoicePersona,
+  setSavedRegionalAccent,
   VOICE_PERSONA_CHANGE_EVENT,
   type HumanVoicePersona,
+  type VoiceRegionFamily,
 } from "@/lib/human-voice";
 import {
+  ChristianMelodiesService,
   startChristianMelody,
   stopChristianMelody,
+  toggleChristianMelody,
+  setChristianMelodyVolume,
+  getSavedChristianMelody,
+  isChristianMelodyPlaying,
+  CHRISTIAN_MELODY_CHANGE_EVENT,
   type ChristianMelodyId,
+  type ChristianMelodyPreset,
 } from "@/lib/christian-melodies";
 
 export interface SanctuaryChapterMarker {
@@ -85,6 +94,12 @@ interface SanctuaryAudioContextValue {
   ambientBed: AmbientSoundscape;
   activeChapter: SanctuaryChapterMarker | null;
   voicePersona: HumanVoicePersona;
+  melodyOverlayPresets: ChristianMelodyPreset[];
+  melodyOverlayId: ChristianMelodyId;
+  activeMelodyPreset: ChristianMelodyPreset;
+  isMelodyOverlayPlaying: boolean;
+  melodyOverlayVolume: number;
+  overlayDuringMeditation: boolean;
   isExpanded: boolean;
   isMinimized: boolean;
   playTrack: (trackOrSlug: SanctuaryAudioTrack | string, customQueue?: SanctuaryAudioTrack[]) => void;
@@ -101,6 +116,12 @@ interface SanctuaryAudioContextValue {
   setSleepTimer: (minutes: SleepTimerOption) => void;
   setAmbientBed: (bed: AmbientSoundscape) => void;
   setVoicePersona: (personaId: string) => void;
+  setRegionalVoiceAccent: (region: VoiceRegionFamily) => void;
+  startMelodyOverlay: (melodyId?: ChristianMelodyId, volume?: number) => void;
+  stopMelodyOverlay: () => void;
+  toggleMelodyOverlay: (melodyId?: ChristianMelodyId) => void;
+  setMelodyOverlayVolume: (volume: number) => void;
+  setOverlayDuringMeditation: (enabled: boolean) => void;
   setIsExpanded: (expanded: boolean) => void;
   setIsMinimized: (minimized: boolean) => void;
 }
@@ -363,11 +384,22 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
   const [voicePersona, setVoicePersonaState] = useState<HumanVoicePersona>(() =>
     getSavedVoicePersona(isFr)
   );
+  const [melodyOverlayId, setMelodyOverlayIdState] = useState<ChristianMelodyId>(
+    () => getSavedChristianMelody().melodyId
+  );
+  const [isMelodyOverlayPlaying, setIsMelodyOverlayPlaying] = useState<boolean>(
+    () => isChristianMelodyPlaying()
+  );
+  const [melodyOverlayVolume, setMelodyOverlayVolumeState] = useState<number>(
+    () => getSavedChristianMelody().volume
+  );
+  const [overlayDuringMeditation, setOverlayDuringMeditation] = useState<boolean>(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const ambientNodesRef = useRef<{ stop: () => void } | null>(null);
   const lastSpokenChapterRef = useRef<string | null>(null);
+  const wasPlayingTrackRef = useRef<boolean>(false);
 
   useEffect(() => {
     const syncPersona = (e: Event) => {
@@ -383,10 +415,74 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
     return () => window.removeEventListener(VOICE_PERSONA_CHANGE_EVENT, syncPersona);
   }, [isFr]);
 
+  // Synchronize Christian Melody Overlay state from ChristianMelodiesService
+  useEffect(() => {
+    const syncMelody = (e: Event) => {
+      const custom = e as CustomEvent<{
+        melodyId: ChristianMelodyId;
+        isPlaying: boolean;
+        volume: number;
+      }>;
+      if (custom.detail) {
+        setMelodyOverlayIdState(custom.detail.melodyId);
+        setIsMelodyOverlayPlaying(custom.detail.isPlaying);
+        setMelodyOverlayVolumeState(custom.detail.volume);
+      }
+    };
+    window.addEventListener(CHRISTIAN_MELODY_CHANGE_EVENT, syncMelody);
+    return () => window.removeEventListener(CHRISTIAN_MELODY_CHANGE_EVENT, syncMelody);
+  }, []);
+
   const setVoicePersona = useCallback((personaId: string) => {
     const updated = setSavedVoicePersona(personaId);
     setVoicePersonaState(updated);
     lastSpokenChapterRef.current = null;
+  }, []);
+
+  const setRegionalVoiceAccent = useCallback(
+    (region: VoiceRegionFamily) => {
+      const updated = setSavedRegionalAccent(region, voicePersona.gender);
+      setVoicePersonaState(updated);
+      lastSpokenChapterRef.current = null;
+    },
+    [voicePersona.gender]
+  );
+
+  const startMelodyOverlay = useCallback(
+    (melodyId?: ChristianMelodyId, volume?: number) => {
+      const resolvedId =
+        melodyId ||
+        (ambientBed !== "none" &&
+        ambientBed !== "still-waters" &&
+        ambientBed !== "warm-cello" &&
+        ambientBed !== "morning-rain"
+          ? (ambientBed as ChristianMelodyId)
+          : melodyOverlayId === "none"
+          ? "amazing-grace"
+          : melodyOverlayId);
+      setAmbientBed(resolvedId);
+      ChristianMelodiesService.startOverlay(resolvedId, volume);
+    },
+    [ambientBed, melodyOverlayId]
+  );
+
+  const stopMelodyOverlay = useCallback(() => {
+    ChristianMelodiesService.stopOverlay();
+  }, []);
+
+  const toggleMelodyOverlay = useCallback(
+    (melodyId?: ChristianMelodyId) => {
+      const playing = toggleChristianMelody(melodyId);
+      if (playing && melodyId && melodyId !== "none") {
+        setAmbientBed(melodyId);
+      }
+    },
+    []
+  );
+
+  const setMelodyOverlayVolume = useCallback((volume: number) => {
+    setChristianMelodyVolume(volume);
+    setMelodyOverlayVolumeState(volume);
   }, []);
 
   // Persist current track & timestamp
@@ -426,7 +522,19 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
 
   // Start or stop Christian Melodies & Worship Instrumentals when meditating/playing
   useEffect(() => {
-    if (!isPlaying || ambientBed === "none" || typeof window === "undefined") {
+    if (typeof window === "undefined") return;
+
+    if (!isPlaying) {
+      if (wasPlayingTrackRef.current && !overlayDuringMeditation) {
+        stopAmbientNodes();
+      }
+      wasPlayingTrackRef.current = false;
+      return;
+    }
+
+    wasPlayingTrackRef.current = true;
+
+    if (ambientBed === "none" || !overlayDuringMeditation) {
       stopAmbientNodes();
       return;
     }
@@ -441,11 +549,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
         : (ambientBed as ChristianMelodyId);
 
     startChristianMelody(mappedMelodyId);
-
-    return () => {
-      stopAmbientNodes();
-    };
-  }, [isPlaying, ambientBed, stopAmbientNodes]);
+  }, [isPlaying, ambientBed, overlayDuringMeditation, stopAmbientNodes]);
 
   const durationSec = currentTrack?.durationSec || 300;
 
@@ -681,6 +785,14 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
     setSleepTimerRemainingSec(minutes ? minutes * 60 : null);
   }, []);
 
+  const activeMelodyPreset = useMemo<ChristianMelodyPreset>(
+    () =>
+      ChristianMelodiesService.getPresetById(
+        melodyOverlayId === "none" ? "amazing-grace" : melodyOverlayId
+      ),
+    [melodyOverlayId]
+  );
+
   const value = useMemo<SanctuaryAudioContextValue>(
     () => ({
       tracks: ALL_SANCTUARY_TRACKS,
@@ -695,6 +807,12 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       ambientBed,
       activeChapter,
       voicePersona,
+      melodyOverlayPresets: ChristianMelodiesService.getPresets(),
+      melodyOverlayId,
+      activeMelodyPreset,
+      isMelodyOverlayPlaying,
+      melodyOverlayVolume,
+      overlayDuringMeditation,
       isExpanded,
       isMinimized,
       playTrack,
@@ -711,6 +829,12 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       setSleepTimer,
       setAmbientBed,
       setVoicePersona,
+      setRegionalVoiceAccent,
+      startMelodyOverlay,
+      stopMelodyOverlay,
+      toggleMelodyOverlay,
+      setMelodyOverlayVolume,
+      setOverlayDuringMeditation,
       setIsExpanded,
       setIsMinimized,
     }),
@@ -726,6 +850,11 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       ambientBed,
       activeChapter,
       voicePersona,
+      melodyOverlayId,
+      activeMelodyPreset,
+      isMelodyOverlayPlaying,
+      melodyOverlayVolume,
+      overlayDuringMeditation,
       isExpanded,
       isMinimized,
       playTrack,
@@ -741,6 +870,11 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       cyclePlaybackSpeed,
       setSleepTimer,
       setVoicePersona,
+      setRegionalVoiceAccent,
+      startMelodyOverlay,
+      stopMelodyOverlay,
+      toggleMelodyOverlay,
+      setMelodyOverlayVolume,
     ]
   );
 

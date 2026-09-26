@@ -196,6 +196,121 @@ export const HUMAN_VOICE_PERSONAS: HumanVoicePersona[] = [
 export const VOICE_PERSONA_STORAGE_KEY = "lifebook.humanVoice.personaId.v1";
 export const VOICE_PERSONA_CHANGE_EVENT = "lifebook-human-voice-changed";
 
+export interface RegionalAccentOption {
+  id: VoiceRegionFamily;
+  flag: string;
+  langCode: "en-NG" | "fr-CI" | "en-US";
+  labelEn: string;
+  labelFr: string;
+  shortLabelEn: string;
+  shortLabelFr: string;
+  cadenceDescriptionEn: string;
+  cadenceDescriptionFr: string;
+  defaultPersonaId: string;
+}
+
+export const REGIONAL_ACCENT_OPTIONS: RegionalAccentOption[] = [
+  {
+    id: "african-ng",
+    flag: "🇳🇬",
+    langCode: "en-NG",
+    labelEn: "Nigerian English (Lagos & Abuja)",
+    labelFr: "Anglais Nigérian (Lagos & Abuja)",
+    shortLabelEn: "Nigerian English",
+    shortLabelFr: "Nigéria (EN)",
+    cadenceDescriptionEn:
+      "Warm West African pastoral resonance with unhurried rhythm and natural Scripture reverence.",
+    cadenceDescriptionFr:
+      "Résonance pastorale ouest-africaine chaleureuse au rythme posé et naturel.",
+    defaultPersonaId: "ng-adewale",
+  },
+  {
+    id: "african-ci",
+    flag: "🇨🇮",
+    langCode: "fr-CI",
+    labelEn: "Côte d'Ivoire French (Abidjan)",
+    labelFr: "Français de Côte d'Ivoire (Abidjan)",
+    shortLabelEn: "Côte d'Ivoire French",
+    shortLabelFr: "Côte d'Ivoire (FR)",
+    cadenceDescriptionEn:
+      "Authentic Abidjan Francophone warmth with gentle melodic prosody and deep pastoral peace.",
+    cadenceDescriptionFr:
+      "Chaleur francophone d'Abidjan authentique, mélodieuse et empreinte de paix pastorale.",
+    defaultPersonaId: "ci-kouame",
+  },
+  {
+    id: "american-us",
+    flag: "🇺🇸",
+    langCode: "en-US",
+    labelEn: "American English (Nashville & Boston)",
+    labelFr: "Anglais Américain (Nashville & Boston)",
+    shortLabelEn: "American English",
+    shortLabelFr: "Américain (EN)",
+    cadenceDescriptionEn:
+      "Intimate American studio narration with natural conversational breath pauses.",
+    cadenceDescriptionFr:
+      "Narration américaine intime et naturelle avec des respirations apaisantes.",
+    defaultPersonaId: "us-caleb",
+  },
+];
+
+export interface ScriptureNarrationPassage {
+  id: string;
+  referenceEn: string;
+  referenceFr: string;
+  themeEn: string;
+  themeFr: string;
+  textByRegion: Record<VoiceRegionFamily, string>;
+}
+
+export const SCRIPTURE_NARRATION_PASSAGES: ScriptureNarrationPassage[] = [
+  {
+    id: "psalm-23",
+    referenceEn: "Psalm 23:1–3",
+    referenceFr: "Psaume 23:1–3",
+    themeEn: "Still Waters & Soul Restoration",
+    themeFr: "Eaux Paisibles & Restauration",
+    textByRegion: {
+      "african-ng":
+        "Beloved, hear the Word of the Lord from Psalm 23. The Lord is my shepherd; I shall not want. He makes me to lie down in green pastures; He leads me beside the still waters. He restores my soul.",
+      "african-ci":
+        "Bien-aimé, écoute la Parole du Seigneur dans le Psaume 23. L'Éternel est mon berger : je ne manquerai de rien. Il me fait reposer dans de verts pâturages, Il me dirige près des eaux paisibles. Il restaure mon âme.",
+      "american-us":
+        "Take a quiet breath and listen to Psalm 23. The Lord is my shepherd; I shall not want. He makes me lie down in green pastures. He leads me beside still waters. He restores my soul.",
+    },
+  },
+  {
+    id: "romans-8",
+    referenceEn: "Romans 8:38–39",
+    referenceFr: "Romains 8:38–39",
+    themeEn: "Unbreakable Love in Christ",
+    themeFr: "L'Amour Inséparable en Christ",
+    textByRegion: {
+      "african-ng":
+        "My brother, my sister, stand firm in Romans chapter 8. For I am persuaded that neither death nor life, nor angels nor principalities, nor things present nor things to come, shall be able to separate us from the love of God which is in Christ Jesus our Lord.",
+      "african-ci":
+        "Mon frère, ma sœur, demeure ferme dans Romains chapitre 8. Car j'ai l'assurance que ni la mort ni la vie, ni les anges ni les dominations, ni les choses présentes ni les choses à venir ne pourra nous séparer de l'amour de Dieu manifesté en Jésus-Christ notre Seigneur.",
+      "american-us":
+        "Rest in the promise of Romans 8. For I am sure that neither death nor life, nor angels nor rulers, nor things present nor things to come, will be able to separate us from the love of God in Christ Jesus our Lord.",
+    },
+  },
+  {
+    id: "john-15",
+    referenceEn: "John 15:4–5",
+    referenceFr: "Jean 15:4–5",
+    themeEn: "Abiding in the True Vine",
+    themeFr: "Demeurer dans le Vrai Cep",
+    textByRegion: {
+      "african-ng":
+        "Listen to the words of Jesus in John chapter 15. Abide in Me, and I in you. As the branch cannot bear fruit of itself, unless it abides in the vine, neither can you, unless you abide in Me. For without Me, you can do nothing.",
+      "african-ci":
+        "Écoutons les paroles de Jésus dans Jean chapitre 15. Demeurez en moi, et je demeurerai en vous. Comme le sarment ne peut de lui-même porter du fruit, s'il ne demeure attaché au cep, ainsi vous ne le pouvez non plus, si vous ne demeurez en moi.",
+      "american-us":
+        "Hear the invitation of Jesus in John 15. Abide in Me, and I in you. Whoever abides in Me and I in him, he it is that bears much fruit, for apart from Me you can do nothing.",
+    },
+  },
+];
+
 let activePlaybackAbortController: AbortController | null = null;
 let activeAudioCtx: AudioContext | null = null;
 let activeSourceNode: AudioBufferSourceNode | null = null;
@@ -536,6 +651,19 @@ function speakWithHumanizedBrowserProsody(params: {
   speakNextClause();
 }
 
+export function setSavedRegionalAccent(
+  region: VoiceRegionFamily,
+  preferGender?: "male" | "female"
+): HumanVoicePersona {
+  const current = getSavedVoicePersona(region === "african-ci");
+  const targetGender = preferGender || current.gender || "male";
+  const match =
+    HUMAN_VOICE_PERSONAS.find((p) => p.region === region && p.gender === targetGender) ||
+    HUMAN_VOICE_PERSONAS.find((p) => p.region === region) ||
+    HUMAN_VOICE_PERSONAS[0];
+  return setSavedVoicePersona(match.id);
+}
+
 export async function speakWithHumanVoice(options: {
   text: string;
   persona?: HumanVoicePersona;
@@ -656,6 +784,47 @@ export function useHumanVoice(isFr = false) {
     [activePersona, isFr]
   );
 
+  const selectRegionalAccent = useCallback(
+    async (region: VoiceRegionFamily, autoNarrate = false) => {
+      const updated = setSavedRegionalAccent(region, activePersona.gender);
+      setActivePersona(updated);
+      if (autoNarrate) {
+        setIsPreviewing(true);
+        const passage = SCRIPTURE_NARRATION_PASSAGES[0];
+        const text =
+          passage?.textByRegion[region] ||
+          (updated.primaryLanguage === "fr"
+            ? updated.sampleGreetingFr
+            : updated.sampleGreetingEn);
+        await speakWithHumanVoice({
+          text,
+          persona: updated,
+          onEnd: () => setIsPreviewing(false),
+        });
+      }
+      return updated;
+    },
+    [activePersona.gender]
+  );
+
+  const narrateScripturePassage = useCallback(
+    async (passageId: string, personaOverride?: HumanVoicePersona) => {
+      const target = personaOverride || activePersona;
+      const passage =
+        SCRIPTURE_NARRATION_PASSAGES.find((p) => p.id === passageId) ||
+        SCRIPTURE_NARRATION_PASSAGES[0];
+      const text = passage.textByRegion[target.region] || target.sampleGreetingEn;
+
+      setIsPreviewing(true);
+      await speakWithHumanVoice({
+        text,
+        persona: target,
+        onEnd: () => setIsPreviewing(false),
+      });
+    },
+    [activePersona]
+  );
+
   const stopPreview = useCallback(() => {
     stopHumanVoice();
     setIsPreviewing(false);
@@ -663,9 +832,14 @@ export function useHumanVoice(isFr = false) {
 
   return {
     personas: HUMAN_VOICE_PERSONAS,
+    regionalAccents: REGIONAL_ACCENT_OPTIONS,
+    scripturePassages: SCRIPTURE_NARRATION_PASSAGES,
     activePersona,
+    activeRegion: activePersona.region,
     selectPersona,
+    selectRegionalAccent,
     previewPersona,
+    narrateScripturePassage,
     stopPreview,
     isPreviewing,
   };
