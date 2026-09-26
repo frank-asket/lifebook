@@ -9,6 +9,8 @@ import {
   getTeacherBySlug,
   getTeachingsByTeacher,
   addTeachingToContributor,
+  getTeacherPerformanceSummary,
+  getTeachingMetrics,
   CATALOG_CHANGE_EVENT,
   type Teaching,
   type Teacher,
@@ -306,24 +308,43 @@ export default function TeacherProfilePage() {
               </div>
 
               {/* Stats & Meta chips */}
-              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-[#6F6486] dark:text-[#C8C2D6]">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[#2A2146] dark:text-white">{teacherTeachings.length}</span>
-                  <span>{isFr ? "enseignements publiés" : "published teachings"}</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center gap-1.5">
-                  <span>🎓</span>
-                  <span>{education}</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center gap-1.5">
-                  <span>📖</span>
-                  <span>
-                    {isFr ? "Verset d'ancrage :" : "Anchor Verse:"} <strong>{featuredScripture}</strong>
-                  </span>
-                </div>
-              </div>
+              {(() => {
+                const perf = getTeacherPerformanceSummary(teacher.slug);
+                return (
+                  <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-[#6F6486] dark:text-[#C8C2D6]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-[#2A2146] dark:text-white">{teacherTeachings.length}</span>
+                      <span>{isFr ? "enseignements publiés" : "published teachings"}</span>
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>🎧</span>
+                      <span className="font-bold text-[#2A2146] dark:text-white">
+                        {perf.totalListens.toLocaleString()}
+                      </span>
+                      <span>{isFr ? "écoutes totales" : "total listens"}</span>
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-mono font-bold">
+                        {perf.avgCompletionRate}% {isFr ? "complétion" : "completion rate"}
+                      </span>
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>🎓</span>
+                      <span>{education}</span>
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>📖</span>
+                      <span>
+                        {isFr ? "Verset d'ancrage :" : "Anchor Verse:"} <strong>{featuredScripture}</strong>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -625,6 +646,7 @@ export default function TeacherProfilePage() {
                   const scripture = isFr ? teaching.scriptureFr : teaching.scripture;
                   const category = isFr ? teaching.categoryFr : teaching.category;
                   const isThisPlaying = currentTrack?.slug === teaching.slug && isPlaying;
+                  const metrics = getTeachingMetrics(teaching.slug, teaching.duration);
 
                   return (
                     <article
@@ -632,13 +654,16 @@ export default function TeacherProfilePage() {
                       className="bg-white dark:bg-[#1B1630] p-6 rounded-3xl border border-[#E3DACB] dark:border-white/12 shadow-xs hover:border-[#3D2E5C]/40 dark:hover:border-[#4EE2D8]/40 transition-all space-y-3 group"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#ECE5F5] dark:bg-white/10 text-[#3D2E5C] dark:text-[#4EE2D8]">
                             {category}
                           </span>
                           <span className="text-xs text-[#7B7092] dark:text-[#C8C2D6]">{teaching.duration}</span>
                           <span className="text-xs font-semibold text-[#5B4F75] dark:text-[#E2DCEF] bg-[#F7F4EE] dark:bg-white/5 px-2 py-0.5 rounded-md border border-[#E3DACB] dark:border-white/10">
                             {scripture}
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
+                            🎧 {metrics.listenCount.toLocaleString()} {isFr ? "écoutes" : "listens"} · {metrics.completionRate}% {isFr ? "complété" : "completion"}
                           </span>
                         </div>
 

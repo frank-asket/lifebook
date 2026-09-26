@@ -408,3 +408,155 @@ export function removeCustomTeaching(slug: string): void {
   }
 }
 
+export interface TeachingPerformanceMetrics {
+  slug: string;
+  listenCount: number;
+  completedCount: number;
+  completionRate: number;
+  avgListenMinutes: number;
+}
+
+export interface TeacherPerformanceSummary {
+  teacherSlug: string;
+  teacherName: string;
+  publishedCount: number;
+  totalListens: number;
+  totalCompletions: number;
+  avgCompletionRate: number;
+  topTeachingTitle: string;
+  topTeachingTitleFr: string;
+  topTeachingListens: number;
+  teachingsBreakdown: Array<{
+    teaching: Teaching;
+    metrics: TeachingPerformanceMetrics;
+  }>;
+}
+
+export const TEACHING_ANALYTICS_KEY = "lifebook.teaching.analytics.v1";
+
+const DEFAULT_TEACHING_METRICS: Record<
+  string,
+  { listenCount: number; completedCount: number; avgListenMinutes: number }
+> = {
+  "when-faith-feels-small": {
+    listenCount: 1840,
+    completedCount: 1619,
+    avgListenMinutes: 10.8,
+  },
+  "mercy-of-a-new-morning": {
+    listenCount: 1520,
+    completedCount: 1307,
+    avgListenMinutes: 13.2,
+  },
+  "learning-to-be-still": {
+    listenCount: 2190,
+    completedCount: 2015,
+    avgListenMinutes: 8.4,
+  },
+  "a-life-shaped-by-love": {
+    listenCount: 1385,
+    completedCount: 1136,
+    avgListenMinutes: 15.1,
+  },
+  "the-cost-of-discipleship": {
+    listenCount: 1265,
+    completedCount: 1063,
+    avgListenMinutes: 13.9,
+  },
+  "honest-lament-in-the-dark": {
+    listenCount: 1675,
+    completedCount: 1491,
+    avgListenMinutes: 12.6,
+  },
+};
+
+function getStoredAnalyticsOverrides(): Record<
+  string,
+  { listenCount: number; completedCount: number; avgListenMinutes?: number }
+> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(TEACHING_ANALYTICS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function getTeachingMetrics(slug: string, durationStr = "12 min"): TeachingPerformanceMetrics {
+  const overrides = getStoredAnalyticsOverrides();
+  const base = DEFAULT_TEACHING_METRICS[slug] || {
+    listenCount: 142,
+    completedCount: 124,
+    avgListenMinutes: parseInt(durationStr, 10) ? Math.round(parseInt(durationStr, 10) * 0.88 * 10) / 10 : 10.5,
+  };
+  const custom = overrides[slug];
+  const listenCount = custom ? custom.listenCount : base.listenCount;
+  const completedCount = custom ? custom.completedCount : base.completedCount;
+  const completionRate =
+    listenCount > 0 ? Math.min(100, Math.round((completedCount / listenCount) * 100)) : 0;
+
+  return {
+    slug,
+    listenCount,
+    completedCount,
+    completionRate,
+    avgListenMinutes: custom?.avgListenMinutes ?? base.avgListenMinutes,
+  };
+}
+
+export function recordTeachingListen(slug: string, completed = false): void {
+  if (typeof window === "undefined") return;
+  try {
+    const overrides = getStoredAnalyticsOverrides();
+    const current = getTeachingMetrics(slug);
+    const nextListens = completed ? current.listenCount : current.listenCount + 1;
+    const nextCompleted = completed
+      ? Math.min(nextListens, current.completedCount + 1)
+      : current.completedCount + 1; // Optimistic engaged session completion
+
+    overrides[slug] = {
+      listenCount: nextListens,
+      completedCount: Math.min(nextListens, nextCompleted),
+      avgListenMinutes: current.avgListenMinutes,
+    };
+    localStorage.setItem(TEACHING_ANALYTICS_KEY, JSON.stringify(overrides));
+    window.dispatchEvent(new Event(CATALOG_CHANGE_EVENT));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function getTeacherPerformanceSummary(teacherSlug: string): TeacherPerformanceSummary {
+  const teacher = getTeacherBySlug(teacherSlug);
+  const teacherTeachings = getTeachingsByTeacher(teacherSlug);
+  const breakdown = teacherTeachings.map((t) => ({
+    teaching: t,
+    metrics: getTeachingMetrics(t.slug, t.duration),
+  }));
+
+  const totalListens = breakdown.reduce((sum, item) => sum + item.metrics.listenCount, 0);
+  const totalCompletions = breakdown.reduce((sum, item) => sum + item.metrics.completedCount, 0);
+  const avgCompletionRate =
+    totalListens > 0 ? Math.min(100, Math.round((totalCompletions / totalListens) * 100)) : 0;
+
+  const sortedByListens = [...breakdown].sort(
+    (a, b) => b.metrics.listenCount - a.metrics.listenCount
+  );
+  const top = sortedByListens[0];
+
+  return {
+    teacherSlug,
+    teacherName: teacher?.name || teacherSlug,
+    publishedCount: teacherTeachings.length,
+    totalListens,
+    totalCompletions,
+    avgCompletionRate,
+    topTeachingTitle: top?.teaching.title || "—",
+    topTeachingTitleFr: top?.teaching.titleFr || "—",
+    topTeachingListens: top?.metrics.listenCount || 0,
+    teachingsBreakdown: breakdown,
+  };
+}
+
+

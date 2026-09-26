@@ -9,7 +9,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { teachings, type Teaching } from "@/app/livingWordData";
+import { teachings, recordTeachingListen, type Teaching } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
 
 export interface SanctuaryChapterMarker {
@@ -541,6 +541,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
 
   const playTeaching = useCallback(
     (teaching: Teaching) => {
+      recordTeachingListen(teaching.slug);
       const match = ALL_SANCTUARY_TRACKS.find((t) => t.slug === teaching.slug);
       if (match) {
         playTrack(match);
