@@ -712,3 +712,21 @@ export function triggerOpenWalkthrough() {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event(WALKTHROUGH_OPEN_EVENT));
 }
+
+export function hasCompletedWalkthrough(email?: string): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    const isCompleted = localStorage.getItem(WALKTHROUGH_COMPLETED_KEY) === "1";
+    if (!email) return isCompleted;
+    const raw = localStorage.getItem(WALKTHROUGH_SEEN_USERS_KEY);
+    const seenUsers: Record<string, boolean> = raw ? JSON.parse(raw) : {};
+    return Boolean(seenUsers[email.trim().toLowerCase()]) && isCompleted;
+  } catch {
+    return false;
+  }
+}
+
+export function shouldTriggerFirstLoginWalkthrough(email?: string): boolean {
+  if (typeof window === "undefined") return false;
+  return shouldAutoOpenWalkthrough() || !hasCompletedWalkthrough(email);
+}

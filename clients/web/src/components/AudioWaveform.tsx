@@ -6,7 +6,9 @@ export type WaveformStatus = "idle" | "listening" | "thinking" | "answered" | "u
 
 export interface AudioWaveformProps {
   /** Current state of the Voice Practice session */
-  status: WaveformStatus;
+  status?: WaveformStatus;
+  /** Optional shorthand active boolean */
+  isActive?: boolean;
   /** Optional external MediaStream if already acquired by parent */
   mediaStream?: MediaStream | null;
   /** Number of frequency bars to render in the visualizer */
@@ -28,13 +30,15 @@ interface AudioMetrics {
 }
 
 export function AudioWaveform({
-  status,
+  status: statusProp,
+  isActive,
   mediaStream: externalStream,
   barCount = 32,
   isFr = false,
   onVolumeChange,
   className = "",
 }: AudioWaveformProps) {
+  const status: WaveformStatus = statusProp || (isActive ? "listening" : "idle");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);

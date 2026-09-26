@@ -218,22 +218,5 @@ export const PWAInstallButton: React.FC = () => {
 };
 
 export const OfflineIndicator: React.FC = () => {
-  const isOnline = useOnlineStatus();
-  const { isFr } = useLanguage();
-
-  if (isOnline) return null;
-
-  return (
-    <div
-      id="pwa-offline-indicator"
-      className="fixed top-16 left-4 z-50 flex items-center gap-2 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-semibold text-[#1E1931] shadow-lg"
-    >
-      <span className="h-2 w-2 rounded-full bg-[#1E1931] animate-pulse" />
-      <span>
-        {isFr
-          ? "Mode Avion / Hors-Ligne — Méditation de 5 min & Journal disponibles localement."
-          : "Offline Sanctuary Mode — Daily Scripture tracks, 5-min ritual & journal active."}
-      </span>
-    </div>
-  );
+  return null;
 };

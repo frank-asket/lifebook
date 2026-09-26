@@ -1,817 +1,594 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n";
 import {
   getAllTeachings,
   CATALOG_CHANGE_EVENT,
   type Teaching,
 } from "./livingWordData";
-import {
-  BIBLE_CANON,
-  BibleBook,
-  getBookById,
-  getChapterContent,
-  searchScriptures,
-} from "@/lib/bible-canon";
-import { useLanguage } from "@/lib/i18n";
+import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 import { usePlaylists, type Playlist } from "@/lib/usePlaylists";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { PlaylistPlayer } from "@/components/PlaylistPlayer";
-import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
-import HumanVoiceSelector from "@/components/HumanVoiceSelector";
 import {
-  VoiceProfile,
-  getPreferredVoiceProfile,
-  speakWithHumanVoice,
-} from "@/lib/human-voices";
+  Headphones,
+  Pause,
+  Play,
+  BookOpenText,
+  Plus,
+  X,
+  ArrowUpRight,
+  UsersThree,
+} from "@phosphor-icons/react";
 
-export interface LivingWordProps {
-  initialBookId?: string;
-  initialChapter?: number;
-  completedChapters?: string[];
-  onMarkChapterRead?: (bookId: string, chapter: number) => void;
-  onOpenVoicePractice?: (bookId: string, chapter: number) => void;
-}
-
-export default function LivingWord({
-  initialBookId = "psalms",
-  initialChapter = 23,
-  completedChapters = [],
-  onMarkChapterRead,
-  onOpenVoicePractice,
-}: LivingWordProps = {}) {
-  const { language, isFr, t } = useLanguage();
+export default function LivingWord() {
+  const { isFr, t } = useLanguage();
   const { playTeaching, currentTrack, isPlaying, togglePlay } =
     useSanctuaryAudio();
 
-  const [subView, setSubView] = useState<"canon" | "teachings" | "playlists">(
-    "canon"
-  );
-
-  // Bible Canon State
-  const [testamentFilter, setTestamentFilter] = useState<"ALL" | "OT" | "NT">(
-    "ALL"
-  );
-  const [selectedBookId, setSelectedBookId] = useState<string>(initialBookId);
-  const [selectedChapterNum, setSelectedChapterNum] =
-    useState<number>(initialChapter);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [speakingVerse, setSpeakingVerse] = useState<number | null>(null);
-  const [selectedVoiceProfile, setSelectedVoiceProfile] =
-    useState<VoiceProfile>(() => getPreferredVoiceProfile(language));
-
-  useEffect(() => {
-    setSelectedBookId(initialBookId);
-    setSelectedChapterNum(initialChapter);
-  }, [initialBookId, initialChapter]);
-
-  useEffect(() => {
-    setSelectedVoiceProfile(getPreferredVoiceProfile(language));
-  }, [language]);
-
-  // Teachings & Playlists State
-  const [allTeachings, setAllTeachings] = useState<Teaching[]>(() =>
+  const [teachings, setTeachings] = useState<Teaching[]>(() =>
     getAllTeachings()
   );
-  const [category, setCategory] = useState("All");
-  const { playlists, deletePlaylist, removeFromPlaylist, createPlaylist } =
-    usePlaylists();
-  const [activeModalTeaching, setActiveModalTeaching] =
-    useState<Teaching | null>(null);
-  const [playingPlaylist, setPlayingPlaylist] = useState<Playlist | null>(null);
-  const [selectedPlaylistDetail, setSelectedPlaylistDetail] =
-    useState<Playlist | null>(null);
-  const [isCreatingInline, setIsCreatingInline] = useState(false);
-  const [inlineTitle, setInlineTitle] = useState("");
-  const [inlineDesc, setInlineDesc] = useState("");
+  const [viewMode, setViewMode] = useState<"teachings" | "playlists">(
+    "teachings"
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   useEffect(() => {
-    const sync = () => setAllTeachings(getAllTeachings());
-    window.addEventListener(CATALOG_CHANGE_EVENT, sync);
-    window.addEventListener("storage", sync);
+    const refresh = () => setTeachings(getAllTeachings());
+    window.addEventListener(CATALOG_CHANGE_EVENT, refresh);
+    window.addEventListener("storage", refresh);
     return () => {
-      window.removeEventListener(CATALOG_CHANGE_EVENT, sync);
-      window.removeEventListener("storage", sync);
+      window.removeEventListener(CATALOG_CHANGE_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
     };
   }, []);
 
-  const selectedBook: BibleBook = useMemo(
-    () => getBookById(selectedBookId) || BIBLE_CANON[18],
-    [selectedBookId]
+  const { playlists, deletePlaylist, removeFromPlaylist, createPlaylist } =
+    usePlaylists();
+
+  const [modalTeaching, setModalTeaching] = useState<Teaching | null>(null);
+  const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
+  const [expandedPlaylist, setExpandedPlaylist] = useState<Playlist | null>(
+    null
   );
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newIcon, setNewIcon] = useState("🎧");
 
-  const chapterContent = useMemo(
-    () => getChapterContent(selectedBook.id, selectedChapterNum),
-    [selectedBook.id, selectedChapterNum]
-  );
-
-  const filteredBooks = useMemo(() => {
-    return BIBLE_CANON.filter((b) =>
-      testamentFilter === "ALL" ? true : b.testament === testamentFilter
-    );
-  }, [testamentFilter]);
-
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    return searchScriptures(searchQuery, language);
-  }, [searchQuery, language]);
-
-  const isChapterDone = completedChapters.includes(
-    `${selectedBook.id}-${selectedChapterNum}`
-  );
-
-  const stopSpeech = () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-    setSpeakingVerse(null);
-  };
-
-  const speakSingleVerse = (verseNumber: number, text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    if (speakingVerse === verseNumber) {
-      stopSpeech();
-      return;
-    }
-    speakWithHumanVoice({
-      text,
-      profile: selectedVoiceProfile,
-      onStart: () => setSpeakingVerse(verseNumber),
-      onEnd: () => setSpeakingVerse(null),
-      onError: () => setSpeakingVerse(null),
-    });
-  };
-
-  const speakChapterAloud = () => {
-    if (speakingVerse !== null) {
-      stopSpeech();
-      return;
-    }
-    const fullText = chapterContent.verses
-      .map((v) => (isFr ? v.fr : v.en))
-      .join(" ");
-    speakWithHumanVoice({
-      text: fullText,
-      profile: selectedVoiceProfile,
-      onStart: () => setSpeakingVerse(0),
-      onEnd: () => setSpeakingVerse(null),
-      onError: () => setSpeakingVerse(null),
-    });
-  };
-
-  const categories = [
-    { id: "All", label: isFr ? "Tous" : "All" },
-    { id: "Faith", label: isFr ? "Foi" : "Faith" },
-    { id: "Prayer", label: isFr ? "Prière" : "Prayer" },
-    { id: "Hope", label: isFr ? "Espérance" : "Hope" },
-    { id: "Discipleship", label: isFr ? "Vie chrétienne" : "Discipleship" },
-  ];
-
-  const visibleTeachings =
-    category === "All"
-      ? allTeachings
-      : allTeachings.filter((teaching) => teaching.category === category);
+  const filteredTeachings =
+    selectedCategory === "All"
+      ? teachings
+      : teachings.filter((item) => item.category === selectedCategory);
 
   const handleCreatePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inlineTitle.trim()) return;
-    await createPlaylist(inlineTitle.trim(), inlineDesc.trim(), "I");
-    setInlineTitle("");
-    setInlineDesc("");
-    setIsCreatingInline(false);
+    if (newTitle.trim()) {
+      await createPlaylist(newTitle.trim(), newDesc.trim(), newIcon);
+      setNewTitle("");
+      setNewDesc("");
+      setShowCreateForm(false);
+    }
   };
 
   return (
-    <section className="space-y-8" id="living-word">
-      {/* Editorial Section Header & Sub-Mode Ledger Switcher */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-stone-300 dark:border-stone-800 pb-5">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-amber-900 dark:text-amber-400 font-semibold">
-            {isFr
-              ? "CANON BIBLIQUE & ARCHIVE D'ENSEIGNEMENTS"
-              : "BIBLICAL CANON & PASTORAL TEACHING ARCHIVE"}
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 dark:text-stone-100 mt-1">
-            {t("scripture.title")}
-          </h2>
+    <section className="living-word-section" id="living-word">
+      <div className="page-shell">
+        <div className="living-word-heading">
+          <div>
+            <p className="showcase-eyebrow">{t("audio_eyebrow")}</p>
+            <h2>{t("audio_heading")}</h2>
+          </div>
+          <div>
+            <p>{t("audio_desc")}</p>
+            <ul className="mt-3 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
+              <li>
+                <strong>{t("audio_point1_bold")}</strong> {t("audio_point1_text")}
+              </li>
+              <li>
+                <strong>{t("audio_point2_bold")}</strong> {t("audio_point2_text")}
+              </li>
+              <li>
+                <strong>{t("audio_point3_bold")}</strong> {t("audio_point3_text")}
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex p-0.5 rounded bg-[#F3EFE6] dark:bg-[#1C1917] border border-stone-300 dark:border-stone-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-3 border-b border-[#E3DEED] dark:border-white/15">
+          <div className="flex items-center gap-2 p-1 bg-[#ECE7F6] dark:bg-[#1E1836] rounded-xl">
             <button
               type="button"
-              onClick={() => setSubView("canon")}
-              className={`px-3.5 py-2 rounded-xs text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer ${
-                subView === "canon"
-                  ? "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 font-semibold"
-                  : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200"
+              onClick={() => setViewMode("teachings")}
+              className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "teachings"
+                  ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-sm"
+                  : "text-[#4E4462] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
               }`}
             >
-              {isFr ? "I. Canon (66 Livres)" : "I. Bible Canon (66)"}
+              {isFr ? "Tous les enseignements" : "All Teachings"} (
+              {teachings.length})
             </button>
             <button
               type="button"
-              onClick={() => setSubView("teachings")}
-              className={`px-3.5 py-2 rounded-xs text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer ${
-                subView === "teachings"
-                  ? "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 font-semibold"
-                  : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200"
+              onClick={() => setViewMode("playlists")}
+              className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                viewMode === "playlists"
+                  ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-sm"
+                  : "text-[#4E4462] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
               }`}
             >
-              {isFr
-                ? `II. Enseignements (${allTeachings.length})`
-                : `II. Teachings (${allTeachings.length})`}
+              <span>
+                {isFr ? "Mes listes de lecture" : "My Playlists"} (
+                {playlists.length})
+              </span>
             </button>
-            <button
-              type="button"
-              onClick={() => setSubView("playlists")}
-              className={`px-3.5 py-2 rounded-xs text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer ${
-                subView === "playlists"
-                  ? "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 font-semibold"
-                  : "text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200"
-              }`}
-            >
-              {isFr
-                ? `III. Listes (${playlists.length})`
-                : `III. Playlists (${playlists.length})`}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* VIEW I: 66-BOOK BIBLICAL CANON */}
-      {subView === "canon" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left 4 Cols: Book & Testament Index */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="p-4 rounded-lg sanctuary-card space-y-4">
-              {/* Search Scripture Input */}
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("scripture.searchPlaceholder")}
-                className="w-full px-3.5 py-2 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:border-amber-800"
-              />
-
-              {/* Testament Filter Tabs */}
-              <div className="grid grid-cols-3 border border-stone-300 dark:border-stone-800 rounded p-0.5 bg-[#F3EFE6] dark:bg-[#1C1917]">
-                {(
-                  [
-                    { id: "ALL", label: t("scripture.allBooks") },
-                    { id: "OT", label: t("scripture.oldTestament") },
-                    { id: "NT", label: t("scripture.newTestament") },
-                  ] as const
-                ).map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setTestamentFilter(item.id)}
-                    className={`py-1.5 text-[11px] font-mono uppercase tracking-wider rounded-xs transition-colors cursor-pointer truncate px-1 ${
-                      testamentFilter === item.id
-                        ? "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 font-semibold"
-                        : "text-stone-600 dark:text-stone-400"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Scrollable 66 Books Directory */}
-              <div className="max-h-[460px] overflow-y-auto divide-y divide-stone-200 dark:divide-stone-800 border-t border-stone-200 dark:border-stone-800">
-                {filteredBooks.map((book) => {
-                  const isSelected = book.id === selectedBook.id;
-                  return (
-                    <button
-                      key={book.id}
-                      type="button"
-                      onClick={() => {
-                        stopSpeech();
-                        setSelectedBookId(book.id);
-                        setSelectedChapterNum(1);
-                      }}
-                      className={`w-full py-2.5 px-3 text-left flex items-center justify-between transition-colors cursor-pointer ${
-                        isSelected
-                          ? "bg-amber-900/10 dark:bg-amber-500/15 text-amber-900 dark:text-amber-300 font-semibold"
-                          : "hover:bg-stone-100 dark:hover:bg-stone-900/50 text-stone-800 dark:text-stone-200"
-                      }`}
-                    >
-                      <span className="font-serif text-sm truncate">
-                        {isFr ? book.name.fr : book.name.en}
-                      </span>
-                      <span className="font-mono text-[11px] text-stone-500 dark:text-stone-400 tabular-nums shrink-0">
-                        {book.totalChapters} ch
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Right 8 Cols: Active Chapter Reader & Regional Voice Narration */}
-          <div className="lg:col-span-8 space-y-6">
-            {searchQuery.trim() ? (
-              <div className="p-6 rounded-lg sanctuary-card space-y-4">
-                <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
-                  <h3 className="font-serif font-bold text-lg">
-                    {isFr ? "Résultats de recherche" : "Search Results"} (
-                    {searchResults.length})
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="text-xs font-mono uppercase tracking-wider text-stone-500 hover:text-stone-900 cursor-pointer"
-                  >
-                    {isFr ? "Effacer" : "Clear"}
-                  </button>
-                </div>
-                {searchResults.map((res, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded border border-stone-200 dark:border-stone-800 space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs text-amber-900 dark:text-amber-400 font-semibold">
-                        {isFr ? res.book.name.fr : res.book.name.en}{" "}
-                        {res.chapter}:{res.verse.verse}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedBookId(res.book.id);
-                          setSelectedChapterNum(res.chapter);
-                          setSearchQuery("");
-                        }}
-                        className="text-xs font-mono uppercase tracking-wider text-stone-600 hover:text-stone-900 dark:text-stone-400 cursor-pointer"
-                      >
-                        {isFr ? "Ouvrir Chapitre →" : "Open Chapter →"}
-                      </button>
-                    </div>
-                    <p className="font-serif text-sm text-stone-800 dark:text-stone-200">
-                      {isFr ? res.verse.fr : res.verse.en}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-6 sm:p-8 rounded-lg sanctuary-card space-y-6">
-                {/* Chapter Header & Controls */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 dark:border-stone-800 pb-4">
-                  <div>
-                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-stone-500 dark:text-stone-400">
-                      {isFr ? selectedBook.category.fr : selectedBook.category.en}
-                    </span>
-                    <h3 className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100">
-                      {isFr ? selectedBook.name.fr : selectedBook.name.en}{" "}
-                      {selectedChapterNum}
-                    </h3>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <HumanVoiceSelector
-                      selectedProfile={selectedVoiceProfile}
-                      onSelectProfile={(profile) => {
-                        setSelectedVoiceProfile(profile);
-                        stopSpeech();
-                      }}
-                      compact
-                    />
-
-                    <button
-                      type="button"
-                      onClick={speakChapterAloud}
-                      className={`px-3.5 py-2 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer ${
-                        speakingVerse !== null
-                          ? "bg-amber-800 text-white"
-                          : "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900"
-                      }`}
-                    >
-                      {speakingVerse !== null
-                        ? t("scripture.stopReading")
-                        : t("scripture.listenAloud")}
-                    </button>
-
-                    {onOpenVoicePractice && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onOpenVoicePractice(
-                            selectedBook.id,
-                            selectedChapterNum
-                          )
-                        }
-                        className="px-3.5 py-2 rounded border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-xs font-mono uppercase tracking-wider font-semibold hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-                      >
-                        {t("scripture.speakVerse")}
-                      </button>
-                    )}
-
-                    {onMarkChapterRead && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onMarkChapterRead(selectedBook.id, selectedChapterNum)
-                        }
-                        className={`px-3.5 py-2 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer ${
-                          isChapterDone
-                            ? "bg-emerald-800 text-white"
-                            : "border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300"
-                        }`}
-                      >
-                        {isChapterDone
-                          ? t("scripture.completed")
-                          : t("scripture.markCompleted")}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Chapter Number Selector Strip */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-2">
-                  {Array.from(
-                    { length: Math.min(selectedBook.totalChapters, 50) },
-                    (_, i) => i + 1
-                  ).map((chNum) => (
-                    <button
-                      key={chNum}
-                      type="button"
-                      onClick={() => {
-                        stopSpeech();
-                        setSelectedChapterNum(chNum);
-                      }}
-                      className={`w-8 h-8 rounded text-xs font-mono tabular-nums shrink-0 transition-colors cursor-pointer ${
-                        selectedChapterNum === chNum
-                          ? "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 font-bold"
-                          : "border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-stone-400"
-                      }`}
-                    >
-                      {chNum}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Verses Ledger */}
-                <div className="space-y-4">
-                  {chapterContent.verses.map((v) => {
-                    const text = isFr ? v.fr : v.en;
-                    const note = isFr ? v.meditation.fr : v.meditation.en;
-                    const active = speakingVerse === v.verse;
-
-                    return (
-                      <div
-                        key={v.verse}
-                        className={`p-4 rounded border transition-colors ${
-                          active
-                            ? "bg-amber-900/10 border-amber-800 dark:border-amber-500"
-                            : "bg-[#FAF8F5] dark:bg-[#141210] border-stone-200 dark:border-stone-800"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <p className="font-serif text-base sm:text-lg text-stone-900 dark:text-stone-100 leading-relaxed">
-                            <span className="font-mono text-xs font-bold text-amber-900 dark:text-amber-400 mr-2 tabular-nums">
-                              {v.verse}
-                            </span>
-                            {text}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => speakSingleVerse(v.verse, text)}
-                            className="px-2.5 py-1 rounded border border-stone-300 dark:border-stone-700 text-[11px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-300 shrink-0 cursor-pointer"
-                          >
-                            {active
-                              ? isFr
-                                ? "Arrêt"
-                                : "Stop"
-                              : isFr
-                              ? "Voix"
-                              : "Listen"}
-                          </button>
-                        </div>
-
-                        {note && (
-                          <p className="mt-2 pt-2 border-t border-stone-200/70 dark:border-stone-800 text-xs text-stone-600 dark:text-stone-400 italic font-serif">
-                            {note}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* VIEW II: PASTORAL TEACHINGS */}
-      {subView === "teachings" && (
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {categories.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setCategory(item.id)}
-                  className={`px-3.5 py-1.5 rounded text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer ${
-                    category === item.id
-                      ? "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 font-semibold"
-                      : "border border-stone-300 dark:border-stone-800 text-stone-600 dark:text-stone-400"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-
             <Link
               href="/teachers"
-              className="text-xs font-mono uppercase tracking-wider text-amber-900 dark:text-amber-400 hover:underline"
+              className="min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-[#4E4462] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
             >
-              {isFr
-                ? "Portail des Enseignants & Analytique →"
-                : "Teachers Portal & Analytics →"}
+              <UsersThree size={15} weight="duotone" />
+              <span>
+                {isFr ? "Portail des Pasteurs" : "Teachers Portal"}
+              </span>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleTeachings.map((teaching) => {
-              const title = isFr ? teaching.titleFr : teaching.title;
-              const excerpt = isFr ? teaching.excerptFr : teaching.excerpt;
-              const categoryLabel = isFr
-                ? teaching.categoryFr
-                : teaching.category;
-              const scripture = isFr
-                ? teaching.scriptureFr
-                : teaching.scripture;
-              const duration = isFr ? teaching.durationFr : teaching.duration;
-              const isCurrent =
-                currentTrack?.slug === teaching.slug && isPlaying;
+          <div className="flex items-center gap-3 text-xs">
+            <Link
+              href="/teachers"
+              className="inline-flex items-center gap-1 font-semibold text-[#5B4894] dark:text-[#4EE2D8] hover:text-[#2d2542] dark:hover:text-white transition-colors"
+            >
+              <span>
+                {isFr
+                  ? "Pasteurs Contributeurs & Ajout"
+                  : "Pastors Portal & Add Teaching"}{" "}
+                →
+              </span>
+            </Link>
+            <span className="hidden sm:inline text-[#4E4462] dark:text-[#C8C2D6]">
+              {t("audio_curated")}
+            </span>
+          </div>
+        </div>
 
-              return (
-                <article
-                  key={teaching.slug}
-                  className="p-6 rounded-lg sanctuary-card flex flex-col justify-between gap-5"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-3 border-b border-stone-200 dark:border-stone-800 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <Image
-                          src={teaching.portrait}
-                          alt={teaching.teacher}
-                          width={36}
-                          height={36}
-                          className="w-9 h-9 rounded-full object-cover border border-stone-300 dark:border-stone-700"
-                        />
-                        <div>
-                          <p className="text-xs font-bold text-stone-900 dark:text-stone-100">
-                            {teaching.teacher}
-                          </p>
-                          <p className="text-[11px] font-mono text-stone-500">
-                            {categoryLabel}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="font-mono text-xs text-stone-500 tabular-nums">
-                        {duration}
-                      </span>
-                    </div>
+        {viewMode === "teachings" ? (
+          <>
+            <div className="living-word-toolbar">
+              <div
+                className="living-word-tabs"
+                role="tablist"
+                aria-label={
+                  isFr ? "Catégories d'enseignements" : "Teaching categories"
+                }
+              >
+                {[
+                  { id: "All", label: isFr ? "Tous" : "All" },
+                  { id: "Faith", label: isFr ? "Foi" : "Faith" },
+                  { id: "Prayer", label: isFr ? "Prière" : "Prayer" },
+                  { id: "Hope", label: isFr ? "Espérance" : "Hope" },
+                  {
+                    id: "Discipleship",
+                    label: isFr ? "Vie chrétienne" : "Discipleship",
+                  },
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={selectedCategory === cat.id}
+                    className={
+                      selectedCategory === cat.id ? "active-word-tab" : ""
+                    }
+                    onClick={() => setSelectedCategory(cat.id)}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                    <p className="font-mono text-[11px] uppercase tracking-wider text-amber-900 dark:text-amber-400 font-semibold">
-                      {scripture}
-                    </p>
+            <div className="living-word-grid">
+              {filteredTeachings.map((item) => {
+                const title = isFr ? item.titleFr : item.title;
+                const excerpt = isFr ? item.excerptFr : item.excerpt;
+                const category = isFr ? item.categoryFr : item.category;
+                const scripture = isFr ? item.scriptureFr : item.scripture;
+                const duration = isFr ? item.durationFr : item.duration;
 
-                    <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
-                      <Link
-                        href={`/living-word/${teaching.slug}`}
-                        className="hover:underline"
-                      >
-                        {title}
-                      </Link>
-                    </h3>
-
-                    <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed line-clamp-3">
-                      {excerpt}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (currentTrack?.slug === teaching.slug) {
-                          togglePlay();
-                        } else {
-                          playTeaching(teaching);
-                        }
-                      }}
-                      className={`flex-1 py-2 px-3 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer ${
-                        isCurrent
-                          ? "bg-amber-800 text-white"
-                          : "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900"
-                      }`}
-                    >
-                      {isCurrent
-                        ? isFr
-                          ? "En écoute"
-                          : "Playing"
-                        : isFr
-                        ? "Écouter"
-                        : "Listen"}
-                    </button>
-
+                return (
+                  <article
+                    key={item.title}
+                    className={`word-card ${item.color}`}
+                  >
                     <Link
-                      href={`/living-word/${teaching.slug}`}
-                      className="py-2 px-3 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
+                      className="word-card-link"
+                      href={`/living-word/${item.slug}`}
+                      aria-label={`${isFr ? "Ouvrir" : "Open"} ${title}`}
                     >
-                      {isFr ? "Étudier" : "Study"}
+                      <div className="word-card-top">
+                        <Image
+                          className="word-card-portrait"
+                          src={item.portrait}
+                          alt={item.teacher}
+                          width={48}
+                          height={48}
+                        />
+                        <span>{duration}</span>
+                      </div>
+                      <p className="word-card-category">
+                        {category} · {scripture}
+                      </p>
+                      <h3>{title}</h3>
+                      <p className="word-card-teacher">{item.teacher}</p>
+                      <p className="word-card-excerpt">{excerpt}</p>
                     </Link>
 
-                    <button
-                      type="button"
-                      onClick={() => setActiveModalTeaching(teaching)}
-                      title={
-                        isFr ? "Ajouter à une liste" : "Save to playlist"
-                      }
-                      className="py-2 px-2.5 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* VIEW III: PLAYLISTS */}
-      {subView === "playlists" && (
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-lg bg-[#F3EFE6] dark:bg-[#1C1917] border border-stone-300 dark:border-stone-800">
-            <div>
-              <h3 className="text-base font-serif font-bold text-stone-900 dark:text-stone-100">
-                {isFr
-                  ? "Listes d'écoute dévotionnelles"
-                  : "Curated Devotional Playlists"}
-              </h3>
-              <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-                {isFr
-                  ? "Rassemblez vos enseignements préférés pour une écoute continue."
-                  : "Collect your favorite teachings for continuous morning or evening study."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsCreatingInline(!isCreatingInline)}
-              className="px-4 py-2 rounded bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 text-xs font-mono uppercase tracking-wider font-semibold cursor-pointer"
-            >
-              {isFr ? "+ Créer une liste" : "+ New Playlist"}
-            </button>
-          </div>
-
-          {isCreatingInline && (
-            <form
-              onSubmit={handleCreatePlaylist}
-              className="p-5 rounded-lg sanctuary-card space-y-4 max-w-lg"
-            >
-              <input
-                type="text"
-                required
-                value={inlineTitle}
-                onChange={(e) => setInlineTitle(e.target.value)}
-                placeholder={
-                  isFr ? "Titre de la liste..." : "Playlist title..."
-                }
-                className="w-full px-3.5 py-2 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-sm"
-              />
-              <input
-                type="text"
-                value={inlineDesc}
-                onChange={(e) => setInlineDesc(e.target.value)}
-                placeholder={isFr ? "Description..." : "Short description..."}
-                className="w-full px-3.5 py-2 rounded bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-700 text-sm"
-              />
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCreatingInline(false)}
-                  className="px-3 py-1.5 text-xs font-mono uppercase text-stone-500 cursor-pointer"
-                >
-                  {isFr ? "Annuler" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-1.5 rounded bg-amber-800 text-white text-xs font-mono uppercase font-semibold cursor-pointer"
-                >
-                  {isFr ? "Créer" : "Create"}
-                </button>
-              </div>
-            </form>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {playlists.map((playlist) => (
-              <div
-                key={playlist.id}
-                className="p-5 rounded-lg sanctuary-card flex flex-col justify-between gap-4"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-2.5">
-                    <h4 className="font-serif font-bold text-base text-stone-900 dark:text-stone-100">
-                      {playlist.title}
-                    </h4>
-                    {!playlist.isDefault && (
+                    <div className="flex items-center gap-2 mt-2">
                       <button
                         type="button"
-                        onClick={() => deletePlaylist(playlist.id)}
-                        className="text-xs font-mono text-stone-400 hover:text-red-600 cursor-pointer"
+                        onClick={() => {
+                          if (currentTrack?.slug === item.slug) {
+                            togglePlay();
+                          } else {
+                            playTeaching(item);
+                          }
+                        }}
+                        className="listen-button flex-1 text-center justify-center cursor-pointer"
                       >
-                        ×
+                        <span>
+                          {currentTrack?.slug === item.slug && isPlaying ? (
+                            <Pause size={15} weight="fill" />
+                          ) : (
+                            <Headphones size={15} weight="duotone" />
+                          )}
+                        </span>
+                        <span>
+                          {currentTrack?.slug === item.slug && isPlaying
+                            ? isFr
+                              ? "En écoute"
+                              : "Playing"
+                            : isFr
+                            ? "Écouter"
+                            : "Listen"}
+                        </span>
                       </button>
-                    )}
-                  </div>
-                  <p className="text-xs text-stone-600 dark:text-stone-400">
-                    {playlist.description}
-                  </p>
 
-                  <div className="space-y-1.5 pt-2">
-                    {playlist.items && playlist.items.length > 0 ? (
-                      playlist.items.slice(0, 3).map((item, idx) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between text-xs py-1 border-b border-stone-100 dark:border-stone-800/60"
-                        >
-                          <span className="truncate text-stone-800 dark:text-stone-200">
-                            {idx + 1}. {item.teachingTitle}
-                          </span>
-                          <span className="font-mono text-[11px] text-stone-500 tabular-nums ml-2">
-                            {item.duration}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-xs italic text-stone-500">
-                        {isFr
-                          ? "Aucun enseignement."
-                          : "No teachings added yet."}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                      <Link
+                        href={`/living-word/${item.slug}`}
+                        className="min-h-[40px] px-3.5 py-2 rounded-full border border-[#D5CBE4] dark:border-white/25 bg-white/90 dark:bg-[#1B1630] hover:bg-white dark:hover:bg-[#272042] text-xs font-semibold text-[#3D2E5C] dark:text-white transition-all flex items-center gap-1.5 shadow-xs whitespace-nowrap"
+                      >
+                        <BookOpenText size={14} weight="duotone" />
+                        <span>{t("audio_read_study")}</span>
+                      </Link>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
-                  <button
-                    type="button"
-                    onClick={() => setPlayingPlaylist(playlist)}
-                    disabled={!playlist.items || playlist.items.length === 0}
-                    className="flex-1 py-2 px-3 rounded bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900 text-xs font-mono uppercase tracking-wider font-semibold disabled:opacity-40 cursor-pointer"
-                  >
-                    {isFr ? "Écouter Tout" : "Play All"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedPlaylistDetail(
-                        selectedPlaylistDetail?.id === playlist.id
-                          ? null
-                          : playlist
-                      )
-                    }
-                    className="py-2 px-3 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono uppercase text-stone-700 dark:text-stone-300 cursor-pointer"
-                  >
-                    {selectedPlaylistDetail?.id === playlist.id
-                      ? "×"
-                      : isFr
-                      ? "Gérer"
-                      : "Manage"}
-                  </button>
-                </div>
+                      <button
+                        type="button"
+                        onClick={() => setModalTeaching(item)}
+                        title={
+                          isFr
+                            ? "Enregistrer dans une liste"
+                            : "Save to playlist"
+                        }
+                        className="min-h-[40px] px-3 py-2 rounded-full border border-[#D5CBE4] dark:border-white/25 bg-white/90 dark:bg-[#1B1630] hover:bg-white dark:hover:bg-[#272042] text-xs font-semibold text-[#3D2E5C] dark:text-white transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                      >
+                        <Plus size={14} weight="bold" />
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="space-y-6 animate-fade-in">
+            <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-[#F4F1F9] to-[#EBE5F5] dark:from-[#1B1630] dark:to-[#141024] border border-[#DDD6EA] dark:border-white/15">
+              <div>
+                <h3 className="text-base font-bold text-[#2D2542] dark:text-white">
+                  {isFr
+                    ? "Listes d'écoute personnalisées"
+                    : "Curated Devotional Playlists"}
+                </h3>
+                <p className="text-xs text-[#4E4462] dark:text-[#C8C2D6] mt-0.5">
+                  {isFr
+                    ? "Rassemblez vos enseignements préférés pour une écoute continue le matin ou le soir."
+                    : "Collect your favorite teachings for continuous morning meditation or quiet evening study."}
+                </p>
               </div>
-            ))}
+              <button
+                type="button"
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="min-h-[40px] px-4 py-2 rounded-xl bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold transition-colors shadow-xs flex items-center gap-2 cursor-pointer"
+              >
+                <span>+</span>
+                <span>{isFr ? "Créer une liste" : "New Playlist"}</span>
+              </button>
+            </div>
+
+            {showCreateForm && (
+              <form
+                onSubmit={handleCreatePlaylist}
+                className="p-5 rounded-2xl bg-white dark:bg-[#18142B] border border-[#DDD6EA] dark:border-white/15 shadow-sm space-y-4 max-w-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-[#2D2542] dark:text-white">
+                    {isFr ? "Nouvelle liste de lecture" : "Create New Playlist"}
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateForm(false)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-[#6E628A] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#4E4462] dark:text-[#C8C2D6] mb-1">
+                    {isFr ? "Titre de la liste" : "Playlist Title"}
+                  </label>
+                  <input
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder={
+                      isFr ? "Ex: Calme & Repos" : "E.g. Peace & Stillness"
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-[#D5CBE4] dark:border-white/20 bg-white dark:bg-[#120E22] text-[#2D2542] dark:text-white focus:outline-none focus:border-[#7F67B5]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#4E4462] dark:text-[#C8C2D6] mb-1">
+                    {isFr ? "Description facultative" : "Optional Description"}
+                  </label>
+                  <input
+                    type="text"
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    placeholder={
+                      isFr
+                        ? "À propos de cette sélection..."
+                        : "What this playlist is for..."
+                    }
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D5CBE4] dark:border-white/20 bg-white dark:bg-[#120E22] text-[#2D2542] dark:text-white focus:outline-none focus:border-[#7F67B5]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#4E4462] dark:text-[#C8C2D6] mb-1">
+                    {isFr ? "Icône" : "Icon"}
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {["🎧", "⏳", "🕊️", "🌱", "📖", "✝️", "🙏", "🕯️"].map(
+                      (icon) => (
+                        <button
+                          key={icon}
+                          type="button"
+                          onClick={() => setNewIcon(icon)}
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm border transition-all cursor-pointer ${
+                            newIcon === icon
+                              ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-[#3D2E5C] dark:border-[#4EE2D8]"
+                              : "bg-white dark:bg-[#120E22] border-[#D5CBE4] dark:border-white/20"
+                          }`}
+                        >
+                          {icon}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!newTitle.trim()}
+                  className="w-full min-h-[40px] py-2.5 rounded-lg bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {isFr ? "Enregistrer la liste" : "Create Playlist"}
+                </button>
+              </form>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {playlists.map((pl) => (
+                <div
+                  key={pl.id}
+                  className="bg-white dark:bg-[#18142B] rounded-2xl border border-[#E3DEED] dark:border-white/15 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div
+                    className={`p-5 bg-gradient-to-br ${
+                      pl.color || "from-[#5D4E7B] to-[#3B2D54]"
+                    } text-white relative`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center shadow-inner">
+                        <Headphones size={22} weight="duotone" className="text-white" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {pl.isDefault && (
+                          <span className="text-xs text-white/85 font-medium">
+                            {isFr ? "Sélection LifeBook" : "Curated"}
+                          </span>
+                        )}
+                        {!pl.isDefault && (
+                          <button
+                            type="button"
+                            onClick={() => deletePlaylist(pl.id)}
+                            title={
+                              isFr ? "Supprimer la liste" : "Delete playlist"
+                            }
+                            className="w-9 h-9 rounded-lg bg-black/25 hover:bg-rose-600/85 text-white/90 hover:text-white flex items-center justify-center text-xs transition-colors cursor-pointer"
+                          >
+                            <X size={14} weight="bold" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <h4 className="text-base font-bold leading-tight">
+                      {pl.title}
+                    </h4>
+                    <p className="text-xs text-white/85 mt-1 line-clamp-2">
+                      {pl.description ||
+                        (isFr
+                          ? "Sélection personnalisée"
+                          : "Personal collection")}
+                    </p>
+                    <div className="flex items-center gap-2 mt-3 text-xs text-white/85 font-mono">
+                      <span>
+                        {pl.itemCount} {isFr ? "titres" : "tracks"}
+                      </span>
+                      <span>·</span>
+                      <span>{pl.totalDuration || "0 min"}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 flex-1 flex flex-col justify-between bg-[#FAF8FC] dark:bg-[#141024]">
+                    <div className="space-y-2 mb-4">
+                      {pl.items && pl.items.length > 0 ? (
+                        pl.items.slice(0, 3).map((track, idx) => (
+                          <div
+                            key={track.id}
+                            className="flex items-center justify-between text-xs py-1.5 border-b border-[#EFEBF4] dark:border-white/10 last:border-0"
+                          >
+                            <span className="truncate font-medium text-[#2D2542] dark:text-[#FDFCFB]">
+                              {idx + 1}. {track.teachingTitle}
+                            </span>
+                            <span className="text-xs text-[#6E628A] dark:text-[#B8B0C8] flex-shrink-0 ml-2">
+                              {track.duration}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-[#6E628A] dark:text-[#B8B0C8] italic py-2">
+                          {isFr
+                            ? "Aucun enseignement pour l'instant."
+                            : "No teachings added yet."}
+                        </p>
+                      )}
+                      {pl.items && pl.items.length > 3 && (
+                        <p className="text-xs text-[#5B4894] dark:text-[#4EE2D8] font-semibold pt-1">
+                          +{pl.items.length - 3}{" "}
+                          {isFr ? "autres enseignements" : "more teachings"}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-[#EFEBF4] dark:border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setActivePlaylist(pl)}
+                        disabled={!pl.items || pl.items.length === 0}
+                        className="flex-1 min-h-[40px] py-2 px-3 rounded-xl bg-[#3D2E5C] hover:bg-[#4E3B75] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40 cursor-pointer"
+                      >
+                        <Play size={13} weight="fill" />
+                        <span>
+                          {isFr ? "Écouter en continu" : "Play All"}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedPlaylist(
+                            expandedPlaylist?.id === pl.id ? null : pl
+                          )
+                        }
+                        className="min-h-[40px] py-2 px-3.5 rounded-xl border border-[#D5CBE4] dark:border-white/20 hover:border-[#8E7BBF] text-[#483769] dark:text-[#E2DCEF] text-xs font-semibold hover:bg-white dark:hover:bg-white/10 transition-colors cursor-pointer flex items-center justify-center"
+                      >
+                        {expandedPlaylist?.id === pl.id ? (
+                          <X size={14} weight="bold" />
+                        ) : isFr ? (
+                          "Détails"
+                        ) : (
+                          "Manage"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {expandedPlaylist?.id === pl.id && (
+                    <div className="p-4 bg-white dark:bg-[#18142B] border-t border-[#DDD6EA] dark:border-white/15 space-y-2 animate-fade-in">
+                      <h5 className="text-xs font-bold text-[#2D2542] dark:text-white uppercase tracking-wider mb-2">
+                        {isFr
+                          ? "Tous les enseignements de la liste"
+                          : "All Teachings in Playlist"}
+                      </h5>
+                      {pl.items && pl.items.length > 0 ? (
+                        pl.items.map((track, idx) => (
+                          <div
+                            key={track.id}
+                            className="flex items-center justify-between p-2.5 rounded-lg bg-[#F8F6FB] dark:bg-[#120E22] text-xs"
+                          >
+                            <div className="min-w-0 flex-1 pr-2">
+                              <p className="font-semibold text-[#2D2542] dark:text-white truncate">
+                                {idx + 1}. {track.teachingTitle}
+                              </p>
+                              <p className="text-xs text-[#5E5279] dark:text-[#C8C2D6] mt-0.5">
+                                {track.teacher} · {track.duration}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/living-word/${track.teachingSlug}`}
+                                className="text-xs font-semibold text-[#5B4894] dark:text-[#4EE2D8] hover:underline"
+                              >
+                                {isFr ? "Ouvrir ↗" : "Open ↗"}
+                              </Link>
+                              {!pl.isDefault && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removeFromPlaylist(
+                                      pl.id,
+                                      track.teachingSlug
+                                    )
+                                  }
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 dark:text-rose-400 hover:text-rose-700 text-xs"
+                                  title={isFr ? "Retirer" : "Remove"}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-[#6E628A] dark:text-[#C8C2D6] italic">
+                          {isFr
+                            ? "Utilisez le bouton ➕ sur un enseignement pour l'ajouter."
+                            : "Use the ➕ button on any teaching to add it."}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {activeModalTeaching && (
-        <PlaylistModal
-          teaching={activeModalTeaching}
-          isOpen={Boolean(activeModalTeaching)}
-          onClose={() => setActiveModalTeaching(null)}
-        />
-      )}
+        {modalTeaching && (
+          <PlaylistModal
+            teaching={modalTeaching}
+            isOpen={!!modalTeaching}
+            onClose={() => setModalTeaching(null)}
+          />
+        )}
 
-      {playingPlaylist && (
-        <PlaylistPlayer
-          playlist={playingPlaylist}
-          onClose={() => setPlayingPlaylist(null)}
-          onRemoveItem={removeFromPlaylist}
-        />
-      )}
+        {activePlaylist && (
+          <PlaylistPlayer
+            playlist={activePlaylist}
+            onClose={() => setActivePlaylist(null)}
+            onRemoveItem={removeFromPlaylist}
+          />
+        )}
+      </div>
     </section>
   );
 }

@@ -525,6 +525,31 @@ const translations: Record<Language, Translations> = {
 
 const DOT_KEY_TRANSLATIONS: Record<Language, Record<string, string>> = {
   en: {
+    brand: "LifeBook",
+    heroEyebrow: "Daily 5-Minute Quiet Time",
+    heroTitle: "Start your morning anchored in Scripture, not scrolling.",
+    heroSubtitle:
+      "Build a life-changing daily Bible and prayer habit before your day gets noisy. Five minutes of curated Scripture, honest reflection, and private prayer — built for busy Christians.",
+    "heroBadges.habit": "5-Min Morning Habit",
+    "heroBadges.free": "Grace-Protected Streaks",
+    "heroBadges.audio": "Regional Pastoral Voices",
+    ctaPrimary: "Start 5-Minute Devotion",
+    heroMockupTitle: "Interactive iPhone 16 Pro Preview",
+    heroMockupSub: "Tap moods & tabs inside the mockup",
+    heroCardStreak: "🔥 7-Day Grace Streak",
+    "ctaSection.eyebrow": "START TOMORROW MORNING",
+    "ctaSection.title": "Begin your first 5-minute devotion with Psalm 23.",
+    "ctaSection.subtitle":
+      "Join over 1,200 believers waking up to Scripture, reflection, and prayer in English and French.",
+    "ctaSection.primary": "Start 5-Minute Devotion →",
+    "ctaSection.secondary": "Join Cohort Waitlist",
+    "nav.livingWord": "LivingWord Audio",
+    "nav.voicePractice": "Voice Practice",
+    "nav.progress": "Progress & Heatmap",
+    "footer.livingWord": "LivingWord",
+    "footer.voice": "Voice Practice",
+    "footer.progress": "Spiritual Progress",
+    "footer.privacy": "Privacy Policy",
     "theme.toggle": "Toggle theme",
     "nav.signIn": "Sign In",
     "nav.signUp": "Create Account",
@@ -601,6 +626,31 @@ const DOT_KEY_TRANSLATIONS: Record<Language, Record<string, string>> = {
     "journal.moods.rejoicing": "Rejoicing",
   },
   fr: {
+    brand: "LifeBook",
+    heroEyebrow: "Temps de Calme Quotidien de 5 Minutes",
+    heroTitle: "Commencez votre matinée ancré dans l'Écriture, loin des écrans.",
+    heroSubtitle:
+      "Bâtissez une habitude vivifiante de prière et de méditation biblique avant le tumulte du jour. Cinq minutes d'Écritures choisies, de réflexion sincère et de prière personnelle.",
+    "heroBadges.habit": "Habitude de 5 Minutes",
+    "heroBadges.free": "Séries Protégées par la Grâce",
+    "heroBadges.audio": "Voix Pastorales Régionales",
+    ctaPrimary: "Commencer la Méditation (5 min)",
+    heroMockupTitle: "Aperçu Interactif iPhone 16 Pro",
+    heroMockupSub: "Touchez les humeurs et onglets dans l'aperçu",
+    heroCardStreak: "🔥 Série de 7 Jours",
+    "ctaSection.eyebrow": "COMMENCEZ DÈS DEMAIN MATIN",
+    "ctaSection.title": "Démarrez votre première méditation de 5 minutes avec le Psaume 23.",
+    "ctaSection.subtitle":
+      "Rejoignez plus de 1 200 croyants qui débutent leur journée par la Parole, la réflexion et la prière en français et en anglais.",
+    "ctaSection.primary": "Commencer la Méditation →",
+    "ctaSection.secondary": "Rejoindre la Liste d'Attente",
+    "nav.livingWord": "Audio LivingWord",
+    "nav.voicePractice": "Pratique Vocale",
+    "nav.progress": "Progrès & Heatmap",
+    "footer.livingWord": "LivingWord",
+    "footer.voice": "Pratique Vocale",
+    "footer.progress": "Progrès Spirituel",
+    "footer.privacy": "Confidentialité",
     "theme.toggle": "Changer le thème",
     "nav.signIn": "Connexion",
     "nav.signUp": "Créer un Compte",
@@ -746,8 +796,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
     const dict = translations[language] || translations.en;
     return (
-      (dict as Record<string, string>)[key] ||
-      (translations.en as Record<string, string>)[key] ||
+      (dict as unknown as Record<string, string>)[key] ||
+      (translations.en as unknown as Record<string, string>)[key] ||
       key
     );
   };
@@ -776,7 +826,7 @@ export function useLanguage(): LanguageContextType {
       setLanguage: () => {},
       t: (key: keyof Translations | string) =>
         DOT_KEY_TRANSLATIONS.en[key] ||
-        (translations.en as Record<string, string>)[key] ||
+        (translations.en as unknown as Record<string, string>)[key] ||
         key,
       isFr: false,
       toggleLanguage: () => {},

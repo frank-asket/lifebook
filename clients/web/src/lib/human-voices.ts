@@ -11,6 +11,7 @@ import {
 } from "./human-voice";
 
 export type VoiceProfile = HumanVoicePersona;
+export type VoiceRegionProfile = HumanVoicePersona;
 export {
   HUMAN_VOICE_PERSONAS,
   getSavedVoicePersona,
@@ -42,4 +43,17 @@ export async function speakWithHumanVoice(options: {
   } catch {
     if (options.onError) options.onError();
   }
+}
+
+export function speakWithHumanPersona(
+  text: string,
+  profile?: VoiceRegionProfile,
+  onEnd?: () => void
+) {
+  void speakWithHumanVoice({
+    text,
+    profile,
+    onEnd,
+    onError: onEnd,
+  });
 }

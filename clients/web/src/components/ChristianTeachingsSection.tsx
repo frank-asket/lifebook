@@ -43,12 +43,12 @@ export default function ChristianTeachingsSection({
   return (
     <section className="space-y-6">
       {showHeader && (
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-stone-300 dark:border-stone-800 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-amber-900 dark:text-amber-400 font-semibold">
+            <span className="showcase-eyebrow">
               {isFr ? "ENSEIGNEMENTS PASTORAUX" : "PASTORAL AUDIO TEACHINGS"}
-            </p>
-            <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1E1931] dark:text-white">
               {isFr
                 ? "Voix Pastorales & Méditations Guidées"
                 : "Verified Pastoral Voices & Guided Meditations"}
@@ -57,11 +57,11 @@ export default function ChristianTeachingsSection({
 
           <Link
             href="/teachers"
-            className="text-xs font-mono uppercase tracking-wider text-amber-900 dark:text-amber-400 hover:underline"
+            className="pill-button pill-light text-xs font-bold"
           >
             {isFr
-              ? "Ouvrir le Portail des Enseignants & Analytique →"
-              : "Open Teachers Portal & Analytics →"}
+              ? "Portail des Enseignants & Analytique →"
+              : "Teachers Portal & Analytics →"}
           </Link>
         </div>
       )}
@@ -78,51 +78,51 @@ export default function ChristianTeachingsSection({
           return (
             <article
               key={teaching.slug}
-              className="p-6 rounded-lg sanctuary-card flex flex-col justify-between gap-4"
+              className="p-6 rounded-3xl bg-white dark:bg-[#1B152C] border border-[#2D2542]/10 dark:border-white/10 shadow-[0_12px_32px_rgba(30,25,49,0.06)] flex flex-col justify-between gap-5 transition-all hover:-translate-y-0.5"
             >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-3 border-b border-stone-200 dark:border-stone-800 pb-3">
-                  <div className="flex items-center gap-2.5">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#2D2542]/10 dark:border-white/10">
+                  <div className="flex items-center gap-3">
                     <Image
                       src={teaching.portrait}
                       alt={teaching.teacher}
-                      width={36}
-                      height={36}
-                      className="w-9 h-9 rounded-full object-cover border border-stone-300 dark:border-stone-700"
+                      width={40}
+                      height={40}
+                      className="w-10 h-10 rounded-2xl object-cover border border-[#2D2542]/15 dark:border-white/20"
                     />
                     <div>
-                      <p className="text-xs font-bold text-stone-900 dark:text-stone-100">
+                      <p className="text-xs font-bold text-[#1E1931] dark:text-white">
                         {teaching.teacher}
                       </p>
-                      <p className="text-[11px] font-mono text-stone-500">
+                      <p className="text-[11px] font-semibold text-[#1FB6B0]">
                         {categoryLabel}
                       </p>
                     </div>
                   </div>
-                  <span className="font-mono text-xs text-stone-500 tabular-nums">
+                  <span className="px-2.5 py-1 rounded-full bg-[#F5F0E7] dark:bg-white/10 font-mono text-[11px] font-semibold text-[#5A506B] dark:text-[#C8C2D6] tabular-nums">
                     {duration}
                   </span>
                 </div>
 
-                <p className="font-mono text-[11px] uppercase tracking-wider text-amber-900 dark:text-amber-400 font-semibold">
+                <p className="font-mono text-[11px] uppercase tracking-wider text-[#8A5E0B] dark:text-[#E3B15E] font-bold">
                   {scripture}
                 </p>
 
-                <h3 className="text-lg font-serif font-bold text-stone-900 dark:text-stone-100">
+                <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white leading-snug">
                   <Link
                     href={`/living-word/${teaching.slug}`}
-                    className="hover:underline"
+                    className="hover:text-[#1FB6B0] transition-colors"
                   >
                     {title}
                   </Link>
                 </h3>
 
-                <p className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed line-clamp-3">
+                <p className="text-xs sm:text-sm text-[#5A506B] dark:text-[#C8C2D6] leading-relaxed line-clamp-3">
                   {excerpt}
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 pt-3 border-t border-stone-200 dark:border-stone-800">
+              <div className="flex items-center gap-2.5 pt-3 border-t border-[#2D2542]/10 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => {
@@ -132,24 +132,27 @@ export default function ChristianTeachingsSection({
                       playTeaching(teaching);
                     }
                   }}
-                  className={`flex-1 py-2 px-3 rounded text-xs font-mono uppercase tracking-wider font-semibold transition-colors cursor-pointer ${
+                  className={`flex-1 py-2.5 px-4 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
                     isCurrent
-                      ? "bg-amber-800 text-white"
-                      : "bg-stone-900 dark:bg-stone-100 text-stone-50 dark:text-stone-900"
+                      ? "bg-[#1FB6B0] text-[#082220] shadow-sm"
+                      : "bg-[#1E1931] dark:bg-[#37C6C2] text-white dark:text-[#092221] hover:opacity-95"
                   }`}
                 >
-                  {isCurrent
-                    ? isFr
-                      ? "En écoute"
-                      : "Playing"
-                    : isFr
-                    ? "Écouter"
-                    : "Listen"}
+                  <span>{isCurrent ? "❚❚" : "▶"}</span>
+                  <span>
+                    {isCurrent
+                      ? isFr
+                        ? "En écoute"
+                        : "Playing"
+                      : isFr
+                      ? "Écouter"
+                      : "Listen"}
+                  </span>
                 </button>
 
                 <Link
                   href={`/living-word/${teaching.slug}`}
-                  className="py-2 px-3 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono uppercase tracking-wider text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
+                  className="py-2.5 px-4 rounded-full border border-[#2D2542]/15 dark:border-white/15 text-xs font-bold text-[#1E1931] dark:text-white hover:bg-[#F5F0E7] dark:hover:bg-white/10 transition-colors"
                 >
                   {isFr ? "Étudier" : "Study"}
                 </Link>

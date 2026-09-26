@@ -38,14 +38,14 @@ export function applyThemeToDocument(theme: Theme) {
   }
 }
 
-function getThemeSnapshot(): Theme {
+function getDeviceThemeSnapshot(): Theme {
   if (typeof window === "undefined") return "light";
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    if (stored === "light" || stored === "dark") return stored;
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
   } catch {
-    // Storage unavailable fallback
+    // Fallback to light
   }
   return "light";
 }
@@ -54,48 +54,49 @@ function getThemeServerSnapshot(): Theme {
   return "light";
 }
 
-function subscribeToTheme(callback: () => void): () => void {
+function subscribeToDeviceTheme(callback: () => void): () => void {
   if (typeof window === "undefined") return () => {};
 
-  const handleStorage = (event: StorageEvent) => {
-    // Cross-tab synchronization: fires when localStorage is modified in another tab
-    if (event.key === null || event.key === THEME_STORAGE_KEY) {
-      const stored = (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) || "light";
-      const nextTheme: Theme = stored === "dark" ? "dark" : "light";
-      applyThemeToDocument(nextTheme);
-      callback();
-    }
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const handleChange = () => {
+    const nextTheme: Theme = mediaQuery.matches ? "dark" : "light";
+    applyThemeToDocument(nextTheme);
+    callback();
   };
 
-  window.addEventListener("storage", handleStorage);
+  mediaQuery.addEventListener("change", handleChange);
   window.addEventListener(THEME_CHANGE_EVENT, callback);
   return () => {
-    window.removeEventListener("storage", handleStorage);
+    mediaQuery.removeEventListener("change", handleChange);
     window.removeEventListener(THEME_CHANGE_EVENT, callback);
   };
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const theme = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, getThemeServerSnapshot);
+  const theme = useSyncExternalStore(
+    subscribeToDeviceTheme,
+    getDeviceThemeSnapshot,
+    getThemeServerSnapshot
+  );
 
   useEffect(() => {
+    try {
+      localStorage.removeItem(THEME_STORAGE_KEY);
+    } catch {}
     applyThemeToDocument(theme);
   }, [theme]);
 
   const setTheme = useCallback((newTheme: Theme) => {
-    try {
-      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-      applyThemeToDocument(newTheme);
+    applyThemeToDocument(newTheme);
+    if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent(THEME_CHANGE_EVENT, { detail: newTheme }));
-    } catch {
-      applyThemeToDocument(newTheme);
     }
   }, []);
 
   const toggleTheme = useCallback(() => {
-    const nextTheme: Theme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-  }, [theme, setTheme]);
+    const nextTheme: Theme = getDeviceThemeSnapshot();
+    applyThemeToDocument(nextTheme);
+  }, []);
 
   const value: ThemeContextType = {
     theme,

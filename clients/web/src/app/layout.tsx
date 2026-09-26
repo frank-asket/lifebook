@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import "./globals.css";
 import "./seo.css";
@@ -11,26 +10,6 @@ import { ThemeProvider } from "@/lib/theme";
 import { CloudSyncProvider } from "@/lib/cloud-sync";
 import { SanctuaryAudioProvider } from "@/lib/sanctuary-audio";
 import { GlobalAudioPlayer } from "@/components/GlobalAudioPlayer";
-import { OfflineIndicator } from "@/components/PWAInstallPrompt";
-
-const displaySerif = Cormorant_Garamond({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-});
-
-const geistSans = Plus_Jakarta_Sans({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const geistMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
 
 export const dynamic = "force-dynamic";
 
@@ -92,9 +71,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${displaySerif.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=clash-display@500,600,700&f[]=zodiak@400,600,700&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <script
@@ -102,16 +92,22 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var saved = localStorage.getItem('lifebook_theme');
-                  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    document.documentElement.style.colorScheme = 'dark';
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    document.documentElement.style.colorScheme = 'light';
+                  localStorage.removeItem('lifebook_theme');
+                  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+                  function apply(isDark) {
+                    if (isDark) {
+                      document.documentElement.classList.add('dark');
+                      document.documentElement.setAttribute('data-theme', 'dark');
+                      document.documentElement.style.colorScheme = 'dark';
+                    } else {
+                      document.documentElement.classList.remove('dark');
+                      document.documentElement.setAttribute('data-theme', 'light');
+                      document.documentElement.style.colorScheme = 'light';
+                    }
+                  }
+                  apply(mq.matches);
+                  if (mq.addEventListener) {
+                    mq.addEventListener('change', function(e) { apply(e.matches); });
                   }
                 } catch (e) {}
               })();
@@ -142,7 +138,6 @@ export default function RootLayout({
               <ChristianAuthProvider>
                 <CloudSyncProvider>
                   <SanctuaryAudioProvider>
-                    <OfflineIndicator />
                     {children}
                     <GlobalAudioPlayer />
                   </SanctuaryAudioProvider>

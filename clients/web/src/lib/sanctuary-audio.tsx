@@ -366,7 +366,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
   const { isFr } = useLanguage();
 
   const [currentTrack, setCurrentTrack] = useState<SanctuaryAudioTrack | null>(
-    () => getInitialSavedAudioState().track
+    null
   );
   const [queue, setQueue] = useState<SanctuaryAudioTrack[]>(ALL_SANCTUARY_TRACKS);
   const [isPlaying, setIsPlaying] = useState(false);

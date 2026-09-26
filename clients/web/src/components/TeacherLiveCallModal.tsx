@@ -1962,7 +1962,7 @@ export function TeacherLiveCallModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-stone-950/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-[#120E1E]/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label={
@@ -1971,10 +1971,11 @@ export function TeacherLiveCallModal({
           : "WebRTC Pastoral Live Call Console"
       }
     >
-      <div className="relative w-full max-w-5xl bg-[#FAF8F5] dark:bg-[#141210] border border-stone-300 dark:border-stone-800 rounded-xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
-        <div className="px-6 py-4 bg-[#F3EFE6] dark:bg-[#1C1917] border-b border-stone-300 dark:border-stone-800 flex items-center justify-between gap-4 shrink-0">
+      <div className="relative w-full max-w-5xl bg-[#FBFAF7] dark:bg-[#18132B] border border-[#2D2542]/15 dark:border-white/15 rounded-3xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+        <div className="px-6 py-4 bg-gradient-to-r from-[#201A38] via-[#2D2542] to-[#163B42] text-white flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs uppercase tracking-[0.18em] text-amber-900 dark:text-amber-400 font-semibold">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#37C6C2] animate-pulse" />
+            <span className="font-mono text-xs uppercase tracking-[0.16em] text-[#37C6C2] font-bold">
               {isFr
                 ? "CONSOLE WEBRTC PASTORALE (1-À-1 & 40 PLACES)"
                 : "WEBRTC PASTORAL CONSOLE (1-ON-1 & 40-SEAT ROOM)"}
@@ -1983,9 +1984,9 @@ export function TeacherLiveCallModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono uppercase tracking-wider text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white cursor-pointer"
+            className="px-3.5 py-1.5 rounded-full bg-white/12 hover:bg-white/20 text-xs font-bold text-white transition-colors cursor-pointer"
           >
-            {isFr ? "Fermer ×" : "Close ×"}
+            {isFr ? "Fermer ✕" : "Close ✕"}
           </button>
         </div>
 
