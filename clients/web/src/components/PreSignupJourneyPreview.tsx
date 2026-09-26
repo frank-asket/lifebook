@@ -2,6 +2,21 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import {
+  Leaf,
+  Compass,
+  CloudRain,
+  SunHorizon,
+  ShieldCheck,
+  BookOpenText,
+  NotePencil,
+  HandsPraying,
+  Play,
+  Pause,
+  CaretUp,
+  CaretDown,
+  ArrowUpRight,
+} from "@phosphor-icons/react";
 import { useLanguage } from "@/lib/i18n";
 import { trackEvent } from "@/lib/telemetry";
 
@@ -550,16 +565,24 @@ export function PreSignupJourneyPreview() {
                 }`}
               >
                 <div className="flex items-center justify-between w-full mb-2">
-                  <span className="text-2xl" aria-hidden="true">
-                    {j.moodIcon}
+                  <span className="text-[#1e1931]" aria-hidden="true">
+                    {j.moodKey === "peace" ? (
+                      <Leaf weight="duotone" className="w-6 h-6" />
+                    ) : j.moodKey === "seek" ? (
+                      <Compass weight="duotone" className="w-6 h-6" />
+                    ) : j.moodKey === "doubt" ? (
+                      <CloudRain weight="duotone" className="w-6 h-6" />
+                    ) : (
+                      <SunHorizon weight="duotone" className="w-6 h-6" />
+                    )}
                   </span>
                   {isSelected ? (
                     <span className="text-[10px] font-bold bg-[#17151a] text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                       {isFr ? "Actif" : "Active"}
                     </span>
                   ) : (
-                    <span className="text-[10px] font-bold text-[#2d2542]/60 uppercase tracking-wider">
-                      ✦
+                    <span className="text-[10px] font-mono font-semibold text-[#2d2542]/60 uppercase tracking-wider">
+                      5d
                     </span>
                   )}
                 </div>
@@ -587,22 +610,22 @@ export function PreSignupJourneyPreview() {
             <div className="space-y-2.5 max-w-3xl">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[#e8ba6a] text-[10px] font-bold tracking-[0.16em] uppercase border border-white/15">
-                  <span>✦</span>
-                  <span>{isFr ? "Pourquoi ce parcours vous est recommandé" : "Why this journey was recommended"}</span>
+                  <BookOpenText weight="duotone" className="w-3.5 h-3.5" />
+                  <span>{isFr ? "Parcours Biblique de 5 Jours" : "5-Day Scripture Study"}</span>
                 </span>
-                <span className="text-white/60 text-xs font-mono">• 5 {isFr ? "jours · 5 min/jour" : "days · 5 min/day"}</span>
+                <span className="text-white/60 text-xs font-mono">· 5 {isFr ? "jours · 5 min/jour" : "days · 5 min/day"}</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-serif font-normal tracking-tight text-white m-0">
                 {currentJourney.title}
               </h3>
-              <p className="text-xs sm:text-sm text-white/80 leading-relaxed m-0 italic font-serif max-w-2xl">
-                “{currentJourney.reasoning}”
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed m-0 font-serif max-w-2xl">
+                {currentJourney.subtitle}
               </p>
             </div>
 
             <div className="shrink-0 bg-white/10 backdrop-blur-xs rounded-2xl p-4 border border-white/15 text-center min-w-[180px]">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#e8ba6a] block mb-1">
-                {isFr ? "Format garanti" : "Guaranteed Format"}
+                {isFr ? "Format quotidien" : "Daily Structure"}
               </span>
               <strong className="text-base font-serif font-normal text-white block">
                 {isFr ? "3 étapes en 5 minutes" : "3 Steps in 5 Minutes"}
@@ -611,15 +634,6 @@ export function PreSignupJourneyPreview() {
                 {isFr ? "Lire (90s) · Méditer (2m) · Prier (60s)" : "Read (90s) · Reflect (2m) · Pray (60s)"}
               </small>
             </div>
-          </div>
-
-          {/* Contrast vs generic apps callout */}
-          <div className="relative z-10 mt-5 pt-4 border-t border-white/10 flex items-start gap-2.5 text-xs text-white/80">
-            <span className="text-[#e8ba6a] font-bold shrink-0 uppercase tracking-wider text-[11px]">✦ vs.</span>
-            <p className="m-0 leading-relaxed">
-              <span className="text-white/50">{isFr ? "La différence avec les applications classiques :" : "The difference vs. standard Bible apps:"} </span>
-              {currentJourney.contrastVsGeneric}
-            </p>
           </div>
         </div>
 
@@ -656,7 +670,7 @@ export function PreSignupJourneyPreview() {
         {/* P3 RETENTION PROTECTION BANNER & INTERACTIVE DEMO */}
         <div className="bg-[#f0f6f4] px-4 sm:px-8 py-3.5 border-b border-[#2d2542]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
-            <span className="text-base">🛡️</span>
+            <ShieldCheck weight="duotone" className="w-5 h-5 text-[#0E726D] shrink-0" />
             <div>
               <span className="font-bold text-[#1e1931]">
                 {isFr ? "Garantie anti-culpabilité : 2 Journées de Grâce incluses" : "Zero-Guilt Guarantee: 2 Journey Grace Days Included"}
@@ -675,7 +689,11 @@ export function PreSignupJourneyPreview() {
             id="toggle-grace-demo-btn"
             className="px-3.5 py-1.5 rounded-full bg-white hover:bg-[#fbfaf7] border border-[#2d2542]/15 text-[#1e1931] font-bold text-[11px] shrink-0 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <span>{isGraceProtectionDemoOpen ? "▲" : "▼"}</span>
+            {isGraceProtectionDemoOpen ? (
+              <CaretUp weight="bold" className="w-3.5 h-3.5" />
+            ) : (
+              <CaretDown weight="bold" className="w-3.5 h-3.5" />
+            )}
             <span>
               {isGraceProtectionDemoOpen
                 ? (isFr ? "Masquer la démo de grâce" : "Hide Grace Demo")
@@ -692,11 +710,11 @@ export function PreSignupJourneyPreview() {
           >
             <div className="flex items-center justify-between">
               <span className="font-bold uppercase tracking-wider text-[#6b21a8] text-[11px] flex items-center gap-1.5">
-                <span>🛡️</span>
-                <span>{isFr ? "Simulation de protection de persévérance" : "Retention Science in Action"}</span>
+                <ShieldCheck weight="duotone" className="w-4 h-4" />
+                <span>{isFr ? "Protection de persévérance par la grâce" : "Grace Shield Protection"}</span>
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-[#f3e8ff] text-[#6b21a8] font-bold text-[10px]">
-                {isFr ? "Taux de complétion × 3,8" : "3.8x Completion Multiplier"}
+                {isFr ? "Repos du Sabbat inclus" : "Sabbath Rest Included"}
               </span>
             </div>
 
@@ -755,7 +773,11 @@ export function PreSignupJourneyPreview() {
                   : "bg-white text-[#17151a] border-[#2d2542]/20 hover:bg-[#f5f0e7] shadow-xs"
               }`}
             >
-              <span>{isPlayingAudioSample ? "⏸" : "▶"}</span>
+              {isPlayingAudioSample ? (
+                <Pause weight="fill" className="w-3.5 h-3.5" />
+              ) : (
+                <Play weight="fill" className="w-3.5 h-3.5" />
+              )}
               <span>
                 {isPlayingAudioSample
                   ? (isFr ? "Commentaire audio actif (90s)" : "Playing Audio Devotion (90s)")
@@ -768,7 +790,7 @@ export function PreSignupJourneyPreview() {
           <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#2d2542]/12 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#705e8c] bg-[#e7d4ed]/40 px-3 py-1 rounded-full">
-                <span>📖</span>
+                <BookOpenText weight="duotone" className="w-3.5 h-3.5" />
                 <span>{isFr ? "Étape 1 · Écriture Sainte (90s)" : "Step 1 · Scripture (90s)"}</span>
               </span>
               <span className="text-xs font-semibold text-[#1e1931] bg-[#fbfaf7] px-3 py-1 rounded-full border border-[#2d2542]/15">
@@ -787,7 +809,7 @@ export function PreSignupJourneyPreview() {
           <div className="bg-[#fbf6ea] rounded-3xl p-6 sm:p-7 border border-[#e8ba6a]/40 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#845b14] bg-white px-3 py-1 rounded-full border border-[#e8ba6a]/40">
-                <span>✍️</span>
+                <NotePencil weight="duotone" className="w-3.5 h-3.5" />
                 <span>{isFr ? "Étape 2 · Question de méditation (2 min)" : "Step 2 · Reflection Prompt (2 min)"}</span>
               </span>
               <span className="text-[11px] text-[#776e82]">
@@ -820,7 +842,7 @@ export function PreSignupJourneyPreview() {
           <div className="bg-[#d8efdc]/30 rounded-3xl p-6 sm:p-7 border border-[#66c8bb]/40 shadow-xs space-y-2">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#124d3e] bg-white px-3 py-1 rounded-full border border-[#66c8bb]/40">
-                <span>🙏</span>
+                <HandsPraying weight="duotone" className="w-3.5 h-3.5" />
                 <span>{isFr ? "Étape 3 · Prière guidée (60s)" : "Step 3 · Guided Prayer (60s)"}</span>
               </span>
               <span className="text-[11px] text-[#124d3e] font-semibold">
@@ -855,7 +877,7 @@ export function PreSignupJourneyPreview() {
               id="start-pre-signup-journey-btn"
             >
               <span>{isFr ? "Commencer ce parcours (5 min)" : "Start this 5-Day Journey"}</span>
-              <span aria-hidden="true">↗</span>
+              <ArrowUpRight weight="bold" className="w-4 h-4" />
             </Link>
           </div>
         </div>

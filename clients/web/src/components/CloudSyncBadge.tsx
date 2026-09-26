@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CloudCheck, X } from "@phosphor-icons/react";
 import { useCloudSync, type CloudSyncStatus } from "@/lib/cloud-sync";
 import { useChristianAuth } from "@/lib/christian-auth";
 import { useLanguage } from "@/lib/i18n";
@@ -19,7 +20,8 @@ export interface CloudSyncBadgeProps {
   className?: string;
 }
 
-export function CloudSyncBadge(_props: CloudSyncBadgeProps = {}) {
+export function CloudSyncBadge(props: CloudSyncBadgeProps = {}) {
+  void props;
   const router = useRouter();
   const { isFr } = useLanguage();
   const { user, isSignedIn, loginAsDemo } = useChristianAuth();
@@ -85,7 +87,7 @@ export function CloudSyncBadge(_props: CloudSyncBadgeProps = {}) {
         }
       >
         <span className={`w-2 h-2 rounded-full shrink-0 ${statusConfig.dot}`} />
-        <span>☁️</span>
+        <CloudCheck weight="duotone" className="w-4 h-4 shrink-0" />
         <span>{isFr ? statusConfig.labelFr : statusConfig.labelEn}</span>
       </button>
 
@@ -117,7 +119,7 @@ export function CloudSyncBadge(_props: CloudSyncBadgeProps = {}) {
                 className="min-h-[36px] min-w-[36px] rounded-xl bg-[#F2ECE1] dark:bg-white/10 text-xs font-bold flex items-center justify-center cursor-pointer"
                 aria-label="Close modal"
               >
-                ✕
+                <X weight="bold" className="w-3.5 h-3.5" />
               </button>
             </div>
 

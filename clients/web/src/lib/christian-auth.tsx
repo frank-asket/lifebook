@@ -1,12 +1,29 @@
 "use client";
 
-import React, { createContext, useContext, useSyncExternalStore, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useSyncExternalStore, useCallback, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { auth, googleAuthProvider } from "./firebase";
 import {
   markNewUserForWalkthrough,
   triggerFirstLoginWalkthroughIfNeeded,
 } from "@/lib/live-call";
+
+// Store Firebase ID Token strictly in memory (never in localStorage)
+let memoryFirebaseToken: string | null = null;
+
+export async function getMemoryAuthToken(): Promise<string | null> {
+  try {
+    if (auth.currentUser) {
+      memoryFirebaseToken = await auth.currentUser.getIdToken();
+      return memoryFirebaseToken;
+    }
+  } catch {
+    // fallback to cached in-memory token
+  }
+  return memoryFirebaseToken;
+}
 
 export interface ChristianUser {
   id: string;
@@ -25,6 +42,9 @@ interface ChristianAuthContextType {
   user: ChristianUser | null;
   isSignedIn: boolean;
   isLoaded: boolean;
+  idToken: string | null;
+  getIdToken: () => Promise<string | null>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (data: {
     fullName: string;
@@ -89,6 +109,98 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
   const localUser = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const clerk = useUser();
   const clerkMethods = useClerk();
+  const [idToken, setIdToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      if (fbUser) {
+        try {
+          const token = await fbUser.getIdToken();
+          memoryFirebaseToken = token;
+          setIdToken(token);
+          const currentLocal = getSnapshot();
+          if (!currentLocal) {
+            const name = fbUser.displayName || fbUser.email?.split("@")[0] || "Pilgrim";
+            const userObj: ChristianUser = {
+              id: fbUser.uid,
+              fullName: name,
+              firstName: name.split(" ")[0] || "Pilgrim",
+              email: fbUser.email || "pilgrim@lifebook.sanctuary",
+              faithSeason: "Daily Abiding in Scripture & Prayer (Psalm 119:105)",
+              translation: "ESV",
+              dailyQuietTime: "Morning 7:00 AM",
+              covenantAccepted: true,
+              avatarInitial: (name[0] || "P").toUpperCase(),
+              createdAt: new Date().toISOString(),
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(userObj));
+            notifyAuthChange();
+          }
+        } catch {
+          // ignore token retrieval error
+        }
+      } else {
+        memoryFirebaseToken = null;
+        setIdToken(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const getIdToken = useCallback(async () => {
+    return getMemoryAuthToken();
+  }, []);
+
+  const signInWithGoogle = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await signInWithPopup(auth, googleAuthProvider);
+      const fbUser = result.user;
+      const token = await fbUser.getIdToken();
+      memoryFirebaseToken = token;
+      setIdToken(token);
+
+      const name = fbUser.displayName || fbUser.email?.split("@")[0] || "Pilgrim";
+      const cleanEmail = (fbUser.email || "pilgrim@lifebook.sanctuary").toLowerCase();
+      const userObj: ChristianUser = {
+        id: fbUser.uid,
+        fullName: name,
+        firstName: name.split(" ")[0] || "Pilgrim",
+        email: cleanEmail,
+        faithSeason: "Daily Abiding in Scripture & Prayer (Psalm 119:105)",
+        translation: "ESV",
+        dailyQuietTime: "Morning 7:00 AM",
+        covenantAccepted: true,
+        avatarInitial: (name[0] || "P").toUpperCase(),
+        createdAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(userObj));
+      triggerFirstLoginWalkthroughIfNeeded(cleanEmail);
+      notifyAuthChange();
+
+      // Sync to Cloud SQL PostgreSQL backend with Bearer token
+      try {
+        await fetch("/api/cloud-sync", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId: fbUser.uid,
+            email: cleanEmail,
+            fullName: name,
+          }),
+        });
+      } catch {}
+
+      router.replace("/dashboard");
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unable to complete Google Sign-In.";
+      return { success: false, error: msg };
+    }
+  }, [router]);
 
   const signIn = useCallback(async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
@@ -191,6 +303,11 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
 
   const signOut = useCallback(async () => {
     try {
+      await firebaseSignOut(auth);
+      memoryFirebaseToken = null;
+      setIdToken(null);
+    } catch {}
+    try {
       if (clerkMethods?.signOut) {
         await clerkMethods.signOut();
       }
@@ -271,6 +388,9 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
         user: effectiveUser,
         isSignedIn,
         isLoaded,
+        idToken,
+        getIdToken,
+        signInWithGoogle,
         signIn,
         signUp,
         signOut,

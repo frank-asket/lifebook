@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { usePWAInstall, useOnlineStatus } from "@/lib/usePWAInstall";
+import { DeviceMobile, X } from "@phosphor-icons/react";
+import { usePWAInstall } from "@/lib/usePWAInstall";
 import { useLanguage } from "@/lib/i18n";
 
 export const PWAInstallButton: React.FC = () => {
@@ -95,7 +96,7 @@ export const PWAInstallButton: React.FC = () => {
                 className="min-h-[36px] min-w-[36px] rounded-xl bg-[#F2ECE1] dark:bg-white/10 text-xs font-bold flex items-center justify-center cursor-pointer"
                 aria-label="Close"
               >
-                ✕
+                <X weight="bold" className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -148,14 +149,17 @@ export const PWAInstallButton: React.FC = () => {
 
               {/* Platform-Specific Instructions */}
               <div className="p-4 rounded-2xl bg-[#F7F5F0] dark:bg-white/5 border border-[#2D2542]/10 dark:border-white/10 space-y-2 text-xs">
-                <p className="font-bold text-[#1E1931] dark:text-white">
-                  {isIOS
-                    ? isFr
-                      ? "📱 Sur iPhone / iPad (Safari) :"
-                      : "📱 On iPhone / iPad (Safari):"
-                    : isFr
-                    ? "📲 Installation rapide (iOS, Android & Bureau) :"
-                    : "📲 Quick Home Screen Setup (iOS, Android & Desktop):"}
+                <p className="font-bold text-[#1E1931] dark:text-white inline-flex items-center gap-1.5">
+                  <DeviceMobile weight="duotone" className="w-4 h-4 shrink-0" />
+                  <span>
+                    {isIOS
+                      ? isFr
+                        ? "Sur iPhone / iPad (Safari) :"
+                        : "On iPhone / iPad (Safari):"
+                      : isFr
+                      ? "Installation rapide (iOS, Android & Bureau) :"
+                      : "Quick Home Screen Setup (iOS, Android & Desktop):"}
+                  </span>
                 </p>
                 <ol className="list-decimal pl-4 space-y-1.5 text-[#5A506B] dark:text-[#C8C2D6]">
                   <li>

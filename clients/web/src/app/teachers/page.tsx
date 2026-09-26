@@ -4,6 +4,26 @@ import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  MagnifyingGlass,
+  X,
+  Buildings,
+  UserCheck,
+  BookOpenText,
+  Headphones,
+  Plus,
+  ShieldCheck,
+  ChartBar,
+  CaretUp,
+  CaretDown,
+  ArrowRight,
+  SlidersHorizontal,
+  Sparkle,
+  UsersThree,
+  Microphone,
+  GraduationCap,
+  Funnel,
+} from "@phosphor-icons/react";
+import {
   getAllTeachers,
   getAllTeachings,
   appointPastoralContributor,
@@ -16,9 +36,6 @@ import {
 } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { CloudSyncBadge } from "@/components/CloudSyncBadge";
-import { PWAInstallButton } from "@/components/PWAInstallPrompt";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
 
@@ -27,7 +44,42 @@ const PORTRAIT_OPTIONS = [
   { label: "Pastoral Portrait II", value: "/myself.jpeg" },
 ];
 
-type TeacherSortOption = "most-teachings" | "most-listens" | "highest-completion" | "alphabetical";
+type TeacherSortOption =
+  | "most-teachings"
+  | "most-listens"
+  | "highest-completion"
+  | "alphabetical";
+
+type SearchFieldScope = "all" | "name" | "ministry";
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function highlightSearchMatch(text: string, query: string): React.ReactNode {
+  const trimmed = query.trim();
+  if (!trimmed) return text;
+  const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${escaped})`, "gi");
+  const parts = text.split(regex);
+  if (parts.length <= 1) return text;
+  return parts.map((part, idx) =>
+    part.toLowerCase() === trimmed.toLowerCase() ? (
+      <mark
+        key={idx}
+        className="bg-[#FFD770]/60 dark:bg-[#4EE2D8]/30 text-[#1E1931] dark:text-white rounded px-0.5 font-bold"
+      >
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
+}
 
 export default function TeachersPortalPage() {
   const { isFr } = useLanguage();
@@ -37,13 +89,16 @@ export default function TeachersPortalPage() {
   const [teachingList, setTeachingList] = useState<Teaching[]>(() => getAllTeachings());
   const [analyticsTick, setAnalyticsTick] = useState(0);
 
-  // Directory Filter & Sort States
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("ALL");
-  const [sortBy, setSortBy] = useState<TeacherSortOption>("most-teachings");
+  // Directory Live Search, Filter & Sort States
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchScope, setSearchScope] = useState<SearchFieldScope>("all");
+  const [selectedMinistry, setSelectedMinistry] = useState<string>("ALL");
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("ALL");
+  const [showAllSpecialtyTags, setShowAllSpecialtyTags] = useState<boolean>(true);
+  const [sortBy, setSortBy] = useState<TeacherSortOption>("most-teachings");
 
   // Performance Analytics Panel State
-  const [isAnalyticsExpanded, setIsAnalyticsExpanded] = useState<boolean>(true);
+  const [isAnalyticsExpanded, setIsAnalyticsExpanded] = useState<boolean>(false);
   const [expandedTeacherAnalyticsSlug, setExpandedTeacherAnalyticsSlug] = useState<string | null>(
     "pastor-asket"
   );
@@ -56,17 +111,23 @@ export default function TeachersPortalPage() {
   const [newMinistry, setNewMinistry] = useState("");
   const [newEducation, setNewEducation] = useState("");
   const [newSpecialty, setNewSpecialty] = useState("");
-  const [newTags, setNewTags] = useState("Expository Preaching, Contemplative Prayer, Covenant Grace");
+  const [newTags, setNewTags] = useState(
+    "Expository Preaching, Contemplative Prayer, Covenant Grace"
+  );
   const [newScripture, setNewScripture] = useState("2 Timothy 2:15");
   const [newBio, setNewBio] = useState("");
   const [newPortrait, setNewPortrait] = useState(PORTRAIT_OPTIONS[0].value);
   const [appointSuccess, setAppointSuccess] = useState<string | null>(null);
 
   // Leadership Quick Modal: Add Teaching for a selected Contributor
-  const [selectedTeacherForTeaching, setSelectedTeacherForTeaching] = useState<Teacher | null>(null);
+  const [selectedTeacherForTeaching, setSelectedTeacherForTeaching] = useState<Teacher | null>(
+    null
+  );
   const [teachingTitle, setTeachingTitle] = useState("");
   const [teachingScripture, setTeachingScripture] = useState("John 15:5");
-  const [teachingCategory, setTeachingCategory] = useState<"Faith" | "Prayer" | "Hope" | "Discipleship">("Faith");
+  const [teachingCategory, setTeachingCategory] = useState<
+    "Faith" | "Prayer" | "Hope" | "Discipleship"
+  >("Faith");
   const [teachingDuration, setTeachingDuration] = useState("12 min");
   const [teachingExcerpt, setTeachingExcerpt] = useState("");
   const [teachingBody, setTeachingBody] = useState("");
@@ -117,7 +178,33 @@ export default function TeachersPortalPage() {
     };
   }, [performanceMap, teachingList.length]);
 
-  // Unique Theological Specialties for Filter Bar
+  // Unique Ministry Affiliations for Quick Filter with Voice Counts
+  const allMinistryAffiliations = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const teacher of teacherList) {
+      const m = teacher.ministryAffiliation?.trim();
+      if (m) {
+        map.set(m, (map.get(m) || 0) + 1);
+      }
+    }
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  }, [teacherList]);
+
+  // Unique Primary Theological Specialties (Core Convictions)
+  const allPrimarySpecialties = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const teacher of teacherList) {
+      const mainSpec = (
+        isFr ? teacher.theologicalSpecialtyFr : teacher.theologicalSpecialty
+      )?.trim();
+      if (mainSpec) {
+        map.set(mainSpec, (map.get(mainSpec) || 0) + 1);
+      }
+    }
+    return Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+  }, [teacherList, isFr]);
+
+  // Unique Theological Specialty Tags for Filter Bar
   const allSpecialtyFilters = useMemo(() => {
     const set = new Set<string>();
     for (const teacher of teacherList) {
@@ -129,31 +216,85 @@ export default function TeachersPortalPage() {
     return Array.from(set);
   }, [teacherList, isFr]);
 
+  // Count how many teachers match each specialty option
+  const specialtyCountsMap = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const allOpts = [
+      ...allPrimarySpecialties.map((p) => p.name),
+      ...allSpecialtyFilters,
+    ];
+    for (const opt of allOpts) {
+      const target = normalizeSearchText(opt);
+      counts[opt] = teacherList.filter((t) => {
+        const specs = isFr ? t.specialtiesFr : t.specialties;
+        const mainSpec = isFr ? t.theologicalSpecialtyFr : t.theologicalSpecialty;
+        return (
+          normalizeSearchText(mainSpec).includes(target) ||
+          specs.some((s) => normalizeSearchText(s) === target)
+        );
+      }).length;
+    }
+    return counts;
+  }, [teacherList, allPrimarySpecialties, allSpecialtyFilters, isFr]);
+
   // Filtered and Sorted Teachers Directory
   const filteredAndSortedTeachers = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = normalizeSearchText(searchQuery);
 
     const filtered = teacherList.filter((teacher) => {
       const specs = isFr ? teacher.specialtiesFr : teacher.specialties;
       const mainSpecialty = isFr ? teacher.theologicalSpecialtyFr : teacher.theologicalSpecialty;
 
+      if (selectedMinistry !== "ALL") {
+        if (
+          normalizeSearchText(teacher.ministryAffiliation) !==
+          normalizeSearchText(selectedMinistry)
+        ) {
+          return false;
+        }
+      }
+
       if (selectedSpecialty !== "ALL") {
-        const matchesTag = specs.some((s) => s.toLowerCase() === selectedSpecialty.toLowerCase());
-        const matchesMain = mainSpecialty.toLowerCase().includes(selectedSpecialty.toLowerCase());
+        const targetSpec = normalizeSearchText(selectedSpecialty);
+        const matchesTag = specs.some(
+          (s) =>
+            normalizeSearchText(s) === targetSpec ||
+            normalizeSearchText(s).includes(targetSpec)
+        );
+        const matchesMain =
+          normalizeSearchText(mainSpecialty) === targetSpec ||
+          normalizeSearchText(mainSpecialty).includes(targetSpec);
         if (!matchesTag && !matchesMain) return false;
       }
 
       if (q) {
+        const normalizedName = normalizeSearchText(teacher.name);
+        const normalizedMinistry = normalizeSearchText(teacher.ministryAffiliation);
+        const normalizedTitle = normalizeSearchText(isFr ? teacher.titleFr : teacher.title);
+        const normalizedRole = normalizeSearchText(isFr ? teacher.roleFr : teacher.role);
+        const normalizedSpecialty = normalizeSearchText(mainSpecialty);
+        const normalizedTags = specs.map((s) => normalizeSearchText(s)).join(" ");
+        const normalizedEducation = normalizeSearchText(
+          isFr ? teacher.educationFr : teacher.education
+        );
+
+        if (searchScope === "name") {
+          return normalizedName.includes(q) || normalizedTitle.includes(q);
+        }
+        if (searchScope === "ministry") {
+          return normalizedMinistry.includes(q) || normalizedRole.includes(q);
+        }
+
         const haystack = [
-          teacher.name,
-          teacher.title,
-          teacher.role,
-          teacher.ministryAffiliation,
-          mainSpecialty,
-          ...specs,
-        ]
-          .join(" ")
-          .toLowerCase();
+          normalizedMinistry,
+          normalizedName,
+          normalizedTitle,
+          normalizedRole,
+          normalizedSpecialty,
+          normalizedTags,
+          normalizedEducation,
+        ].join(" ");
+
         if (!haystack.includes(q)) return false;
       }
 
@@ -177,7 +318,29 @@ export default function TeachersPortalPage() {
       }
       return a.name.localeCompare(b.name);
     });
-  }, [teacherList, selectedSpecialty, searchQuery, sortBy, performanceMap, isFr]);
+  }, [
+    teacherList,
+    selectedMinistry,
+    selectedSpecialty,
+    searchQuery,
+    searchScope,
+    sortBy,
+    performanceMap,
+    isFr,
+  ]);
+
+  const hasActiveFilters =
+    searchQuery.trim().length > 0 ||
+    selectedMinistry !== "ALL" ||
+    selectedSpecialty !== "ALL" ||
+    searchScope !== "all";
+
+  const resetAllDirectoryFilters = () => {
+    setSearchQuery("");
+    setSearchScope("all");
+    setSelectedMinistry("ALL");
+    setSelectedSpecialty("ALL");
+  };
 
   const handleAppointContributor = (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,8 +367,10 @@ export default function TeachersPortalPage() {
       roleFr: newRole.trim() || "Contributeur Pastoral Nommé par LifeBook",
       theologicalSpecialty: newSpecialty.trim(),
       theologicalSpecialtyFr: newSpecialty.trim(),
-      specialties: parsedTags.length > 0 ? parsedTags : ["Biblical Exposition", "Spiritual Formation"],
-      specialtiesFr: parsedTags.length > 0 ? parsedTags : ["Exposition Biblique", "Formation Spirituelle"],
+      specialties:
+        parsedTags.length > 0 ? parsedTags : ["Biblical Exposition", "Spiritual Formation"],
+      specialtiesFr:
+        parsedTags.length > 0 ? parsedTags : ["Exposition Biblique", "Formation Spirituelle"],
       bio:
         newBio.trim() ||
         `${newName.trim()} has been prayerfully chosen and appointed by LifeBook's Leadership Council as a Pastoral Contributor dedicated to Scripture fidelity and unhurried spiritual formation.`,
@@ -343,54 +508,62 @@ export default function TeachersPortalPage() {
               <div className="w-8 h-8 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-serif text-sm font-bold shadow-xs">
                 LB
               </div>
-              <div>
-                <span className="font-serif text-lg font-bold tracking-tight text-[#1E1931] dark:text-white block leading-none">
-                  LifeBook
-                </span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#6E6285] dark:text-[#B8B0C8] block mt-0.5">
-                  {isFr ? "PORTAIL DES PASTEURS" : "TEACHERS PORTAL"}
-                </span>
-              </div>
+              <span className="font-serif text-lg font-bold tracking-tight text-[#1E1931] dark:text-white leading-none">
+                LifeBook
+              </span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
               <Link
                 href="/dashboard"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors"
+                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
               >
-                {isFr ? "Tableau de Bord" : "Dashboard"}
+                <Sparkle size={14} weight="duotone" />
+                <span>{isFr ? "Sanctuaire" : "Sanctuary"}</span>
               </Link>
               <Link
                 href="/living-word"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors"
+                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
               >
-                {isFr ? "Bibliothèque LivingWord" : "LivingWord Library"}
+                <Headphones size={14} weight="duotone" />
+                <span>LivingWord</span>
               </Link>
               <Link
                 href="/teachers"
-                className="px-3 py-2 rounded-lg text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10 transition-colors"
+                className="px-3 py-2 rounded-lg text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10 transition-colors inline-flex items-center gap-1.5"
               >
-                {isFr ? "Portail des Pasteurs & Enseignants" : "Pastors & Teachers Portal"}
+                <UsersThree size={14} weight="duotone" />
+                <span>{isFr ? "Pasteurs" : "Teachers"}</span>
+              </Link>
+              <Link
+                href="/voice"
+                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Microphone size={14} weight="duotone" />
+                <span>{isFr ? "Voix" : "Voice"}</span>
               </Link>
             </nav>
           </div>
 
           <div className="flex items-center gap-2.5">
-            <PWAInstallButton />
-            <CloudSyncBadge />
             <LanguageToggle />
-            <ThemeToggle />
+            <Link
+              href="/"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6] hover:text-[#1E1931] dark:hover:text-white transition-colors"
+            >
+              {isFr ? "Accueil" : "Home"}
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero & Leadership Governance Explanation */}
-      <section className="border-b border-[#EAE3D6] dark:border-white/10 bg-gradient-to-b from-[#F2ECE1]/70 to-[#FAF8F5] dark:from-[#18132B] dark:to-[#0E0C18] py-12 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto space-y-8">
+      {/* Hero & Leadership Governance Header */}
+      <section className="border-b border-[#EAE3D6] dark:border-white/10 bg-gradient-to-b from-[#F2ECE1]/70 to-[#FAF8F5] dark:from-[#18132B] dark:to-[#0E0C18] py-8 px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="max-w-3xl space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2D2542] dark:bg-[#4EE2D8]/15 text-white dark:text-[#4EE2D8] text-xs font-bold uppercase tracking-wider">
-                <span>✝</span>
+                <UserCheck weight="bold" className="w-3.5 h-3.5" />
                 <span>
                   {isFr
                     ? "Portail des Contributeurs Pastoraux · Choix de la Direction LifeBook"
@@ -401,13 +574,13 @@ export default function TeachersPortalPage() {
               <h1 className="text-3xl sm:text-5xl font-serif font-bold text-[#1E1931] dark:text-white tracking-tight leading-tight">
                 {isFr
                   ? "Les Voix Pastorales & Enseignants Choisis par LifeBook"
-                  : "Pastoral Contributors & Teachers Portal"}
+                  : "Pastoral Contributors & Teachers Directory"}
               </h1>
 
               <p className="text-sm sm:text-base text-[#52466D] dark:text-[#C8C2D6] leading-relaxed">
                 {isFr
-                  ? "Pour préserver une saine doctrine christocentrique, les pages d'enseignants ne sont pas ouvertes à l'inscription publique libre. La direction de LifeBook choisit dans la prière chaque pasteur ou théologien contributeur et publie leurs enseignements directement à l'intérieur de la page de chaque enseignant."
-                  : "To safeguard Christocentric doctrine and unhurried pastoral care, contributor pages are not open to random public uploads. LifeBook’s leadership prayerfully chooses every Pastor and Teacher contributor and adds their teachings directly inside each teacher’s page."}
+                  ? "Recherchez en direct par affiliation ministérielle ou par nom de pasteur, et filtrez par spécialité théologique pour trouver rapidement une voix pastorale spécifique."
+                  : "Live-search pastoral contributors by ministry affiliation or name, and filter by Theological Specialty to quickly locate specific pastoral voices."}
               </p>
             </div>
 
@@ -418,7 +591,7 @@ export default function TeachersPortalPage() {
                 onClick={() => setIsAppointModalOpen(true)}
                 className="min-h-[44px] px-5 py-3 rounded-2xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold hover:opacity-95 transition-all shadow-md cursor-pointer flex items-center gap-2"
               >
-                <span>＋</span>
+                <Plus weight="bold" className="w-4 h-4" />
                 <span>
                   {isFr
                     ? "Direction LifeBook : Choisir un Pasteur Contributeur"
@@ -429,61 +602,675 @@ export default function TeachersPortalPage() {
                 href="/living-word/cms"
                 className="min-h-[44px] px-4 py-3 rounded-2xl border border-[#2D2542]/20 dark:border-white/20 bg-white/80 dark:bg-white/5 text-xs font-bold text-[#2D2542] dark:text-white hover:bg-white dark:hover:bg-white/10 transition-colors flex items-center gap-1.5"
               >
-                <span>🛡️</span>
+                <ShieldCheck weight="duotone" className="w-4 h-4 text-[#0E726D] dark:text-[#4EE2D8]" />
                 <span>{isFr ? "Comité d'Audit Théologique" : "Theological Audit CMS"}</span>
               </Link>
-            </div>
-          </div>
-
-          {/* 3-Step Governance Clarity Banner */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 shadow-xs space-y-1.5">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#0E726D] dark:text-[#4EE2D8]">
-                {isFr ? "01 · SÉLECTION PAR LA DIRECTION" : "01 · CHOSEN BY LEADERSHIP"}
-              </div>
-              <h2 className="text-sm font-bold text-[#1E1931] dark:text-white">
-                {isFr ? "Nomination Pastorale" : "Vetted Pastoral Contributors"}
-              </h2>
-              <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] leading-relaxed">
-                {isFr
-                  ? "La direction de LifeBook sélectionne des pasteurs, biblistes et conseillers reconnus pour leur fidélité aux Écritures."
-                  : "LifeBook leadership selects trusted pastors, biblical counselors, and scholars grounded in historic Christian orthodoxy."}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 shadow-xs space-y-1.5">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#5A4B7C] dark:text-[#C8C2D6]">
-                {isFr ? "02 · PAGE CONTRIBUTEUR DU PASTEUR" : "02 · PASTOR'S CONTRIBUTOR PAGE"}
-              </div>
-              <h2 className="text-sm font-bold text-[#1E1931] dark:text-white">
-                {isFr ? "Profil & Vocation Théologique" : "Dedicated Ministry Profile"}
-              </h2>
-              <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] leading-relaxed">
-                {isFr
-                  ? "Chaque pasteur dispose d'une page dédiée présentant sa biographie, son église ou ministère, et son verset d'ancrage."
-                  : "Every chosen pastor has a dedicated contributor page highlighting their ministry affiliation, credentials, and anchor Scripture."}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 shadow-xs space-y-1.5">
-              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#B07D1E] dark:text-[#FFD770]">
-                {isFr ? "03 · AJOUT DANS LA PAGE ENSEIGNANT" : "03 · ADDED INSIDE TEACHER'S PAGE"}
-              </div>
-              <h2 className="text-sm font-bold text-[#1E1931] dark:text-white">
-                {isFr ? "Publication directe des enseignements" : "Leadership Publishes Inside Teacher's Page"}
-              </h2>
-              <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] leading-relaxed">
-                {isFr
-                  ? "Ouvrez la page d'un pasteur pour ajouter directement ses méditations et enseignements audio dans LifeBook."
-                  : "Open any pastor’s page below to add their teachings directly into LifeBook and the Sanctuary Audio Player."}
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* TEACHER-HOSTED LIVE SANCTUARY CALL (MAX 40 USERS · TEACHERS ONLY START) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 pt-8">
+      {/* Pastoral Contributors Directory Grid with Live Search by Ministry Affiliation & Theological Specialty Filters */}
+      <section
+        id="pastoral-directory-section"
+        className="max-w-7xl mx-auto px-4 sm:px-8 pt-8 pb-6 space-y-6"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1E1931] dark:text-white">
+              {isFr
+                ? `Répertoire des Pasteurs Contributeurs (${filteredAndSortedTeachers.length})`
+                : `Appointed Pastoral Contributors Directory (${filteredAndSortedTeachers.length})`}
+            </h2>
+            <p className="text-xs sm:text-sm text-[#5A506B] dark:text-[#C8C2D6] mt-1">
+              {isFr
+                ? "Filtrez les contributeurs pastoraux en direct par affiliation ministérielle et par spécialité théologique."
+                : "Filter pastoral contributors in real time by ministry affiliation and Theological Specialty."}
+            </p>
+          </div>
+
+          {/* Sort Selector */}
+          <div className="flex items-center gap-2.5 text-xs self-start lg:self-auto">
+            <SlidersHorizontal weight="bold" className="w-4 h-4 text-[#5A506B] dark:text-[#C8C2D6]" />
+            <label
+              htmlFor="teacher-sort-select"
+              className="font-bold text-[#5A506B] dark:text-[#C8C2D6] whitespace-nowrap"
+            >
+              {isFr ? "Trier par :" : "Sort by:"}
+            </label>
+            <select
+              id="teacher-sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as TeacherSortOption)}
+              className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/15 text-xs font-bold text-[#1E1931] dark:text-white cursor-pointer focus:outline-none focus:border-[#2D2542] dark:focus:border-[#4EE2D8]"
+            >
+              <option value="most-teachings">
+                {isFr ? "Plus d'enseignements publiés" : "Most Teachings Published"}
+              </option>
+              <option value="most-listens">
+                {isFr ? "Plus grand nombre d'écoutes" : "Most Total Listens"}
+              </option>
+              <option value="highest-completion">
+                {isFr ? "Meilleur taux de complétion" : "Highest Completion Rate"}
+              </option>
+              <option value="alphabetical">
+                {isFr ? "Ordre alphabétique (A–Z)" : "Alphabetical (A–Z)"}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        {/* Dedicated Live Search Bar (Ministry Affiliation & Pastoral Name) + Theological Specialty Filter Panel */}
+        <div
+          id="teachers-live-search-panel"
+          className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/15 p-5 sm:p-6 shadow-sm space-y-5"
+        >
+          {/* Row 1: Live Search Input by Ministry Affiliation & Name + Scope Selector */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label
+                htmlFor="teachers-live-search-input"
+                className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-[#2D2542] dark:text-[#4EE2D8]"
+              >
+                <Buildings weight="duotone" className="w-4 h-4" />
+                <span>
+                  {isFr
+                    ? "RECHERCHE EN DIRECT PAR AFFILIATION MINISTÉRIELLE & VOIX PASTORALE"
+                    : "LIVE SEARCH BY MINISTRY AFFILIATION & PASTORAL VOICE"}
+                </span>
+              </label>
+              <span className="text-[11px] text-[#5A506B] dark:text-[#C8C2D6]">
+                {isFr
+                  ? "Filtrage instantané par église/ministère, nom ou spécialité"
+                  : "Instant filtering by ministry affiliation, pastor name, or specialty"}
+              </span>
+            </div>
+
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+              {/* Live Search Input */}
+              <div className="relative flex-1">
+                <MagnifyingGlass
+                  weight="bold"
+                  className="w-5 h-5 text-[#5A4B7C] dark:text-[#4EE2D8] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                />
+                <input
+                  id="teachers-live-search-input"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label={
+                    isFr
+                      ? "Rechercher un pasteur par affiliation ministérielle ou par nom"
+                      : "Live search pastoral contributors by ministry affiliation or name"
+                  }
+                  placeholder={
+                    searchScope === "ministry"
+                      ? isFr
+                        ? "Tapez une affiliation ministérielle (ex. Grace & Truth, Living Hope, All Nations, Anchored Soul)..."
+                        : "Type a ministry affiliation to filter voices (e.g., Grace & Truth, Living Hope, All Nations, Anchored Soul)..."
+                      : searchScope === "name"
+                      ? isFr
+                        ? "Rechercher par nom de pasteur (ex. Pastor Asket, Dr. Esther Laurent)..."
+                        : "Search by pastoral contributor name (e.g., Pastor Asket, Dr. Esther Laurent)..."
+                      : isFr
+                      ? "Filtrer en direct par affiliation ministérielle ou pasteur (ex. Grace & Truth, Living Hope, Pastor Asket)..."
+                      : "Live search by ministry affiliation or pastor name (e.g., Grace & Truth Fellowship, Living Hope, Pastor Asket)..."
+                  }
+                  className="w-full min-h-[50px] pl-12 pr-28 py-3 text-sm rounded-2xl bg-[#FAF8F5] dark:bg-[#120E22] border-2 border-[#DDD3C2] dark:border-white/15 text-[#1E1931] dark:text-white placeholder:text-[#7A6F8E] dark:placeholder:text-[#968CA8] focus:outline-none focus:border-[#2D2542] dark:focus:border-[#4EE2D8] transition-colors"
+                />
+                {searchQuery.trim().length > 0 && (
+                  <button
+                    type="button"
+                    id="teachers-live-search-clear"
+                    onClick={() => setSearchQuery("")}
+                    aria-label={isFr ? "Effacer la recherche" : "Clear search"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#EAE3D6] dark:bg-white/10 text-[#1E1931] dark:text-white text-xs font-bold hover:bg-[#DDD3C2] dark:hover:bg-white/20 transition-colors cursor-pointer"
+                  >
+                    <X weight="bold" className="w-3.5 h-3.5" />
+                    <span>{isFr ? "Effacer" : "Clear"}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Search Field Scope Selector (All / Ministry Affiliation / Name) */}
+              <div
+                role="group"
+                aria-label={isFr ? "Portée de la recherche" : "Search scope"}
+                className="flex items-center gap-1 p-1 rounded-2xl bg-[#FAF8F5] dark:bg-[#120E22] border border-[#E3DACB] dark:border-white/12 shrink-0"
+              >
+                {(
+                  [
+                    {
+                      id: "all",
+                      label: isFr ? "Ministère & Nom" : "Ministry & Name",
+                    },
+                    {
+                      id: "ministry",
+                      label: isFr ? "Affiliation Ministérielle" : "Ministry Affiliation",
+                    },
+                    {
+                      id: "name",
+                      label: isFr ? "Nom du Pasteur" : "Pastor Name",
+                    },
+                  ] as const
+                ).map((scopeOpt) => {
+                  const active = searchScope === scopeOpt.id;
+                  return (
+                    <button
+                      key={scopeOpt.id}
+                      type="button"
+                      onClick={() => setSearchScope(scopeOpt.id)}
+                      className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                        active
+                          ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
+                          : "text-[#5A506B] dark:text-[#C8C2D6] hover:text-[#1E1931] dark:hover:text-white"
+                      }`}
+                    >
+                      {scopeOpt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Quick Ministry Affiliation Filter Chips */}
+          <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[#EAE3D6] dark:border-white/10">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider font-bold text-[#5A4B7C] dark:text-[#4EE2D8] shrink-0 mr-1">
+                <Buildings weight="duotone" className="w-3.5 h-3.5" />
+                <span>
+                  {isFr ? "Affiliations Ministérielles :" : "Ministry Affiliations:"}
+                </span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setSelectedMinistry("ALL")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedMinistry === "ALL"
+                    ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
+                    : "bg-[#FAF8F5] dark:bg-white/5 text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 border border-[#E3DACB] dark:border-white/10"
+                }`}
+              >
+                {isFr ? "Toutes les affiliations" : "All Ministries"} ({teacherList.length})
+              </button>
+
+              {allMinistryAffiliations.map(({ name: ministry, count }) => {
+                const isSelected = selectedMinistry === ministry;
+                return (
+                  <button
+                    key={ministry}
+                    type="button"
+                    onClick={() => setSelectedMinistry(isSelected ? "ALL" : ministry)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer inline-flex items-center gap-1.5 ${
+                      isSelected
+                        ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
+                        : "bg-[#FAF8F5] dark:bg-white/5 text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 border border-[#E3DACB] dark:border-white/10"
+                    }`}
+                  >
+                    <Buildings weight="duotone" className="w-3.5 h-3.5 shrink-0" />
+                    <span>{highlightSearchMatch(ministry, searchQuery)}</span>
+                    <span className="text-[10px] font-mono opacity-75">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Row 3: Filter Options for 'Theological Specialty' (Dropdown + Core Specialty Pills + Specialty Focus Tags) */}
+          <div
+            id="theological-specialty-filter-section"
+            className="pt-4 border-t border-[#EAE3D6] dark:border-white/10 space-y-3.5"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <label
+                  htmlFor="theological-specialty-select"
+                  className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-[#2D2542] dark:text-[#4EE2D8]"
+                >
+                  <GraduationCap weight="duotone" className="w-4 h-4" />
+                  <span>
+                    {isFr
+                      ? "OPTIONS DE FILTRE : SPÉCIALITÉ THÉOLOGIQUE"
+                      : "FILTER OPTIONS: THEOLOGICAL SPECIALTY"}
+                  </span>
+                </label>
+                <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6]">
+                  {isFr
+                    ? "Sélectionnez une spécialité théologique principale ou un domaine doctrinal pour trouver une voix pastorale."
+                    : "Select a core Theological Specialty or doctrinal focus area to locate specific pastoral voices."}
+                </p>
+              </div>
+
+              {/* Theological Specialty Dropdown Select + Reset */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex items-center gap-2">
+                  <Funnel weight="duotone" className="w-4 h-4 text-[#5A4B7C] dark:text-[#4EE2D8] shrink-0" />
+                  <select
+                    id="theological-specialty-select"
+                    aria-label={isFr ? "Spécialité Théologique" : "Theological Specialty"}
+                    value={selectedSpecialty}
+                    onChange={(e) => setSelectedSpecialty(e.target.value)}
+                    className="min-h-[40px] px-3.5 py-2 rounded-xl bg-[#FAF8F5] dark:bg-[#120E22] border border-[#DDD3C2] dark:border-white/15 text-xs font-bold text-[#1E1931] dark:text-white cursor-pointer focus:outline-none focus:border-[#2D2542] dark:focus:border-[#4EE2D8]"
+                  >
+                    <option value="ALL">
+                      {isFr
+                        ? `Toutes les spécialités théologiques (${teacherList.length} voix)`
+                        : `All Theological Specialties (${teacherList.length} voices)`}
+                    </option>
+                    <optgroup
+                      label={
+                        isFr
+                          ? "Spécialités Théologiques Principales"
+                          : "Core Theological Specialties"
+                      }
+                    >
+                      {allPrimarySpecialties.map(({ name, count }) => (
+                        <option key={name} value={name}>
+                          {name} ({count})
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup
+                      label={
+                        isFr
+                          ? "Domaines & Disciplines Théologiques"
+                          : "Theological Focus Areas & Disciplines"
+                      }
+                    >
+                      {allSpecialtyFilters.map((spec) => (
+                        <option key={spec} value={spec}>
+                          {spec} ({specialtyCountsMap[spec] || 1})
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+
+                {selectedSpecialty !== "ALL" && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSpecialty("ALL")}
+                    className="px-3 py-2 rounded-xl bg-[#F2ECE1] dark:bg-white/10 text-xs font-bold text-[#2D2542] dark:text-[#4EE2D8] hover:opacity-90 cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <X weight="bold" className="w-3 h-3" />
+                    <span>{isFr ? "Réinitialiser la spécialité" : "Clear Specialty"}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Core Theological Specialties (Primary Pastoral Convictions) */}
+            <div className="space-y-1.5">
+              <div className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#6E6285] dark:text-[#B8B0C8]">
+                {isFr
+                  ? "Chaires & Spécialités Théologiques Principales :"
+                  : "Core Theological Specialties:"}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSpecialty("ALL")}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    selectedSpecialty === "ALL"
+                      ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
+                      : "bg-[#FAF8F5] dark:bg-white/5 text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 border border-[#E3DACB] dark:border-white/10"
+                  }`}
+                >
+                  {isFr ? "Toutes les spécialités" : "All Theological Specialties"} (
+                  {teacherList.length})
+                </button>
+
+                {allPrimarySpecialties.map(({ name: primarySpec, count }) => {
+                  const isSelected = selectedSpecialty === primarySpec;
+                  return (
+                    <button
+                      key={primarySpec}
+                      type="button"
+                      onClick={() =>
+                        setSelectedSpecialty(isSelected ? "ALL" : primarySpec)
+                      }
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left inline-flex items-center gap-1.5 ${
+                        isSelected
+                          ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
+                          : "bg-[#FAF8F5] dark:bg-white/5 text-[#2E2448] dark:text-[#E5DFF0] hover:bg-[#F2ECE1] dark:hover:bg-white/10 border border-[#E3DACB] dark:border-white/10"
+                      }`}
+                    >
+                      <GraduationCap weight="duotone" className="w-3.5 h-3.5 shrink-0" />
+                      <span>{primarySpec}</span>
+                      <span className="text-[10px] font-mono opacity-75">({count})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Granular Theological Specialty Focus Tags */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-mono uppercase tracking-wider font-semibold text-[#6E6285] dark:text-[#B8B0C8]">
+                  {isFr
+                    ? "Thèmes & Disciplines Théologiques :"
+                    : "Theological Specialty Focus Tags:"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowAllSpecialtyTags(!showAllSpecialtyTags)}
+                  className="text-[11px] font-semibold text-[#5A4B7C] dark:text-[#4EE2D8] hover:underline cursor-pointer"
+                >
+                  {showAllSpecialtyTags
+                    ? isFr
+                      ? "Réduire les thèmes"
+                      : "Show Compact Tags"
+                    : isFr
+                    ? `Voir les ${allSpecialtyFilters.length} thèmes`
+                    : `Show All ${allSpecialtyFilters.length} Specialty Tags`}
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(showAllSpecialtyTags
+                  ? allSpecialtyFilters
+                  : allSpecialtyFilters.slice(0, 10)
+                ).map((spec) => {
+                  const isSelected = selectedSpecialty === spec;
+                  return (
+                    <button
+                      key={spec}
+                      type="button"
+                      onClick={() => setSelectedSpecialty(isSelected ? "ALL" : spec)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer inline-flex items-center gap-1 ${
+                        isSelected
+                          ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
+                          : "bg-[#FAF8F5] dark:bg-white/5 text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 border border-[#E3DACB] dark:border-white/10"
+                      }`}
+                    >
+                      <span>{spec}</span>
+                      <span className="text-[10px] font-mono opacity-70">
+                        ({specialtyCountsMap[spec] || 1})
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 4: Active Filter Summary & Live Match Counter */}
+          <div className="pt-3 border-t border-[#EAE3D6] dark:border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                aria-live="polite"
+                className="font-mono font-bold text-[#1E1931] dark:text-white"
+              >
+                {isFr
+                  ? `${filteredAndSortedTeachers.length} sur ${teacherList.length} voix pastorales affichées`
+                  : `Showing ${filteredAndSortedTeachers.length} of ${teacherList.length} pastoral voices`}
+              </span>
+
+              {searchQuery.trim() && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F2ECE1] dark:bg-white/10 text-[#1E1931] dark:text-white font-semibold">
+                  <span>
+                    {isFr ? "Recherche :" : "Search:"} “{searchQuery.trim()}”
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    aria-label={isFr ? "Supprimer la recherche" : "Remove search filter"}
+                    className="hover:opacity-75 cursor-pointer"
+                  >
+                    <X weight="bold" className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {selectedMinistry !== "ALL" && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2D2542]/10 dark:bg-[#4EE2D8]/15 text-[#2D2542] dark:text-[#4EE2D8] font-semibold">
+                  <Buildings weight="duotone" className="w-3.5 h-3.5" />
+                  <span>{selectedMinistry}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMinistry("ALL")}
+                    aria-label={
+                      isFr ? "Supprimer le filtre ministère" : "Remove ministry filter"
+                    }
+                    className="hover:opacity-75 cursor-pointer"
+                  >
+                    <X weight="bold" className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {selectedSpecialty !== "ALL" && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0E726D]/10 dark:bg-[#4EE2D8]/15 text-[#0E726D] dark:text-[#4EE2D8] font-semibold">
+                  <GraduationCap weight="duotone" className="w-3.5 h-3.5" />
+                  <span>{selectedSpecialty}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSpecialty("ALL")}
+                    aria-label={
+                      isFr
+                        ? "Supprimer le filtre spécialité théologique"
+                        : "Remove theological specialty filter"
+                    }
+                    className="hover:opacity-75 cursor-pointer"
+                  >
+                    <X weight="bold" className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetAllDirectoryFilters}
+                className="px-3.5 py-1.5 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] font-bold hover:opacity-90 transition-opacity cursor-pointer whitespace-nowrap"
+              >
+                {isFr ? "Réinitialiser tous les filtres" : "Reset All Filters"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Directory Cards */}
+        {filteredAndSortedTeachers.length === 0 ? (
+          <div className="p-10 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 text-center space-y-3">
+            <p className="text-base font-serif font-bold text-[#1E1931] dark:text-white">
+              {isFr
+                ? "Aucun pasteur contributeur ne correspond à votre recherche."
+                : "No pastoral contributors match your search criteria."}
+            </p>
+            <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6]">
+              {searchQuery.trim()
+                ? isFr
+                  ? `Aucun résultat pour « ${searchQuery.trim()} » par nom ou affiliation ministérielle.`
+                  : `No matches found for “${searchQuery.trim()}” across contributor names or ministry affiliations.`
+                : isFr
+                ? "Essayez un autre filtre de ministère ou de spécialité théologique."
+                : "Try selecting another ministry affiliation or theological specialty filter."}
+            </p>
+            <button
+              type="button"
+              onClick={resetAllDirectoryFilters}
+              className="px-4 py-2.5 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold cursor-pointer"
+            >
+              {isFr ? "Afficher tous les pasteurs" : "Show All Pastoral Contributors"}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredAndSortedTeachers.map((teacher) => {
+              const perf = performanceMap[teacher.slug];
+              const count = perf?.publishedCount || 0;
+              const role = isFr ? teacher.roleFr : teacher.role;
+              const specialty = isFr ? teacher.theologicalSpecialtyFr : teacher.theologicalSpecialty;
+              const bio = isFr ? teacher.bioFr : teacher.bio;
+              const specs = isFr ? teacher.specialtiesFr : teacher.specialties;
+
+              return (
+                <article
+                  key={teacher.slug}
+                  className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 p-6 sm:p-7 shadow-sm hover:border-[#3D2E5C] dark:hover:border-[#4EE2D8]/50 transition-all flex flex-col justify-between space-y-5"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <Link
+                        href={`/teachers/${teacher.slug}`}
+                        className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#E3DACB] dark:border-white/20 shrink-0 bg-[#E0D7C6]"
+                      >
+                        <Image
+                          src={teacher.portrait}
+                          alt={teacher.name}
+                          fill
+                          sizes="80px"
+                          className="object-cover"
+                        />
+                      </Link>
+
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#2D2542] dark:bg-[#4EE2D8]/20 text-white dark:text-[#4EE2D8]">
+                            {isFr ? "Choisi par LifeBook" : "Chosen Contributor"}
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#F2ECE1] dark:bg-white/10 text-[#1E1931] dark:text-white">
+                            <BookOpenText weight="duotone" className="w-3 h-3" />
+                            <span>
+                              {count} {isFr ? "enseignements" : "teachings"}
+                            </span>
+                          </span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                            <Headphones weight="duotone" className="w-3 h-3" />
+                            <span>
+                              {(perf?.totalListens || 0).toLocaleString()} ·{" "}
+                              {perf?.avgCompletionRate || 0}%
+                            </span>
+                          </span>
+                        </div>
+
+                        <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white">
+                          <Link href={`/teachers/${teacher.slug}`} className="hover:underline">
+                            {highlightSearchMatch(teacher.name, searchQuery)}
+                          </Link>
+                        </h3>
+
+                        <p className="text-xs font-medium text-[#52466D] dark:text-[#C8C2D6]">
+                          {highlightSearchMatch(role, searchQuery)}
+                        </p>
+
+                        {/* Highlighted Ministry Affiliation Pill */}
+                        <div className="pt-0.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedMinistry(
+                                selectedMinistry === teacher.ministryAffiliation
+                                  ? "ALL"
+                                  : teacher.ministryAffiliation
+                              )
+                            }
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer border ${
+                              selectedMinistry === teacher.ministryAffiliation
+                                ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-transparent"
+                                : "bg-[#FAF8F5] dark:bg-[#120E22] text-[#2D2542] dark:text-[#4EE2D8] border-[#E3DACB] dark:border-white/15 hover:border-[#2D2542] dark:hover:border-[#4EE2D8]"
+                            }`}
+                          >
+                            <Buildings weight="duotone" className="w-3.5 h-3.5 shrink-0" />
+                            <span>
+                              {highlightSearchMatch(teacher.ministryAffiliation, searchQuery)}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Theological Conviction Box */}
+                    <div className="p-3.5 rounded-2xl bg-[#FAF8F5] dark:bg-[#120E22] border border-[#EADBCE] dark:border-white/10 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#5A4B7C] dark:text-[#4EE2D8] inline-flex items-center gap-1">
+                          <GraduationCap weight="duotone" className="w-3.5 h-3.5" />
+                          <span>
+                            {isFr ? "Spécialité Théologique" : "Theological Specialty"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedSpecialty(
+                              selectedSpecialty === specialty ? "ALL" : specialty
+                            )
+                          }
+                          className="text-[10px] font-bold text-[#3D2E5C] dark:text-[#4EE2D8] hover:underline cursor-pointer"
+                        >
+                          {selectedSpecialty === specialty
+                            ? isFr
+                              ? "Filtre actif ✓"
+                              : "Active Filter ✓"
+                            : isFr
+                            ? "Filtrer par cette spécialité"
+                            : "Filter by Specialty"}
+                        </button>
+                      </div>
+                      <p className="text-xs font-serif italic text-[#2E2448] dark:text-[#F4EFE6]">
+                        “{highlightSearchMatch(specialty, searchQuery)}”
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {specs.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() =>
+                              setSelectedSpecialty(selectedSpecialty === tag ? "ALL" : tag)
+                            }
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors cursor-pointer border ${
+                              selectedSpecialty === tag
+                                ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-transparent"
+                                : "bg-white dark:bg-white/10 text-[#544773] dark:text-[#D5CEE6] border-[#DDD3C2] dark:border-white/10 hover:border-[#2D2542]"
+                            }`}
+                          >
+                            {highlightSearchMatch(tag, searchQuery)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-[#4E4467] dark:text-[#C8C2D6] leading-relaxed line-clamp-3">
+                      {bio}
+                    </p>
+                  </div>
+
+                  {/* Action Footer: Open Teacher's Page OR Add Teaching */}
+                  <div className="pt-4 border-t border-[#EAE3D6] dark:border-white/10 flex flex-wrap items-center justify-between gap-2">
+                    <Link
+                      href={`/teachers/${teacher.slug}`}
+                      className="min-h-[40px] px-4 py-2 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold hover:opacity-95 transition-all flex items-center gap-1.5"
+                    >
+                      <BookOpenText weight="duotone" className="w-4 h-4" />
+                      <span>
+                        {isFr ? "Ouvrir la Page du Pasteur" : "Open Pastor’s Page"}
+                      </span>
+                      <ArrowRight weight="bold" className="w-3.5 h-3.5" />
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTeacherForTeaching(teacher)}
+                      className="min-h-[40px] px-3.5 py-2 rounded-xl border border-[#2D2542]/20 dark:border-white/20 hover:bg-[#F2ECE1] dark:hover:bg-white/10 text-xs font-bold text-[#2D2542] dark:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Plus weight="bold" className="w-3.5 h-3.5" />
+                      <span>{isFr ? "Ajouter un Enseignement" : "Add Teaching"}</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* TEACHER-HOSTED LIVE SANCTUARY CALL */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-8 pt-4">
         <TeacherLiveCallBanner />
       </section>
 
@@ -494,7 +1281,7 @@ export default function TeachersPortalPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#EAE3D6] dark:border-white/10">
             <div>
               <div className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-[#0E726D] dark:text-[#4EE2D8] font-bold">
-                <span>📊</span>
+                <ChartBar weight="duotone" className="w-4 h-4" />
                 <span>
                   {isFr
                     ? "ANALYTIQUE PASTORALE · DIRECTION LIFEBOOK"
@@ -516,15 +1303,22 @@ export default function TeachersPortalPage() {
             <button
               type="button"
               onClick={() => setIsAnalyticsExpanded(!isAnalyticsExpanded)}
-              className="min-h-[40px] px-4 py-2 rounded-xl border border-[#2D2542]/15 dark:border-white/15 bg-[#FAF8F5] dark:bg-white/5 text-xs font-bold text-[#2D2542] dark:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors cursor-pointer self-start sm:self-auto"
+              className="min-h-[40px] px-4 py-2 rounded-xl border border-[#2D2542]/15 dark:border-white/15 bg-[#FAF8F5] dark:bg-white/5 text-xs font-bold text-[#2D2542] dark:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors cursor-pointer self-start sm:self-auto inline-flex items-center gap-1.5"
             >
-              {isAnalyticsExpanded
-                ? isFr
-                  ? "Masquer les détails ↑"
-                  : "Collapse Details ↑"
-                : isFr
-                ? "Afficher le rapport détaillé ↓"
-                : "Expand Detailed Breakdown ↓"}
+              <span>
+                {isAnalyticsExpanded
+                  ? isFr
+                    ? "Masquer les détails"
+                    : "Collapse Details"
+                  : isFr
+                  ? "Afficher le rapport détaillé"
+                  : "Expand Detailed Breakdown"}
+              </span>
+              {isAnalyticsExpanded ? (
+                <CaretUp weight="bold" className="w-3.5 h-3.5" />
+              ) : (
+                <CaretDown weight="bold" className="w-3.5 h-3.5" />
+              )}
             </button>
           </div>
 
@@ -620,7 +1414,7 @@ export default function TeachersPortalPage() {
                             </span>
                           </div>
                           <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] truncate max-w-xl">
-                            {specialty}
+                            {teacher.ministryAffiliation} · {specialty}
                           </p>
                         </div>
                       </div>
@@ -662,11 +1456,11 @@ export default function TeachersPortalPage() {
                         >
                           {isRowOpen
                             ? isFr
-                              ? "Masquer enseignements ▲"
-                              : "Hide Teachings ▲"
+                              ? "Masquer enseignements"
+                              : "Hide Teachings"
                             : isFr
-                            ? "Détail par enseignement ▼"
-                            : "Per-Teaching Metrics ▼"}
+                            ? "Détail par enseignement"
+                            : "Per-Teaching Metrics"}
                         </button>
                       </div>
                     </div>
@@ -746,11 +1540,11 @@ export default function TeachersPortalPage() {
                                     >
                                       {isThisPlaying
                                         ? isFr
-                                          ? "⏸ En écoute"
-                                          : "⏸ Playing"
+                                          ? "En écoute"
+                                          : "Playing"
                                         : isFr
-                                        ? "▶ Écouter"
-                                        : "▶ Listen"}
+                                        ? "Écouter"
+                                        : "Listen"}
                                     </button>
                                   </div>
                                 </div>
@@ -768,256 +1562,6 @@ export default function TeachersPortalPage() {
         </div>
       </section>
 
-      {/* Pastoral Contributors Directory Grid with Filter & Sort Controls */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 py-10 space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-serif font-bold text-[#1E1931] dark:text-white">
-              {isFr
-                ? `Répertoire des Pasteurs Contributeurs (${filteredAndSortedTeachers.length})`
-                : `Appointed Pastoral Contributors Directory (${filteredAndSortedTeachers.length})`}
-            </h2>
-            <p className="text-xs text-[#5A506B] dark:text-[#C8C2D6] mt-0.5">
-              {isFr
-                ? "Filtrez par spécialité théologique ou triez par nombre d'enseignements publiés."
-                : "Filter by Theological Specialty or sort by Most Teachings Published to find specific pastoral voices."}
-            </p>
-          </div>
-
-          {/* Search & Sort Controls */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Search Input */}
-            <div className="relative w-full sm:w-60">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={
-                  isFr
-                    ? "Chercher pasteur, spécialité..."
-                    : "Search pastor, specialty..."
-                }
-                className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/15 text-[#1E1931] dark:text-white focus:outline-none focus:border-[#2D2542] dark:focus:border-[#4EE2D8]"
-              />
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-60">
-                🔍
-              </span>
-            </div>
-
-            {/* Sort Selector */}
-            <div className="flex items-center gap-2 text-xs">
-              <label
-                htmlFor="teacher-sort-select"
-                className="font-bold text-[#5A506B] dark:text-[#C8C2D6] whitespace-nowrap"
-              >
-                {isFr ? "Trier par :" : "Sort by:"}
-              </label>
-              <select
-                id="teacher-sort-select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as TeacherSortOption)}
-                className="px-3 py-2 rounded-xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/15 text-xs font-bold text-[#1E1931] dark:text-white cursor-pointer focus:outline-none focus:border-[#2D2542] dark:focus:border-[#4EE2D8]"
-              >
-                <option value="most-teachings">
-                  {isFr ? "Plus d'enseignements publiés" : "Most Teachings Published"}
-                </option>
-                <option value="most-listens">
-                  {isFr ? "Plus grand nombre d'écoutes" : "Most Total Listens"}
-                </option>
-                <option value="highest-completion">
-                  {isFr ? "Meilleur taux de complétion" : "Highest Completion Rate"}
-                </option>
-                <option value="alphabetical">
-                  {isFr ? "Ordre alphabétique (A–Z)" : "Alphabetical (A–Z)"}
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Theological Specialty Filter Bar */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 space-y-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-[#5A4B7C] dark:text-[#4EE2D8]">
-              {isFr ? "FILTRER PAR SPÉCIALITÉ THÉOLOGIQUE :" : "FILTER BY THEOLOGICAL SPECIALTY:"}
-            </span>
-            {selectedSpecialty !== "ALL" && (
-              <button
-                type="button"
-                onClick={() => setSelectedSpecialty("ALL")}
-                className="text-xs font-bold text-[#3D2E5C] dark:text-[#4EE2D8] hover:underline cursor-pointer"
-              >
-                {isFr ? "Réinitialiser le filtre ✕" : "Reset Filter ✕"}
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            <button
-              type="button"
-              onClick={() => setSelectedSpecialty("ALL")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                selectedSpecialty === "ALL"
-                  ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
-                  : "bg-[#FAF8F5] dark:bg-white/5 text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 border border-[#E3DACB] dark:border-white/10"
-              }`}
-            >
-              {isFr ? "Toutes les spécialités" : "All Theological Specialties"} ({teacherList.length})
-            </button>
-
-            {allSpecialtyFilters.map((spec) => {
-              const isSelected = selectedSpecialty === spec;
-              return (
-                <button
-                  key={spec}
-                  type="button"
-                  onClick={() => setSelectedSpecialty(isSelected ? "ALL" : spec)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] shadow-xs"
-                      : "bg-[#FAF8F5] dark:bg-white/5 text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 border border-[#E3DACB] dark:border-white/10"
-                  }`}
-                >
-                  {spec}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Directory Cards */}
-        {filteredAndSortedTeachers.length === 0 ? (
-          <div className="p-10 rounded-3xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 text-center space-y-3">
-            <p className="text-sm font-semibold text-[#1E1931] dark:text-white">
-              {isFr
-                ? "Aucun pasteur contributeur ne correspond à ce filtre théologique."
-                : "No pastoral contributors match this theological specialty filter."}
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedSpecialty("ALL");
-                setSearchQuery("");
-              }}
-              className="px-4 py-2 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold cursor-pointer"
-            >
-              {isFr ? "Afficher tous les pasteurs" : "Show All Pastoral Contributors"}
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredAndSortedTeachers.map((teacher) => {
-              const perf = performanceMap[teacher.slug];
-              const count = perf?.publishedCount || 0;
-              const role = isFr ? teacher.roleFr : teacher.role;
-              const specialty = isFr ? teacher.theologicalSpecialtyFr : teacher.theologicalSpecialty;
-              const bio = isFr ? teacher.bioFr : teacher.bio;
-              const specs = isFr ? teacher.specialtiesFr : teacher.specialties;
-
-              return (
-                <article
-                  key={teacher.slug}
-                  className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 p-6 sm:p-7 shadow-sm hover:border-[#3D2E5C] dark:hover:border-[#4EE2D8]/50 transition-all flex flex-col justify-between space-y-5"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <Link
-                        href={`/teachers/${teacher.slug}`}
-                        className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#E3DACB] dark:border-white/20 shrink-0 bg-[#E0D7C6]"
-                      >
-                        <Image
-                          src={teacher.portrait}
-                          alt={teacher.name}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      </Link>
-
-                      <div className="min-w-0 flex-1 space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#2D2542] dark:bg-[#4EE2D8]/20 text-white dark:text-[#4EE2D8]">
-                            {isFr ? "Choisi par LifeBook" : "Chosen Contributor"}
-                          </span>
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#F2ECE1] dark:bg-white/10 text-[#1E1931] dark:text-white">
-                            📚 {count} {isFr ? "enseignements" : "teachings"}
-                          </span>
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
-                            🎧 {(perf?.totalListens || 0).toLocaleString()} · {perf?.avgCompletionRate || 0}%
-                          </span>
-                        </div>
-
-                        <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white">
-                          <Link href={`/teachers/${teacher.slug}`} className="hover:underline">
-                            {teacher.name}
-                          </Link>
-                        </h3>
-
-                        <p className="text-xs font-medium text-[#52466D] dark:text-[#C8C2D6]">
-                          {role} · <span className="font-semibold">{teacher.ministryAffiliation}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Theological Conviction Box */}
-                    <div className="p-3.5 rounded-2xl bg-[#FAF8F5] dark:bg-[#120E22] border border-[#EADBCE] dark:border-white/10 space-y-2">
-                      <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#5A4B7C] dark:text-[#4EE2D8]">
-                        {isFr ? "Spécialité Théologique" : "Theological Specialty"}
-                      </div>
-                      <p className="text-xs font-serif italic text-[#2E2448] dark:text-[#F4EFE6]">
-                        “{specialty}”
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {specs.map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => setSelectedSpecialty(tag)}
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors cursor-pointer border ${
-                              selectedSpecialty === tag
-                                ? "bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-transparent"
-                                : "bg-white dark:bg-white/10 text-[#544773] dark:text-[#D5CEE6] border-[#DDD3C2] dark:border-white/10 hover:border-[#2D2542]"
-                            }`}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-[#4E4467] dark:text-[#C8C2D6] leading-relaxed line-clamp-3">
-                      {bio}
-                    </p>
-                  </div>
-
-                  {/* Action Footer: Open Teacher's Page OR Add Teaching */}
-                  <div className="pt-4 border-t border-[#EAE3D6] dark:border-white/10 flex flex-wrap items-center justify-between gap-2">
-                    <Link
-                      href={`/teachers/${teacher.slug}`}
-                      className="min-h-[40px] px-4 py-2 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold hover:opacity-95 transition-all flex items-center gap-1.5"
-                    >
-                      <span>📖</span>
-                      <span>
-                        {isFr ? "Ouvrir la Page du Pasteur →" : "Open Pastor’s Page →"}
-                      </span>
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTeacherForTeaching(teacher)}
-                      className="min-h-[40px] px-3.5 py-2 rounded-xl border border-[#2D2542]/20 dark:border-white/20 hover:bg-[#F2ECE1] dark:hover:bg-white/10 text-xs font-bold text-[#2D2542] dark:text-white transition-colors cursor-pointer flex items-center gap-1.5"
-                    >
-                      <span>＋</span>
-                      <span>{isFr ? "Ajouter un Enseignement" : "Add Teaching"}</span>
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
       {/* MODAL 1: Appoint New Pastoral Contributor (LifeBook Leadership) */}
       {isAppointModalOpen && (
         <div
@@ -1032,7 +1576,9 @@ export default function TeachersPortalPage() {
                   {isFr ? "CONSEIL DE DIRECTION LIFEBOOK" : "LIFEBOOK LEADERSHIP COUNCIL"}
                 </span>
                 <h2 className="text-xl font-serif font-bold mt-0.5">
-                  {isFr ? "Choisir & Nommer un Pasteur Contributeur" : "Appoint a Pastoral Contributor"}
+                  {isFr
+                    ? "Choisir & Nommer un Pasteur Contributeur"
+                    : "Appoint a Pastoral Contributor"}
                 </h2>
               </div>
               <button
@@ -1040,7 +1586,7 @@ export default function TeachersPortalPage() {
                 onClick={() => setIsAppointModalOpen(false)}
                 className="w-8 h-8 rounded-full bg-[#F2ECE1] dark:bg-white/10 flex items-center justify-center text-xs font-bold cursor-pointer"
               >
-                ✕
+                <X weight="bold" className="w-4 h-4" />
               </button>
             </div>
 
@@ -1103,7 +1649,9 @@ export default function TeachersPortalPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold block mb-1">
-                    {isFr ? "Spécialité & Vocation Théologique *" : "Theological Specialty & Conviction *"}
+                    {isFr
+                      ? "Spécialité & Vocation Théologique *"
+                      : "Theological Specialty & Conviction *"}
                   </label>
                   <input
                     type="text"
@@ -1116,7 +1664,9 @@ export default function TeachersPortalPage() {
                 </div>
                 <div>
                   <label className="font-bold block mb-1">
-                    {isFr ? "Domaines Clés (séparés par virgule)" : "Specialty Tags (comma-separated)"}
+                    {isFr
+                      ? "Domaines Clés (séparés par virgule)"
+                      : "Specialty Tags (comma-separated)"}
                   </label>
                   <input
                     type="text"
@@ -1190,7 +1740,7 @@ export default function TeachersPortalPage() {
 
               {appointSuccess && (
                 <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 font-bold">
-                  ✓ {appointSuccess}
+                  {appointSuccess}
                 </div>
               )}
 
@@ -1238,7 +1788,7 @@ export default function TeachersPortalPage() {
                 onClick={() => setSelectedTeacherForTeaching(null)}
                 className="w-8 h-8 rounded-full bg-[#F2ECE1] dark:bg-white/10 flex items-center justify-center text-xs font-bold cursor-pointer"
               >
-                ✕
+                <X weight="bold" className="w-4 h-4" />
               </button>
             </div>
 
@@ -1278,7 +1828,9 @@ export default function TeachersPortalPage() {
                   <select
                     value={teachingCategory}
                     onChange={(e) =>
-                      setTeachingCategory(e.target.value as "Faith" | "Prayer" | "Hope" | "Discipleship")
+                      setTeachingCategory(
+                        e.target.value as "Faith" | "Prayer" | "Hope" | "Discipleship"
+                      )
                     }
                     className="w-full px-3.5 py-2.5 rounded-xl border border-[#2D2542]/20 dark:border-white/20 bg-[#FAF8F5] dark:bg-[#120E22]"
                   >
@@ -1318,7 +1870,9 @@ export default function TeachersPortalPage() {
 
               <div>
                 <label className="font-bold block mb-1">
-                  {isFr ? "Texte Complet de l'Enseignement & Méditation Audio *" : "Full Expository Teaching & Audio Script *"}
+                  {isFr
+                    ? "Texte Complet de l'Enseignement & Méditation Audio *"
+                    : "Full Expository Teaching & Audio Script *"}
                 </label>
                 <textarea
                   rows={4}
@@ -1332,7 +1886,7 @@ export default function TeachersPortalPage() {
 
               {teachingSuccess && (
                 <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 font-bold">
-                  ✓ {teachingSuccess}
+                  {teachingSuccess}
                 </div>
               )}
 

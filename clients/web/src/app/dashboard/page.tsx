@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { useChristianAuth } from "@/lib/christian-auth";
 import {
   getStreakData,
@@ -27,19 +26,28 @@ import { triggerOpenWalkthrough } from "@/lib/live-call";
 import { SanctuaryWalkthroughModal } from "@/components/SanctuaryWalkthroughModal";
 import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
 import { speakWithHumanVoice, stopHumanVoice } from "@/lib/human-voice";
-import {
-  getSavedChristianMelody,
-  startChristianMelody,
-  stopChristianMelody,
-} from "@/lib/christian-melodies";
 import { ProgressScreen } from "@/components/ProgressScreen";
 import {
   Sparkle,
   Fire,
   BookOpenText,
-  MicrophoneStage,
-  Palette,
+  Headphones,
+  UsersThree,
+  Microphone,
+  ShieldCheck,
+  LockKey,
+  MagnifyingGlass,
+  Heart,
+  Lightbulb,
+  HandsPraying,
+  BookmarkSimple,
+  Leaf,
+  Play,
+  Pause,
+  Check,
+  Bird,
   Compass,
+  X,
 } from "@phosphor-icons/react";
 
 interface DashboardJournalEntry {
@@ -305,6 +313,21 @@ export default function DashboardPage() {
     [journalEntries, journalDateFilter, journalQuery]
   );
 
+  const renderJournalMoodIcon = (mood: string) => {
+    switch (mood) {
+      case "peaceful":
+        return <Bird weight="duotone" className="w-4 h-4 text-[#0E726D]" />;
+      case "grateful":
+        return <HandsPraying weight="duotone" className="w-4 h-4 text-amber-700" />;
+      case "seeking":
+        return <Compass weight="duotone" className="w-4 h-4 text-[#5A4B7C]" />;
+      case "sabbath":
+        return <Leaf weight="duotone" className="w-4 h-4 text-[#0E726D]" />;
+      default:
+        return <Sparkle weight="duotone" className="w-4 h-4 text-[#5A4B7C]" />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#120F1D] text-[#1E1931] dark:text-[#F4EFE6] flex flex-col font-sans transition-colors">
       <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#171326]/95 backdrop-blur-md border-b border-[#2D2542]/10 dark:border-white/12 px-4 sm:px-8 py-3.5">
@@ -323,42 +346,35 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab("overview")}
-                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
                   activeTab !== "heatmap"
                     ? "text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10"
                     : "hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10"
                 }`}
               >
-                {isFr ? "Sanctuaire" : "Sanctuary"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("heatmap")}
-                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
-                  activeTab === "heatmap"
-                    ? "text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10"
-                    : "hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10"
-                }`}
-              >
-                {isFr ? "Progrès & Habitudes" : "Progress & Rhythm"}
+                <Sparkle size={14} weight="duotone" />
+                <span>{isFr ? "Sanctuaire" : "Sanctuary"}</span>
               </button>
               <Link
                 href="/living-word"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap"
+                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
               >
-                {isFr ? "Enseignements" : "Teachings"}
-              </Link>
-              <Link
-                href="/voice"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap"
-              >
-                {isFr ? "Prière Vocale" : "Voice Prayer"}
+                <Headphones size={14} weight="duotone" />
+                <span>LivingWord</span>
               </Link>
               <Link
                 href="/teachers"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap"
+                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
               >
-                {isFr ? "Pasteurs" : "Teachers"}
+                <UsersThree size={14} weight="duotone" />
+                <span>{isFr ? "Pasteurs" : "Teachers"}</span>
+              </Link>
+              <Link
+                href="/voice"
+                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
+              >
+                <Microphone size={14} weight="duotone" />
+                <span>{isFr ? "Voix" : "Voice"}</span>
               </Link>
               <Link
                 href="/?marketing=1"
@@ -371,17 +387,43 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-2.5">
             <div className="relative hidden sm:block w-48 lg:w-60">
+              <MagnifyingGlass
+                size={14}
+                weight="bold"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E6285] dark:text-[#A9A0BC] pointer-events-none"
+              />
               <input
-                type="text"
+                type="search"
                 value={headerSearch}
-                onChange={(e) => setHeaderSearch(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setHeaderSearch(val);
+                  setJournalQuery(val);
+                  if (val.trim() && activeTab !== "journal") {
+                    setActiveTab("journal");
+                  }
+                }}
                 placeholder={
                   isFr
-                    ? "Rechercher passage, thème..."
-                    : "Search passage, topic..."
+                    ? "Rechercher passage, note..."
+                    : "Search passage, journal..."
                 }
-                className="w-full px-3 py-2 text-xs bg-[#F2ECE1] dark:bg-[#1E1836] text-[#1E1931] dark:text-white rounded-xl border border-transparent focus:border-[#2D2542]/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-[#120E22] outline-none transition-all placeholder:text-[#6E6285] dark:placeholder:text-[#A9A0BC]"
+                aria-label={isFr ? "Rechercher dans le sanctuaire" : "Search sanctuary journal"}
+                className="w-full pl-8 pr-7 py-2 text-xs bg-[#F2ECE1] dark:bg-[#1E1836] text-[#1E1931] dark:text-white rounded-xl border border-transparent focus:border-[#2D2542]/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-[#120E22] outline-none transition-all placeholder:text-[#6E6285] dark:placeholder:text-[#A9A0BC]"
               />
+              {headerSearch && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHeaderSearch("");
+                    setJournalQuery("");
+                  }}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6E6285] hover:text-[#1E1931] dark:text-[#A9A0BC] dark:hover:text-white cursor-pointer"
+                >
+                  <X size={12} weight="bold" />
+                </button>
+              )}
             </div>
 
             <LanguageToggle />
@@ -450,12 +492,12 @@ export default function DashboardPage() {
               onClick={() => setIsRitualModalOpen(true)}
               className="min-h-[42px] px-5 py-2.5 rounded-full bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-xs font-bold shadow-lg transition-all flex items-center gap-2 cursor-pointer"
             >
-              <span>✦</span>
+              <Sparkle size={15} weight="fill" />
               <span>
                 {todayRitualCompletion
                   ? isFr
-                    ? "Méditation du jour scellée ✓ (Revoir)"
-                    : "Today's Ritual Sealed ✓ (Review)"
+                    ? "Méditation du jour scellée (Revoir)"
+                    : "Today's Ritual Sealed (Review)"
                   : isFr
                   ? "Démarrer le Rituel 5-Min (3 Étapes)"
                   : "Begin 5-Min Guided Ritual (3 Steps)"}
@@ -474,7 +516,12 @@ export default function DashboardPage() {
               }}
               className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-2 cursor-pointer"
             >
-              <span>{isPlaying ? "⏸ Pause Audio" : "▶ 3-Min Audio"}</span>
+              {isPlaying ? (
+                <Pause size={14} weight="fill" />
+              ) : (
+                <Play size={14} weight="fill" />
+              )}
+              <span>{isPlaying ? "Pause Audio" : "3-Min Audio"}</span>
             </button>
 
             <button
@@ -560,8 +607,9 @@ export default function DashboardPage() {
                 <span className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl">
                   <Fire weight="duotone" className="w-5 h-5 text-amber-700" />
                 </span>
-                <span className="text-xs font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                  {isFr ? "Grâce active 🛡️" : "Grace Shield Active 🛡️"}
+                <span className="text-xs font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] inline-flex items-center gap-1">
+                  <ShieldCheck weight="duotone" className="w-4 h-4" />
+                  <span>{isFr ? "Grâce active" : "Grace Shield Active"}</span>
                 </span>
               </div>
               <div className="my-4">
@@ -710,7 +758,7 @@ export default function DashboardPage() {
                   </span>
                   <span className="text-[#5A506B] dark:text-[#C8C2D6]">·</span>
                   <span className="text-[#0E726D] dark:text-[#4EE2D8] font-bold flex items-center gap-1">
-                    <span>🔒</span>
+                    <LockKey weight="duotone" className="w-3.5 h-3.5" />
                     <span>
                       {isFr ? "Chiffrement Local" : "Client-Side Only"}
                     </span>
@@ -725,7 +773,7 @@ export default function DashboardPage() {
                       className="absolute left-3.5 text-sm text-[#8D82A0]"
                       aria-hidden="true"
                     >
-                      🔍
+                      <MagnifyingGlass weight="bold" className="w-4 h-4" />
                     </span>
                     <input
                       type="text"
@@ -745,7 +793,7 @@ export default function DashboardPage() {
                         className="absolute right-3 text-xs text-[#8D82A0] hover:text-[#1E1931] cursor-pointer"
                         title={isFr ? "Effacer" : "Clear"}
                       >
-                        ✕
+                        <X weight="bold" className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
@@ -813,8 +861,8 @@ export default function DashboardPage() {
 
             {filteredJournal.length === 0 ? (
               <div className="bg-white rounded-3xl border border-[#2D2542]/10 p-12 text-center max-w-md mx-auto space-y-3">
-                <div className="w-12 h-12 rounded-full bg-[#FAF8F5] border border-[#2D2542]/10 text-2xl flex items-center justify-center mx-auto">
-                  📖
+                <div className="w-12 h-12 rounded-full bg-[#FAF8F5] border border-[#2D2542]/10 text-[#2D2542] flex items-center justify-center mx-auto">
+                  <BookOpenText weight="duotone" className="w-6 h-6" />
                 </div>
                 <h3 className="text-base font-serif font-bold text-[#1E1931]">
                   {isFr
@@ -856,7 +904,7 @@ export default function DashboardPage() {
                             className="w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs"
                             style={{ backgroundColor: `${entry.moodColor}20` }}
                           >
-                            {entry.moodEmoji}
+                            {renderJournalMoodIcon(entry.mood)}
                           </span>
                           <div>
                             <span className="text-[11px] font-bold text-[#1E1931] block leading-none">
@@ -907,9 +955,14 @@ export default function DashboardPage() {
                         ))}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-[#8D82A0]">
-                        {entry.isFavorite && <span title="Favorite">❤️</span>}
-                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                          ✓ Saved
+                        {entry.isFavorite && (
+                          <span title="Favorite" className="text-rose-500 flex items-center">
+                            <Heart weight="fill" className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                          <Check weight="bold" className="w-3 h-3" />
+                          <span>Saved</span>
                         </span>
                       </div>
                     </div>
@@ -987,7 +1040,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 rounded-2xl bg-[#F6F4FB] dark:bg-[#141024] border border-[#DDD3EF] dark:border-white/12 space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-[#5A4B7C] dark:text-[#C8C2D6]">
-                  <span>💡</span>
+                  <Lightbulb weight="duotone" className="w-4 h-4" />
                   <span>
                     {isFr ? "Étape 02 · Méditation" : "Step 02 · Reflection"}
                   </span>
@@ -1001,7 +1054,7 @@ export default function DashboardPage() {
 
               <div className="p-4 rounded-2xl bg-[#F1F8F5] dark:bg-[#102222] border border-[#C5E5D8] dark:border-[#1FB6B0]/30 space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                  <span>🙏</span>
+                  <HandsPraying weight="duotone" className="w-4 h-4" />
                   <span>
                     {isFr
                       ? "Étape 03 · Prière Orale"
@@ -1031,10 +1084,19 @@ export default function DashboardPage() {
                     : "bg-[#F2ECE1] dark:bg-[#120E22] text-[#5A506B] dark:text-[#C8C2D6] hover:bg-[#EADBCE]"
                 }`}
               >
+                {bookmarkedMap["dev-1"] ? (
+                  <Check weight="bold" className="w-3.5 h-3.5" />
+                ) : (
+                  <BookmarkSimple weight="duotone" className="w-4 h-4" />
+                )}
                 <span>
                   {bookmarkedMap["dev-1"]
-                    ? "✓ Enregistré"
-                    : "🔖 Ajouter aux Favoris"}
+                    ? isFr
+                      ? "Enregistré"
+                      : "Saved"
+                    : isFr
+                    ? "Ajouter aux Favoris"
+                    : "Bookmark Passage"}
                 </span>
               </button>
 
@@ -1097,14 +1159,9 @@ export default function DashboardPage() {
                   onClick={() => {
                     if (isVoicePlaying) {
                       stopHumanVoice();
-                      stopChristianMelody();
                       setIsVoicePlaying(false);
                     } else {
                       setIsVoicePlaying(true);
-                      const melody = getSavedChristianMelody();
-                      if (melody.melodyId !== "none") {
-                        startChristianMelody(melody.melodyId);
-                      }
                       void speakWithHumanVoice({
                         text: `${passages[selectedPassage].ref}. ${passages[selectedPassage].text}`,
                         isFrFallback: isFr,
@@ -1112,15 +1169,22 @@ export default function DashboardPage() {
                       });
                     }
                   }}
-                  className="min-h-[40px] px-4 py-2 rounded-full bg-[#56C2B4] text-[#120F24] font-bold text-xs hover:bg-[#68D8CA] transition-colors cursor-pointer"
+                  className="min-h-[40px] px-4 py-2 rounded-full bg-[#56C2B4] text-[#120F24] font-bold text-xs hover:bg-[#68D8CA] transition-colors cursor-pointer inline-flex items-center gap-1.5"
                 >
-                  {isVoicePlaying
-                    ? isFr
-                      ? "⏸ Arrêter la Voix"
-                      : "⏸ Stop Human Voice"
-                    : isFr
-                    ? "▶ Écouter la Parole (Voix Humaine)"
-                    : "▶ Listen with Human Voice"}
+                  {isVoicePlaying ? (
+                    <Pause size={13} weight="fill" />
+                  ) : (
+                    <Play size={13} weight="fill" />
+                  )}
+                  <span>
+                    {isVoicePlaying
+                      ? isFr
+                        ? "Arrêter la Voix"
+                        : "Stop Human Voice"
+                      : isFr
+                      ? "Écouter la Parole (Voix Humaine)"
+                      : "Listen with Human Voice"}
+                  </span>
                 </button>
 
                 <div className="flex items-center gap-3">
@@ -1149,8 +1213,9 @@ export default function DashboardPage() {
                     ? "PRIÈRE DU MATIN DIRECTE"
                     : "INSTANT PRIVATE PRAYER"}
                 </span>
-                <span className="text-xs text-[#0E726D] dark:text-[#4EE2D8] font-bold">
-                  🔒 Chiffré Localement
+                <span className="text-xs text-[#0E726D] dark:text-[#4EE2D8] font-bold inline-flex items-center gap-1">
+                  <LockKey weight="duotone" className="w-3.5 h-3.5" />
+                  <span>{isFr ? "Chiffré Localement" : "Locally Encrypted"}</span>
                 </span>
               </div>
 
@@ -1273,8 +1338,9 @@ export default function DashboardPage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-xs bg-[#F28C38]" />
-                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">
-                    Peak Rhythm 🔥
+                  <span className="text-[#5A506B] dark:text-[#C8C2D6] inline-flex items-center gap-1">
+                    <span>Peak Rhythm</span>
+                    <Fire weight="fill" className="w-3.5 h-3.5 text-[#F28C38]" />
                   </span>
                 </span>
               </div>
@@ -1313,8 +1379,16 @@ export default function DashboardPage() {
                     <span className="text-xs font-bold font-mono leading-none">
                       {day}
                     </span>
-                    <span className="text-xs uppercase tracking-tighter opacity-90 mt-0.5 leading-none">
-                      {isPeak ? "🔥" : isSabbath ? "🌿" : isDeep ? "✓" : "·"}
+                    <span className="text-xs uppercase tracking-tighter opacity-90 mt-1 leading-none flex items-center justify-center">
+                      {isPeak ? (
+                        <Fire weight="fill" className="w-3 h-3" />
+                      ) : isSabbath ? (
+                        <Leaf weight="duotone" className="w-3 h-3" />
+                      ) : isDeep ? (
+                        <Check weight="bold" className="w-3 h-3" />
+                      ) : (
+                        "·"
+                      )}
                     </span>
                   </div>
                 );
@@ -1322,10 +1396,13 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2D2542]/10 dark:border-white/12 text-xs text-[#5A4B7C] dark:text-[#C8C2D6]">
-              <p>
-                {isFr
-                  ? "Le repos du sabbat (🌿) préserve votre élan spirituel sans jamais remettre votre série à zéro."
-                  : "Intentional Sabbath rest (🌿) protects your momentum without guilt resets."}
+              <p className="inline-flex items-center gap-1.5">
+                <Leaf weight="duotone" className="w-4 h-4 text-[#0E726D] dark:text-[#4EE2D8] shrink-0" />
+                <span>
+                  {isFr
+                    ? "Le repos du sabbat préserve votre élan spirituel sans jamais remettre votre série à zéro."
+                    : "Intentional Sabbath rest protects your momentum without guilt resets."}
+                </span>
               </p>
               <button
                 type="button"

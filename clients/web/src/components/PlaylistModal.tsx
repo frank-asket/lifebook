@@ -1,6 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import {
+  Headphones,
+  BookOpenText,
+  Check,
+  X,
+  Plus,
+} from "@phosphor-icons/react";
 import { usePlaylists, Playlist } from "@/lib/usePlaylists";
 import type { Teaching } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
@@ -11,7 +18,7 @@ interface PlaylistModalProps {
   onClose: () => void;
 }
 
-const ICONS = ["🎧", "⏳", "🕊️", "🌱", "📖", "✝️", "🙏", "🕯️", "🌅", "💡"];
+const ICONS = ["Audio", "Scripture", "Prayer", "Stillness"];
 const GRADIENTS = [
   { name: "Purple Twilight", class: "from-[#5D4E7B] to-[#3B2D54]" },
   { name: "Deep Ocean", class: "from-[#3A506B] to-[#1C2541]" },
@@ -27,7 +34,7 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
   const [isCreating, setIsCreating] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
-  const [newIcon, setNewIcon] = useState("🎧");
+  const [newIcon, setNewIcon] = useState("Audio");
   const [newGradient, setNewGradient] = useState(GRADIENTS[0].class);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -88,14 +95,14 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-[#A898CE] hover:text-white hover:bg-white/10 transition-colors"
           >
-            ✕
+            <X size={15} weight="bold" />
           </button>
         </div>
 
         {/* Selected Teaching Mini Card */}
         <div className="px-6 py-3 bg-[#1B1629] border-b border-[#352E4B] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg overflow-hidden bg-purple-900/50 flex-shrink-0 flex items-center justify-center text-xl">
-            📖
+          <div className="w-10 h-10 rounded-lg overflow-hidden bg-purple-900/50 flex-shrink-0 flex items-center justify-center text-white">
+            <BookOpenText size={20} weight="duotone" />
           </div>
           <div className="min-w-0 flex-1">
             <h4 className="text-sm font-semibold text-white truncate">
@@ -110,7 +117,7 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
         {/* Toast alert */}
         {toastMsg && (
           <div className="mx-6 mt-3 px-3 py-2 bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 text-xs rounded-lg flex items-center gap-2">
-            <span>✓</span>
+            <Check size={14} weight="bold" />
             <span>{toastMsg}</span>
           </div>
         )}
@@ -141,9 +148,9 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
                   <div
                     className={`w-10 h-10 rounded-xl bg-gradient-to-br ${
                       playlist.color || "from-[#5D4E7B] to-[#3B2D54]"
-                    } flex items-center justify-center text-lg shadow-inner flex-shrink-0`}
+                    } flex items-center justify-center text-white shadow-inner flex-shrink-0`}
                   >
-                    {playlist.icon || "🎧"}
+                    <Headphones size={18} weight="duotone" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -168,7 +175,7 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
                         : "border-[#5E5181] bg-transparent text-transparent"
                     }`}
                   >
-                    {isSaving ? "⏳" : "✓"}
+                    <Check size={13} weight="bold" />
                   </div>
                 </div>
               </button>
@@ -182,7 +189,7 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
               onClick={() => setIsCreating(true)}
               className="w-full mt-2 py-3 px-4 rounded-xl border border-dashed border-[#574B78] hover:border-[#8E7BBF] hover:bg-white/5 text-sm font-medium text-[#C8BCDE] flex items-center justify-center gap-2 transition-colors"
             >
-              <span>+</span>
+              <Plus size={15} weight="bold" />
               <span>{isFr ? "Créer une nouvelle liste" : "Create new playlist"}</span>
             </button>
           ) : (
@@ -224,7 +231,7 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
               {/* Icon selector */}
               <div>
                 <label className="block text-[11px] text-[#A898CE] mb-1">
-                  {isFr ? "Icône spirituelle" : "Spiritual Icon"}
+                  {isFr ? "Catégorie" : "Focus"}
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {ICONS.map((icon) => (
@@ -232,10 +239,10 @@ export function PlaylistModal({ teaching, isOpen, onClose }: PlaylistModalProps)
                       key={icon}
                       type="button"
                       onClick={() => setNewIcon(icon)}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm border transition-all ${
+                      className={`px-2.5 py-1 rounded-lg flex items-center justify-center text-xs font-semibold border transition-all ${
                         newIcon === icon
-                          ? "bg-[#7F67B5] border-white scale-110"
-                          : "bg-[#2B2340] border-[#4B4068] hover:bg-[#392F54]"
+                          ? "bg-[#7F67B5] border-white text-white"
+                          : "bg-[#2B2340] border-[#4B4068] text-[#C8BCDE] hover:bg-[#392F54]"
                       }`}
                     >
                       {icon}

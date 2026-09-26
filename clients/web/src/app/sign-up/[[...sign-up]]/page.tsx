@@ -1,5 +1,10 @@
 import React from "react";
 import Link from "next/link";
+import {
+  Leaf,
+  BookOpenText,
+  ShieldCheck,
+} from "@phosphor-icons/react/dist/ssr";
 import { LifeBookLogo } from "@/components/LifeBookLogo";
 import { ChristianSignUpForm } from "@/components/ChristianSignUpForm";
 
@@ -47,20 +52,20 @@ export default function SignUpPage() {
 
           <div className="pt-6 border-t border-white/10 space-y-3">
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
-              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
-                🌿
+              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+                <Leaf size={14} weight="duotone" />
               </span>
               <span>No Spiritual Scoreboards: grace when life gets full or heavy</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
-              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
-                📖
+              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+                <BookOpenText size={14} weight="duotone" />
               </span>
               <span>Five Major Translations: ESV, NIV, KJV, CSB, and NLT</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
-              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
-                🛡️
+              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+                <ShieldCheck size={14} weight="duotone" />
               </span>
               <span>Completely Private and Safe: your prayers remain yours and God’s</span>
             </div>

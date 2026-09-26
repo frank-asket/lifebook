@@ -9,6 +9,12 @@ import {
   NotePencil,
   Leaf,
   Compass,
+  Sparkle,
+  Headphones,
+  UsersThree,
+  Microphone,
+  SpeakerHigh,
+  Stop,
 } from "@phosphor-icons/react";
 import { useLanguage } from "@/lib/i18n";
 import { useChristianAuth } from "@/lib/christian-auth";
@@ -18,6 +24,7 @@ import { VisualStreakCounter } from "@/components/VisualStreakCounter";
 import { DailyRitualModal } from "@/components/DailyRitualModal";
 import { PWAInstallButton } from "@/components/PWAInstallPrompt";
 import { CloudSyncBadge } from "@/components/CloudSyncBadge";
+import { speakWithHumanVoice, stopHumanVoice } from "@/lib/human-voice";
 import LivingWord from "./LivingWord";
 import VoicePractice from "./VoicePractice";
 
@@ -45,6 +52,7 @@ export default function HomePage() {
   const [selectedTranslation, setSelectedTranslation] = useState<"ESV" | "NIV" | "KJV" | "LSG">("ESV");
   const [selectedTrackIdx, setSelectedTrackIdx] = useState(0);
   const [isRitualModalOpen, setIsRitualModalOpen] = useState(false);
+  const [isReadingStepAloud, setIsReadingStepAloud] = useState(false);
 
   const router = useRouter();
   const { user, isSignedIn, signOut } = useChristianAuth();
@@ -362,33 +370,40 @@ export default function HomePage() {
           </a>
 
           <div className="showcase-links">
-            <a
-              href="#features"
-              className={activeSection === "features" ? "active-link" : ""}
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5"
             >
-              {t("nav_daily_practice")}
-            </a>
+              <Sparkle size={14} weight="duotone" />
+              <span>{isFr ? "Sanctuaire" : "Sanctuary"}</span>
+            </Link>
+            <Link
+              href="/living-word"
+              className={`inline-flex items-center gap-1.5 ${activeSection === "living-word" ? "active-link" : ""}`}
+            >
+              <Headphones size={14} weight="duotone" />
+              <span>{t("nav_audio_teachings")}</span>
+            </Link>
+            <Link
+              href="/teachers"
+              className="inline-flex items-center gap-1.5"
+            >
+              <UsersThree size={14} weight="duotone" />
+              <span>{isFr ? "Pasteurs" : "Teachers"}</span>
+            </Link>
+            <Link
+              href="/voice"
+              className={`inline-flex items-center gap-1.5 ${activeSection === "voice" ? "active-link" : ""}`}
+            >
+              <Microphone size={14} weight="duotone" />
+              <span>{t("nav_voice_search")}</span>
+            </Link>
             <a
               href="#journeys"
               className={activeSection === "journeys" ? "active-link" : ""}
             >
               {t("nav_journeys")}
             </a>
-            <Link
-              href="/living-word"
-              className={activeSection === "living-word" ? "active-link" : ""}
-            >
-              {t("nav_audio_teachings")}
-            </Link>
-            <Link
-              href="/voice"
-              className={activeSection === "voice" ? "active-link" : ""}
-            >
-              {t("nav_voice_search")}
-            </Link>
-            <Link href="/dashboard">
-              {isFr ? "Sanctuaire" : "Sanctuary"}
-            </Link>
           </div>
 
           <div className="auth-actions flex items-center gap-2.5">
@@ -955,6 +970,38 @@ export default function HomePage() {
                   }`}
                 >
                   {t("phase_pray")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isReadingStepAloud) {
+                      stopHumanVoice();
+                      setIsReadingStepAloud(false);
+                    } else {
+                      setIsReadingStepAloud(true);
+                      void speakWithHumanVoice({
+                        text: `${stepCards[selectedStep].quote.replace(/\n/g, " ")} ${stepCards[selectedStep].ref}`,
+                        isFrFallback: isFr,
+                        onEnd: () => setIsReadingStepAloud(false),
+                      });
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5"
+                >
+                  {isReadingStepAloud ? (
+                    <Stop size={13} weight="fill" />
+                  ) : (
+                    <SpeakerHigh size={13} weight="duotone" />
+                  )}
+                  <span>
+                    {isReadingStepAloud
+                      ? isFr
+                        ? "Arrêter"
+                        : "Stop Audio"
+                      : isFr
+                      ? "Écouter"
+                      : "Listen Aloud"}
+                  </span>
                 </button>
                 <button
                   type="button"

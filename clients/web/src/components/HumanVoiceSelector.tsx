@@ -1,6 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import {
+  SpeakerHigh,
+  BookOpenText,
+  Stop,
+  Check,
+} from "@phosphor-icons/react";
 import { useLanguage } from "@/lib/i18n";
 import {
   useHumanVoice,
@@ -100,8 +106,9 @@ export function HumanVoiceSelector({
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs min-w-0">
+            <SpeakerHigh weight="duotone" className="w-4 h-4 text-[#0E726D] dark:text-[#4EE2D8] shrink-0" />
             <span className="font-bold whitespace-nowrap">
-              🗣️ {isFr ? "Accent & Voix :" : "Scripture Voice:"}
+              {isFr ? "Accent & Voix :" : "Scripture Voice:"}
             </span>
             <span className="font-semibold text-[#0E726D] dark:text-[#4EE2D8] truncate">
               {activePersona.countryFlag} {activePersona.name} · {activePersona.cityLabel}
@@ -111,15 +118,19 @@ export function HumanVoiceSelector({
           <button
             type="button"
             onClick={() => handleNarrateSelectedScripture(activePersona)}
-            className="px-2.5 py-1 rounded-lg bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap"
+            className="px-2.5 py-1 rounded-lg bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-[11px] font-bold transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1"
           >
-            {isPreviewing
-              ? isFr
-                ? "⏹ Arrêter"
-                : "⏹ Stop"
-              : isFr
-              ? "📖 Écouter le Verset"
-              : "📖 Narrate Scripture"}
+            {isPreviewing ? (
+              <>
+                <Stop weight="fill" className="w-3 h-3" />
+                <span>{isFr ? "Arrêter" : "Stop"}</span>
+              </>
+            ) : (
+              <>
+                <BookOpenText weight="duotone" className="w-3.5 h-3.5" />
+                <span>{isFr ? "Écouter le Verset" : "Narrate Scripture"}</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -202,7 +213,8 @@ export function HumanVoiceSelector({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-2 text-xs text-[#0E726D] dark:text-[#4EE2D8] font-mono font-semibold">
-            <span>🗣️ HUMAN PASTORAL VOICE STUDIO</span>
+            <SpeakerHigh weight="duotone" className="w-4 h-4" />
+            <span>HUMAN PASTORAL VOICE STUDIO</span>
             <span aria-hidden="true">·</span>
             <span>🇳🇬 NIGERIAN (EN) · 🇨🇮 CÔTE D&apos;IVOIRE (FR) · 🇺🇸 AMERICAN (EN)</span>
           </div>
@@ -269,8 +281,9 @@ export function HumanVoiceSelector({
       <div className="rounded-2xl bg-[#FAF6EE] dark:bg-[#141024] border border-[#2D2542]/10 dark:border-white/10 p-4 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-[#1E1931] dark:text-white">
-              📖 {isFr ? "Tester la Narration Biblique :" : "Live Scripture Narration Preview:"}
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1E1931] dark:text-white">
+              <BookOpenText weight="duotone" className="w-4 h-4 text-[#0E726D] dark:text-[#4EE2D8]" />
+              <span>{isFr ? "Tester la Narration Biblique :" : "Live Scripture Narration Preview:"}</span>
             </span>
             <div className="flex flex-wrap items-center gap-1">
               {scripturePassages.map((passage) => {
@@ -319,19 +332,27 @@ export function HumanVoiceSelector({
             <button
               type="button"
               onClick={() => handleNarrateSelectedScripture(activePersona)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
                 isPreviewing
                   ? "bg-amber-500 text-[#1E1931]"
                   : "bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B]"
               }`}
             >
-              {isPreviewing
-                ? isFr
-                  ? "⏹ Arrêter"
-                  : "⏹ Stop Narration"
-                : isFr
-                ? `🔊 Écouter (${activePersona.countryFlag})`
-                : `🔊 Narrate (${activePersona.countryFlag})`}
+              {isPreviewing ? (
+                <>
+                  <Stop weight="fill" className="w-3.5 h-3.5" />
+                  <span>{isFr ? "Arrêter" : "Stop Narration"}</span>
+                </>
+              ) : (
+                <>
+                  <SpeakerHigh weight="duotone" className="w-3.5 h-3.5" />
+                  <span>
+                    {isFr
+                      ? `Écouter (${activePersona.countryFlag})`
+                      : `Narrate (${activePersona.countryFlag})`}
+                  </span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -377,8 +398,9 @@ export function HumanVoiceSelector({
                       {p.name}
                     </h4>
                     {isSelected && (
-                      <span className="text-[11px] font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                        ✓ {isFr ? "Active" : "Active"}
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0E726D] dark:text-[#4EE2D8]">
+                        <Check weight="bold" className="w-3 h-3" />
+                        <span>{isFr ? "Active" : "Active"}</span>
                       </span>
                     )}
                   </div>
@@ -399,19 +421,23 @@ export function HumanVoiceSelector({
                     e.stopPropagation();
                     handleSelectAndPreview(p, true);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
                     isCurrentlyPlayingThis
                       ? "bg-amber-500 text-[#1E1931]"
                       : "bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B]"
                   }`}
                 >
-                  {isCurrentlyPlayingThis
-                    ? isFr
-                      ? "⏹ Arrêter l'écoute"
-                      : "⏹ Stop Sample"
-                    : isFr
-                    ? "🔊 Écouter un Extrait"
-                    : "🔊 Hear Voice Sample"}
+                  {isCurrentlyPlayingThis ? (
+                    <>
+                      <Stop weight="fill" className="w-3.5 h-3.5" />
+                      <span>{isFr ? "Arrêter l'écoute" : "Stop Sample"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <SpeakerHigh weight="duotone" className="w-3.5 h-3.5" />
+                      <span>{isFr ? "Écouter un Extrait" : "Hear Voice Sample"}</span>
+                    </>
+                  )}
                 </button>
 
                 <span className="text-[11px] text-[#5A506B] dark:text-[#C8C2D6] font-medium">

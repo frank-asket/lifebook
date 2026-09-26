@@ -1,5 +1,10 @@
 import React from "react";
 import Link from "next/link";
+import {
+  BookOpenText,
+  HandsPraying,
+  Leaf,
+} from "@phosphor-icons/react/dist/ssr";
 import { LifeBookLogo } from "@/components/LifeBookLogo";
 import { ChristianSignInForm } from "@/components/ChristianSignInForm";
 
@@ -47,20 +52,20 @@ export default function SignInPage() {
 
           <div className="pt-6 border-t border-white/10 space-y-3">
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
-              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
-                📖
+              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+                <BookOpenText size={14} weight="duotone" />
               </span>
               <span>The Living Word: verse-by-verse scripture abiding</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
-              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
-                🙏
+              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+                <HandsPraying size={14} weight="duotone" />
               </span>
               <span>Soul Reflections: personal prayers and quiet heart check-ins</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#DDD7E8]">
-              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
-                🌿
+              <span className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center text-white shrink-0">
+                <Leaf size={14} weight="duotone" />
               </span>
               <span>Burnout-Free Rhythms: holy rest with grace for missed days</span>
             </div>

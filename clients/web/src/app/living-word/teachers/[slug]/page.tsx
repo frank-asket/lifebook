@@ -5,6 +5,23 @@ import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
+  UserCheck,
+  Headphones,
+  GraduationCap,
+  BookOpenText,
+  Scroll,
+  BookmarkSimple,
+  ArrowUpRight,
+  Check,
+  Plus,
+  X,
+  Pause,
+  Buildings,
+  Sparkle,
+  UsersThree,
+  Microphone,
+} from "@phosphor-icons/react";
+import {
   getAllTeachers,
   getTeacherBySlug,
   getTeachingsByTeacher,
@@ -17,11 +34,12 @@ import {
 } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { TeachingShareModal } from "@/components/TeachingShareModal";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
+import { TeacherDeepenedFeatures } from "@/components/TeacherDeepenedFeatures";
+import { ScriptureStudyDrawer } from "@/components/ScriptureStudyDrawer";
 
 export default function TeacherProfilePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -36,6 +54,7 @@ export default function TeacherProfilePage() {
 
   const [selectedTeachingForPlaylist, setSelectedTeachingForPlaylist] = useState<Teaching | null>(null);
   const [selectedTeachingForShare, setSelectedTeachingForShare] = useState<Teaching | null>(null);
+  const [activeScriptureRef, setActiveScriptureRef] = useState<string | null>(null);
   const [copiedProfile, setCopiedProfile] = useState(false);
   const [isBioExpanded, setIsBioExpanded] = useState(false);
 
@@ -82,7 +101,7 @@ export default function TeacherProfilePage() {
   async function handleShareProfile() {
     if (typeof window === "undefined") return;
     const url = window.location.href;
-    const shareText = `🎓 ${teacher?.name} — ${theologicalSpecialty}\n\n${role} at LifeBook LivingWord.\n\nListen to published teachings: ${url}`;
+    const shareText = `${teacher?.name} — ${theologicalSpecialty}\n\n${role} at LifeBook LivingWord.\n\nListen to published teachings: ${url}`;
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -206,34 +225,73 @@ export default function TeacherProfilePage() {
       {/* Top Navigation */}
       <nav className="border-b border-[#EAE3D6] dark:border-white/12 bg-[#FAF8F5]/90 dark:bg-[#171326]/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-[#6E6382] dark:text-[#C8C2D6]">
-            <Link href="/dashboard" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">
-              LifeBook Sanctuary
-            </Link>
-            <span>/</span>
-            <Link href="/teachers" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">
-              {isFr ? "Portail des Pasteurs" : "Teachers Portal"}
-            </Link>
-            <span>/</span>
-            <span className="text-[#1E1931] dark:text-white font-bold">{teacher.name}</span>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 text-xs font-semibold text-[#6E6382] dark:text-[#C8C2D6]">
+              <Link href="/dashboard" className="flex items-center gap-2 text-[#1E1931] dark:text-white font-serif font-bold text-base">
+                <span className="w-7 h-7 rounded-lg bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center text-xs">
+                  LB
+                </span>
+                <span>LifeBook</span>
+              </Link>
+              <span className="text-[#2D2542]/20 dark:text-white/20">/</span>
+              <Link href="/teachers" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">
+                {isFr ? "Pasteurs" : "Teachers"}
+              </Link>
+              <span className="text-[#2D2542]/20 dark:text-white/20">/</span>
+              <span className="text-[#1E1931] dark:text-white font-bold truncate max-w-[140px] sm:max-w-[180px]">{teacher.name}</span>
+            </div>
+
+            <div className="hidden lg:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
+              <Link
+                href="/dashboard"
+                className="px-3 py-1.5 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Sparkle weight="duotone" className="w-3.5 h-3.5" />
+                <span>{isFr ? "Sanctuaire" : "Sanctuary"}</span>
+              </Link>
+              <Link
+                href="/living-word"
+                className="px-3 py-1.5 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Headphones weight="duotone" className="w-3.5 h-3.5" />
+                <span>LivingWord</span>
+              </Link>
+              <Link
+                href="/teachers"
+                className="px-3 py-1.5 rounded-lg text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10 transition-colors inline-flex items-center gap-1.5"
+              >
+                <UsersThree weight="duotone" className="w-3.5 h-3.5" />
+                <span>{isFr ? "Pasteurs" : "Teachers"}</span>
+              </Link>
+              <Link
+                href="/voice"
+                className="px-3 py-1.5 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Microphone weight="duotone" className="w-3.5 h-3.5" />
+                <span>{isFr ? "Voix" : "Voice"}</span>
+              </Link>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageToggle />
-            <ThemeToggle />
             <Link
               href="/teachers"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#5D5276] dark:text-[#C8C2D6] hover:text-[#1E1931] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             >
-              <span>✝</span>
-              <span>{isFr ? "Tous les Pasteurs Contributeurs" : "All Pastoral Contributors"}</span>
+              <UserCheck weight="bold" className="w-3.5 h-3.5" />
+              <span>{isFr ? "Tous les Pasteurs" : "All Teachers"}</span>
             </Link>
             <button
               type="button"
               onClick={handleShareProfile}
               className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#3D2E5C] dark:bg-[#4EE2D8] hover:bg-[#2A1E42] text-white dark:text-[#0E0C18] transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
             >
-              <span>{copiedProfile ? "✓" : "↗"}</span>
+              {copiedProfile ? (
+                <Check weight="bold" className="w-3.5 h-3.5" />
+              ) : (
+                <ArrowUpRight weight="bold" className="w-3.5 h-3.5" />
+              )}
               <span>
                 {copiedProfile
                   ? isFr
@@ -281,14 +339,19 @@ export default function TeacherProfilePage() {
                 {teacher.name}
               </h1>
 
-              <p className="text-base text-[#52466D] dark:text-[#C8C2D6] font-medium leading-relaxed max-w-2xl">
-                {role} · {teacher.ministryAffiliation}
+              <p className="text-base text-[#52466D] dark:text-[#C8C2D6] font-medium leading-relaxed max-w-2xl flex flex-wrap items-center gap-2">
+                <span>{role}</span>
+                <span>·</span>
+                <span className="inline-flex items-center gap-1.5 font-semibold text-[#2D2542] dark:text-[#4EE2D8]">
+                  <Buildings weight="duotone" className="w-4 h-4" />
+                  <span>{teacher.ministryAffiliation}</span>
+                </span>
               </p>
 
               {/* Theological Specialty Highlight */}
               <div className="p-4 rounded-2xl bg-white dark:bg-[#1B1630] border border-[#E3DACB] dark:border-white/12 shadow-xs max-w-3xl">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-sm">✝</span>
+                  <BookOpenText weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
                   <strong className="text-xs font-bold uppercase tracking-wider text-[#3D2E5C] dark:text-[#4EE2D8]">
                     {isFr ? "Spécialité & Vocation Théologique :" : "Theological Specialty & Conviction:"}
                   </strong>
@@ -319,7 +382,7 @@ export default function TeacherProfilePage() {
                     </div>
                     <span>•</span>
                     <div className="flex items-center gap-1.5">
-                      <span>🎧</span>
+                      <Headphones weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
                       <span className="font-bold text-[#2A2146] dark:text-white">
                         {perf.totalListens.toLocaleString()}
                       </span>
@@ -333,16 +396,20 @@ export default function TeacherProfilePage() {
                     </div>
                     <span>•</span>
                     <div className="flex items-center gap-1.5">
-                      <span>🎓</span>
+                      <GraduationCap weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
                       <span>{education}</span>
                     </div>
                     <span>•</span>
-                    <div className="flex items-center gap-1.5">
-                      <span>📖</span>
+                    <button
+                      type="button"
+                      onClick={() => setActiveScriptureRef(featuredScripture)}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-300/60 text-amber-900 dark:text-amber-300 hover:underline cursor-pointer"
+                    >
+                      <BookOpenText weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
                       <span>
-                        {isFr ? "Verset d'ancrage :" : "Anchor Verse:"} <strong>{featuredScripture}</strong>
+                        {isFr ? "Verset d'ancrage :" : "Anchor Verse:"} <strong>{featuredScripture}</strong> ({isFr ? "Étudier" : "Study"})
                       </span>
-                    </div>
+                    </button>
                   </div>
                 );
               })()}
@@ -358,7 +425,7 @@ export default function TeacherProfilePage() {
           <section className="lg:col-span-1 space-y-6">
             <div className="bg-white dark:bg-[#1B1630] p-6 rounded-3xl border border-[#E4DCCE] dark:border-white/12 shadow-xs space-y-4">
               <h2 className="text-sm font-bold uppercase tracking-wider text-[#3D2E5C] dark:text-[#4EE2D8] flex items-center gap-2 m-0">
-                <span>📜</span>
+                <Scroll weight="duotone" className="w-4 h-4" />
                 <span>{isFr ? "Biographie & Parcours" : "Biography & Calling"}</span>
               </h2>
               <div className="text-sm text-[#4E4467] dark:text-[#C8C2D6] leading-relaxed space-y-3 font-normal">
@@ -402,8 +469,9 @@ export default function TeacherProfilePage() {
                   <span className="text-[#8B80A1] dark:text-[#9D94B0] block">
                     {isFr ? "Statut de gouvernance :" : "Leadership Status:"}
                   </span>
-                  <strong className="text-[#0E726D] dark:text-[#4EE2D8] font-semibold">
-                    ✓ {isFr ? "Contributeur nommé par la direction LifeBook" : "Appointed by LifeBook Leadership"}
+                  <strong className="text-[#0E726D] dark:text-[#4EE2D8] font-semibold inline-flex items-center gap-1.5">
+                    <Check weight="bold" className="w-3.5 h-3.5" />
+                    <span>{isFr ? "Contributeur nommé par la direction LifeBook" : "Appointed by LifeBook Leadership"}</span>
                   </strong>
                 </div>
               </div>
@@ -425,7 +493,7 @@ export default function TeacherProfilePage() {
                   .map((other) => (
                     <Link
                       key={other.slug}
-                      href={`/teachers/${other.slug}`}
+                      href={`/living-word/teachers/${other.slug}`}
                       className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white dark:hover:bg-white/10 transition-colors border border-transparent hover:border-[#E2D8C6]"
                     >
                       <div className="w-10 h-10 rounded-full overflow-hidden relative shrink-0 bg-[#D4CABB]">
@@ -476,7 +544,11 @@ export default function TeacherProfilePage() {
                   onClick={() => setIsAddingTeaching(!isAddingTeaching)}
                   className="min-h-[42px] px-4 py-2.5 rounded-xl bg-[#4EE2D8] text-[#0E0C18] text-xs font-bold hover:bg-[#64EDE3] transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
                 >
-                  <span>{isAddingTeaching ? "✕" : "＋"}</span>
+                  {isAddingTeaching ? (
+                    <X weight="bold" className="w-3.5 h-3.5" />
+                  ) : (
+                    <Plus weight="bold" className="w-3.5 h-3.5" />
+                  )}
                   <span>
                     {isAddingTeaching
                       ? isFr
@@ -584,8 +656,9 @@ export default function TeacherProfilePage() {
                   </div>
 
                   {publishMessage && (
-                    <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 font-bold">
-                      ✓ {publishMessage}
+                    <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 font-bold flex items-center gap-2">
+                      <Check weight="bold" className="w-4 h-4 shrink-0" />
+                      <span>{publishMessage}</span>
                     </div>
                   )}
 
@@ -663,11 +736,20 @@ export default function TeacherProfilePage() {
                             {category}
                           </span>
                           <span className="text-xs text-[#7B7092] dark:text-[#C8C2D6]">{teaching.duration}</span>
-                          <span className="text-xs font-semibold text-[#5B4F75] dark:text-[#E2DCEF] bg-[#F7F4EE] dark:bg-white/5 px-2 py-0.5 rounded-md border border-[#E3DACB] dark:border-white/10">
-                            {scripture}
-                          </span>
-                          <span className="text-[11px] font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
-                            🎧 {metrics.listenCount.toLocaleString()} {isFr ? "écoutes" : "listens"} · {metrics.completionRate}% {isFr ? "complété" : "completion"}
+                          <button
+                            type="button"
+                            onClick={() => setActiveScriptureRef(scripture)}
+                            className="text-xs font-semibold text-[#5B4F75] dark:text-[#E2DCEF] bg-[#F7F4EE] dark:bg-white/5 hover:bg-amber-50 dark:hover:bg-amber-950/40 px-2.5 py-0.5 rounded-md border border-[#E3DACB] dark:border-white/10 inline-flex items-center gap-1 cursor-pointer transition-colors"
+                            title="Open in Interactive Scripture Study Drawer"
+                          >
+                            <BookOpenText weight="duotone" className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+                            <span>{scripture}</span>
+                          </button>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
+                            <Headphones weight="duotone" className="w-3.5 h-3.5" />
+                            <span>
+                              {metrics.listenCount.toLocaleString()} {isFr ? "écoutes" : "listens"} · {metrics.completionRate}% {isFr ? "complété" : "completion"}
+                            </span>
                           </span>
                         </div>
 
@@ -675,10 +757,11 @@ export default function TeacherProfilePage() {
                           <button
                             type="button"
                             onClick={() => setSelectedTeachingForPlaylist(teaching)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#5E5279] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg text-xs font-semibold text-[#5E5279] dark:text-[#C8C2D6] hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors cursor-pointer inline-flex items-center gap-1"
                             title={isFr ? "Ajouter à une liste" : "Add to Playlist"}
                           >
-                            📑 {isFr ? "Playlist" : "Save"}
+                            <BookmarkSimple weight="duotone" className="w-3.5 h-3.5" />
+                            <span>{isFr ? "Playlist" : "Save"}</span>
                           </button>
                           <button
                             type="button"
@@ -686,7 +769,7 @@ export default function TeacherProfilePage() {
                             className="px-2.5 py-1 rounded-lg text-xs font-bold text-[#3D2E5C] dark:text-[#0E0C18] bg-[#ECE5F5] dark:bg-[#4EE2D8] hover:opacity-90 transition-colors flex items-center gap-1 cursor-pointer"
                             title={isFr ? "Partager le message formaté" : "Share formatted teaching"}
                           >
-                            <span>↗</span>
+                            <ArrowUpRight weight="bold" className="w-3.5 h-3.5" />
                             <span>{isFr ? "Diffuser" : "Share"}</span>
                           </button>
                         </div>
@@ -713,7 +796,11 @@ export default function TeacherProfilePage() {
                             }}
                             className="px-3.5 py-1.5 rounded-full bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold hover:opacity-90 transition-all cursor-pointer inline-flex items-center gap-1.5"
                           >
-                            <span>{isThisPlaying ? "⏸" : "🎧"}</span>
+                            {isThisPlaying ? (
+                              <Pause weight="fill" className="w-3.5 h-3.5" />
+                            ) : (
+                              <Headphones weight="duotone" className="w-3.5 h-3.5" />
+                            )}
                             <span>
                               {isThisPlaying
                                 ? isFr
@@ -729,9 +816,8 @@ export default function TeacherProfilePage() {
                             href={`/living-word/${teaching.slug}`}
                             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#3D2E5C] dark:text-[#4EE2D8] hover:underline"
                           >
-                            <span>📖</span>
+                            <BookOpenText weight="duotone" className="w-4 h-4" />
                             <span>{isFr ? "Lire l'étude complète" : "Read Full Study"}</span>
-                            <span>→</span>
                           </Link>
                         </div>
 
@@ -744,9 +830,19 @@ export default function TeacherProfilePage() {
                 })}
               </div>
             )}
+            {/* Deepened Teacher Profile Features: Guided Curriculum, Downloadable Study Notes & Liturgies, and Direct Q&A / Prayer Wall */}
+            <TeacherDeepenedFeatures teacher={teacher} teachings={teacherTeachings} />
           </section>
         </div>
       </div>
+
+      {/* Interactive Scripture Study Drawer */}
+      <ScriptureStudyDrawer
+        isOpen={Boolean(activeScriptureRef)}
+        onClose={() => setActiveScriptureRef(null)}
+        initialReference={activeScriptureRef || featuredScripture}
+        sourceContext={`${teacher.name} · ${teacher.ministryAffiliation}`}
+      />
 
       {/* Playlist and Share Modals */}
       {selectedTeachingForPlaylist && (

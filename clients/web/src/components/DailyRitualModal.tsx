@@ -2,6 +2,23 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import {
+  LockKey,
+  Stop,
+  SpeakerHigh,
+  Pause,
+  Timer,
+  Microphone,
+  BookOpenText,
+  HandsPraying,
+  Flame,
+  NotePencil,
+  Leaf,
+  Fire,
+  Sparkle,
+  Check,
+  X,
+} from "@phosphor-icons/react";
 import { useLanguage } from "@/lib/i18n";
 import {
   speakWithHumanVoice,
@@ -9,12 +26,6 @@ import {
   useHumanVoice,
 } from "@/lib/human-voice";
 import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
-import { ChristianMelodySelector } from "@/components/ChristianMelodySelector";
-import {
-  startChristianMelody,
-  stopChristianMelody,
-  getSavedChristianMelody,
-} from "@/lib/christian-melodies";
 import {
   RITUAL_TRACKS,
   completeDailyRitualSession,
@@ -31,7 +42,7 @@ interface DailyRitualModalProps {
   onCompleted?: (payload: CompletedRitualPayload) => void;
   meditation?: unknown;
   ritualState?: unknown;
-  onUpdateRitual?: (nextRitual: any) => void;
+  onUpdateRitual?: (nextRitual: unknown) => void;
   onCompleteRitualWithReflection?: (reflectionText: string, reference: string) => void;
 }
 
@@ -92,7 +103,6 @@ export function DailyRitualModal({
   // Tear down external browser media resources without synchronous setState in effect
   const releaseMediaHandles = useCallback(() => {
     stopHumanVoice();
-    stopChristianMelody();
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -180,17 +190,12 @@ export function DailyRitualModal({
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  // Human Voice Synthesis for Scripture reading (Nigerian EN, Côte d'Ivoire FR, American EN) + Christian Melody
+  // Human Voice Synthesis for Scripture reading (Nigerian EN, Côte d'Ivoire FR, American EN)
   const handleToggleSpeakScripture = () => {
     if (isSpeakingScripture) {
       stopHumanVoice();
       setIsSpeakingScripture(false);
       return;
-    }
-
-    const savedMelody = getSavedChristianMelody();
-    if (savedMelody.melodyId !== "none") {
-      startChristianMelody(savedMelody.melodyId);
     }
 
     const useFrText = activePersona.primaryLanguage === "fr" || translation === "LSG";
@@ -352,7 +357,7 @@ export function DailyRitualModal({
             aria-label={isFr ? "Fermer" : "Close"}
             className="min-h-[40px] min-w-[40px] rounded-xl border border-[#2D2542]/15 dark:border-white/15 bg-[#F2ECE1] dark:bg-white/10 text-[#1E1931] dark:text-white hover:bg-[#E5DEC9] dark:hover:bg-white/20 text-xs font-bold flex items-center justify-center transition-colors cursor-pointer"
           >
-            ✕
+            <X weight="bold" className="w-4 h-4" />
           </button>
         </div>
 
@@ -379,8 +384,9 @@ export function DailyRitualModal({
                 </button>
               ))}
             </div>
-            <span className="text-xs font-mono text-[#5A4B7C] dark:text-[#C8C2D6] whitespace-nowrap hidden sm:inline">
-              🔒 {isFr ? "100% privé sur appareil" : "100% on-device privacy"}
+            <span className="text-xs font-mono text-[#5A4B7C] dark:text-[#C8C2D6] whitespace-nowrap hidden sm:inline-flex items-center gap-1.5">
+              <LockKey weight="duotone" className="w-3.5 h-3.5" />
+              <span>{isFr ? "100% privé sur appareil" : "100% on-device privacy"}</span>
             </span>
           </div>
         )}
@@ -420,7 +426,7 @@ export function DailyRitualModal({
                             : "bg-white dark:bg-[#1E1833] text-[#4E4462] dark:text-[#D5CEE6] border-[#2D2542]/12 dark:border-white/15 hover:border-[#2D2542]/30"
                         }`}
                       >
-                        <span>{tr.moodEmoji}</span>
+                        <span className="w-2 h-2 rounded-full bg-current opacity-75" />
                         <span>{isFr ? tr.moodLabelFr : tr.moodLabelEn}</span>
                       </button>
                     );
@@ -473,9 +479,6 @@ export function DailyRitualModal({
                 {/* Human Pastoral Voice Selector (Nigerian EN, Côte d'Ivoire FR, American EN) */}
                 <HumanVoiceSelector compact />
 
-                {/* Christian Melodies & Instrumentals for Meditation */}
-                <ChristianMelodySelector compact />
-
                 {/* Audio Reader & 90s Quiet Abiding Timer Controls */}
                 <div className="pt-3 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
@@ -484,7 +487,11 @@ export function DailyRitualModal({
                       onClick={handleToggleSpeakScripture}
                       className="min-h-[40px] px-4 py-2 rounded-xl bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-xs font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap"
                     >
-                      <span>{isSpeakingScripture ? "⏹" : "🔊"}</span>
+                      {isSpeakingScripture ? (
+                        <Stop weight="fill" className="w-4 h-4" />
+                      ) : (
+                        <SpeakerHigh weight="duotone" className="w-4 h-4" />
+                      )}
                       <span>
                         {isSpeakingScripture
                           ? isFr
@@ -498,25 +505,22 @@ export function DailyRitualModal({
 
                     <button
                       type="button"
-                      onClick={() => {
-                        const nextActive = !isReadingTimerActive;
-                        setIsReadingTimerActive(nextActive);
-                        if (nextActive) {
-                          const saved = getSavedChristianMelody();
-                          if (saved.melodyId !== "none") {
-                            startChristianMelody(saved.melodyId);
-                          }
-                        } else {
-                          stopChristianMelody();
-                        }
-                      }}
-                      className="min-h-[40px] px-4 py-2 rounded-xl bg-[#F2ECE1] dark:bg-white/10 hover:bg-[#E5DEC9] dark:hover:bg-white/15 text-[#1E1931] dark:text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap font-mono tabular-nums"
+                      onClick={() => setIsReadingTimerActive(!isReadingTimerActive)}
+                      className="min-h-[40px] px-4 py-2 rounded-xl bg-[#F2ECE1] dark:bg-white/10 hover:bg-[#E5DEC9] dark:hover:bg-white/15 text-[#1E1931] dark:text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap font-mono tabular-nums inline-flex items-center gap-1.5"
                     >
-                      {isReadingTimerActive
-                        ? `⏸ ${formatTimer(readingTimerSec)} 🎹`
-                        : `⏱ ${
-                            isFr ? "Méditation 90s + Mélodie" : "90s Meditation + Melody"
-                          } (${formatTimer(readingTimerSec)})`}
+                      {isReadingTimerActive ? (
+                        <>
+                          <Pause weight="fill" className="w-3.5 h-3.5" />
+                          <span>{formatTimer(readingTimerSec)}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Timer weight="duotone" className="w-4 h-4" />
+                          <span>
+                            {isFr ? "Méditation 90s" : "90s Quiet Meditation"} ({formatTimer(readingTimerSec)})
+                          </span>
+                        </>
+                      )}
                     </button>
                   </div>
 
@@ -579,7 +583,8 @@ export function DailyRitualModal({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2 text-xs font-mono text-[#4EE2D8]">
-                      <span>🎙️ {isFr ? "Prière Vocale de 60 Secondes" : "60-Second Spoken Prayer"}</span>
+                      <Microphone weight="duotone" className="w-4 h-4" />
+                      <span>{isFr ? "Prière Vocale de 60 Secondes" : "60-Second Spoken Prayer"}</span>
                       <span aria-hidden="true">·</span>
                       <span className="tabular-nums">{formatTimer(prayerSeconds)} / 1:00</span>
                     </div>
@@ -600,7 +605,11 @@ export function DailyRitualModal({
                           : "bg-[#4EE2D8] hover:bg-[#37C6C2] text-[#0E0C18]"
                       }`}
                     >
-                      <span>{isRecordingPrayer ? "⏹" : "🎙️"}</span>
+                      {isRecordingPrayer ? (
+                        <Stop weight="fill" className="w-4 h-4" />
+                      ) : (
+                        <Microphone weight="duotone" className="w-4 h-4" />
+                      )}
                       <span>
                         {isRecordingPrayer
                           ? isFr
@@ -631,9 +640,6 @@ export function DailyRitualModal({
                 {micPermissionNote && (
                   <p className="text-xs text-[#4EE2D8] font-mono">{micPermissionNote}</p>
                 )}
-
-                {/* Christian Worship Instrumental Accompaniment during Prayer */}
-                <ChristianMelodySelector compact darkSurface />
               </div>
 
               {/* Private Journal Reflection Input */}
@@ -699,41 +705,51 @@ export function DailyRitualModal({
                       {isFr ? currentTrack.referenceFr : currentTrack.referenceEn} ({translation})
                     </h3>
                   </div>
-                  <span className="text-2xl">{currentTrack.moodEmoji}</span>
+                  <span className="w-10 h-10 rounded-xl bg-[#E8F6F3] dark:bg-[#102929] text-[#0E726D] dark:text-[#4EE2D8] flex items-center justify-center">
+                    <Sparkle weight="duotone" className="w-5 h-5" />
+                  </span>
                 </div>
 
                 {/* 4 Pillar Practices Checklist */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-[#130F21] border border-[#2D2542]/10 dark:border-white/10 flex items-center justify-between">
-                    <span className="font-semibold text-[#1E1931] dark:text-white">
-                      📖 {isFr ? "Lecture Biblique" : "Scripture Reading"}
+                    <span className="font-semibold text-[#1E1931] dark:text-white inline-flex items-center gap-1.5">
+                      <BookOpenText weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
+                      <span>{isFr ? "Lecture Biblique" : "Scripture Reading"}</span>
                     </span>
-                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                      ✓ {translation}
-                    </span>
-                  </div>
-                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-[#130F21] border border-[#2D2542]/10 dark:border-white/10 flex items-center justify-between">
-                    <span className="font-semibold text-[#1E1931] dark:text-white">
-                      🙏 {isFr ? "Prière & Communion" : "Spoken / Written Prayer"}
-                    </span>
-                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] tabular-nums">
-                      ✓ {prayerSeconds > 0 ? `${prayerSeconds}s` : "60s"}
+                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] inline-flex items-center gap-1">
+                      <Check weight="bold" className="w-3.5 h-3.5" />
+                      <span>{translation}</span>
                     </span>
                   </div>
                   <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-[#130F21] border border-[#2D2542]/10 dark:border-white/10 flex items-center justify-between">
-                    <span className="font-semibold text-[#1E1931] dark:text-white">
-                      🕯️ {isFr ? "Silence & Repos" : "Quiet Abiding"}
+                    <span className="font-semibold text-[#1E1931] dark:text-white inline-flex items-center gap-1.5">
+                      <HandsPraying weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
+                      <span>{isFr ? "Prière & Communion" : "Spoken / Written Prayer"}</span>
                     </span>
-                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                      ✓ {isFr ? "Complété" : "Completed"}
+                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] tabular-nums inline-flex items-center gap-1">
+                      <Check weight="bold" className="w-3.5 h-3.5" />
+                      <span>{prayerSeconds > 0 ? `${prayerSeconds}s` : "60s"}</span>
                     </span>
                   </div>
                   <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-[#130F21] border border-[#2D2542]/10 dark:border-white/10 flex items-center justify-between">
-                    <span className="font-semibold text-[#1E1931] dark:text-white">
-                      ✍️ {isFr ? "Journal de l'Âme" : "Soul Journal Entry"}
+                    <span className="font-semibold text-[#1E1931] dark:text-white inline-flex items-center gap-1.5">
+                      <Flame weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
+                      <span>{isFr ? "Silence & Repos" : "Quiet Abiding"}</span>
                     </span>
-                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                      ✓ {isFr ? "Prêt à sceller" : "Ready to seal"}
+                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] inline-flex items-center gap-1">
+                      <Check weight="bold" className="w-3.5 h-3.5" />
+                      <span>{isFr ? "Complété" : "Completed"}</span>
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] dark:bg-[#130F21] border border-[#2D2542]/10 dark:border-white/10 flex items-center justify-between">
+                    <span className="font-semibold text-[#1E1931] dark:text-white inline-flex items-center gap-1.5">
+                      <NotePencil weight="duotone" className="w-4 h-4 text-[#3D2E5C] dark:text-[#4EE2D8]" />
+                      <span>{isFr ? "Journal de l'Âme" : "Soul Journal Entry"}</span>
+                    </span>
+                    <span className="font-mono font-bold text-[#0E726D] dark:text-[#4EE2D8] inline-flex items-center gap-1">
+                      <Check weight="bold" className="w-3.5 h-3.5" />
+                      <span>{isFr ? "Prêt à sceller" : "Ready to seal"}</span>
                     </span>
                   </div>
                 </div>
@@ -741,8 +757,9 @@ export function DailyRitualModal({
                 {/* Sabbath Rest Protection Toggle */}
                 <div className="p-4 rounded-2xl bg-[#F1F8F5] dark:bg-[#102222] border border-[#C5E5D8] dark:border-[#1FB6B0]/30 flex items-center justify-between gap-4">
                   <div>
-                    <div className="text-xs font-bold text-[#0E726D] dark:text-[#4EE2D8]">
-                      🌿 {isFr ? "Consacrer aujourd'hui comme Repos du Sabbat" : "Consecrate Today as Holy Sabbath Rest"}
+                    <div className="text-xs font-bold text-[#0E726D] dark:text-[#4EE2D8] inline-flex items-center gap-1.5">
+                      <Leaf weight="duotone" className="w-4 h-4" />
+                      <span>{isFr ? "Consacrer aujourd'hui comme Repos du Sabbat" : "Consecrate Today as Holy Sabbath Rest"}</span>
                     </div>
                     <p className="text-xs text-[#1F4A3F] dark:text-[#D7F5F2] mt-0.5">
                       {isFr
@@ -755,19 +772,22 @@ export function DailyRitualModal({
                     role="switch"
                     aria-checked={isSabbathRest}
                     onClick={() => setIsSabbathRest(!isSabbathRest)}
-                    className={`min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`min-h-[36px] px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1 ${
                       isSabbathRest
                         ? "bg-[#1FB6B0] text-[#081C1B]"
                         : "bg-white dark:bg-[#1B1630] text-[#4E4462] dark:text-[#C8C2D6] border border-[#2D2542]/15 dark:border-white/15"
                     }`}
                   >
-                    {isSabbathRest
-                      ? isFr
-                        ? "Sabbat Actif ✓"
-                        : "Sabbath Active ✓"
-                      : isFr
-                      ? "Activer"
-                      : "Enable"}
+                    {isSabbathRest && <Check weight="bold" className="w-3.5 h-3.5" />}
+                    <span>
+                      {isSabbathRest
+                        ? isFr
+                          ? "Sabbat Actif"
+                          : "Sabbath Active"
+                        : isFr
+                        ? "Activer"
+                        : "Enable"}
+                    </span>
                   </button>
                 </div>
 
@@ -786,7 +806,7 @@ export function DailyRitualModal({
                     onClick={handleSealRitual}
                     className="min-h-[44px] px-6 py-2.5 rounded-xl bg-[#1FB6B0] hover:bg-[#199E99] text-[#081C1B] text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
                   >
-                    <span>✦</span>
+                    <Sparkle weight="fill" className="w-4 h-4" />
                     <span>
                       {isFr
                         ? "Amen · Sceller la Méditation du Jour (+50 pts)"
@@ -801,8 +821,12 @@ export function DailyRitualModal({
           {/* STEP 4: COMPLETION SEAL & SYNCHRONIZED STREAK CONFIRMATION */}
           {step === 4 && completedResult && (
             <div className="p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#1E1833] border border-[#2D2542]/12 dark:border-white/15 text-center space-y-6">
-              <div className="w-16 h-16 rounded-2xl bg-[#E8F6F3] dark:bg-[#102929] text-[#0E726D] dark:text-[#4EE2D8] flex items-center justify-center text-3xl mx-auto border border-[#1FB6B0]/30">
-                {completedResult.isSabbathRest ? "🌿" : "🔥"}
+              <div className="w-16 h-16 rounded-2xl bg-[#E8F6F3] dark:bg-[#102929] text-[#0E726D] dark:text-[#4EE2D8] flex items-center justify-center mx-auto border border-[#1FB6B0]/30">
+                {completedResult.isSabbathRest ? (
+                  <Leaf weight="duotone" className="w-8 h-8" />
+                ) : (
+                  <Fire weight="duotone" className="w-8 h-8" />
+                )}
               </div>
 
               <div className="space-y-1.5 max-w-lg mx-auto">

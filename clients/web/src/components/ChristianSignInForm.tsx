@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { WarningCircle } from "@phosphor-icons/react";
 import { useChristianAuth } from "../lib/christian-auth";
 import { LifeBookLogo } from "./LifeBookLogo";
 
 export function ChristianSignInForm() {
   const router = useRouter();
-  const { signIn, loginAsDemo, isSignedIn } = useChristianAuth();
+  const { signIn, signInWithGoogle, loginAsDemo, isSignedIn } = useChristianAuth();
 
   useEffect(() => {
     if (isSignedIn) {
@@ -20,8 +21,26 @@ export function ChristianSignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [forgotOpen, setForgotOpen] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      const res = await signInWithGoogle();
+      if (res.success) {
+        router.replace("/dashboard");
+      } else if (res.error) {
+        setError(res.error);
+      }
+    } catch {
+      setError("Unable to complete Google Sign-In. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,13 +70,35 @@ export function ChristianSignInForm() {
     <div className="w-full">
       {error && (
         <div className="mb-5 rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
-          <span className="text-sm">⚠️</span>
+          <WarningCircle size={16} weight="duotone" className="text-amber-700 shrink-0 mt-0.5" />
           <div className="flex-1">
             <span className="font-semibold block">Authentication Notice</span>
             <span>{error}</span>
           </div>
         </div>
       )}
+
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className="w-full py-3 px-4 rounded-xl bg-white hover:bg-[#F9F6F0] border border-[#D8CFE6] text-xs font-semibold text-[#1E1931] transition-all flex items-center justify-center gap-2.5 shadow-xs cursor-pointer disabled:opacity-60"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z" />
+            <path fill="#34A853" d="M12 24c3.3 0 6.08-1.09 8.1-2.96l-3.88-3.05c-1.08.72-2.45 1.16-4.22 1.16-3.24 0-5.99-2.19-6.97-5.14H1.02v3.14C3.04 21.16 7.21 24 12 24z" />
+            <path fill="#FBBC05" d="M5.03 14.01c-.25-.72-.39-1.5-.39-2.31s.14-1.59.39-2.31V6.25H1.02C.37 7.54 0 9.01 0 11.7s.37 4.16 1.02 5.45l4.01-3.14z" />
+            <path fill="#EA4335" d="M12 4.75c1.8 0 3.41.62 4.68 1.84l3.51-3.51C18.07 1.19 15.3 0 12 0 7.21 0 3.04 2.84 1.02 6.85l4.01 3.14c.98-2.95 3.73-5.24 6.97-5.24z" />
+          </svg>
+          <span>{googleLoading ? "Connecting Google Account..." : "Continue with Google"}</span>
+        </button>
+        <div className="relative my-4 flex items-center justify-center">
+          <div className="border-t border-[#EDE7F5] w-full" />
+          <span className="bg-[#FAF8F5] px-3 text-[11px] uppercase tracking-wider text-[#9185A7]">or email</span>
+          <div className="border-t border-[#EDE7F5] w-full" />
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4" id="christian-signin-form">
         <div>

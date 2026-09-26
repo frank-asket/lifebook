@@ -6,13 +6,17 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 import {
   getAllTeachings,
+  getAllTeachers,
   CATALOG_CHANGE_EVENT,
   type Teaching,
+  type Teacher,
 } from "./livingWordData";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 import { usePlaylists, type Playlist } from "@/lib/usePlaylists";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { PlaylistPlayer } from "@/components/PlaylistPlayer";
+import { ScriptureStudyDrawer } from "@/components/ScriptureStudyDrawer";
+import { FellowshipSanctuarySection } from "@/components/FellowshipSanctuarySection";
 import {
   Headphones,
   Pause,
@@ -20,8 +24,8 @@ import {
   BookOpenText,
   Plus,
   X,
-  ArrowUpRight,
   UsersThree,
+  MagnifyingGlass,
 } from "@phosphor-icons/react";
 
 export default function LivingWord() {
@@ -32,13 +36,21 @@ export default function LivingWord() {
   const [teachings, setTeachings] = useState<Teaching[]>(() =>
     getAllTeachings()
   );
+  const [teachersList, setTeachersList] = useState<Teacher[]>(() =>
+    getAllTeachers()
+  );
   const [viewMode, setViewMode] = useState<"teachings" | "playlists">(
     "teachings"
   );
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
-    const refresh = () => setTeachings(getAllTeachings());
+    const refresh = () => {
+      setTeachings(getAllTeachings());
+      setTeachersList(getAllTeachers());
+    };
     window.addEventListener(CATALOG_CHANGE_EVENT, refresh);
     window.addEventListener("storage", refresh);
     return () => {
@@ -51,6 +63,7 @@ export default function LivingWord() {
     usePlaylists();
 
   const [modalTeaching, setModalTeaching] = useState<Teaching | null>(null);
+  const [drawerScripture, setDrawerScripture] = useState<{ ref: string; context: string } | null>(null);
   const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
   const [expandedPlaylist, setExpandedPlaylist] = useState<Playlist | null>(
     null
@@ -58,12 +71,69 @@ export default function LivingWord() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
-  const [newIcon, setNewIcon] = useState("🎧");
+  const [newIcon, setNewIcon] = useState("Headphones");
 
-  const filteredTeachings =
-    selectedCategory === "All"
-      ? teachings
-      : teachings.filter((item) => item.category === selectedCategory);
+  const teacherMap = React.useMemo(() => {
+    const map: Record<string, Teacher> = {};
+    for (const t of teachersList) {
+      map[t.slug] = t;
+    }
+    return map;
+  }, [teachersList]);
+
+  const specialtyOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    for (const t of teachersList) {
+      const mainSpec = isFr ? t.theologicalSpecialtyFr : t.theologicalSpecialty;
+      if (mainSpec) set.add(mainSpec);
+    }
+    return Array.from(set);
+  }, [teachersList, isFr]);
+
+  const filteredTeachings = teachings.filter((item) => {
+    if (selectedCategory !== "All" && item.category !== selectedCategory) {
+      return false;
+    }
+    const matchedTeacher = teacherMap[item.teacherSlug];
+    if (selectedSpecialty !== "ALL") {
+      const target = selectedSpecialty.toLowerCase();
+      const itemSpec = (
+        isFr ? item.theologicalSpecialtyFr : item.theologicalSpecialty
+      ).toLowerCase();
+      const teacherSpecs = (
+        matchedTeacher
+          ? isFr
+            ? matchedTeacher.specialtiesFr
+            : matchedTeacher.specialties
+          : []
+      ).map((s) => s.toLowerCase());
+      if (
+        !itemSpec.includes(target) &&
+        !teacherSpecs.some((s) => s.includes(target))
+      ) {
+        return false;
+      }
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const inTitle =
+        item.title.toLowerCase().includes(q) ||
+        item.titleFr.toLowerCase().includes(q);
+      const inTeacher =
+        item.teacher.toLowerCase().includes(q) ||
+        item.theologicalSpecialty.toLowerCase().includes(q) ||
+        item.theologicalSpecialtyFr.toLowerCase().includes(q) ||
+        (matchedTeacher?.ministryAffiliation || "").toLowerCase().includes(q);
+      const inScripture =
+        item.scripture.toLowerCase().includes(q) ||
+        item.scriptureFr.toLowerCase().includes(q);
+      const inExcerpt =
+        item.excerpt.toLowerCase().includes(q) ||
+        item.excerptFr.toLowerCase().includes(q);
+      return inTitle || inTeacher || inScripture || inExcerpt;
+    }
+    return true;
+  });
 
   const handleCreatePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,7 +228,7 @@ export default function LivingWord() {
 
         {viewMode === "teachings" ? (
           <>
-            <div className="living-word-toolbar">
+            <div className="living-word-toolbar flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div
                 className="living-word-tabs"
                 role="tablist"
@@ -190,8 +260,84 @@ export default function LivingWord() {
                   </button>
                 ))}
               </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <select
+                  value={selectedSpecialty}
+                  onChange={(e) => setSelectedSpecialty(e.target.value)}
+                  aria-label={
+                    isFr ? "Spécialité Théologique" : "Theological Specialty"
+                  }
+                  className="px-3 py-2 rounded-xl bg-white/90 dark:bg-[#1E1836] border border-[#D5CBE4] dark:border-white/15 text-xs font-semibold text-[#1E1931] dark:text-white focus:outline-none focus:border-[#3D2E5C] dark:focus:border-[#4EE2D8] cursor-pointer max-w-xs truncate"
+                >
+                  <option value="ALL">
+                    {isFr
+                      ? "Toutes les spécialités théologiques"
+                      : "All Theological Specialties"}
+                  </option>
+                  {specialtyOptions.map((spec) => (
+                    <option key={spec} value={spec}>
+                      {spec}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="relative w-full sm:w-72">
+                  <MagnifyingGlass
+                    size={15}
+                    weight="bold"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6E6285] dark:text-[#A9A0BC] pointer-events-none"
+                  />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={
+                      isFr
+                        ? "Filtrer par ministère, pasteur ou verset..."
+                        : "Search by ministry affiliation, pastor, or verse..."
+                    }
+                    aria-label={
+                      isFr
+                        ? "Rechercher un enseignement ou ministère"
+                        : "Search audio teachings or ministry affiliation"
+                    }
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-white/90 dark:bg-[#1E1836] border border-[#D5CBE4] dark:border-white/15 text-xs text-[#1E1931] dark:text-white placeholder:text-[#7A6F91] dark:placeholder:text-[#A9A0BC] focus:outline-none focus:border-[#3D2E5C] dark:focus:border-[#4EE2D8] transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      aria-label={isFr ? "Effacer" : "Clear search"}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6E6285] hover:text-[#1E1931] dark:text-[#C8C2D6] dark:hover:text-white cursor-pointer"
+                    >
+                      <X size={13} weight="bold" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
+            {filteredTeachings.length === 0 ? (
+              <div className="p-10 rounded-3xl bg-white/80 dark:bg-[#1B1630] border border-[#D5CBE4] dark:border-white/15 text-center space-y-3 my-4">
+                <p className="text-sm font-serif font-bold text-[#1E1931] dark:text-white m-0">
+                  {isFr
+                    ? "Aucun enseignement ne correspond à votre recherche."
+                    : "No teachings match your current filter."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory("All");
+                    setSelectedSpecialty("ALL");
+                    setSearchQuery("");
+                  }}
+                  className="px-4 py-2 rounded-full bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] text-xs font-bold cursor-pointer"
+                >
+                  {isFr ? "Afficher tous les enseignements" : "Reset Filters"}
+                </button>
+              </div>
+            ) : (
             <div className="living-word-grid">
               {filteredTeachings.map((item) => {
                 const title = isFr ? item.titleFr : item.title;
@@ -258,6 +404,21 @@ export default function LivingWord() {
                         </span>
                       </button>
 
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDrawerScripture({
+                            ref: scripture,
+                            context: `${title} · ${item.teacher}`,
+                          })
+                        }
+                        title={isFr ? "Étudier le passage biblique" : "Open Interactive Scripture Study Drawer"}
+                        className="min-h-[40px] px-3 py-2 rounded-full border border-amber-400/50 bg-amber-50/90 dark:bg-amber-950/40 hover:bg-amber-100 text-xs font-semibold text-amber-900 dark:text-amber-300 transition-all flex items-center gap-1 shadow-xs whitespace-nowrap cursor-pointer"
+                      >
+                        <BookOpenText size={14} weight="duotone" />
+                        <span>{scripture}</span>
+                      </button>
+
                       <Link
                         href={`/living-word/${item.slug}`}
                         className="min-h-[40px] px-3.5 py-2 rounded-full border border-[#D5CBE4] dark:border-white/25 bg-white/90 dark:bg-[#1B1630] hover:bg-white dark:hover:bg-[#272042] text-xs font-semibold text-[#3D2E5C] dark:text-white transition-all flex items-center gap-1.5 shadow-xs whitespace-nowrap"
@@ -283,6 +444,7 @@ export default function LivingWord() {
                 );
               })}
             </div>
+            )}
           </>
         ) : (
           <div className="space-y-6 animate-fade-in">
@@ -323,7 +485,7 @@ export default function LivingWord() {
                     onClick={() => setShowCreateForm(false)}
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-xs text-[#6E628A] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
                   >
-                    ✕
+                    <X size={14} weight="bold" />
                   </button>
                 </div>
 
@@ -362,25 +524,28 @@ export default function LivingWord() {
 
                 <div>
                   <label className="block text-xs font-medium text-[#4E4462] dark:text-[#C8C2D6] mb-1">
-                    {isFr ? "Icône" : "Icon"}
+                    {isFr ? "Thème" : "Theme"}
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {["🎧", "⏳", "🕊️", "🌱", "📖", "✝️", "🙏", "🕯️"].map(
-                      (icon) => (
-                        <button
-                          key={icon}
-                          type="button"
-                          onClick={() => setNewIcon(icon)}
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm border transition-all cursor-pointer ${
-                            newIcon === icon
-                              ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-[#3D2E5C] dark:border-[#4EE2D8]"
-                              : "bg-white dark:bg-[#120E22] border-[#D5CBE4] dark:border-white/20"
-                          }`}
-                        >
-                          {icon}
-                        </button>
-                      )
-                    )}
+                    {[
+                      { id: "Headphones", label: isFr ? "Écoute" : "Audio" },
+                      { id: "Scripture", label: isFr ? "Écriture" : "Scripture" },
+                      { id: "Prayer", label: isFr ? "Prière" : "Prayer" },
+                      { id: "Peace", label: isFr ? "Paix" : "Peace" },
+                    ].map((themeItem) => (
+                      <button
+                        key={themeItem.id}
+                        type="button"
+                        onClick={() => setNewIcon(themeItem.id)}
+                        className={`px-3 py-1.5 rounded-lg flex items-center justify-center text-xs font-semibold border transition-all cursor-pointer ${
+                          newIcon === themeItem.id
+                            ? "bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] border-[#3D2E5C] dark:border-[#4EE2D8]"
+                            : "bg-white dark:bg-[#120E22] border-[#D5CBE4] dark:border-white/20 text-[#2D2542] dark:text-white"
+                        }`}
+                      >
+                        {themeItem.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -541,30 +706,30 @@ export default function LivingWord() {
                                 {isFr ? "Ouvrir ↗" : "Open ↗"}
                               </Link>
                               {!pl.isDefault && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    removeFromPlaylist(
-                                      pl.id,
-                                      track.teachingSlug
-                                    )
-                                  }
-                                  className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 dark:text-rose-400 hover:text-rose-700 text-xs"
-                                  title={isFr ? "Retirer" : "Remove"}
-                                >
-                                  ✕
-                                </button>
-                              )}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      removeFromPlaylist(
+                                        pl.id,
+                                        track.teachingSlug
+                                      )
+                                    }
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-rose-600 dark:text-rose-400 hover:text-rose-700 text-xs"
+                                    title={isFr ? "Retirer" : "Remove"}
+                                  >
+                                    <X size={13} weight="bold" />
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-xs text-[#6E628A] dark:text-[#C8C2D6] italic">
-                          {isFr
-                            ? "Utilisez le bouton ➕ sur un enseignement pour l'ajouter."
-                            : "Use the ➕ button on any teaching to add it."}
-                        </p>
-                      )}
+                          ))
+                        ) : (
+                          <p className="text-xs text-[#6E628A] dark:text-[#C8C2D6] italic">
+                            {isFr
+                              ? "Utilisez le bouton + sur un enseignement pour l'ajouter."
+                              : "Use the + button on any teaching card to add it."}
+                          </p>
+                        )}
                     </div>
                   )}
                 </div>
@@ -572,6 +737,19 @@ export default function LivingWord() {
             </div>
           </div>
         )}
+
+        {/* Fellowship Sanctuary: Community Prayer & Testimony Wall */}
+        <div className="mt-12">
+          <FellowshipSanctuarySection />
+        </div>
+
+        {/* Interactive Scripture Study Drawer */}
+        <ScriptureStudyDrawer
+          isOpen={Boolean(drawerScripture)}
+          onClose={() => setDrawerScripture(null)}
+          initialReference={drawerScripture?.ref || "Psalm 23:1-4"}
+          sourceContext={drawerScripture?.context || "LivingWord Sanctuary"}
+        />
 
         {modalTeaching && (
           <PlaylistModal

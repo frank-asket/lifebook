@@ -2,6 +2,17 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
+import {
+  Headphones,
+  ListBullets,
+  X,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  ArrowCounterClockwise,
+  ArrowClockwise,
+} from "@phosphor-icons/react";
 import type { Playlist, PlaylistItem } from "@/lib/usePlaylists";
 import { teachings } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
@@ -180,7 +191,9 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
         {/* Top bar */}
         <div className="px-6 py-4 border-b border-[#2C2442] bg-[#161222] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{playlist.icon || "🎧"}</span>
+            <span className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white">
+              <Headphones size={20} weight="duotone" />
+            </span>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-white truncate">{playlist.title}</h3>
@@ -204,7 +217,7 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                   : "bg-white/5 border-white/10 text-[#C8BCDE] hover:bg-white/10"
               }`}
             >
-              <span>☰</span>
+              <ListBullets size={14} weight="bold" />
               <span>{isFr ? "File d'attente" : "Queue"}</span>
             </button>
             <button
@@ -212,7 +225,7 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
               onClick={onClose}
               className="w-8 h-8 rounded-full flex items-center justify-center text-[#A898CE] hover:text-white hover:bg-white/10"
             >
-              ✕
+              <X size={15} weight="bold" />
             </button>
           </div>
         </div>
@@ -246,7 +259,7 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                     className="flex items-center gap-3 text-left min-w-0 flex-1"
                   >
                     <div className="w-7 h-7 rounded-full bg-black/40 flex items-center justify-center text-xs font-mono text-[#A898CE]">
-                      {isCurrent ? "▶" : idx + 1}
+                      {isCurrent ? <Play size={12} weight="fill" /> : idx + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className={`text-sm font-semibold truncate ${isCurrent ? "text-purple-200" : "text-white"}`}>
@@ -265,7 +278,7 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                       title={isFr ? "Retirer de la liste" : "Remove from playlist"}
                       className="text-xs text-rose-400/60 hover:text-rose-300 p-1.5 rounded hover:bg-rose-500/10"
                     >
-                      ✕
+                      <X size={13} weight="bold" />
                     </button>
                   )}
                 </div>
@@ -332,7 +345,7 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                 className="w-10 h-10 rounded-full flex items-center justify-center text-lg text-[#C8BCDE] hover:text-white hover:bg-white/10 disabled:opacity-40 transition-colors"
                 title={isFr ? "Précédent" : "Previous"}
               >
-                ⏮
+                <SkipBack size={18} weight="fill" />
               </button>
 
               {/* 15s Rewind */}
@@ -341,10 +354,11 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                 onClick={() => {
                   setCurrentTimeSec((prev) => Math.max(0, prev - 15));
                 }}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-xs text-[#A898CE] hover:text-white hover:bg-white/10 transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center gap-0.5 text-xs text-[#A898CE] hover:text-white hover:bg-white/10 transition-colors"
                 title="-15s"
               >
-                ↺ 15
+                <ArrowCounterClockwise size={13} weight="bold" />
+                <span>15</span>
               </button>
 
               {/* Big Play / Pause */}
@@ -353,7 +367,7 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                 onClick={togglePlay}
                 className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#7F67B5] to-[#A48BD9] hover:from-[#8D73C7] hover:to-[#B399EA] text-white flex items-center justify-center text-xl shadow-lg shadow-purple-950/50 scale-105 transition-transform"
               >
-                {isPlaying ? "⏸" : "▶"}
+                {isPlaying ? <Pause size={22} weight="fill" /> : <Play size={22} weight="fill" />}
               </button>
 
               {/* 30s Forward */}
@@ -362,10 +376,11 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                 onClick={() => {
                   setCurrentTimeSec((prev) => Math.min(durationSec, prev + 30));
                 }}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-xs text-[#A898CE] hover:text-white hover:bg-white/10 transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center gap-0.5 text-xs text-[#A898CE] hover:text-white hover:bg-white/10 transition-colors"
                 title="+30s"
               >
-                30 ↻
+                <span>30</span>
+                <ArrowClockwise size={13} weight="bold" />
               </button>
 
               {/* Skip Next */}
@@ -376,7 +391,7 @@ export function PlaylistPlayer({ playlist, initialIndex = 0, onClose, onRemoveIt
                 className="w-10 h-10 rounded-full flex items-center justify-center text-lg text-[#C8BCDE] hover:text-white hover:bg-white/10 disabled:opacity-40 transition-colors"
                 title={isFr ? "Suivant" : "Next"}
               >
-                ⏭
+                <SkipForward size={18} weight="fill" />
               </button>
             </div>
 

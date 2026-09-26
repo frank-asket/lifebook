@@ -29,10 +29,6 @@ import { useDevotionalStreak } from "@/lib/streak-utils";
 import type { SpiritualPulseData } from "../app/api/spiritual-pulse/send/route";
 import {
   Sparkle,
-  Fire,
-  BookOpenText,
-  Trophy,
-  CalendarBlank,
   BellRinging,
 } from "@phosphor-icons/react";
 
@@ -406,7 +402,7 @@ export function ProgressScreen({
       id: "j-seed-1",
       text: "Lord, thank You for quieting my hurry this morning through Psalm 23. Help me carry Your peace into every conversation today.",
       date: `${todayStr} · 07:30 AM`,
-      timestamp: Date.now() - 3600 * 1000,
+      timestamp: 1758895800000,
       mood: "peaceful",
       moodEmoji: "🕊️",
       moodLabel: "Peaceful",
@@ -420,7 +416,7 @@ export function ProgressScreen({
       id: "j-seed-2",
       text: "Grateful for unexpected provision this week and the reminder from Lamentations 3 that His mercies are new every morning.",
       date: "Yesterday · 08:15 PM",
-      timestamp: Date.now() - 86400 * 1000,
+      timestamp: 1758855300000,
       mood: "grateful",
       moodEmoji: "🙏",
       moodLabel: "Grateful",

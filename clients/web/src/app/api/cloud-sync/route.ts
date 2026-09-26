@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { adminAuth } from "../../../lib/firebase-admin.ts";
+import { getOrCreateUser } from "../../../db/users.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -144,6 +146,26 @@ export async function POST(request: Request) {
 
     store[key] = merged;
     writeLocalServerStore(store);
+
+    // Synchronize user record to Cloud SQL PostgreSQL
+    try {
+      const authHeader = request.headers.get("authorization");
+      let verifiedUid = merged.userId;
+      let verifiedEmail = merged.email || "pilgrim@lifebook.sanctuary";
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.split("Bearer ")[1];
+        if (token && token !== "null" && token !== "undefined") {
+          const decoded = await adminAuth.verifyIdToken(token);
+          verifiedUid = decoded.uid;
+          verifiedEmail = decoded.email || verifiedEmail;
+        }
+      }
+      if (verifiedUid) {
+        await getOrCreateUser(verifiedUid, verifiedEmail, merged.fullName);
+      }
+    } catch {
+      // Non-blocking fallback if token is local session
+    }
 
     // Mirror to FastAPI backend if running
     try {

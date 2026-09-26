@@ -66,8 +66,8 @@ export function TeacherLiveCallBanner({ defaultTeacherSlug, compact = false }: T
   const [oneOnOneTopic, setOneOnOneTopic] = useState(
     "Personal Pastoral Prayer & Scripture Encouragement"
   );
-  const [oneOnOneScriptureRef, setOneOnOneScriptureRef] = useState("Psalm 23:1-3");
-  const [oneOnOneScriptureText, setOneOnOneScriptureText] = useState(
+  const [oneOnOneScriptureRef] = useState("Psalm 23:1-3");
+  const [oneOnOneScriptureText] = useState(
     "The Lord is my shepherd; I shall not want. He leads me beside still waters. He restores my soul."
   );
 
@@ -981,7 +981,7 @@ export function TeacherLiveCallBanner({ defaultTeacherSlug, compact = false }: T
           micDeviceLabel={micDeviceLabel}
           micInputLevel={micInputLevel}
           rtcConnectionState={rtcConnectionState}
-          localStream={localAudioStreamRef.current}
+          localStreamRef={localAudioStreamRef}
           onRequestMic={handleRequestMicPermission}
           onEndSession={handleEndOneOnOneSession}
           onMinimize={() => setIsOneOnOneModalOpen(false)}
@@ -1143,7 +1143,7 @@ interface OneOnOneModalProps {
   micDeviceLabel: string;
   micInputLevel: number;
   rtcConnectionState: string;
-  localStream: MediaStream | null;
+  localStreamRef: React.RefObject<MediaStream | null>;
   onRequestMic: () => Promise<{ permission: MicPermissionState; stream: MediaStream | null }>;
   onEndSession: () => void;
   onMinimize: () => void;
@@ -1157,7 +1157,7 @@ function OneOnOneWebRTCAudioModal({
   micDeviceLabel,
   micInputLevel,
   rtcConnectionState,
-  localStream,
+  localStreamRef,
   onRequestMic,
   onEndSession,
   onMinimize,
@@ -1184,8 +1184,8 @@ function OneOnOneWebRTCAudioModal({
   const handleToggleMute = async () => {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
-    if (localStream) {
-      localStream.getAudioTracks().forEach((track) => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach((track) => {
         track.enabled = !nextMuted;
       });
     }

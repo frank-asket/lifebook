@@ -1,6 +1,18 @@
 "use client";
 
 import { useState, useSyncExternalStore, useEffect, useId } from "react";
+import {
+  ArrowUpRight,
+  X,
+  Check,
+  Copy,
+  ChatCircleText,
+  PaperPlaneTilt,
+  EnvelopeSimple,
+  DeviceMobile,
+  ShareNetwork,
+  GraduationCap,
+} from "@phosphor-icons/react";
 import type { Teaching } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
 
@@ -34,7 +46,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
 
   // Build the custom formatted message
   const formattedMessage = [
-    `📖 *${title}* — ${teaching.teacher}`,
+    `*${title}* — ${teaching.teacher}`,
     `LifeBook LivingWord · ${teaching.duration}`,
     "",
     `“${excerpt}”`,
@@ -42,7 +54,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
     includeScripture ? `${isFr ? "Écriture d'ancrage" : "Scripture Anchor"}: ${scripture}` : "",
     includeSpecialty ? `${isFr ? "Spécialité théologique" : "Theological Focus"}: ${specialty}` : "",
     "",
-    `${isFr ? "🎧 Écoutez et méditez cet enseignement ici" : "🎧 Listen and reflect on this teaching here"}:`,
+    `${isFr ? "Écoutez et méditez cet enseignement ici" : "Listen and reflect on this teaching here"}:`,
     directUrl,
   ]
     .filter(Boolean)
@@ -105,7 +117,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
 
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(formattedMessage)}`;
   const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(directUrl)}&text=${encodeURIComponent(
-    `📖 *${title}* — ${teaching.teacher}\n\n“${excerpt}”`
+    `*${title}* — ${teaching.teacher}\n\n“${excerpt}”`
   )}`;
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     `“${excerpt.slice(0, 140)}...” — ${teaching.teacher}\n\nListen on @LifeBookApp:`
@@ -129,7 +141,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
         <div className="p-5 border-b border-[#ECE5D8] flex items-center justify-between bg-[#F8F5EE]">
           <div className="flex items-center gap-2.5">
             <span className="w-8 h-8 rounded-full bg-[#3D2E5C] text-white flex items-center justify-center text-sm font-bold shadow-xs">
-              ↗
+              <ArrowUpRight size={15} weight="bold" />
             </span>
             <div>
               <h3 id="share-modal-title" className="text-base font-serif font-bold text-[#2A2146] m-0">
@@ -146,7 +158,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
             className="w-8 h-8 rounded-full bg-[#EAE3D5] hover:bg-[#DCD3C2] text-[#4A3F63] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
             aria-label={isFr ? "Fermer" : "Close"}
           >
-            ✕
+            <X size={14} weight="bold" />
           </button>
         </div>
 
@@ -199,15 +211,18 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
                     : "bg-[#3D2E5C] hover:bg-[#281D40] text-white"
                 }`}
               >
-                <span>{copied ? "✓" : "📋"}</span>
+                {copied ? <Check size={14} weight="bold" /> : <Copy size={14} weight="duotone" />}
                 <span>{copied ? (isFr ? "Copié !" : "Copied!") : (isFr ? "Copier le texte" : "Copy Message")}</span>
               </button>
             </div>
             {copied && (
-              <p className="text-xs text-[#277A55] font-semibold mt-1">
-                {isFr
-                  ? "✓ Message formaté copié dans le presse-papier ! Prêt à coller dans vos messages."
-                  : "✓ Formatted message copied to clipboard! Ready to paste into your chats or notes."}
+              <p className="text-xs text-[#277A55] font-semibold mt-1 inline-flex items-center gap-1.5">
+                <Check size={13} weight="bold" />
+                <span>
+                  {isFr
+                    ? "Message formaté copié dans le presse-papier ! Prêt à coller dans vos messages."
+                    : "Formatted message copied to clipboard! Ready to paste into your chats or notes."}
+                </span>
               </p>
             )}
           </div>
@@ -225,7 +240,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-[#128C7E] text-xs font-bold transition-colors"
               >
-                <span>💬</span>
+                <ChatCircleText size={15} weight="duotone" />
                 <span>WhatsApp</span>
               </a>
 
@@ -236,7 +251,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#229ED9]/10 hover:bg-[#229ED9]/20 border border-[#229ED9]/30 text-[#0088cc] text-xs font-bold transition-colors"
               >
-                <span>✈️</span>
+                <PaperPlaneTilt size={15} weight="duotone" />
                 <span>Telegram</span>
               </a>
 
@@ -256,7 +271,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
                 href={mailtoUrl}
                 className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#EBE4D5] hover:bg-[#DFD6C4] border border-[#D5C9B3] text-[#3D2E5C] text-xs font-bold transition-colors"
               >
-                <span>✉️</span>
+                <EnvelopeSimple size={15} weight="duotone" />
                 <span>{isFr ? "Email" : "Email"}</span>
               </a>
 
@@ -265,7 +280,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
                 href={smsUrl}
                 className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#EBE4D5] hover:bg-[#DFD6C4] border border-[#D5C9B3] text-[#3D2E5C] text-xs font-bold transition-colors"
               >
-                <span>📱</span>
+                <DeviceMobile size={15} weight="duotone" />
                 <span>SMS / Texte</span>
               </a>
 
@@ -275,7 +290,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
                 onClick={handleNativeShare}
                 className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-[#3D2E5C] hover:bg-[#2A1E42] text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
               >
-                <span>🔗</span>
+                <ShareNetwork size={15} weight="duotone" />
                 <span>{isFr ? "Menu Partage" : "More Options"}</span>
               </button>
             </div>
@@ -284,7 +299,7 @@ export function TeachingShareModal({ teaching, isOpen, onClose }: TeachingShareM
           {/* Teacher Theological Profile Plug */}
           <div className="p-3.5 bg-[#FAF7F0] border border-[#E8DFCFA] rounded-2xl flex items-center justify-between text-xs text-[#5D5276]">
             <div className="flex items-center gap-2.5">
-              <span className="text-base">🎓</span>
+              <GraduationCap size={18} weight="duotone" className="text-[#3D2E5C]" />
               <div>
                 <strong className="block text-[#2A2146] font-medium">{teaching.teacher}</strong>
                 <span className="text-[11px] text-[#7A6E91] line-clamp-1">{specialty}</span>

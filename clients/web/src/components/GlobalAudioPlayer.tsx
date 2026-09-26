@@ -4,6 +4,16 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Moon,
+  ListBullets,
+  X,
+  Minus,
+} from "@phosphor-icons/react";
+import {
   useSanctuaryAudio,
   type SleepTimerOption,
 } from "@/lib/sanctuary-audio";
@@ -71,7 +81,7 @@ export function GlobalAudioPlayer() {
             className="w-9 h-9 rounded-full bg-[#1FB6B0] text-[#071F1E] flex items-center justify-center text-xs font-bold cursor-pointer"
             aria-label={isPlaying ? "Pause" : "Play"}
           >
-            {isPlaying ? "⏸" : "▶"}
+            {isPlaying ? <Pause weight="fill" className="w-4 h-4" /> : <Play weight="fill" className="w-4 h-4" />}
           </button>
           <button
             type="button"
@@ -133,7 +143,7 @@ export function GlobalAudioPlayer() {
                   className="min-h-[36px] min-w-[36px] rounded-lg bg-white/10 hover:bg-white/20 text-xs flex items-center justify-center cursor-pointer"
                   aria-label="Collapse drawer"
                 >
-                  ✕
+                  <X weight="bold" className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -194,8 +204,9 @@ export function GlobalAudioPlayer() {
                 {/* Sleep Timer */}
                 <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-white">
-                      🌙 {isFr ? "Minuteur de Veille" : "Sleep Timer"}
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white">
+                      <Moon weight="duotone" className="w-4 h-4 text-[#4EE2D8]" />
+                      <span>{isFr ? "Minuteur de Veille" : "Sleep Timer"}</span>
                     </span>
                     {sleepTimerRemainingSec !== null && (
                       <span className="text-xs font-mono tabular-nums text-[#FFD770]">
@@ -346,7 +357,7 @@ export function GlobalAudioPlayer() {
                 title={isFr ? "Piste précédente" : "Previous track"}
                 aria-label={isFr ? "Piste précédente" : "Previous track"}
               >
-                ⏮
+                <SkipBack weight="fill" className="w-4 h-4" />
               </button>
               <button
                 type="button"
@@ -363,7 +374,7 @@ export function GlobalAudioPlayer() {
                 className="w-10 h-10 rounded-full bg-[#1FB6B0] hover:bg-[#199E99] text-[#071F1E] flex items-center justify-center text-sm font-bold shadow-md transition-transform active:scale-95 cursor-pointer"
                 aria-label={isPlaying ? "Pause" : "Play"}
               >
-                {isPlaying ? "⏸" : "▶"}
+                {isPlaying ? <Pause weight="fill" className="w-4 h-4" /> : <Play weight="fill" className="w-4 h-4" />}
               </button>
               <button
                 type="button"
@@ -380,7 +391,7 @@ export function GlobalAudioPlayer() {
                 title={isFr ? "Piste suivante" : "Next track"}
                 aria-label={isFr ? "Piste suivante" : "Next track"}
               >
-                ⏭
+                <SkipForward weight="fill" className="w-4 h-4" />
               </button>
             </div>
 
@@ -400,14 +411,14 @@ export function GlobalAudioPlayer() {
                 type="button"
                 id="global-audio-chapters-btn"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                   isExpanded
                     ? "bg-[#7F67B5] text-white"
                     : "bg-white/10 hover:bg-white/15 text-white/90"
                 }`}
                 title={isFr ? "Chapitres et minuteur de veille" : "Chapters & Sleep Timer"}
               >
-                <span>☰</span>
+                <ListBullets weight="bold" className="w-4 h-4" />
                 <span className="hidden sm:inline">
                   {isFr ? "Chapitres" : "Chapters"}
                 </span>
@@ -425,7 +436,7 @@ export function GlobalAudioPlayer() {
                 title={isFr ? "Réduire" : "Minimize"}
                 aria-label={isFr ? "Réduire" : "Minimize"}
               >
-                _
+                <Minus weight="bold" className="w-3.5 h-3.5" />
               </button>
 
               <button
@@ -435,7 +446,7 @@ export function GlobalAudioPlayer() {
                 title={isFr ? "Fermer le lecteur" : "Close player"}
                 aria-label={isFr ? "Fermer le lecteur" : "Close player"}
               >
-                ✕
+                <X weight="bold" className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

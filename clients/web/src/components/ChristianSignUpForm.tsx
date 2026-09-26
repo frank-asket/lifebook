@@ -2,6 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Leaf,
+  BookOpenText,
+  Cross,
+  Sun,
+  ShieldCheck,
+  SunHorizon,
+  Moon,
+  Clock,
+  WarningCircle,
+} from "@phosphor-icons/react";
 import { useChristianAuth } from "../lib/christian-auth";
 import { LifeBookLogo } from "./LifeBookLogo";
 
@@ -11,35 +22,30 @@ const FAITH_SEASONS = [
     label: "Seeking Peace & Stillness",
     scripture: "Philippians 4:6-7",
     description: "Bringing anxiety, racing thoughts, and weariness to Christ.",
-    icon: "🌿",
   },
   {
     id: "abiding",
     label: "Abiding in the Word & Prayer",
     scripture: "Psalm 119:105",
     description: "Building an uninterrupted daily rhythm of hearing God's voice.",
-    icon: "📖",
   },
   {
     id: "restoration",
     label: "Restoring a Tired Soul",
     scripture: "Psalm 23:3",
     description: "Reconnecting after a season of distance, doubt, or spiritual burnout.",
-    icon: "✝️",
   },
   {
     id: "gratitude",
     label: "Growing in Gratitude & Joy",
     scripture: "1 Thessalonians 5:16-18",
     description: "Noticing God’s daily mercies and learning to rejoice always.",
-    icon: "☀️",
   },
   {
     id: "guidance",
     label: "Seeking Wisdom & Direction",
     scripture: "James 1:5",
     description: "Discerning God’s calling and faithful next steps in life.",
-    icon: "🛡️",
   },
 ];
 
@@ -56,10 +62,10 @@ const BIBLE_TRANSLATIONS: {
 ];
 
 const QUIET_TIMES = [
-  { id: "Morning 7:00 AM", label: "Dawn / Morning", sub: "7:00 AM", icon: "🌅" },
-  { id: "Midday 12:30 PM", label: "Midday Pause", sub: "12:30 PM", icon: "☀️" },
-  { id: "Evening 8:30 PM", label: "Evening Stillness", sub: "8:30 PM", icon: "🌙" },
-  { id: "Self-Paced", label: "Self-Paced", sub: "Anytime", icon: "⏱️" },
+  { id: "Morning 7:00 AM", label: "Dawn / Morning", sub: "7:00 AM", kind: "dawn" },
+  { id: "Midday 12:30 PM", label: "Midday Pause", sub: "12:30 PM", kind: "midday" },
+  { id: "Evening 8:30 PM", label: "Evening Stillness", sub: "8:30 PM", kind: "evening" },
+  { id: "Self-Paced", label: "Self-Paced", sub: "Anytime", kind: "flex" },
 ];
 
 export function ChristianSignUpForm() {
@@ -211,7 +217,7 @@ export function ChristianSignUpForm() {
 
       {error && (
         <div className="mb-5 rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-900 flex items-start gap-2.5">
-          <span className="text-sm">⚠️</span>
+          <WarningCircle size={16} weight="duotone" className="text-amber-700 shrink-0 mt-0.5" />
           <div className="flex-1">
             <span className="font-semibold block">Notice</span>
             <span>{error}</span>
@@ -335,7 +341,19 @@ export function ChristianSignUpForm() {
                         : "bg-white border-[#E5DEEF] hover:border-[#CBBFE0] hover:bg-[#FAF9FC]"
                     }`}
                   >
-                    <span className="text-xl shrink-0 mt-0.5">{season.icon}</span>
+                    <span className="w-8 h-8 rounded-lg bg-[#F2ECE1] text-[#2A2146] flex items-center justify-center shrink-0 mt-0.5">
+                      {season.id === "peace" ? (
+                        <Leaf size={16} weight="duotone" />
+                      ) : season.id === "abiding" ? (
+                        <BookOpenText size={16} weight="duotone" />
+                      ) : season.id === "restoration" ? (
+                        <Cross size={16} weight="duotone" />
+                      ) : season.id === "gratitude" ? (
+                        <Sun size={16} weight="duotone" />
+                      ) : (
+                        <ShieldCheck size={16} weight="duotone" />
+                      )}
+                    </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-bold text-[#1E1931]">
@@ -408,7 +426,17 @@ export function ChristianSignUpForm() {
                         : "bg-white border-[#E5DEEF] hover:border-[#CBBFE0]"
                     }`}
                   >
-                    <span className="text-base block mb-0.5">{qt.icon}</span>
+                    <span className="flex justify-center mb-1 text-[#2A2146]">
+                      {qt.kind === "dawn" ? (
+                        <SunHorizon size={16} weight="duotone" />
+                      ) : qt.kind === "midday" ? (
+                        <Sun size={16} weight="duotone" />
+                      ) : qt.kind === "evening" ? (
+                        <Moon size={16} weight="duotone" />
+                      ) : (
+                        <Clock size={16} weight="duotone" />
+                      )}
+                    </span>
                     <span className="text-xs font-semibold text-[#1E1931] block">
                       {qt.label}
                     </span>

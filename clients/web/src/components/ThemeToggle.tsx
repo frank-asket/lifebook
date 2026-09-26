@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 export interface ThemeToggleProps {
   className?: string;
   variant?: "segmented" | "compact" | "icon";
@@ -9,7 +7,7 @@ export interface ThemeToggleProps {
   showIndicator?: boolean;
 }
 
-export function ThemeToggle(_props: ThemeToggleProps) {
+export function ThemeToggle() {
   return null;
 }
 
