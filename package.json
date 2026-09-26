@@ -13,6 +13,7 @@
     "test:backend": "npm --prefix microservices/domain-2/service-b test"
   },
   "dependencies": {
+    "@google/genai": "^2.24.0",
     "@supabase/supabase-js": "^2.116.0",
     "react-is": "^19.3.0"
   },

@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
+import {
+  speakWithHumanVoice,
+  stopHumanVoice,
+  useHumanVoice,
+} from "@/lib/human-voice";
+import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
 import {
   RITUAL_TRACKS,
   completeDailyRitualSession,
@@ -38,6 +44,7 @@ export function DailyRitualModal({
   onCompleted,
 }: DailyRitualModalProps) {
   const { isFr } = useLanguage();
+  const { activePersona } = useHumanVoice(isFr);
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedMood, setSelectedMood] = useState<RitualSoulMood>(initialMood);
@@ -73,10 +80,8 @@ export function DailyRitualModal({
   const prompts = isFr ? currentTrack.promptsFr : currentTrack.promptsEn;
 
   // Tear down external browser media resources without synchronous setState in effect
-  const releaseMediaHandles = () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+  const releaseMediaHandles = useCallback(() => {
+    stopHumanVoice();
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -97,13 +102,13 @@ export function DailyRitualModal({
       }
       speechRecRef.current = null;
     }
-  };
+  }, []);
 
-  const stopAllMedia = () => {
+  const stopAllMedia = useCallback(() => {
     releaseMediaHandles();
     setIsSpeakingScripture(false);
     setIsRecordingPrayer(false);
-  };
+  }, [releaseMediaHandles]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -112,7 +117,7 @@ export function DailyRitualModal({
     return () => {
       releaseMediaHandles();
     };
-  }, [isOpen]);
+  }, [isOpen, releaseMediaHandles]);
 
   // Step 1: 90s countdown timer
   useEffect(() => {
@@ -142,7 +147,7 @@ export function DailyRitualModal({
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [isRecordingPrayer]);
+  }, [isRecordingPrayer, stopAllMedia]);
 
   // Handle Escape key
   useEffect(() => {
@@ -164,26 +169,26 @@ export function DailyRitualModal({
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  // Web Speech Synthesis for Scripture reading
+  // Human Voice Synthesis for Scripture reading (Nigerian EN, Côte d'Ivoire FR, American EN)
   const handleToggleSpeakScripture = () => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     if (isSpeakingScripture) {
-      window.speechSynthesis.cancel();
+      stopHumanVoice();
       setIsSpeakingScripture(false);
       return;
     }
 
-    window.speechSynthesis.cancel();
+    const useFrText = activePersona.primaryLanguage === "fr" || translation === "LSG";
+    const chosenTranslation: BibleTranslation = useFrText ? "LSG" : translation;
     const textToRead = `${
-      isFr ? currentTrack.referenceFr : currentTrack.referenceEn
-    }. ${currentTrack.translations[translation].replace(/[“”«»]/g, "")}`;
-    const utterance = new SpeechSynthesisUtterance(textToRead);
-    utterance.lang = translation === "LSG" || isFr ? "fr-FR" : "en-US";
-    utterance.rate = 0.92;
-    utterance.onend = () => setIsSpeakingScripture(false);
-    utterance.onerror = () => setIsSpeakingScripture(false);
+      useFrText ? currentTrack.referenceFr : currentTrack.referenceEn
+    }. ${currentTrack.translations[chosenTranslation].replace(/[“”«»]/g, "")}`;
+
     setIsSpeakingScripture(true);
-    window.speechSynthesis.speak(utterance);
+    speakWithHumanVoice({
+      text: textToRead,
+      persona: activePersona,
+      onEnd: () => setIsSpeakingScripture(false),
+    });
   };
 
   // Real Microphone Visualizer + Browser SpeechRecognition
@@ -208,7 +213,7 @@ export function DailyRitualModal({
           const rec: any = new (SpeechRecConstructor as any)();
           rec.continuous = true;
           rec.interimResults = false;
-          rec.lang = isFr ? "fr-FR" : "en-US";
+          rec.lang = activePersona.langCode || (isFr ? "fr-CI" : "en-NG");
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           rec.onresult = (event: any) => {
             let transcriptChunk = "";
@@ -448,6 +453,9 @@ export function DailyRitualModal({
                   </strong>
                   {isFr ? currentTrack.contextFr : currentTrack.contextEn}
                 </p>
+
+                {/* Human Pastoral Voice Selector (Nigerian EN, Côte d'Ivoire FR, American EN) */}
+                <HumanVoiceSelector compact />
 
                 {/* Audio Reader & 90s Quiet Abiding Timer Controls */}
                 <div className="pt-3 flex flex-wrap items-center justify-between gap-3">

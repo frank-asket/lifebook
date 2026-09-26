@@ -11,6 +11,14 @@ import React, {
 } from "react";
 import { teachings, recordTeachingListen, type Teaching } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
+import {
+  speakWithHumanVoice,
+  stopHumanVoice,
+  getSavedVoicePersona,
+  setSavedVoicePersona,
+  VOICE_PERSONA_CHANGE_EVENT,
+  type HumanVoicePersona,
+} from "@/lib/human-voice";
 
 export interface SanctuaryChapterMarker {
   id: string;
@@ -61,6 +69,7 @@ interface SanctuaryAudioContextValue {
   sleepTimerRemainingSec: number | null;
   ambientBed: AmbientSoundscape;
   activeChapter: SanctuaryChapterMarker | null;
+  voicePersona: HumanVoicePersona;
   isExpanded: boolean;
   isMinimized: boolean;
   playTrack: (trackOrSlug: SanctuaryAudioTrack | string, customQueue?: SanctuaryAudioTrack[]) => void;
@@ -76,6 +85,7 @@ interface SanctuaryAudioContextValue {
   cyclePlaybackSpeed: () => void;
   setSleepTimer: (minutes: SleepTimerOption) => void;
   setAmbientBed: (bed: AmbientSoundscape) => void;
+  setVoicePersona: (personaId: string) => void;
   setIsExpanded: (expanded: boolean) => void;
   setIsMinimized: (minimized: boolean) => void;
 }
@@ -335,12 +345,35 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
   const [ambientBed, setAmbientBed] = useState<AmbientSoundscape>(
     () => getInitialSavedAudioState().bed
   );
+  const [voicePersona, setVoicePersonaState] = useState<HumanVoicePersona>(() =>
+    getSavedVoicePersona(isFr)
+  );
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const ambientNodesRef = useRef<{ stop: () => void } | null>(null);
   const lastSpokenChapterRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const syncPersona = (e: Event) => {
+      const custom = e as CustomEvent<HumanVoicePersona>;
+      if (custom.detail) {
+        setVoicePersonaState(custom.detail);
+        lastSpokenChapterRef.current = null;
+      } else {
+        setVoicePersonaState(getSavedVoicePersona(isFr));
+      }
+    };
+    window.addEventListener(VOICE_PERSONA_CHANGE_EVENT, syncPersona);
+    return () => window.removeEventListener(VOICE_PERSONA_CHANGE_EVENT, syncPersona);
+  }, [isFr]);
+
+  const setVoicePersona = useCallback((personaId: string) => {
+    const updated = setSavedVoicePersona(personaId);
+    setVoicePersonaState(updated);
+    lastSpokenChapterRef.current = null;
+  }, []);
 
   // Persist current track & timestamp
   useEffect(() => {
@@ -361,9 +394,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
   }, [currentTrack, currentTimeSec, playbackSpeed, ambientBed]);
 
   const stopSpeech = useCallback(() => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    stopHumanVoice();
     lastSpokenChapterRef.current = null;
   }, []);
 
@@ -458,26 +489,28 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
     return found || currentTrack.chapters[currentTrack.chapters.length - 1];
   }, [currentTrack, currentTimeSec]);
 
-  // Speak chapter text when playing & entering a new chapter
+  // Speak chapter text using Human Voice Engine (Nigerian EN, Côte d'Ivoire FR, or American EN)
   useEffect(() => {
     if (!isPlaying || !currentTrack || !activeChapter) {
       if (!isPlaying) stopSpeech();
       return;
     }
 
-    const chapterKey = `${currentTrack.slug}:${activeChapter.id}:${isFr ? "fr" : "en"}:${playbackSpeed}`;
+    const chapterKey = `${currentTrack.slug}:${activeChapter.id}:${voicePersona.id}:${playbackSpeed}`;
     if (lastSpokenChapterRef.current === chapterKey) return;
     lastSpokenChapterRef.current = chapterKey;
 
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const text = isFr ? activeChapter.spokenTextFr : activeChapter.spokenTextEn;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = isFr ? "fr-FR" : "en-US";
-      utterance.rate = playbackSpeed;
-      window.speechSynthesis.speak(utterance);
-    }
-  }, [isPlaying, currentTrack, activeChapter, isFr, playbackSpeed, stopSpeech]);
+    const text =
+      voicePersona.primaryLanguage === "fr"
+        ? activeChapter.spokenTextFr
+        : activeChapter.spokenTextEn;
+
+    speakWithHumanVoice({
+      text,
+      persona: voicePersona,
+      playbackRate: playbackSpeed,
+    });
+  }, [isPlaying, currentTrack, activeChapter, voicePersona, playbackSpeed, stopSpeech]);
 
   // Main progress & sleep timer tick
   useEffect(() => {
@@ -693,6 +726,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       sleepTimerRemainingSec,
       ambientBed,
       activeChapter,
+      voicePersona,
       isExpanded,
       isMinimized,
       playTrack,
@@ -708,6 +742,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       cyclePlaybackSpeed,
       setSleepTimer,
       setAmbientBed,
+      setVoicePersona,
       setIsExpanded,
       setIsMinimized,
     }),
@@ -722,6 +757,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       sleepTimerRemainingSec,
       ambientBed,
       activeChapter,
+      voicePersona,
       isExpanded,
       isMinimized,
       playTrack,
@@ -736,6 +772,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       prevTrack,
       cyclePlaybackSpeed,
       setSleepTimer,
+      setVoicePersona,
     ]
   );
 

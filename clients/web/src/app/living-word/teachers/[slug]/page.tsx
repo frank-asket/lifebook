@@ -21,6 +21,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { PlaylistModal } from "@/components/PlaylistModal";
 import { TeachingShareModal } from "@/components/TeachingShareModal";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
+import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
 
 export default function TeacherProfilePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -446,6 +447,9 @@ export default function TeacherProfilePage() {
 
           {/* Right Column: Leadership Teaching Publisher + Published Teachings List */}
           <section className="lg:col-span-2 space-y-6">
+            {/* Teacher-Hosted Live Call Room Control (Max 40 Believers) */}
+            <TeacherLiveCallBanner defaultTeacherSlug={teacher.slug} compact />
+
             {/* LifeBook Leadership Panel: Add Teaching Inside Teacher's Page */}
             <div className="rounded-3xl bg-gradient-to-r from-[#2D2542] to-[#1E1931] text-white p-6 shadow-md border border-white/15 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

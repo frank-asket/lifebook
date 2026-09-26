@@ -25,6 +25,11 @@ import { CloudSyncBadge } from "@/components/CloudSyncBadge";
 import { PWAInstallButton } from "@/components/PWAInstallPrompt";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 import ProgressScreen from "@/components/ProgressScreen";
+import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
+import { SanctuaryWalkthroughModal } from "@/components/SanctuaryWalkthroughModal";
+import { triggerOpenWalkthrough } from "@/lib/live-call";
+import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
+import { speakWithHumanVoice, stopHumanVoice } from "@/lib/human-voice";
 
 export interface DashboardJournalEntry {
   id: string;
@@ -386,6 +391,13 @@ export default function DribbbleDashboard() {
               <Link href="/voice" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
                 {isFr ? "Prière Vocale" : "Voice Practice"}
               </Link>
+              <button
+                type="button"
+                onClick={triggerOpenWalkthrough}
+                className="px-3 py-2 rounded-lg text-[#0E726D] dark:text-[#4EE2D8] hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                {isFr ? "Guide des Fonctionnalités" : "Feature Walkthrough"}
+              </button>
             </nav>
           </div>
 
@@ -539,10 +551,29 @@ export default function DribbbleDashboard() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={triggerOpenWalkthrough}
+              className="min-h-[40px] px-3.5 py-2 rounded-xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/15 dark:border-white/15 text-xs font-bold text-[#1E1931] dark:text-white hover:bg-[#F2ECE1] dark:hover:bg-[#272042] transition-colors cursor-pointer whitespace-nowrap"
+            >
+              ✦ {isFr ? "Guide d'Utilisation (6)" : "Walkthrough Guide (6)"}
+            </button>
             <CloudSyncBadge />
             <PWAInstallButton />
           </div>
         </div>
+
+        {/* TEACHER-HOSTED LIVE SANCTUARY CALL (MAX 40 USERS · TEACHERS ONLY START) */}
+        <section id="dashboard-live-call-section">
+          <TeacherLiveCallBanner />
+        </section>
+
+        {/* FULL HUMAN VOICE STUDIO WHEN ON AUDIO TAB */}
+        {activeTab === "audio" && (
+          <section>
+            <HumanVoiceSelector />
+          </section>
+        )}
 
         {/* VIEW 1: OVERVIEW DASHBOARD GRID */}
         {(activeTab === "overview" || activeTab === "heatmap") && (
@@ -1030,10 +1061,28 @@ export default function DribbbleDashboard() {
               <div className="flex items-center justify-between text-xs text-white/80">
                 <button
                   type="button"
-                  onClick={() => setIsAudioPlaying(!isAudioPlaying)}
+                  onClick={() => {
+                    if (isAudioPlaying) {
+                      stopHumanVoice();
+                      setIsAudioPlaying(false);
+                    } else {
+                      setIsAudioPlaying(true);
+                      speakWithHumanVoice({
+                        text: `${scriptures[selectedScripture].ref}. ${scriptures[selectedScripture].text}`,
+                        isFrFallback: isFr,
+                        onEnd: () => setIsAudioPlaying(false),
+                      });
+                    }
+                  }}
                   className="min-h-[40px] px-4 py-2 rounded-full bg-[#56C2B4] text-[#120F24] font-bold text-xs hover:bg-[#68D8CA] transition-colors cursor-pointer"
                 >
-                  {isAudioPlaying ? "⏸ Pause" : "▶ Play Lossless Audio"}
+                  {isAudioPlaying
+                    ? isFr
+                      ? "⏸ Arrêter la Voix"
+                      : "⏸ Stop Human Voice"
+                    : isFr
+                    ? "▶ Écouter la Parole (Voix Humaine)"
+                    : "▶ Listen with Human Voice"}
                 </button>
                 <div className="flex items-center gap-3">
                   <Link href="/teachers" className="hover:text-white transition-colors underline">
@@ -1044,6 +1093,9 @@ export default function DribbbleDashboard() {
                   </Link>
                 </div>
               </div>
+
+              {/* Quick Selector for Nigerian EN, Côte d'Ivoire FR, and American EN Voices */}
+              <HumanVoiceSelector compact darkSurface />
             </div>
 
             {/* Quick Prayer Notepad Widget */}
@@ -1199,6 +1251,15 @@ export default function DribbbleDashboard() {
       <DailyRitualModal
         isOpen={isRitualModalOpen}
         onClose={() => setIsRitualModalOpen(false)}
+      />
+
+      <SanctuaryWalkthroughModal
+        onSelectDashboardTab={(tab) => setActiveTab(tab)}
+        onOpenDailyRitual={() => setIsRitualModalOpen(true)}
+        onFocusLiveCall={() => {
+          const el = document.getElementById("dashboard-live-call-section");
+          el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }}
       />
     </div>
   );

@@ -8,6 +8,7 @@ import {
   type AmbientSoundscape,
   type SleepTimerOption,
 } from "@/lib/sanctuary-audio";
+import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
 import { useLanguage } from "@/lib/i18n";
 
 function formatClock(sec: number): string {
@@ -31,6 +32,7 @@ export function GlobalAudioPlayer() {
     sleepTimerRemainingSec,
     ambientBed,
     activeChapter,
+    voicePersona,
     isExpanded,
     isMinimized,
     playTrack,
@@ -215,8 +217,11 @@ export function GlobalAudioPlayer() {
                 </div>
               </div>
 
-              {/* Right Column: Sleep Timer, Ambient Soundscape & Track Switcher */}
+              {/* Right Column: Human Voice Persona, Sleep Timer, Ambient Soundscape & Track Switcher */}
               <div className="lg:col-span-5 space-y-4">
+                {/* Human Pastoral Voice Persona Selector (Nigerian EN, Côte d'Ivoire FR, American EN) */}
+                <HumanVoiceSelector compact darkSurface />
+
                 {/* Sleep Timer */}
                 <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
                   <div className="flex items-center justify-between mb-2">
@@ -360,6 +365,19 @@ export function GlobalAudioPlayer() {
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] text-white/70 truncate">
                   <span>{currentTrack.teacher}</span>
+                  <span>·</span>
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded(true)}
+                    className="text-[#4EE2D8] hover:underline font-medium truncate cursor-pointer"
+                    title={
+                      isFr
+                        ? "Changer la voix humaine (Nigéria EN, Côte d'Ivoire FR, Américain EN)"
+                        : "Switch human voice (Nigerian EN, Côte d'Ivoire FR, American EN)"
+                    }
+                  >
+                    {voicePersona.countryFlag} {voicePersona.name}
+                  </button>
                   {activeChapterTitle && (
                     <>
                       <span>·</span>

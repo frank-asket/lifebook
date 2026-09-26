@@ -6,6 +6,12 @@ import { useLanguage } from "@/lib/i18n";
 import { AudioWaveform } from "@/components/AudioWaveform";
 import { recordDailyActivity } from "@/lib/streak";
 import { getGracePoints, LIFEBOOK_RITUAL_COMPLETED_EVENT } from "@/lib/daily-ritual";
+import {
+  speakWithHumanVoice,
+  stopHumanVoice,
+  useHumanVoice,
+} from "@/lib/human-voice";
+import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
 
 export { AudioWaveform };
 
@@ -259,6 +265,7 @@ function persistSpokenEntryToSoulJournal(params: {
 
 export default function VoicePractice() {
   const { isFr } = useLanguage();
+  const { activePersona } = useHumanVoice(isFr);
   const [studioMode, setStudioMode] = useState<VoiceStudioMode>("prayer-dictation");
   const [status, setStatus] = useState<VoiceStatus>("idle");
   const [transcript, setTranscript] = useState("");
@@ -326,21 +333,22 @@ export default function VoicePractice() {
       if (streamTimerRef.current) {
         window.clearInterval(streamTimerRef.current);
       }
+      stopHumanVoice();
     };
   }, []);
 
   function speak(text: string) {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = isFr ? "fr-FR" : "en-US";
-    window.speechSynthesis.speak(utterance);
+    speakWithHumanVoice({
+      text,
+      persona: activePersona,
+    });
   }
 
   function respond(question: string) {
     setStatus("thinking");
     window.setTimeout(() => {
-      const nextAnswer = answerQuestion(question, isFr);
+      const useFrenchResponse = activePersona.primaryLanguage === "fr" || isFr;
+      const nextAnswer = answerQuestion(question, useFrenchResponse);
       setAnswer(nextAnswer);
       setStatus("answered");
       speak(`${nextAnswer.title}. ${nextAnswer.body}`);
@@ -427,7 +435,7 @@ export default function VoicePractice() {
       recognitionRef.current = recognition;
       recognition.continuous = studioMode === "prayer-dictation";
       recognition.interimResults = true;
-      recognition.lang = isFr ? "fr-FR" : "en-US";
+      recognition.lang = activePersona.langCode || (isFr ? "fr-CI" : "en-NG");
 
       recognition.onresult = (event) => {
         let finalChunk = "";
@@ -614,6 +622,10 @@ export default function VoicePractice() {
           </div>
 
           {/* Mode Switcher: Live Prayer Dictation vs Scripture Voice Search */}
+          <div className="mb-3">
+            <HumanVoiceSelector compact />
+          </div>
+
           <div className="grid grid-cols-2 gap-1.5 p-1 mb-3 rounded-xl bg-[#EFEAF7] dark:bg-[#19142B] border border-[#2D2542]/10 dark:border-white/15">
             <button
               type="button"
@@ -771,6 +783,16 @@ export default function VoicePractice() {
                 </span>
 
                 <div className="flex items-center gap-2">
+                  {combinedTranscript && (
+                    <button
+                      type="button"
+                      onClick={() => speak(combinedTranscript)}
+                      className="min-h-[38px] px-3 py-1.5 rounded-xl bg-[#F2ECE1] dark:bg-white/10 hover:bg-[#E5DEC9] text-[#1E1931] dark:text-white text-xs font-bold transition-colors cursor-pointer whitespace-nowrap"
+                    >
+                      🔊 {activePersona.countryFlag}{" "}
+                      {isFr ? "Écouter avec la Voix" : "Read Aloud"}
+                    </button>
+                  )}
                   <button
                     type="button"
                     id="voice-save-soul-journal-btn"
@@ -915,6 +937,11 @@ export default function VoicePractice() {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Full Human Voice Studio Card (Nigerian EN, Côte d'Ivoire FR, American EN) */}
+      <div className="page-shell mt-8">
+        <HumanVoiceSelector />
       </div>
     </section>
   );

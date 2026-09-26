@@ -20,6 +20,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { CloudSyncBadge } from "@/components/CloudSyncBadge";
 import { PWAInstallButton } from "@/components/PWAInstallPrompt";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
+import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
 
 const PORTRAIT_OPTIONS = [
   { label: "Pastoral Portrait I", value: "/AsketOfficialPic (1).png" },
@@ -479,6 +480,11 @@ export default function TeachersPortalPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* TEACHER-HOSTED LIVE SANCTUARY CALL (MAX 40 USERS · TEACHERS ONLY START) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-8 pt-8">
+        <TeacherLiveCallBanner />
       </section>
 
       {/* LEADERSHIP PERFORMANCE ANALYTICS PANEL */}

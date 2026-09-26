@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useSyncExternalStore, useCallback, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
+import { markNewUserForWalkthrough } from "@/lib/live-call";
 
 export interface ChristianUser {
   id: string;
@@ -176,6 +177,7 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userObj));
+      markNewUserForWalkthrough();
       notifyAuthChange();
     } catch {}
 
