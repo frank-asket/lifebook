@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useSyncExternalStore, useCallback } from "react";
+import React, { createContext, useContext, useSyncExternalStore, useCallback, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 
 export interface ChristianUser {
@@ -79,6 +80,8 @@ function notifyAuthChange() {
 const ChristianAuthContext = createContext<ChristianAuthContextType | undefined>(undefined);
 
 export function ChristianAuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const localUser = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const clerk = useUser();
   const clerkMethods = useClerk();
@@ -122,8 +125,9 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
       notifyAuthChange();
     } catch {}
 
+    router.replace("/dashboard");
     return { success: true };
-  }, [clerkMethods]);
+  }, [clerkMethods, router]);
 
   const signUp = useCallback(async (data: {
     fullName: string;
@@ -175,8 +179,9 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
       notifyAuthChange();
     } catch {}
 
+    router.replace("/dashboard");
     return { success: true };
-  }, [clerkMethods]);
+  }, [clerkMethods, router]);
 
   const signOut = useCallback(async () => {
     try {
@@ -217,7 +222,8 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userObj));
       notifyAuthChange();
     } catch {}
-  }, []);
+    router.replace("/dashboard");
+  }, [router]);
 
   const effectiveUser: ChristianUser | null = localUser || (clerk.isSignedIn && clerk.user ? {
     id: clerk.user.id,
@@ -234,6 +240,23 @@ export function ChristianAuthProvider({ children }: { children: React.ReactNode 
 
   const isSignedIn = !!effectiveUser;
   const isLoaded = clerk.isLoaded;
+
+  // Automatically direct authenticated users and standalone PWA launches to /dashboard
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const isExplicitMarketing = params.get("marketing") === "1";
+
+    const isStandalonePWA =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+
+    if (pathname === "/" && (isStandalonePWA || (isSignedIn && !isExplicitMarketing))) {
+      router.replace("/dashboard");
+    } else if (isSignedIn && (pathname?.startsWith("/sign-up") || pathname?.startsWith("/sign-in"))) {
+      router.replace("/dashboard");
+    }
+  }, [isSignedIn, pathname, router]);
 
   return (
     <ChristianAuthContext.Provider

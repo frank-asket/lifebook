@@ -24,6 +24,7 @@ import { DailyRitualModal } from "@/components/DailyRitualModal";
 import { CloudSyncBadge } from "@/components/CloudSyncBadge";
 import { PWAInstallButton } from "@/components/PWAInstallPrompt";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
+import ProgressScreen from "@/components/ProgressScreen";
 
 export interface DashboardJournalEntry {
   id: string;
@@ -141,7 +142,15 @@ export default function DribbbleDashboard() {
   const { playTrack, currentTrack, isPlaying: isGlobalAudioPlaying, togglePlay: toggleGlobalAudio } = useSanctuaryAudio();
 
   // Active view filters: 'overview' | 'audio' | 'journal' | 'heatmap' | 'community'
-  const [activeTab, setActiveTab] = useState<"overview" | "audio" | "journal" | "heatmap" | "community">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "audio" | "journal" | "heatmap" | "community">(() => {
+    if (typeof window !== "undefined") {
+      const tabParam = new URLSearchParams(window.location.search).get("tab");
+      if (tabParam === "progress" || tabParam === "heatmap") return "heatmap";
+      if (tabParam === "journal") return "journal";
+      if (tabParam === "audio") return "audio";
+    }
+    return "overview";
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedScripture, setSelectedScripture] = useState<"psalm23" | "romans8" | "john15">("psalm23");
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
@@ -346,14 +355,33 @@ export default function DribbbleDashboard() {
 
             {/* Quick Navigation Links */}
             <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
-              <Link href="/dashboard" className="px-3 py-2 rounded-lg text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10 transition-colors">
+              <button
+                type="button"
+                onClick={() => setActiveTab("overview")}
+                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                  activeTab !== "heatmap"
+                    ? "text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10"
+                    : "hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10"
+                }`}
+              >
                 {isFr ? "Tableau de Bord" : "Dashboard"}
-              </Link>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("heatmap")}
+                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                  activeTab === "heatmap"
+                    ? "text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10"
+                    : "hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10"
+                }`}
+              >
+                {isFr ? "Progrès & Habitudes" : "Progress & Rhythm"}
+              </button>
               <Link href="/living-word" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
                 {isFr ? "Enseignements" : "Teachings"}
               </Link>
-              <Link href="/progress" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
-                {isFr ? "Progrès & Habitudes" : "Progress & Heatmap"}
+              <Link href="/teachers" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
+                {isFr ? "Portail des Pasteurs" : "Teachers Portal"}
               </Link>
               <Link href="/voice" className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors">
                 {isFr ? "Prière Vocale" : "Voice Practice"}
@@ -471,13 +499,14 @@ export default function DribbbleDashboard() {
             >
               <span>{isGlobalAudioPlaying ? "⏸ Pause Audio" : "▶ 3-Min Audio"}</span>
             </button>
-            <Link
-              href="/progress"
-              className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1.5"
+            <button
+              type="button"
+              onClick={() => setActiveTab("heatmap")}
+              className="min-h-[42px] px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <span>{isFr ? "Voir la Heatmap" : "View Heatmap"}</span>
+              <span>{isFr ? "Progrès & Graphiques" : "Progress & Rhythm"}</span>
               <span aria-hidden="true">→</span>
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -486,9 +515,9 @@ export default function DribbbleDashboard() {
           <div className="flex items-center gap-2">
             {[
               { id: "overview" as const, label: isFr ? "Vue d'Ensemble" : "Overview", icon: "✨" },
-              { id: "audio" as const, label: isFr ? "Studio Audio" : "Living Word Audio", icon: "🎙️" },
+              { id: "heatmap" as const, label: isFr ? "Progrès, Graphiques & Sabbat" : "Progress, Charts & Heatmap", icon: "🔥" },
               { id: "journal" as const, label: isFr ? "Journal Intime" : "Soul Journal", icon: "✍️" },
-              { id: "heatmap" as const, label: isFr ? "Heatmap & Sabbat" : "Consistency Heatmap", icon: "🔥" },
+              { id: "audio" as const, label: isFr ? "Studio Audio" : "Living Word Audio", icon: "🎙️" },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               return (
@@ -955,13 +984,14 @@ export default function DribbbleDashboard() {
                 <span>{savedDevotions["dev-1"] ? "✓ Enregistré" : "🔖 Ajouter aux Favoris"}</span>
               </button>
 
-              <Link
-                href="/progress#journal"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5A4B7C] dark:text-[#4EE2D8] hover:text-[#1E1931] dark:hover:text-white transition-colors"
+              <button
+                type="button"
+                onClick={() => setActiveTab("journal")}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5A4B7C] dark:text-[#4EE2D8] hover:text-[#1E1931] dark:hover:text-white transition-colors cursor-pointer"
               >
                 <span>{isFr ? "Ouvrir dans le Journal Spirituel" : "Expand to Journal Notebook"}</span>
                 <span aria-hidden="true">→</span>
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -980,7 +1010,7 @@ export default function DribbbleDashboard() {
                 <h3 className="text-base font-serif font-bold text-white">
                   The Cost of Discipleship & Romans 8
                 </h3>
-                <p className="text-xs text-white/75">Timothy Keller · Expository Series · 12:45</p>
+                <p className="text-xs text-white/75">Pastor Samuel Ndlovu · Expository Series · 16:00</p>
               </div>
 
               {/* Dynamic Equalizer Bars */}
@@ -1005,9 +1035,14 @@ export default function DribbbleDashboard() {
                 >
                   {isAudioPlaying ? "⏸ Pause" : "▶ Play Lossless Audio"}
                 </button>
-                <Link href="/living-word" className="hover:text-white transition-colors underline">
-                  {isFr ? "Mode Plein Écran" : "Dedicated Studio"}
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link href="/teachers" className="hover:text-white transition-colors underline">
+                    {isFr ? "Portail des Pasteurs" : "Teachers Portal"}
+                  </Link>
+                  <Link href="/living-word" className="hover:text-white transition-colors underline">
+                    {isFr ? "Mode Plein Écran" : "Dedicated Studio"}
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -1057,82 +1092,91 @@ export default function DribbbleDashboard() {
           </div>
         </div>
 
-        {/* 30-Day Heatmap Preview */}
-        <div className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
-            <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
-                DWELL-TIME & CONSISTENCY MATRIX
-              </span>
-              <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white">
-                {isFr ? "Régularité Spirituelle sur 30 Jours" : "30-Day Spiritual Rhythm Heatmap"}
-              </h3>
+        {/* INTEGRATED PROGRESS & SPIRITUAL RHYTHM ANALYTICS (Recharts, Sabbath Shield, Full 30-Day Matrix) */}
+        {activeTab === "heatmap" ? (
+          <div className="pt-2">
+            <ProgressScreen />
+          </div>
+        ) : (
+          /* 30-Day Heatmap Preview */
+          <div className="rounded-3xl bg-white dark:bg-[#1B1630] border border-[#2D2542]/10 dark:border-white/12 p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#2D2542]/10 dark:border-white/12">
+              <div>
+                <span className="text-xs font-mono uppercase tracking-widest text-[#5A4B7C] dark:text-[#4EE2D8] font-semibold">
+                  DWELL-TIME & CONSISTENCY MATRIX
+                </span>
+                <h3 className="text-xl font-serif font-bold text-[#1E1931] dark:text-white">
+                  {isFr ? "Régularité Spirituelle sur 30 Jours" : "30-Day Spiritual Rhythm Heatmap"}
+                </h3>
+              </div>
+              <div className="flex items-center gap-4 text-xs font-mono">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-xs bg-[#BCEBE7]" />
+                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">Light</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-xs bg-[#1FB6B0]" />
+                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">Deep</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-xs bg-[#F28C38]" />
+                  <span className="text-[#5A506B] dark:text-[#C8C2D6]">Peak Rhythm 🔥</span>
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-4 text-xs font-mono">
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs bg-[#BCEBE7]" />
-                <span className="text-[#5A506B] dark:text-[#C8C2D6]">Light</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs bg-[#1FB6B0]" />
-                <span className="text-[#5A506B] dark:text-[#C8C2D6]">Deep</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-xs bg-[#F28C38]" />
-                <span className="text-[#5A506B] dark:text-[#C8C2D6]">Peak Rhythm 🔥</span>
-              </span>
+
+            {/* 30-Cell Interactive Grid */}
+            <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-15 gap-2 sm:gap-2.5">
+              {Array.from({ length: 30 }).map((_, i) => {
+                const day = i + 1;
+                const isPeak = day % 7 === 0 || day === 14;
+                const isDeep = day % 3 === 0 && !isPeak;
+                const isLight = day % 2 === 0 && !isDeep && !isPeak;
+                const isRest = day % 5 === 0 && !isPeak && !isDeep;
+
+                const bgClass = isPeak
+                  ? "bg-gradient-to-br from-[#E3B15E] to-[#F28C38] text-white shadow-xs"
+                  : isDeep
+                  ? "bg-[#1FB6B0] text-white"
+                  : isLight
+                  ? "bg-[#BCEBE7] text-[#0E6C68]"
+                  : isRest
+                  ? "bg-[#EFE8F7] dark:bg-[#2A2145] text-[#5A4B7C] dark:text-[#D5CEE6] border border-[#DDD3EF] dark:border-white/15"
+                  : "bg-[#F3EFE8] dark:bg-[#141024] text-[#5A506B] dark:text-[#A9A0BC]";
+
+                return (
+                  <div
+                    key={i}
+                    onClick={() => setActiveTab("heatmap")}
+                    className={`h-11 sm:h-12 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-105 ${bgClass}`}
+                    title={`Day ${day}: ${isPeak ? "Peak devotion & prayer" : isDeep ? "Scripture & Stillness" : "Daily check-in"}`}
+                  >
+                    <span className="text-xs font-bold font-mono leading-none">{day}</span>
+                    <span className="text-xs uppercase tracking-tighter opacity-90 mt-0.5 leading-none">
+                      {isPeak ? "🔥" : isRest ? "🌿" : isDeep ? "✓" : "·"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2D2542]/10 dark:border-white/12 text-xs text-[#5A4B7C] dark:text-[#C8C2D6]">
+              <p>
+                {isFr
+                  ? "Le repos du sabbat (🌿) préserve votre élan spirituel sans jamais remettre votre série à zéro."
+                  : "Intentional Sabbath rest (🌿) protects your momentum without guilt resets."}
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab("heatmap")}
+                className="inline-flex items-center gap-1 font-bold text-[#1E1931] dark:text-[#4EE2D8] hover:text-[#705EAA] transition-colors cursor-pointer"
+              >
+                <span>{isFr ? "Ouvrir Progrès, Graphiques & Heatmap complète" : "Open Full Progress, Charts & Interactive Matrix"}</span>
+                <span aria-hidden="true">→</span>
+              </button>
             </div>
           </div>
-
-          {/* 30-Cell Interactive Grid */}
-          <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-15 gap-2 sm:gap-2.5">
-            {Array.from({ length: 30 }).map((_, i) => {
-              const day = i + 1;
-              const isPeak = day % 7 === 0 || day === 14;
-              const isDeep = day % 3 === 0 && !isPeak;
-              const isLight = day % 2 === 0 && !isDeep && !isPeak;
-              const isRest = day % 5 === 0 && !isPeak && !isDeep;
-
-              const bgClass = isPeak
-                ? "bg-gradient-to-br from-[#E3B15E] to-[#F28C38] text-white shadow-xs"
-                : isDeep
-                ? "bg-[#1FB6B0] text-white"
-                : isLight
-                ? "bg-[#BCEBE7] text-[#0E6C68]"
-                : isRest
-                ? "bg-[#EFE8F7] dark:bg-[#2A2145] text-[#5A4B7C] dark:text-[#D5CEE6] border border-[#DDD3EF] dark:border-white/15"
-                : "bg-[#F3EFE8] dark:bg-[#141024] text-[#5A506B] dark:text-[#A9A0BC]";
-
-              return (
-                <div
-                  key={i}
-                  className={`h-11 sm:h-12 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-105 ${bgClass}`}
-                  title={`Day ${day}: ${isPeak ? "Peak devotion & prayer" : isDeep ? "Scripture & Stillness" : "Daily check-in"}`}
-                >
-                  <span className="text-xs font-bold font-mono leading-none">{day}</span>
-                  <span className="text-xs uppercase tracking-tighter opacity-90 mt-0.5 leading-none">
-                    {isPeak ? "🔥" : isRest ? "🌿" : isDeep ? "✓" : "·"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#2D2542]/10 dark:border-white/12 text-xs text-[#5A4B7C] dark:text-[#C8C2D6]">
-            <p>
-              {isFr
-                ? "Le repos du sabbat (🌿) préserve votre élan spirituel sans jamais remettre votre série à zéro."
-                : "Intentional Sabbath rest (🌿) protects your momentum without guilt resets."}
-            </p>
-            <Link
-              href="/progress"
-              className="inline-flex items-center gap-1 font-bold text-[#1E1931] dark:text-[#4EE2D8] hover:text-[#705EAA] transition-colors"
-            >
-              <span>{isFr ? "Accéder à la Heatmap complète" : "Open Full Interactive Matrix"}</span>
-              <span aria-hidden="true">→</span>
-            </Link>
-          </div>
-        </div>
+        )}
       </main>
 
       {/* Sanctuary Footer */}
@@ -1144,9 +1188,9 @@ export default function DribbbleDashboard() {
             <span>{isFr ? "Sanctuaire quotidien de méditation et de prière" : "Daily Scripture, Stillness & Prayer Sanctuary"}</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Accueil" : "Home"}</Link>
+            <Link href="/dashboard" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Tableau de Bord" : "Dashboard"}</Link>
             <Link href="/living-word" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Enseignements" : "Teachings"}</Link>
-            <Link href="/progress" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Progrès" : "Progress"}</Link>
+            <Link href="/teachers" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Portail des Pasteurs" : "Teachers Portal"}</Link>
             <Link href="/privacy" className="hover:text-[#1E1931] dark:hover:text-white transition-colors">{isFr ? "Confidentialité" : "Privacy"}</Link>
           </div>
         </div>

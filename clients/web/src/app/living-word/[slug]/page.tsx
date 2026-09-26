@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useParams } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { teachings, getTeacherBySlug } from "../../livingWordData";
+import { getAllTeachings, getTeacherBySlug } from "../../livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -15,7 +15,7 @@ import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 
 export default function LivingWordDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const teaching = teachings.find((item) => item.slug === slug);
+  const teaching = getAllTeachings().find((item) => item.slug === slug);
   const [streamMode, setStreamMode] = useState<"video" | "audio">("video");
   const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);

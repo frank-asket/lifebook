@@ -322,10 +322,89 @@ export const teachings: Teaching[] = [
   }
 ];
 
+export const CUSTOM_TEACHERS_KEY = "lifebook.leadership.teachers.v1";
+export const CUSTOM_TEACHINGS_KEY = "lifebook.leadership.teachings.v1";
+export const CATALOG_CHANGE_EVENT = "lifebook-catalog-updated";
+
+export function getCustomTeachers(): Teacher[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_TEACHERS_KEY);
+    return raw ? (JSON.parse(raw) as Teacher[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getCustomTeachings(): Teaching[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_TEACHINGS_KEY);
+    return raw ? (JSON.parse(raw) as Teaching[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getAllTeachers(): Teacher[] {
+  const custom = getCustomTeachers();
+  const existingSlugs = new Set(teachers.map((t) => t.slug));
+  const uniqueCustom = custom.filter((t) => !existingSlugs.has(t.slug));
+  return [...teachers, ...uniqueCustom];
+}
+
+export function getAllTeachings(): Teaching[] {
+  const custom = getCustomTeachings();
+  const existingSlugs = new Set(teachings.map((t) => t.slug));
+  const uniqueCustom = custom.filter((t) => !existingSlugs.has(t.slug));
+  return [...uniqueCustom, ...teachings];
+}
+
 export function getTeacherBySlug(slug: string): Teacher | undefined {
-  return teachers.find((t) => t.slug === slug);
+  return getAllTeachers().find((t) => t.slug === slug);
 }
 
 export function getTeachingsByTeacher(teacherSlug: string): Teaching[] {
-  return teachings.filter((item) => item.teacherSlug === teacherSlug);
+  return getAllTeachings().filter((item) => item.teacherSlug === teacherSlug);
 }
+
+export function appointPastoralContributor(newTeacher: Teacher): Teacher {
+  if (typeof window !== "undefined") {
+    try {
+      const current = getCustomTeachers().filter((t) => t.slug !== newTeacher.slug);
+      const updated = [...current, newTeacher];
+      localStorage.setItem(CUSTOM_TEACHERS_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new Event(CATALOG_CHANGE_EVENT));
+    } catch {
+      // ignore storage errors
+    }
+  }
+  return newTeacher;
+}
+
+export function addTeachingToContributor(newTeaching: Teaching): Teaching {
+  if (typeof window !== "undefined") {
+    try {
+      const current = getCustomTeachings().filter((t) => t.slug !== newTeaching.slug);
+      const updated = [newTeaching, ...current];
+      localStorage.setItem(CUSTOM_TEACHINGS_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new Event(CATALOG_CHANGE_EVENT));
+    } catch {
+      // ignore storage errors
+    }
+  }
+  return newTeaching;
+}
+
+export function removeCustomTeaching(slug: string): void {
+  if (typeof window !== "undefined") {
+    try {
+      const current = getCustomTeachings().filter((t) => t.slug !== slug);
+      localStorage.setItem(CUSTOM_TEACHINGS_KEY, JSON.stringify(current));
+      window.dispatchEvent(new Event(CATALOG_CHANGE_EVENT));
+    } catch {
+      // ignore
+    }
+  }
+}
+

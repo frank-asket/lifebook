@@ -46,6 +46,7 @@ export const metadata: Metadata = {
   description:
     "Build a steady 5-minute daily Bible and prayer habit with curated Scripture, guided reflection prompts, and private journaling in English and French.",
   applicationName: "LifeBook",
+  manifest: "/manifest.webmanifest",
   keywords: [
     "Christian devotional",
     "daily Bible study",

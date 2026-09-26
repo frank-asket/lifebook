@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { teachings, type Teaching } from "./livingWordData";
+import { useState, useEffect } from "react";
+import { getAllTeachings, CATALOG_CHANGE_EVENT, type Teaching } from "./livingWordData";
 import { useLanguage } from "@/lib/i18n";
 import { usePlaylists, type Playlist } from "@/lib/usePlaylists";
 import { PlaylistModal } from "@/components/PlaylistModal";
@@ -13,8 +13,19 @@ import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 export default function LivingWord() {
   const { isFr, t } = useLanguage();
   const { playTeaching, currentTrack, isPlaying, togglePlay } = useSanctuaryAudio();
+  const [allTeachings, setAllTeachings] = useState<Teaching[]>(() => getAllTeachings());
   const [mainTab, setMainTab] = useState<"teachings" | "playlists">("teachings");
   const [category, setCategory] = useState("All");
+
+  useEffect(() => {
+    const sync = () => setAllTeachings(getAllTeachings());
+    window.addEventListener(CATALOG_CHANGE_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(CATALOG_CHANGE_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   // Playlist management states
   const { playlists, deletePlaylist, removeFromPlaylist, createPlaylist } = usePlaylists();
@@ -36,7 +47,7 @@ export default function LivingWord() {
     { id: "Discipleship", label: isFr ? "Vie chrétienne" : "Discipleship" },
   ];
 
-  const visibleTeachings = category === "All" ? teachings : teachings.filter((teaching) => teaching.category === category);
+  const visibleTeachings = category === "All" ? allTeachings : allTeachings.filter((teaching) => teaching.category === category);
 
   const handleCreatePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +88,7 @@ export default function LivingWord() {
                   : "text-[#4E4462] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
               }`}
             >
-              {isFr ? "Tous les enseignements" : "All Teachings"} ({teachings.length})
+              {isFr ? "Tous les enseignements" : "All Teachings"} ({allTeachings.length})
             </button>
             <button
               type="button"
@@ -90,14 +101,21 @@ export default function LivingWord() {
             >
               <span>{isFr ? "Mes listes de lecture" : "My Playlists"} ({playlists.length})</span>
             </button>
+            <Link
+              href="/teachers"
+              className="min-h-[40px] px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-[#4E4462] dark:text-[#C8C2D6] hover:text-[#2D2542] dark:hover:text-white"
+            >
+              <span>✝</span>
+              <span>{isFr ? "Portail des Pasteurs" : "Teachers Portal"}</span>
+            </Link>
           </div>
 
           <div className="flex items-center gap-3 text-xs">
             <Link
-              href="/living-word/cms"
+              href="/teachers"
               className="inline-flex items-center gap-1 font-semibold text-[#5B4894] dark:text-[#4EE2D8] hover:text-[#2d2542] dark:hover:text-white transition-colors"
             >
-              <span>{isFr ? "Audit Pastoral CMS" : "Pastoral Review CMS"} ↗</span>
+              <span>{isFr ? "Pasteurs Contributeurs & Ajout" : "Pastors Portal & Add Teaching"} →</span>
             </Link>
             <span className="hidden sm:inline text-[#4E4462] dark:text-[#C8C2D6]">{t("audio_curated")}</span>
           </div>

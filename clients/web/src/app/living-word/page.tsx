@@ -20,6 +20,9 @@ export default function LivingWordPage() {
           <strong>LivingWord</strong>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <Link href="/teachers" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931] dark:text-[#B8B0C8] dark:hover:text-white transition-colors">
+            Teachers Portal
+          </Link>
           <Link href="/voice" className="text-xs font-semibold text-[#776E82] hover:text-[#1E1931] dark:text-[#B8B0C8] dark:hover:text-white transition-colors">
             Voice
           </Link>

@@ -544,7 +544,33 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
       const match = ALL_SANCTUARY_TRACKS.find((t) => t.slug === teaching.slug);
       if (match) {
         playTrack(match);
+        return;
       }
+      const minsMatch = teaching.duration.match(/\d+/);
+      const mins = minsMatch ? parseInt(minsMatch[0], 10) : 12;
+      const durationSec = mins * 60;
+      const dynamicTrack: SanctuaryAudioTrack = {
+        id: `teaching-${teaching.slug}`,
+        slug: teaching.slug,
+        titleEn: teaching.title,
+        titleFr: teaching.titleFr,
+        teacher: teaching.teacher,
+        teacherRoleEn: teaching.teacherRole,
+        teacherRoleFr: teaching.teacherRoleFr,
+        scriptureEn: teaching.scripture,
+        scriptureFr: teaching.scriptureFr,
+        categoryEn: teaching.category,
+        categoryFr: teaching.categoryFr,
+        durationLabelEn: teaching.duration,
+        durationLabelFr: teaching.durationFr,
+        durationSec,
+        portrait: teaching.portrait,
+        excerptEn: teaching.excerpt,
+        excerptFr: teaching.excerptFr,
+        audioUrl: teaching.audioUrl,
+        chapters: buildChaptersForTeaching(teaching, durationSec),
+      };
+      playTrack(dynamicTrack);
     },
     [playTrack]
   );
