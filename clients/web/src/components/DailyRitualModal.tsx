@@ -9,6 +9,12 @@ import {
   useHumanVoice,
 } from "@/lib/human-voice";
 import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
+import { ChristianMelodySelector } from "@/components/ChristianMelodySelector";
+import {
+  startChristianMelody,
+  stopChristianMelody,
+  getSavedChristianMelody,
+} from "@/lib/christian-melodies";
 import {
   RITUAL_TRACKS,
   completeDailyRitualSession,
@@ -82,6 +88,7 @@ export function DailyRitualModal({
   // Tear down external browser media resources without synchronous setState in effect
   const releaseMediaHandles = useCallback(() => {
     stopHumanVoice();
+    stopChristianMelody();
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -169,12 +176,17 @@ export function DailyRitualModal({
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  // Human Voice Synthesis for Scripture reading (Nigerian EN, Côte d'Ivoire FR, American EN)
+  // Human Voice Synthesis for Scripture reading (Nigerian EN, Côte d'Ivoire FR, American EN) + Christian Melody
   const handleToggleSpeakScripture = () => {
     if (isSpeakingScripture) {
       stopHumanVoice();
       setIsSpeakingScripture(false);
       return;
+    }
+
+    const savedMelody = getSavedChristianMelody();
+    if (savedMelody.melodyId !== "none") {
+      startChristianMelody(savedMelody.melodyId);
     }
 
     const useFrText = activePersona.primaryLanguage === "fr" || translation === "LSG";
@@ -457,6 +469,9 @@ export function DailyRitualModal({
                 {/* Human Pastoral Voice Selector (Nigerian EN, Côte d'Ivoire FR, American EN) */}
                 <HumanVoiceSelector compact />
 
+                {/* Christian Melodies & Instrumentals for Meditation */}
+                <ChristianMelodySelector compact />
+
                 {/* Audio Reader & 90s Quiet Abiding Timer Controls */}
                 <div className="pt-3 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
@@ -479,13 +494,24 @@ export function DailyRitualModal({
 
                     <button
                       type="button"
-                      onClick={() => setIsReadingTimerActive(!isReadingTimerActive)}
+                      onClick={() => {
+                        const nextActive = !isReadingTimerActive;
+                        setIsReadingTimerActive(nextActive);
+                        if (nextActive) {
+                          const saved = getSavedChristianMelody();
+                          if (saved.melodyId !== "none") {
+                            startChristianMelody(saved.melodyId);
+                          }
+                        } else {
+                          stopChristianMelody();
+                        }
+                      }}
                       className="min-h-[40px] px-4 py-2 rounded-xl bg-[#F2ECE1] dark:bg-white/10 hover:bg-[#E5DEC9] dark:hover:bg-white/15 text-[#1E1931] dark:text-white text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap font-mono tabular-nums"
                     >
                       {isReadingTimerActive
-                        ? `⏸ ${formatTimer(readingTimerSec)}`
+                        ? `⏸ ${formatTimer(readingTimerSec)} 🎹`
                         : `⏱ ${
-                            isFr ? "Silence 90s" : "90s Stillness"
+                            isFr ? "Méditation 90s + Mélodie" : "90s Meditation + Melody"
                           } (${formatTimer(readingTimerSec)})`}
                     </button>
                   </div>
@@ -601,6 +627,9 @@ export function DailyRitualModal({
                 {micPermissionNote && (
                   <p className="text-xs text-[#4EE2D8] font-mono">{micPermissionNote}</p>
                 )}
+
+                {/* Christian Worship Instrumental Accompaniment during Prayer */}
+                <ChristianMelodySelector compact darkSurface />
               </div>
 
               {/* Private Journal Reflection Input */}

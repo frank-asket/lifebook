@@ -29,7 +29,13 @@ import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
 import { SanctuaryWalkthroughModal } from "@/components/SanctuaryWalkthroughModal";
 import { triggerOpenWalkthrough } from "@/lib/live-call";
 import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
+import { ChristianMelodySelector } from "@/components/ChristianMelodySelector";
 import { speakWithHumanVoice, stopHumanVoice } from "@/lib/human-voice";
+import {
+  startChristianMelody,
+  stopChristianMelody,
+  getSavedChristianMelody,
+} from "@/lib/christian-melodies";
 
 export interface DashboardJournalEntry {
   id: string;
@@ -1064,9 +1070,14 @@ export default function DribbbleDashboard() {
                   onClick={() => {
                     if (isAudioPlaying) {
                       stopHumanVoice();
+                      stopChristianMelody();
                       setIsAudioPlaying(false);
                     } else {
                       setIsAudioPlaying(true);
+                      const savedMelody = getSavedChristianMelody();
+                      if (savedMelody.melodyId !== "none") {
+                        startChristianMelody(savedMelody.melodyId);
+                      }
                       speakWithHumanVoice({
                         text: `${scriptures[selectedScripture].ref}. ${scriptures[selectedScripture].text}`,
                         isFrFallback: isFr,
@@ -1096,6 +1107,9 @@ export default function DribbbleDashboard() {
 
               {/* Quick Selector for Nigerian EN, Côte d'Ivoire FR, and American EN Voices */}
               <HumanVoiceSelector compact darkSurface />
+
+              {/* Christian Melodies & Worship Instrumentals for Meditation */}
+              <ChristianMelodySelector compact darkSurface />
             </div>
 
             {/* Quick Prayer Notepad Widget */}

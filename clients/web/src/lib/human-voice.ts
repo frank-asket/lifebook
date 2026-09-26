@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { setChristianMelodyVoiceDucking } from "@/lib/christian-melodies";
 
 export type VoiceRegionFamily = "african-ng" | "african-ci" | "american-us";
 
@@ -245,6 +246,7 @@ export function setSavedVoicePersona(personaId: string): HumanVoicePersona {
 }
 
 export function stopHumanVoice() {
+  setChristianMelodyVoiceDucking(false);
   if (activePlaybackAbortController) {
     activePlaybackAbortController.abort();
     activePlaybackAbortController = null;
@@ -543,6 +545,12 @@ export async function speakWithHumanVoice(options: {
   onEnd?: () => void;
 }): Promise<void> {
   stopHumanVoice();
+  setChristianMelodyVoiceDucking(true);
+
+  const handleFinished = () => {
+    setChristianMelodyVoiceDucking(false);
+    options.onEnd?.();
+  };
 
   const persona = options.persona || getSavedVoicePersona(options.isFrFallback);
   const playbackRate = options.playbackRate || 1;
@@ -574,7 +582,7 @@ export async function speakWithHumanVoice(options: {
           data.audioBase64,
           data.mimeType || "audio/pcm;rate=24000",
           playbackRate,
-          options.onEnd
+          handleFinished
         );
         if (played) return;
       }
@@ -590,7 +598,7 @@ export async function speakWithHumanVoice(options: {
       persona,
       playbackRate,
       signal: abortController.signal,
-      onEnd: options.onEnd,
+      onEnd: handleFinished,
     });
   }
 }

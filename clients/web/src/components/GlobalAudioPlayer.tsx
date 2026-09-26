@@ -9,6 +9,7 @@ import {
   type SleepTimerOption,
 } from "@/lib/sanctuary-audio";
 import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
+import { ChristianMelodySelector } from "@/components/ChristianMelodySelector";
 import { useLanguage } from "@/lib/i18n";
 
 function formatClock(sec: number): string {
@@ -120,10 +121,13 @@ export function GlobalAudioPlayer() {
   ];
 
   const ambientOptions: { value: AmbientSoundscape; labelEn: string; labelFr: string }[] = [
-    { value: "still-waters", labelEn: "Still Waters", labelFr: "Eaux Paisibles" },
-    { value: "warm-cello", labelEn: "Warm Cello Pad", labelFr: "Violoncelle Doux" },
-    { value: "morning-rain", labelEn: "Morning Rain", labelFr: "Pluie du Matin" },
-    { value: "none", labelEn: "Voice Only", labelFr: "Voix Seule" },
+    { value: "amazing-grace", labelEn: "🎹 Amazing Grace (Piano & Cello)", labelFr: "🎹 Grâce Infinie (Piano & Violoncelle)" },
+    { value: "it-is-well", labelEn: "🎻 It Is Well (Harp & Strings)", labelFr: "🎻 Quel Repos Céleste (Harpe)" },
+    { value: "be-thou-my-vision", labelEn: "🪈 Be Thou My Vision (Flute)", labelFr: "🪈 Sois Ma Vision (Flûte)" },
+    { value: "holy-holy-holy", labelEn: "🕯️ Holy, Holy, Holy (Cathedral)", labelFr: "🕯️ Saint, Saint, Saint (Orgue)" },
+    { value: "great-faithfulness", labelEn: "🌅 Great Is Thy Faithfulness", labelFr: "🌅 Grande Est Ta Fidélité" },
+    { value: "selah-worship", labelEn: "🕊️ Selah · Still Waters", labelFr: "🕊️ Sélah · Eaux Paisibles" },
+    { value: "none", labelEn: "🔇 Voice Only (No Instrumental)", labelFr: "🔇 Voix Seule (Sans Mélodie)" },
   ];
 
   return (
@@ -255,10 +259,13 @@ export function GlobalAudioPlayer() {
                   </div>
                 </div>
 
-                {/* Ambient Soundscape */}
+                {/* Christian Melodies & Worship Instrumentals */}
+                <ChristianMelodySelector compact darkSurface />
+
+                {/* Background Melody Bed when Pastor is speaking */}
                 <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
                   <span className="block text-xs font-semibold text-white mb-2">
-                    🌊 {isFr ? "Fond Sonore Contemplatif" : "Contemplative Ambient Bed"}
+                    🎹 {isFr ? "Mélodie Chrétienne d'Accompagnement" : "Christian Instrumental Accompaniment"}
                   </span>
                   <div className="grid grid-cols-2 gap-1.5">
                     {ambientOptions.map((amb) => {

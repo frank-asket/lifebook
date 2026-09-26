@@ -12,6 +12,7 @@ import {
   useHumanVoice,
 } from "@/lib/human-voice";
 import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
+import { ChristianMelodySelector } from "@/components/ChristianMelodySelector";
 
 export { AudioWaveform };
 
@@ -622,8 +623,9 @@ export default function VoicePractice() {
           </div>
 
           {/* Mode Switcher: Live Prayer Dictation vs Scripture Voice Search */}
-          <div className="mb-3">
+          <div className="mb-3 space-y-2.5">
             <HumanVoiceSelector compact />
+            <ChristianMelodySelector compact />
           </div>
 
           <div className="grid grid-cols-2 gap-1.5 p-1 mb-3 rounded-xl bg-[#EFEAF7] dark:bg-[#19142B] border border-[#2D2542]/10 dark:border-white/15">
@@ -939,9 +941,10 @@ export default function VoicePractice() {
         </div>
       </div>
 
-      {/* Full Human Voice Studio Card (Nigerian EN, Côte d'Ivoire FR, American EN) */}
-      <div className="page-shell mt-8">
+      {/* Full Human Voice & Christian Melodies Studio Cards */}
+      <div className="page-shell mt-8 space-y-6">
         <HumanVoiceSelector />
+        <ChristianMelodySelector />
       </div>
     </section>
   );

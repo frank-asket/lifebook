@@ -19,6 +19,11 @@ import {
   VOICE_PERSONA_CHANGE_EVENT,
   type HumanVoicePersona,
 } from "@/lib/human-voice";
+import {
+  startChristianMelody,
+  stopChristianMelody,
+  type ChristianMelodyId,
+} from "@/lib/christian-melodies";
 
 export interface SanctuaryChapterMarker {
   id: string;
@@ -53,7 +58,17 @@ export interface SanctuaryAudioTrack {
   chapters: SanctuaryChapterMarker[];
 }
 
-export type AmbientSoundscape = "none" | "still-waters" | "warm-cello" | "morning-rain";
+export type AmbientSoundscape =
+  | "none"
+  | "amazing-grace"
+  | "it-is-well"
+  | "be-thou-my-vision"
+  | "holy-holy-holy"
+  | "great-faithfulness"
+  | "selah-worship"
+  | "still-waters"
+  | "warm-cello"
+  | "morning-rain";
 export type PlaybackSpeed = 1 | 1.25 | 1.5;
 export type SleepTimerOption = null | 5 | 15 | 30;
 
@@ -305,7 +320,7 @@ function getInitialSavedAudioState(): {
   bed: AmbientSoundscape;
 } {
   if (typeof window === "undefined") {
-    return { track: null, timeSec: 0, speed: 1, bed: "still-waters" };
+    return { track: null, timeSec: 0, speed: 1, bed: "amazing-grace" };
   }
   try {
     const savedRaw = localStorage.getItem(STORAGE_KEY);
@@ -317,13 +332,13 @@ function getInitialSavedAudioState(): {
         parsed.playbackSpeed === 1 || parsed.playbackSpeed === 1.25 || parsed.playbackSpeed === 1.5
           ? parsed.playbackSpeed
           : 1;
-      const bed: AmbientSoundscape = parsed.ambientBed || "still-waters";
+      const bed: AmbientSoundscape = parsed.ambientBed || "amazing-grace";
       return { track: found, timeSec, speed, bed };
     }
   } catch {
     // ignore
   }
-  return { track: null, timeSec: 0, speed: 1, bed: "still-waters" };
+  return { track: null, timeSec: 0, speed: 1, bed: "amazing-grace" };
 }
 
 export function SanctuaryAudioProvider({ children }: { children: React.ReactNode }) {
@@ -351,7 +366,6 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
   const ambientNodesRef = useRef<{ stop: () => void } | null>(null);
   const lastSpokenChapterRef = useRef<string | null>(null);
 
@@ -399,6 +413,7 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
   }, []);
 
   const stopAmbientNodes = useCallback(() => {
+    stopChristianMelody();
     if (ambientNodesRef.current) {
       try {
         ambientNodesRef.current.stop();
@@ -409,70 +424,23 @@ export function SanctuaryAudioProvider({ children }: { children: React.ReactNode
     }
   }, []);
 
-  // Start or stop Web Audio API ambient pad
+  // Start or stop Christian Melodies & Worship Instrumentals when meditating/playing
   useEffect(() => {
-    stopAmbientNodes();
     if (!isPlaying || ambientBed === "none" || typeof window === "undefined") {
+      stopAmbientNodes();
       return;
     }
 
-    try {
-      const AudioContextClass =
-        window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AudioContextClass) return;
+    const mappedMelodyId: ChristianMelodyId =
+      ambientBed === "still-waters"
+        ? "selah-worship"
+        : ambientBed === "warm-cello"
+        ? "amazing-grace"
+        : ambientBed === "morning-rain"
+        ? "it-is-well"
+        : (ambientBed as ChristianMelodyId);
 
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new AudioContextClass();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === "suspended") {
-        ctx.resume().catch(() => {});
-      }
-
-      const masterGain = ctx.createGain();
-      masterGain.gain.setValueAtTime(0.001, ctx.currentTime);
-      masterGain.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 1.5);
-      masterGain.connect(ctx.destination);
-
-      const freqs =
-        ambientBed === "warm-cello"
-          ? [130.81, 196.0, 246.94] // C3, G3, B3 warm chord
-          : ambientBed === "morning-rain"
-          ? [174.61, 261.63, 329.63] // F3maj7 soft pad
-          : [146.83, 220.0, 293.66]; // D3, A3, D4 open fifth
-
-      const oscillators = freqs.map((f) => {
-        const osc = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        filter.type = "lowpass";
-        filter.frequency.setValueAtTime(360, ctx.currentTime);
-        osc.type = ambientBed === "warm-cello" ? "triangle" : "sine";
-        osc.frequency.setValueAtTime(f, ctx.currentTime);
-        osc.connect(filter);
-        filter.connect(masterGain);
-        osc.start();
-        return osc;
-      });
-
-      ambientNodesRef.current = {
-        stop: () => {
-          try {
-            masterGain.gain.setValueAtTime(masterGain.gain.value, ctx.currentTime);
-            masterGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
-            setTimeout(() => {
-              oscillators.forEach((o) => {
-                try {
-                  o.stop();
-                  o.disconnect();
-                } catch {}
-              });
-            }, 320);
-          } catch {}
-        },
-      };
-    } catch {
-      // ignore audio context errors if browser blocks autoplay
-    }
+    startChristianMelody(mappedMelodyId);
 
     return () => {
       stopAmbientNodes();
