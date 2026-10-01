@@ -2,8 +2,9 @@ import json
 import os
 import threading
 from pathlib import Path
-from typing import Dict, Any, List
-from ..config import DATA_DIR
+from datetime import datetime, timezone
+from typing import Dict, Any
+from ..config import DATA_DIR, LIFEBOOK_STORAGE_BACKEND, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL
 
 DB_FILE = DATA_DIR / "db.json"
 _lock = threading.RLock()
@@ -30,6 +31,7 @@ def empty_db() -> Dict[str, Any]:
         "playlists": [],
         "playlistItems": [],
         "waitlistMembers": [],
+        "analyticsEvents": [],
     }
 
 class JSONDatabase:
@@ -55,30 +57,6 @@ class JSONDatabase:
                             current["groups"] = raw.get("groups", [])
                     except Exception:
                         pass
-                if not current.get("groups"):
-                    current["groups"] = [
-                        {
-                            "id": "morning-prayer",
-                            "name": "Morning Watchers",
-                            "description": "Daily 6:00 AM encouragement and accountability in Scripture reading.",
-                            "meetingFrequency": "Daily 6:00 AM",
-                            "memberCount": 42
-                        },
-                        {
-                            "id": "peace-seekers",
-                            "name": "Overcoming Anxiety",
-                            "description": "Walking together through seasons of transition, stress, and work pressure.",
-                            "meetingFrequency": "Weekly Tuesdays",
-                            "memberCount": 89
-                        },
-                        {
-                            "id": "scripture-deep-dive",
-                            "name": "Psalms & Wisdom",
-                            "description": "Verse-by-verse slow meditation and journaling through the poetic books.",
-                            "meetingFrequency": "Bi-weekly Thursdays",
-                            "memberCount": 63
-                        }
-                    ]
                 self.write(current)
 
     def read(self) -> Dict[str, Any]:
@@ -102,10 +80,51 @@ class JSONDatabase:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             temp_path.replace(self.db_path)
 
-_instance: JSONDatabase = None
 
-def get_db() -> JSONDatabase:
+class SupabaseDatabase:
+    """Compatibility store for the API's current whole-state document model."""
+
+    def __init__(self):
+        from ..supabase import get_supabase_admin
+
+        self.table = get_supabase_admin().table("lifebook_app_state")
+
+    def read(self) -> Dict[str, Any]:
+        response = self.table.select("payload").eq("state_key", "default").maybe_single().execute()
+        if not response.data:
+            raise RuntimeError(
+                "Supabase app state is empty; import the cleaned JSON snapshot before enabling Supabase storage"
+            )
+        state = response.data.get("payload")
+        if not isinstance(state, dict):
+            raise RuntimeError("Supabase app state row contains an invalid payload")
+        base = empty_db()
+        base.update(state)
+        return base
+
+    def write(self, data: Dict[str, Any]):
+        self.table.upsert(
+            {
+                "state_key": "default",
+                "payload": data,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            },
+            on_conflict="state_key",
+        ).execute()
+
+
+_instance: JSONDatabase | SupabaseDatabase | None = None
+
+def get_db() -> JSONDatabase | SupabaseDatabase:
     global _instance
     if _instance is None:
-        _instance = JSONDatabase(DB_FILE)
+        if LIFEBOOK_STORAGE_BACKEND == "supabase":
+            if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+                raise RuntimeError(
+                    "LIFEBOOK_STORAGE_BACKEND=supabase requires SUPABASE_URL and "
+                    "SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)"
+                )
+            _instance = SupabaseDatabase()
+        else:
+            _instance = JSONDatabase(DB_FILE)
     return _instance

@@ -28,7 +28,8 @@ def get_supabase_admin():
     service_key = get_service_key()
     if not SUPABASE_URL or not service_key:
         raise RuntimeError(
-            "Supabase is not configured — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
+            "Supabase is not configured — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY "
+            "(or SUPABASE_SECRET_KEY)"
         )
 
     try:

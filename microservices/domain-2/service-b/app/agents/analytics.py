@@ -1,36 +1,22 @@
-import os
-import json
 import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import threading
+from ..db.database import get_db
 
-ANALYTICS_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "analytics_events.json")
 _lock = threading.Lock()
 
 # Standard steps in Guided Devotional Flow
 GUIDED_STEPS = ["scripture", "reflect", "meditate-select", "meditate-run", "pray", "complete"]
 
-def _ensure_data_file():
-    os.makedirs(os.path.dirname(ANALYTICS_DATA_PATH), exist_ok=True)
-    if not os.path.exists(ANALYTICS_DATA_PATH):
-        with open(ANALYTICS_DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump([], f, indent=2)
-
 def _read_events() -> List[Dict[str, Any]]:
-    _ensure_data_file()
-    try:
-        with open(ANALYTICS_DATA_PATH, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return []
+    return get_db().read().get("analyticsEvents", [])
 
 def _write_events(events: List[Dict[str, Any]]):
-    _ensure_data_file()
-    # Keep last 5000 events to prevent unbounded growth
-    trimmed = events[-5000:]
-    with open(ANALYTICS_DATA_PATH, "w", encoding="utf-8") as f:
-        json.dump(trimmed, f, indent=2)
+    database = get_db()
+    state = database.read()
+    state["analyticsEvents"] = events[-5000:]
+    database.write(state)
 
 def record_event(
     event_name: str,

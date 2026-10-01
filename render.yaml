@@ -29,3 +29,7 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: LIFEBOOK_STORAGE_BACKEND
+        value: supabase
