@@ -1,14 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from 'recharts';
 import { colors, MOODS } from '../theme/colors';
 import {
   fetchStreak, fetchBadges, fetchMoodHistory, fetchJournal, addJournalEntry, fetchFavorites,
@@ -167,47 +158,27 @@ export function ProgressScreen({ deviceId }: { deviceId: string }) {
           <Text style={styles.sectionTitle}>MOOD TRENDS (PAST 30 DAYS)</Text>
           <View style={styles.chartCard}>
             <View style={styles.chartWrap}>
-              <ResponsiveContainer width="100%" height={210}>
-                <LineChart data={chartData} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" vertical={false} />
-                  <XAxis
-                    dataKey="dayLabel"
-                    tick={{ fill: '#8A7DAD', fontSize: 9 }}
-                    tickLine={false}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
-                    interval={4}
-                  />
-                  <YAxis
-                    domain={[0.5, 6.5]}
-                    ticks={[1, 2, 3, 4, 5, 6]}
-                    tickFormatter={(val: number) => {
-                      const icons: Record<number, string> = {
-                        6: '🙏',
-                        5: '🕊',
-                        4: '🔍',
-                        3: '🕯',
-                        2: '🤔',
-                        1: '🌫',
-                      };
-                      return icons[val] || '';
-                    }}
-                    tick={{ fill: '#B6ABCF', fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
-                  />
-                  <Tooltip content={<CustomChartTooltip />} />
-                  <Line
-                    type="monotone"
-                    dataKey="moodScore"
-                    stroke={colors.teal}
-                    strokeWidth={2.5}
-                    dot={<CustomDot />}
-                    activeDot={{ r: 6, stroke: '#FFFFFF', strokeWidth: 2, fill: colors.teal }}
-                    connectNulls
-                    isAnimationActive={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <View style={styles.nativeChart}>
+                {chartData.map((point, index) => {
+                  const value = point.moodScore ?? 0;
+                  const barHeight = Math.max((value / 6) * 120, 12);
+                  return (
+                    <View key={`${point.date}-${index}`} style={styles.nativeChartColumn}>
+                      <View style={styles.nativeChartBarBackground} />
+                      <View
+                        style={[
+                          styles.nativeChartBar,
+                          {
+                            height: barHeight,
+                            backgroundColor: point.color || colors.teal,
+                          },
+                        ]}
+                      />
+                      <Text style={styles.nativeChartLabel}>{point.dayLabel.split(' ')[0]}</Text>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
 
             <View style={styles.legendRow}>
@@ -414,7 +385,12 @@ const styles = StyleSheet.create({
   statLabel: { color: '#B6ABCF', fontSize: 12, marginTop: 4 },
   sectionTitle: { color: '#9C8FBB', fontSize: 11, letterSpacing: 1.2, marginBottom: 12, marginTop: 6 },
   chartCard: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 14, marginBottom: 20 },
-  chartWrap: { width: '100%', height: 210 },
+  chartWrap: { width: '100%', height: 210, justifyContent: 'flex-end' },
+  nativeChart: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', height: '100%', paddingTop: 10 },
+  nativeChartColumn: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%', marginHorizontal: 2 },
+  nativeChartBarBackground: { position: 'absolute', left: 0, right: 0, bottom: 18, height: 120, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.04)' },
+  nativeChartBar: { width: '100%', borderRadius: 6, minHeight: 12 },
+  nativeChartLabel: { color: '#8A7DAD', fontSize: 9, marginTop: 6 },
   legendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendDot: { width: 8, height: 8, borderRadius: 4 },

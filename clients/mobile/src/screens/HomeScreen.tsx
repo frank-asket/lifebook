@@ -99,6 +99,22 @@ export function HomeScreen({ deviceId, onContentReady, onOpenCommunity, onOpenSa
       <Text style={styles.greeting}>{greeting}{namePart} 👋</Text>
       <Text style={styles.greetingSub}>Take a moment to reflect, grow, and reconnect today.</Text>
 
+      <View style={styles.focusCard}>
+        <View style={styles.focusHeaderRow}>
+          <Text style={styles.focusLabel}>DAILY RHYTHM</Text>
+          <Text style={styles.focusTime}>5 min</Text>
+        </View>
+        <Text style={styles.focusTitle}>Read • Reflect • Pray</Text>
+        <Text style={styles.focusBody}>Start with a grounded Scripture passage, respond to a brief reflection, and finish with a private prayer.</Text>
+        <Pressable
+          onPress={() => handleSelect('peaceful')}
+          disabled={pendingMood !== null}
+          style={styles.primaryAction}
+        >
+          <Text style={styles.primaryActionText}>Start today&apos;s practice</Text>
+        </Pressable>
+      </View>
+
       <StreakBadge streak={streak} />
 
       {showProactive9AmCard && (
@@ -185,6 +201,32 @@ const styles = StyleSheet.create({
   avatarText: { color: colors.white, fontWeight: '700', fontSize: 14 },
   greeting: { color: colors.white, fontSize: 24, fontWeight: '700', marginBottom: 4 },
   greetingSub: { color: '#B6ABCF', fontSize: 13, marginBottom: 18 },
+  focusCard: {
+    backgroundColor: 'rgba(107, 91, 145, 0.22)',
+    borderColor: 'rgba(154, 130, 204, 0.3)',
+    borderWidth: 1,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 18,
+  },
+  focusHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  focusLabel: { color: '#D8CFEC', fontSize: 10, fontWeight: '700', letterSpacing: 1.3 },
+  focusTime: { color: '#9FE3D3', fontSize: 12, fontWeight: '700' },
+  focusTitle: { color: colors.white, fontSize: 22, fontWeight: '700', marginBottom: 6 },
+  focusBody: { color: '#D9D0EF', fontSize: 13, lineHeight: 20, marginBottom: 14 },
+  primaryAction: {
+    backgroundColor: colors.teal,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryActionText: { color: '#102726', fontSize: 14, fontWeight: '700' },
   eyebrow: { color: '#9C8FBB', fontSize: 11, letterSpacing: 1.2, marginBottom: 10 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 6, marginBottom: 10 },

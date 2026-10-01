@@ -658,51 +658,49 @@ export default function HomePage() {
       <section className="showcase-hero" id="top">
         <div className="showcase-hero-grid page-shell">
           <div className="showcase-hero-copy">
-            <p className="showcase-eyebrow">{t("hero_eyebrow")}</p>
+            <p className="showcase-eyebrow">
+              {isFr ? "Le sanctuaire quotidien" : "The 5-minute sanctuary"}
+            </p>
             <h1>
-              {t("hero_title_part1")}
-              <em>{t("hero_title_em")}</em>
-              {t("hero_title_part2")}
+              {isFr ? "Une prière quotidienne" : "A quiet place for"}
+              <em>
+                {isFr ? " simple, biblique et vraie" : "Scripture, prayer, and real growth"}
+              </em>
             </h1>
-            <p>{t("hero_desc")}</p>
+            <p>
+              {isFr
+                ? "LifeBook aide les personnes occupées à entrer dans le Word of God, à déposer leurs craintes devant le Seigneur et à grandir sans culpabilité ni pression de performance."
+                : "LifeBook helps busy people pause, read a grounded Scripture passage, pray honestly, and grow in faith without guilt, performance pressure, or another habit tracker to manage."}
+            </p>
 
-            <ul className="space-y-2.5 mb-6 text-sm text-[#3D354E] dark:text-[#E2DCEF] list-disc pl-4">
-              <li>
-                <strong>
-                  {isFr
-                    ? "Directement sur le verset du jour :"
-                    : "Open directly to today's verse:"}
-                </strong>{" "}
-                {isFr
-                  ? "aucun temps perdu à chercher dans de longs plans"
-                  : "zero flipping through long reading plans"}
-              </li>
-              <li>
-                <strong>
-                  {isFr
-                    ? "Prières authentiques :"
-                    : "Write honest prayers:"}
-                </strong>{" "}
-                {isFr
-                  ? "sauvegardées en toute sécurité et intimité sur votre appareil"
-                  : "saved securely and privately on your device"}
-              </li>
-              <li>
-                <strong>
-                  {isFr
-                    ? "Pas de découragement :"
-                    : "Never lose momentum:"}
-                </strong>{" "}
-                {isFr
-                  ? "des jours de grâce intégrés protègent votre régularité"
-                  : "built-in grace days protect your consistency when life gets busy"}
-              </li>
-            </ul>
+            <div className="mt-6 mb-6 grid max-w-md gap-2 text-sm text-[#3D354E] dark:text-[#E2DCEF]">
+              <div className="flex items-center gap-2">
+                <span className="text-[#2D2542]">•</span>
+                <span>
+                  <strong>{isFr ? "5 minutes" : "5 minutes"}</strong>
+                  {isFr ? " pour lire, méditer et prier" : " to read, reflect, and pray"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#2D2542]">•</span>
+                <span>
+                  <strong>{isFr ? "Privé" : "Private"}</strong>
+                  {isFr ? " et sécurisé sur votre appareil" : " and stored securely on your device"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#2D2542]">•</span>
+                <span>
+                  <strong>{isFr ? "Bilingue" : "Bilingual"}</strong>
+                  {isFr ? " avec les versions EN/FR" : " with English and French experience"}
+                </span>
+              </div>
+            </div>
 
             <p className="text-xs text-[#4E4462] dark:text-[#C8C2D6] mb-4 font-medium">
               {isFr
-                ? "Gratuit pour commencer · Aucune carte bancaire requise · Zéro engagement lourd"
-                : "Free to start · No credit card required · No 50-chapter commitments"}
+                ? "Gratuit pour commencer · Aucune carte bancaire requise · Conçu pour la vie réelle"
+                : "Free to start · No credit card required · Built for real life"}
             </p>
 
             <div className="showcase-actions flex-wrap gap-3">
@@ -714,8 +712,8 @@ export default function HomePage() {
                 >
                   <span>
                     {isFr
-                      ? "Ouvrir mon Tableau de Bord"
-                      : "Open My Sanctuary Dashboard"}
+                      ? "Ouvrir mon sanctuaire"
+                      : "Open My Sanctuary"}
                   </span>
                   <ArrowUpRightIcon />
                 </Link>
@@ -738,8 +736,8 @@ export default function HomePage() {
               >
                 <span>
                   {isFr
-                    ? "Pratiquer le rituel 5-min maintenant"
-                    : "Try 5-Min Guided Ritual Now"}
+                    ? "Essayer le rituel 5 min"
+                    : "Try the 5-Min Ritual"}
                 </span>
               </button>
 
@@ -750,13 +748,13 @@ export default function HomePage() {
 
               <span className="rating-note w-full sm:w-auto">
                 <b>
-                  {isFr ? "Versions bibliques" : "5 verified translations"}:
+                  {isFr ? "Versions bibliques" : "Verified translations"}:
                 </b>
                 <br />
                 <small>
                   {isFr
-                    ? "Louis Segond (LSG) · Semeur · ESV · NIV · KJV · Sans publicité"
-                    : "ESV · NIV · CSB · KJV · NLT · 100% ad-free"}
+                    ? "LSG · Semeur · ESV · NIV · KJV · sans publicité"
+                    : "ESV · NIV · CSB · KJV · NLT · ad-free"}
                 </small>
               </span>
             </div>
@@ -781,16 +779,16 @@ export default function HomePage() {
         <div className="section-heading">
           <div>
             <p className="showcase-eyebrow">
-              {isFr ? "Pratique quotidienne essentielle" : "Core daily practice"}
+              {isFr ? "Conçu pour la vie réelle" : "Built for real life"}
             </p>
             <h2>
               {isFr
-                ? "Remplacez les matinées dispersées par un "
-                : "Replace distracted mornings with a "}
+                ? "Un horaire de prière qui tient compte de votre semaine."
+                : "A faith rhythm that meets your week where it is."}
               <em>
                 {isFr
-                  ? "moment de recueillement en 3 étapes."
-                  : "focused 3-step quiet time."}
+                  ? " Sans culpabilité. Sans surcharge."
+                  : " No guilt. No overload."}
               </em>
             </h2>
           </div>
@@ -798,39 +796,33 @@ export default function HomePage() {
           <div>
             <p>
               {isFr
-                ? "Beaucoup de croyants désirent lire la Bible chaque matin, mais se heurtent à des plannings surchargés. LifeBook vous propose un rythme simple et apaisant que vous achèverez chaque jour."
-                : "Most Christians want to read the Bible daily, but struggle with busy schedules and long reading plans. LifeBook gives you a simple, repeatable morning routine you will actually finish."}
+                ? "LifeBook combine lecture biblique, prière honnête et enseignement pastoral dans un parcours simple que les gens peuvent réellement reprendre, même les jours chargés."
+                : "LifeBook combines Scripture reading, honest prayer, and pastoral teaching in a simple routine people can actually repeat on busy days."}
             </p>
             <ul className="mt-4 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
               <li>
                 <strong>
-                  {isFr
-                    ? "S'intègre à votre café :"
-                    : "Fits into your morning coffee:"}
+                  {isFr ? "5 minutes" : "5 minutes"}
                 </strong>{" "}
                 {isFr
-                  ? "exactement 5 minutes du début à la fin"
-                  : "exactly 5 minutes from start to finish"}
+                  ? "pour lire, méditer et prier"
+                  : "to read, reflect, and pray"}
               </li>
               <li>
                 <strong>
-                  {isFr
-                    ? "Zéro préparation requise :"
-                    : "Zero preparation needed:"}
+                  {isFr ? "Privé" : "Private"}
                 </strong>{" "}
                 {isFr
-                  ? "passage, question de méditation et prière prêts à votre réveil"
-                  : "Scripture, reflection, and prayer prompt ready when you wake up"}
+                  ? "et sécurisé sur votre appareil"
+                  : "and stored securely on your device"}
               </li>
               <li>
                 <strong>
-                  {isFr
-                    ? "Régularité bienveillante :"
-                    : "Guilt-free consistency:"}
+                  {isFr ? "Bilingue" : "Bilingual"}
                 </strong>{" "}
                 {isFr
-                  ? "des jours de grâce sauvent votre série en cas d'imprévu"
-                  : "grace days protect your streak when unexpected emergencies hit"}
+                  ? "avec des expériences EN/FR"
+                  : "with English and French support"}
               </li>
             </ul>
           </div>
