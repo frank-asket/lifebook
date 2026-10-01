@@ -65,7 +65,6 @@ export function FellowshipSanctuarySection() {
   const [drawerRef, setDrawerRef] = useState<string | null>(null);
 
   const loadPrayers = useCallback(async (seasonFilter: string) => {
-    setLoading(true);
     try {
       const res = await fetch(`/api/fellowship-prayers?season=${encodeURIComponent(seasonFilter)}`);
       if (res.ok) {
@@ -82,7 +81,10 @@ export function FellowshipSanctuarySection() {
   }, []);
 
   useEffect(() => {
-    loadPrayers(selectedSeason);
+    const timer = setTimeout(() => {
+      void loadPrayers(selectedSeason);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [selectedSeason, loadPrayers]);
 
   const handlePrayWithYou = async (id: number) => {

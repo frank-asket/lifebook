@@ -156,7 +156,6 @@ export function TeacherDeepenedFeatures({
   const [amenedIds, setAmenedIds] = useState<Record<number, boolean>>({});
 
   const fetchQuestions = useCallback(async () => {
-    setLoadingQuestions(true);
     try {
       const res = await fetch(
         `/api/teachers/questions?teacherSlug=${encodeURIComponent(teacher.slug)}`
@@ -175,7 +174,10 @@ export function TeacherDeepenedFeatures({
   }, [teacher.slug]);
 
   useEffect(() => {
-    fetchQuestions();
+    const timer = setTimeout(() => {
+      void fetchQuestions();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchQuestions]);
 
   const activeDayObj =

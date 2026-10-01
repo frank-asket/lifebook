@@ -17,9 +17,6 @@ import {
   CaretDown,
   ArrowRight,
   SlidersHorizontal,
-  Sparkle,
-  UsersThree,
-  Microphone,
   GraduationCap,
   Funnel,
 } from "@phosphor-icons/react";
@@ -35,9 +32,9 @@ import {
   type TeacherPerformanceSummary,
 } from "@/app/livingWordData";
 import { useLanguage } from "@/lib/i18n";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import { useSanctuaryAudio } from "@/lib/sanctuary-audio";
 import { TeacherLiveCallBanner } from "@/components/TeacherLiveCallModal";
+import { YouVersionNavbar } from "@/components/YouVersionNavbar";
 
 const PORTRAIT_OPTIONS = [
   { label: "Pastoral Portrait I", value: "/AsketOfficialPic (1).png" },
@@ -501,61 +498,7 @@ export default function TeachersPortalPage() {
   return (
     <main className="min-h-screen bg-[#FAF8F5] dark:bg-[#0E0C18] text-[#2A2146] dark:text-[#F4EFE6] pb-28">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-30 border-b border-[#2D2542]/10 dark:border-white/12 bg-[#FAF8F5]/90 dark:bg-[#171326]/90 backdrop-blur-md px-4 sm:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-serif text-sm font-bold shadow-xs">
-                LB
-              </div>
-              <span className="font-serif text-lg font-bold tracking-tight text-[#1E1931] dark:text-white leading-none">
-                LifeBook
-              </span>
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
-              <Link
-                href="/dashboard"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
-              >
-                <Sparkle size={14} weight="duotone" />
-                <span>{isFr ? "Sanctuaire" : "Sanctuary"}</span>
-              </Link>
-              <Link
-                href="/living-word"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
-              >
-                <Headphones size={14} weight="duotone" />
-                <span>LivingWord</span>
-              </Link>
-              <Link
-                href="/teachers"
-                className="px-3 py-2 rounded-lg text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10 transition-colors inline-flex items-center gap-1.5"
-              >
-                <UsersThree size={14} weight="duotone" />
-                <span>{isFr ? "Pasteurs" : "Teachers"}</span>
-              </Link>
-              <Link
-                href="/voice"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors inline-flex items-center gap-1.5"
-              >
-                <Microphone size={14} weight="duotone" />
-                <span>{isFr ? "Voix" : "Voice"}</span>
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <LanguageToggle />
-            <Link
-              href="/"
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6] hover:text-[#1E1931] dark:hover:text-white transition-colors"
-            >
-              {isFr ? "Accueil" : "Home"}
-            </Link>
-          </div>
-        </div>
-      </header>
+      <YouVersionNavbar activeTab="teachers" />
 
       {/* Hero & Leadership Governance Header */}
       <section className="border-b border-[#EAE3D6] dark:border-white/10 bg-gradient-to-b from-[#F2ECE1]/70 to-[#FAF8F5] dark:from-[#18132B] dark:to-[#0E0C18] py-8 px-4 sm:px-8">

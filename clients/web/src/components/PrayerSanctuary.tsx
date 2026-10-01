@@ -49,7 +49,7 @@ export function PrayerSanctuary({ onActivityRecorded }: PrayerSanctuaryProps) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PrayerSanctuaryResult | null>(null);
   const [history, setHistory] = useState<PrayerSanctuaryResult[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
@@ -57,26 +57,28 @@ export function PrayerSanctuary({ onActivityRecorded }: PrayerSanctuaryProps) {
   // Fetch private history on mount
   useEffect(() => {
     let mounted = true;
-    setHistoryLoading(true);
-    fetch("/api/lifebook/prayer-sanctuary/history")
-      .then((res) => {
-        if (!res.ok) throw new Error("Could not load history");
-        return res.json();
-      })
-      .then((data) => {
-        if (mounted && Array.isArray(data.entries)) {
-          setHistory(data.entries);
-        }
-      })
-      .catch(() => {
-        // Silent catch for local dev fallback or unauthenticated guests
-      })
-      .finally(() => {
-        if (mounted) setHistoryLoading(false);
-      });
+    const timer = setTimeout(() => {
+      fetch("/api/lifebook/prayer-sanctuary/history")
+        .then((res) => {
+          if (!res.ok) throw new Error("Could not load history");
+          return res.json();
+        })
+        .then((data) => {
+          if (mounted && Array.isArray(data.entries)) {
+            setHistory(data.entries);
+          }
+        })
+        .catch(() => {
+          // Silent catch for local dev fallback or unauthenticated guests
+        })
+        .finally(() => {
+          if (mounted) setHistoryLoading(false);
+        });
+    }, 0);
 
     return () => {
       mounted = false;
+      clearTimeout(timer);
       stopHumanVoice();
     };
   }, []);

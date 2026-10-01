@@ -14,36 +14,24 @@ function checkBackend(callback) {
 }
 
 function startBackend() {
-  console.log('[LifeBook] Starting Python FastAPI backend service on port 8787...');
+  console.log('[LifeBook] Starting TypeScript Node backend service on port 8787...');
   const path = require('path');
   const serviceDir = path.join(__dirname, '..', 'microservices', 'domain-2', 'service-b');
-  const rootDir = path.join(__dirname, '..');
+  const serverScript = path.join(serviceDir, 'src', 'server.ts');
 
-  const env = {
-    ...process.env,
-    PYTHONPATH: `${serviceDir}:${rootDir}`,
-  };
-
-  const proc = spawn('python3', ['-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8787'], {
+  const proc = spawn('npx', ['tsx', serverScript], {
     cwd: serviceDir,
     stdio: 'inherit',
-    env,
+    env: process.env,
   });
 
   proc.on('error', (err) => {
-    console.error('[LifeBook] Python FastAPI backend error:', err.message);
+    console.error('[LifeBook] TypeScript backend error:', err.message);
   });
 
   proc.on('exit', (code) => {
     if (code !== 0 && code !== null) {
-      console.warn(`[LifeBook] FastAPI backend exited with code ${code}. Trying root backend fallback...`);
-      // Try root backend
-      const fallbackProc = spawn('python3', ['-m', 'uvicorn', 'backend.app.main:app', '--host', '0.0.0.0', '--port', '8787'], {
-        cwd: rootDir,
-        stdio: 'inherit',
-        env,
-      });
-      fallbackProc.on('error', (e) => console.error('[LifeBook] Root backend error:', e.message));
+      console.warn(`[LifeBook] TypeScript backend exited with code ${code}.`);
     }
   });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BookOpenText,
   X,
@@ -177,6 +177,22 @@ interface ScriptureStudyDrawerProps {
   sourceContext?: string;
 }
 
+function buildLocalJournalEntry(
+  marginNote: string,
+  reference: string,
+  translation: string,
+  currentText: string,
+  existingCount: number
+) {
+  return {
+    id: `scripture_${existingCount + 1}_${reference.replace(/[^a-zA-Z0-9]/g, "_")}`,
+    date: "Today",
+    mood: "Peaceful",
+    text: `${marginNote.trim()}\n\n— Scripture Study: ${reference} (${translation}): "${currentText}"`,
+    verse: `${reference} (${translation})`,
+  };
+}
+
 export function ScriptureStudyDrawer({
   isOpen,
   onClose,
@@ -186,6 +202,12 @@ export function ScriptureStudyDrawer({
 }: ScriptureStudyDrawerProps) {
   const { user, getIdToken } = useChristianAuth();
   const [activeRef, setActiveRef] = useState(initialReference || "Psalm 23:1-4");
+  const [prevInitialRef, setPrevInitialRef] = useState(initialReference);
+  if (initialReference && initialReference !== prevInitialRef) {
+    setPrevInitialRef(initialReference);
+    setActiveRef(initialReference);
+  }
+
   const [translation, setTranslation] = useState<BibleTranslationKey>("ESV");
   const [compareMode, setCompareMode] = useState(false);
   const [marginNote, setMarginNote] = useState("");
@@ -195,36 +217,34 @@ export function ScriptureStudyDrawer({
   const [savedNotes, setSavedNotes] = useState<SavedMarginNote[]>([]);
 
   useEffect(() => {
-    if (initialReference) {
-      setActiveRef(initialReference);
-    }
-  }, [initialReference]);
-
-  const fetchSavedNotes = useCallback(async () => {
-    try {
-      const token = await getIdToken();
-      const uid = user?.id || "usr_pilgrim_franck";
-      const res = await fetch(`/api/scripture-notes?userUid=${encodeURIComponent(uid)}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.notes)) {
-          setSavedNotes(data.notes);
+    if (!isOpen) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      const load = async () => {
+        try {
+          const token = await getIdToken();
+          const uid = user?.id || "usr_pilgrim_franck";
+          const res = await fetch(`/api/scripture-notes?userUid=${encodeURIComponent(uid)}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (res.ok && active) {
+            const data = await res.json();
+            if (Array.isArray(data.notes)) {
+              setSavedNotes(data.notes);
+            }
+          }
+        } catch {
+          // ignore offline error
         }
-      }
-    } catch {
-      // ignore offline error
-    }
-  }, [getIdToken, user?.id]);
+      };
+      void load();
+    }, 0);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchSavedNotes();
-    }
-  }, [isOpen, fetchSavedNotes]);
-
-  if (!isOpen) return null;
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [isOpen, getIdToken, user]);
 
   const passage = resolvePassage(activeRef, initialVerseText);
   const currentText = passage.translations[translation];
@@ -264,13 +284,13 @@ export function ScriptureStudyDrawer({
         try {
           const existingRaw = localStorage.getItem("lifebook_journal_entries");
           const existing = existingRaw ? JSON.parse(existingRaw) : [];
-          const newEntry = {
-            id: `scripture_${Date.now()}`,
-            date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-            mood: "Peaceful",
-            text: `${marginNote.trim()}\n\n— Scripture Study: ${passage.reference} (${translation}): "${currentText}"`,
-            verse: `${passage.reference} (${translation})`,
-          };
+          const newEntry = buildLocalJournalEntry(
+            marginNote,
+            passage.reference,
+            translation,
+            currentText,
+            existing.length
+          );
           localStorage.setItem("lifebook_journal_entries", JSON.stringify([newEntry, ...existing]));
         } catch {}
       }
@@ -293,6 +313,8 @@ export function ScriptureStudyDrawer({
       setSaving(false);
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div

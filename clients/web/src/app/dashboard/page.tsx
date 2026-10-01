@@ -28,6 +28,7 @@ import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
 import { speakWithHumanVoice, stopHumanVoice } from "@/lib/human-voice";
 import { ProgressScreen } from "@/components/ProgressScreen";
 import { PrayerSanctuary } from "@/components/PrayerSanctuary";
+import { YouVersionNavbar } from "@/components/YouVersionNavbar";
 import {
   Sparkle,
   Fire,
@@ -332,135 +333,14 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#120F1D] text-[#1E1931] dark:text-[#F4EFE6] flex flex-col font-sans transition-colors">
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#171326]/95 backdrop-blur-md border-b border-[#2D2542]/10 dark:border-white/12 px-4 sm:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-[#2D2542] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-serif text-sm font-bold shadow-xs">
-                LB
-              </div>
-              <span className="font-serif font-bold text-lg tracking-tight text-[#1E1931] dark:text-white leading-none">
-                LifeBook
-              </span>
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-1 pl-4 border-l border-[#2D2542]/10 dark:border-white/12 text-xs font-semibold text-[#5A506B] dark:text-[#C8C2D6]">
-              <button
-                type="button"
-                onClick={() => setActiveTab("overview")}
-                className={`px-3 py-2 rounded-lg transition-colors cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
-                  activeTab !== "heatmap"
-                    ? "text-[#1E1931] dark:text-white bg-[#F2ECE1] dark:bg-white/10"
-                    : "hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10"
-                }`}
-              >
-                <Sparkle size={14} weight="duotone" />
-                <span>{isFr ? "Sanctuaire" : "Sanctuary"}</span>
-              </button>
-              <Link
-                href="/living-word"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
-              >
-                <Headphones size={14} weight="duotone" />
-                <span>LivingWord</span>
-              </Link>
-              <Link
-                href="/teachers"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
-              >
-                <UsersThree size={14} weight="duotone" />
-                <span>{isFr ? "Pasteurs" : "Teachers"}</span>
-              </Link>
-              <Link
-                href="/voice"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap inline-flex items-center gap-1.5"
-              >
-                <Microphone size={14} weight="duotone" />
-                <span>{isFr ? "Voix" : "Voice"}</span>
-              </Link>
-              <Link
-                href="/?marketing=1"
-                className="px-3 py-2 rounded-lg hover:text-[#1E1931] dark:hover:text-white hover:bg-[#F2ECE1] dark:hover:bg-white/10 transition-colors whitespace-nowrap"
-              >
-                {isFr ? "Accueil" : "Home"}
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <div className="relative hidden sm:block w-48 lg:w-60">
-              <MagnifyingGlass
-                size={14}
-                weight="bold"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E6285] dark:text-[#A9A0BC] pointer-events-none"
-              />
-              <input
-                type="search"
-                value={headerSearch}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setHeaderSearch(val);
-                  setJournalQuery(val);
-                  if (val.trim() && activeTab !== "journal") {
-                    setActiveTab("journal");
-                  }
-                }}
-                placeholder={
-                  isFr
-                    ? "Rechercher passage, note..."
-                    : "Search passage, journal..."
-                }
-                aria-label={isFr ? "Rechercher dans le sanctuaire" : "Search sanctuary journal"}
-                className="w-full pl-8 pr-7 py-2 text-xs bg-[#F2ECE1] dark:bg-[#1E1836] text-[#1E1931] dark:text-white rounded-xl border border-transparent focus:border-[#2D2542]/20 dark:focus:border-white/25 focus:bg-white dark:focus:bg-[#120E22] outline-none transition-all placeholder:text-[#6E6285] dark:placeholder:text-[#A9A0BC]"
-              />
-              {headerSearch && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHeaderSearch("");
-                    setJournalQuery("");
-                  }}
-                  aria-label="Clear search"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6E6285] hover:text-[#1E1931] dark:text-[#A9A0BC] dark:hover:text-white cursor-pointer"
-                >
-                  <X size={12} weight="bold" />
-                </button>
-              )}
-            </div>
-
-            <LanguageToggle />
-
-            <div className="flex items-center gap-2 pl-2 border-l border-[#2D2542]/10 dark:border-white/12">
-              <div className="w-8 h-8 rounded-full bg-[#3D2E5C] dark:bg-[#4EE2D8] text-white dark:text-[#0E0C18] flex items-center justify-center font-bold text-xs shadow-xs">
-                {user?.firstName?.charAt(0) || "P"}
-              </div>
-              <span className="text-xs font-bold text-[#1E1931] dark:text-white hidden lg:inline">
-                {user?.fullName || (isFr ? "Pèlerin" : "Pilgrim")}
-              </span>
-              {isSignedIn ? (
-                <button
-                  type="button"
-                  id="dashboard-sign-out-btn"
-                  onClick={async () => {
-                    await signOut();
-                    router.push("/?marketing=1");
-                  }}
-                  className="text-xs font-semibold text-[#6E6285] dark:text-[#B8B0C8] hover:text-[#1E1931] dark:hover:text-white transition-colors cursor-pointer px-2 py-1"
-                >
-                  {isFr ? "Déconnexion" : "Sign out"}
-                </button>
-              ) : (
-                <Link
-                  href="/sign-in"
-                  className="text-xs font-semibold text-[#2D2542] dark:text-[#4EE2D8] hover:underline px-2 py-1 whitespace-nowrap"
-                >
-                  {isFr ? "Connexion" : "Sign in"}
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <YouVersionNavbar
+        activeTab={activeTab === "heatmap" ? "overview" : activeTab}
+        onSearch={(q) => {
+          setHeaderSearch(q);
+          setJournalQuery(q);
+          setActiveTab("journal");
+        }}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8 space-y-8">
         <div className="rounded-3xl bg-gradient-to-r from-[#211B3B] via-[#2F2652] to-[#1A1530] text-white p-6 sm:p-10 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
