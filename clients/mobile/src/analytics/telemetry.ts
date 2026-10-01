@@ -11,7 +11,10 @@ export type TelemetryEventName =
   | 'scripture_favorited'
   | 'content_flagged'
   | 'mood_checkin_submitted'
-  | 'prayer_submitted';
+  | 'prayer_submitted'
+  | 'prayer_sanctuary_started'
+  | 'prayer_sanctuary_submitted'
+  | 'prayer_safety_escalation';
 
 export interface TelemetryPayload {
   eventName: TelemetryEventName;

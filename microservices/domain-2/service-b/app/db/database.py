@@ -33,6 +33,7 @@ def empty_db() -> Dict[str, Any]:
         "waitlistMembers": [],
         "cloudSyncSnapshots": {},
         "analyticsEvents": [],
+        "privatePrayers": [],
     }
 
 class JSONDatabase:

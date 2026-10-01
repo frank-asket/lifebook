@@ -33,6 +33,20 @@ export interface CheckinResponse {
   supportNoteNeeded: boolean;
 }
 
+export interface PrayerSanctuaryResult {
+  id: string;
+  themes: string[];
+  passage: { reference: string; text: string; translation: string } | null;
+  meditation: string | null;
+  reflectionQuestion: string | null;
+  guidedPrayer: string | null;
+  safetyStatus: 'safe' | 'distress_detected' | 'crisis_escalation';
+  supportMessage: string | null;
+  saved: boolean;
+  createdAt: string;
+  text?: string;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = await getIdToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -53,6 +67,23 @@ export function checkIn(deviceId: string, mood: MoodId, note?: string) {
   return request<CheckinResponse>('/api/checkin', {
     method: 'POST',
     body: JSON.stringify({ deviceId, mood, note }),
+  });
+}
+
+export function createPrayerSanctuary(text: string, saveToHistory: boolean) {
+  return request<PrayerSanctuaryResult>('/api/prayer-sanctuary', {
+    method: 'POST',
+    body: JSON.stringify({ text, saveToHistory }),
+  });
+}
+
+export function fetchPrayerSanctuaryHistory() {
+  return request<{ entries: PrayerSanctuaryResult[] }>('/api/prayer-sanctuary/history');
+}
+
+export function deletePrayerSanctuaryEntry(recordId: string) {
+  return request<{ deleted: boolean; id: string }>(`/api/prayer-sanctuary/history/${encodeURIComponent(recordId)}`, {
+    method: 'DELETE',
   });
 }
 

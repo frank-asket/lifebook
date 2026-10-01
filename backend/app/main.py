@@ -11,12 +11,14 @@ from .config import (
     RATE_LIMIT_WINDOW_MS,
     RATE_LIMIT_MAX,
     RATE_LIMIT_CHECKIN_MAX,
+    LIFEBOOK_STORAGE_BACKEND,
 )
 from .security.cors import get_cors_middleware_args
 from .security.rate_limit import check_rate_limit
 from .auth.verify_token import get_current_user, get_optional_user, require_staff_user, is_clerk_configured
 from .models.schemas import (
     CheckinRequest,
+    PrayerSanctuaryInput,
     FlagRequest,
     PrayerRequestInput,
     DiscussionInput,
@@ -47,6 +49,7 @@ from .agents.playlists import (
     reorder_playlist_items,
 )
 from .agents.orchestrator import run_checkin, get_streak, file_flag
+from .agents.prayer_sanctuary import create_prayer_reflection, list_private_prayers, delete_private_prayer
 from .agents.badges import compute_badges
 from .agents.analytics import (
     record_event,
@@ -137,7 +140,7 @@ async def rate_limit_middleware(request: Request, call_next):
     client_ip = request.client.host if request.client else "127.0.0.1"
     path = request.url.path
 
-    if path == "/api/checkin":
+    if path in ("/api/checkin", "/api/prayer-sanctuary"):
         limit = RATE_LIMIT_CHECKIN_MAX
     else:
         limit = RATE_LIMIT_MAX
@@ -185,7 +188,7 @@ async def health():
         version="1.0.0",
         aiMode=ai_mode,
         authMode=auth_mode,
-        databaseMode="json-file-thread-safe",
+        databaseMode=LIFEBOOK_STORAGE_BACKEND,
     )
 
 
@@ -227,6 +230,55 @@ async def checkin_endpoint(
         "streak": result.streak.model_dump(),
         "supportNote": result.support_note_needed,
     }
+
+
+@app.post("/api/prayer-sanctuary")
+async def create_prayer_sanctuary_endpoint(
+    payload: PrayerSanctuaryInput,
+    auth_user: str = Depends(get_current_user),
+):
+    try:
+        result = await create_prayer_reflection(
+            user_id=auth_user,
+            text=payload.text,
+            save_to_history=payload.saveToHistory,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+
+    record_event(
+        "prayer_sanctuary_submitted",
+        user_id=auth_user,
+        properties={
+            "safetyStatus": result["safetyStatus"],
+            "scriptureRetrieved": result["passage"] is not None,
+            "saved": result["saved"],
+        },
+    )
+    if result["safetyStatus"] == "crisis_escalation":
+        record_event(
+            "prayer_safety_escalation",
+            user_id=auth_user,
+            properties={"source": "prayer_sanctuary"},
+        )
+    return result
+
+
+@app.get("/api/prayer-sanctuary/history")
+async def get_prayer_sanctuary_history(auth_user: str = Depends(get_current_user)):
+    return {"entries": list_private_prayers(auth_user)}
+
+
+@app.delete("/api/prayer-sanctuary/history/{record_id}")
+async def delete_prayer_sanctuary_entry(
+    record_id: str,
+    auth_user: str = Depends(get_current_user),
+):
+    if not delete_private_prayer(auth_user, record_id):
+        raise HTTPException(status_code=404, detail="Private prayer entry not found")
+    return {"deleted": True, "id": record_id}
 
 
 @app.get("/api/streak")

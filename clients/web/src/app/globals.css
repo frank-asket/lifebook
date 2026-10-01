@@ -194,6 +194,7 @@ to{opacity:1;transform:translateY(0)}
 .benefits-section{padding:120px 0 135px}
 .section-heading{grid-template-columns:1.1fr .9fr;align-items:end;gap:80px;margin-bottom:55px;display:grid}
 .showcase-page h2{font-size:clamp(44px,4.8vw,68px)}
+#phone-mockup-frame h2{font-size:14px;line-height:1.2;letter-spacing:0;font-weight:700}
 .section-heading>p{color:#4e455e;max-width:380px;margin:0 0 4px;font-size:15px;line-height:1.68}
 .benefit-grid{grid-template-columns:repeat(3,1fr);gap:20px;display:grid}
 .benefit-card{border:1px solid #1e193117;border-radius:18px;min-height:265px;padding:28px;transition:transform .25s;position:relative;box-shadow:0 10px 25px #2c223c0f}

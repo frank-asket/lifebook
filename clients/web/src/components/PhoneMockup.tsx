@@ -130,6 +130,9 @@ export function PhoneMockup() {
 
   return (
     <div className="relative w-full py-6 flex items-center justify-center" aria-label="LifeBook app interactive preview">
+      <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full bg-white/90 dark:bg-[#1B1630]/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#62567A] dark:text-[#C8C2D6] shadow-sm">
+        {isFr ? "Aperçu interactif · contenu exemple" : "Interactive preview · sample content"}
+      </span>
       {/* Background Ambient Glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] sm:w-[480px] h-[380px] sm:h-[480px] rounded-full pointer-events-none -z-10"
@@ -140,13 +143,13 @@ export function PhoneMockup() {
 
       {/* Floating Card: Study Track (Top Right on desktop) */}
       <div
-        className="hidden lg:flex flex-col gap-2.5 absolute -top-2 right-2 xl:-right-6 z-20 w-[248px] p-4 rounded-2xl bg-white/95 dark:bg-[#1B1630]/95 backdrop-blur-md border border-[#2d2542]/12 dark:border-white/15 shadow-[0_14px_32px_-6px_rgba(45,37,66,0.14)] transition-all duration-200 pointer-events-auto"
+        className="hidden"
         id="preview-study-floating-card"
       >
         <div className="flex items-center justify-between text-xs font-semibold text-[#5A4B7C] dark:text-[#C8C2D6]">
           <span className="flex items-center gap-1.5">
             {renderMoodIcon(currentMood.id, 15)}
-            <span>{isFr ? "Parcours actif" : "Active 5-Day Study"}</span>
+            <span>{isFr ? "Exemple de parcours" : "Sample 5-Day Study"}</span>
           </span>
           <span className="w-2 h-2 rounded-full bg-[#3bb582]" />
         </div>
@@ -155,16 +158,9 @@ export function PhoneMockup() {
           {currentMood.journeyTitle}
         </strong>
 
-        <div className="flex items-center justify-between text-xs text-[#5A506B] dark:text-[#C8C2D6] tabular-nums">
-          <span>{isFr ? `Jour ${currentMood.journeyDay} sur ${currentMood.journeyTotal}` : `Day ${currentMood.journeyDay} of ${currentMood.journeyTotal}`}</span>
-          <span className="font-bold text-[#1D8A5F] dark:text-[#4EE2D8]">{currentMood.journeyPercent}%</span>
-        </div>
-
-        <div className="w-full h-1.5 rounded-full bg-[#2d2542]/10 dark:bg-white/15 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-[#3bb582] transition-all duration-300"
-            style={{ width: `${currentMood.journeyPercent}%` }}
-          />
+        <div className="flex items-center justify-between text-xs text-[#5A506B] dark:text-[#C8C2D6]">
+          <span>{isFr ? "Lecture · réflexion · prière" : "Read · reflect · pray"}</span>
+          <span className="font-semibold text-[#1D8A5F] dark:text-[#4EE2D8]">5 jours</span>
         </div>
 
         <a
@@ -176,9 +172,9 @@ export function PhoneMockup() {
         </a>
       </div>
 
-      {/* Floating Card: Grace Streak (Bottom Left on desktop) */}
+      {/* Floating Card: Habit rhythm (Bottom Left on desktop) */}
       <div
-        className="hidden lg:flex flex-col gap-2 absolute -bottom-3 left-2 xl:-left-6 z-20 w-[236px] p-4 rounded-2xl bg-white/95 dark:bg-[#1B1630]/95 backdrop-blur-md border border-[#2d2542]/10 dark:border-white/15 shadow-[0_12px_30px_-6px_rgba(45,37,66,0.14)] transition-transform duration-200 pointer-events-auto"
+        className="hidden"
         id="preview-streak-floating-card"
       >
         <div className="flex items-center gap-2.5">
@@ -187,22 +183,22 @@ export function PhoneMockup() {
           </span>
           <div>
             <strong className="block text-xs font-bold text-[#2d2542] dark:text-white leading-snug tabular-nums">
-              {isFr ? "Série de 7 jours · 2 Jours de Grâce" : "7-Day Streak · 2 Grace Days"}
+              {isFr ? "Un rythme sans culpabilité" : "A rhythm without guilt"}
             </strong>
             <small className="text-xs text-[#5A4B7C] dark:text-[#C8C2D6] inline-flex items-center gap-1">
               <ShieldCheck size={13} weight="duotone" />
-              <span>{isFr ? "Protection active" : "Grace Shield Active"}</span>
+              <span>{isFr ? "Repos et reprise" : "Rest and return"}</span>
             </small>
           </div>
         </div>
         <p className="text-xs text-[#5A506B] dark:text-[#D5CEE6] leading-snug m-0">
           {isFr
-            ? "Le repos du sabbat préserve votre élan sans réinitialisation."
-            : "Sabbath rest protects your quiet habit without zeroing your streak."}
+            ? "Reprenez votre pratique à votre rythme, même après une pause."
+            : "Return to your practice at your own pace, even after a pause."}
         </p>
         <div className="flex items-center gap-1 text-xs text-[#1D8A5F] dark:text-[#4EE2D8] font-semibold">
           <Check size={13} weight="bold" />
-          <span>{isFr ? "Régularité active" : "Consistency secured"}</span>
+          <span>{isFr ? "Un pas à la fois" : "One step at a time"}</span>
         </div>
       </div>
 
@@ -290,10 +286,10 @@ export function PhoneMockup() {
             </div>
             <div
               className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100/90 border border-amber-300/60 text-amber-900 text-[10px] font-bold shadow-xs tabular-nums"
-              title={isFr ? "Série de 7 jours · Protégée par la grâce" : "7-day consistency · Grace protected"}
+              title={isFr ? "Exemple de rythme quotidien" : "Sample daily rhythm"}
             >
               <Flame size={12} weight="fill" className="text-amber-600" />
-              <span>7 {isFr ? "j" : "d"}</span>
+              <span>{isFr ? "Aujourd'hui" : "Today"}</span>
             </div>
           </div>
 
@@ -304,9 +300,9 @@ export function PhoneMockup() {
                 <div className="bg-[#f0ece3] rounded-xl p-2 flex items-center justify-between text-[9px] text-[#5e5370]">
                   <span className="font-bold text-[#2d2542] flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#705eaa]" />
-                    {isFr ? "Étape 1 sur 3 · Lire (90s)" : "Step 1 of 3 · Read (90s)"}
+                    {isFr ? "Lire · Réfléchir · Prier" : "Read · Reflect · Pray"}
                   </span>
-                  <span className="text-[#776e82] tabular-nums">5 min total</span>
+                  <span className="text-[#776e82]">{isFr ? "À votre rythme" : "At your pace"}</span>
                 </div>
 
                 {/* Mood Selector prompt */}

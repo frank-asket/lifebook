@@ -8,6 +8,7 @@ import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { GuidedFlowScreen, GuidedSession } from './src/screens/GuidedFlowScreen';
 import { PracticeScreen } from './src/screens/PracticeScreen';
+import { PrayerSanctuaryScreen } from './src/screens/PrayerSanctuaryScreen';
 import { CommunityScreen } from './src/screens/CommunityScreen';
 import { ProgressScreen } from './src/screens/ProgressScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
@@ -57,7 +58,8 @@ function LifeBookApp() {
   const [homeStage, setHomeStage] = useState<HomeStage>('mood');
   const [flowSession, setFlowSession] = useState<GuidedSession | null>(null);
   const [flowContext, setFlowContext] = useState<FlowContext | null>(null);
-  const [flowInitialStep, setFlowInitialStep] = useState<'scripture' | 'meditate-select' | 'pray'>('scripture');
+  const [flowInitialStep, setFlowInitialStep] = useState<'scripture' | 'reflect' | 'meditate-select' | 'pray'>('scripture');
+  const [showPrayerSanctuary, setShowPrayerSanctuary] = useState(false);
   const [lastCheckin, setLastCheckin] = useState<CheckinResponse | null>(null);
   const [openBook, setOpenBook] = useState<LibraryBook | null>(null);
   const [profileView, setProfileView] = useState<ProfileView>('settings');
@@ -122,6 +124,7 @@ function LifeBookApp() {
   function goHome() {
     setTab('home');
     setHomeStage('mood');
+    setShowPrayerSanctuary(false);
   }
 
   function openProgress() {
@@ -226,9 +229,13 @@ function LifeBookApp() {
       case 'home': return renderHomeTab();
       case 'explore': return renderExploreTab();
       case 'practice':
+        if (showPrayerSanctuary) {
+          return <PrayerSanctuaryScreen userId={userId!} onBack={() => setShowPrayerSanctuary(false)} />;
+        }
         return (
           <PracticeScreen
             hasActiveContent={!!lastCheckin}
+            onOpenPrayerSanctuary={() => setShowPrayerSanctuary(true)}
             onReadScripture={() => { setTab('home'); setHomeStage('mood'); }}
             onMeditate={() => {
               if (lastCheckin) {
@@ -254,7 +261,18 @@ function LifeBookApp() {
                 setHomeStage('mood');
               }
             }}
-            onReflect={openProgress}
+            onReflect={() => {
+              if (lastCheckin) {
+                setFlowSession(sessionFromCheckin(lastCheckin));
+                setFlowContext({ type: 'checkin' });
+                setFlowInitialStep('reflect');
+                setTab('home');
+                setHomeStage('flow');
+              } else {
+                setTab('home');
+                setHomeStage('mood');
+              }
+            }}
           />
         );
       case 'community': return <CommunityScreen deviceId={userId!} />;

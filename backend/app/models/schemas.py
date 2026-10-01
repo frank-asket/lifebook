@@ -14,6 +14,10 @@ class CheckinRequest(BaseModel):
     mood: MoodType
     note: Optional[str] = None
 
+class PrayerSanctuaryInput(BaseModel):
+    text: str = Field(min_length=10, max_length=4000)
+    saveToHistory: bool = False
+
 class GeneratedContent(BaseModel):
     id: str
     checkinId: str

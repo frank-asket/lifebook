@@ -103,6 +103,53 @@ class TestFastAPIBackend(unittest.TestCase):
         self.assertEqual(r_favs.status_code, 200)
         self.assertGreaterEqual(len(r_favs.json()["favorites"]), 1)
 
+    def test_prayer_sanctuary_privacy_and_safety(self):
+        user_headers = {"x-test-token": "sanctuary_user_a"}
+        other_headers = {"x-test-token": "sanctuary_user_b"}
+        private_text = "I feel anxious about a decision at work and home."
+
+        unauthenticated = self.client.post("/api/prayer-sanctuary", json={"text": private_text})
+        self.assertEqual(unauthenticated.status_code, 401)
+
+        created = self.client.post("/api/prayer-sanctuary", headers=user_headers, json={
+            "text": private_text,
+            "saveToHistory": True,
+        })
+        self.assertEqual(created.status_code, 200)
+        response = created.json()
+        self.assertEqual(response["safetyStatus"], "safe")
+        self.assertIsNotNone(response["passage"])
+        self.assertTrue(response["saved"])
+
+        own_history = self.client.get("/api/prayer-sanctuary/history", headers=user_headers)
+        other_history = self.client.get("/api/prayer-sanctuary/history", headers=other_headers)
+        self.assertEqual(len(own_history.json()["entries"]), 1)
+        self.assertEqual(other_history.json()["entries"], [])
+
+        forbidden_delete = self.client.delete(
+            f"/api/prayer-sanctuary/history/{response['id']}", headers=other_headers
+        )
+        self.assertEqual(forbidden_delete.status_code, 404)
+
+        events = self.client.get("/api/analytics/events?limit=100").json()["events"]
+        sanctuary_events = [event for event in events if event["eventName"] == "prayer_sanctuary_submitted"]
+        self.assertTrue(sanctuary_events)
+        self.assertNotIn(private_text, str(sanctuary_events))
+
+        crisis = self.client.post("/api/prayer-sanctuary", headers=user_headers, json={
+            "text": "I want to die",
+            "saveToHistory": False,
+        })
+        self.assertEqual(crisis.status_code, 200)
+        self.assertEqual(crisis.json()["safetyStatus"], "crisis_escalation")
+        self.assertIsNone(crisis.json()["passage"])
+
+        deleted = self.client.delete(
+            f"/api/prayer-sanctuary/history/{response['id']}", headers=user_headers
+        )
+        self.assertEqual(deleted.status_code, 200)
+        self.assertEqual(self.client.get("/api/prayer-sanctuary/history", headers=user_headers).json()["entries"], [])
+
     def test_journeys_lifecycle(self):
         r_journeys = self.client.get("/api/journeys")
         self.assertEqual(r_journeys.status_code, 200)
@@ -371,7 +418,7 @@ class TestFastAPIBackend(unittest.TestCase):
         self.assertTrue(any(t["slug"] == slug for t in r_pub.json()["teachings"]))
 
     def test_livingword_playlists(self):
-        auth_header = {"Authorization": f"Bearer test_user_{self.test_device_id}"}
+        auth_header = {"x-test-token": f"test_user_{self.test_device_id}"}
         
         # 1. Get default starter playlists
         r_get = self.client.get("/api/livingword/playlists", headers=auth_header)
@@ -424,12 +471,12 @@ class TestFastAPIBackend(unittest.TestCase):
         self.assertEqual(r_unauth.status_code, 401)
 
         # 2. Staff endpoint with non-staff credentials should be forbidden
-        user_header = {"Authorization": "Bearer standard_regular_user"}
+        user_header = {"x-test-token": "standard_regular_user"}
         r_user = self.client.get("/api/moderation/reviews", headers=user_header)
         self.assertEqual(r_user.status_code, 403)
 
         # 3. Staff endpoint with staff/admin credentials should succeed
-        staff_header = {"Authorization": "Bearer staff_reviewer_admin"}
+        staff_header = {"x-test-token": "staff_reviewer_admin"}
         r_staff = self.client.get("/api/moderation/reviews", headers=staff_header)
         self.assertEqual(r_staff.status_code, 200)
         self.assertIn("reviews", r_staff.json())

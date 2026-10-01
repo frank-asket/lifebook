@@ -77,40 +77,40 @@ export default function HomePage() {
       isFr
         ? [
             {
-              title: "Lire le verset du jour sans chercher",
-              text: "Ouvrez l'application et trouvez le passage du jour prêt dans votre version préférée (Louis Segond, Semeur, ESV, NIV, KJV). Zéro recherche superflue.",
+              title: "Méditer un passage biblique",
+              text: "Commencez avec un passage sélectionné dans une collection biblique approuvée, puis avancez à travers une pratique guidée de lecture, réflexion et prière.",
               tone: "benefit-lilac",
               iconType: "book" as const,
             },
             {
-              title: "Prier avec des questions guidées",
-              text: "Répondez à trois questions concrètes basées sur la lecture du matin pour ancrer la vérité biblique dans vos actions quotidiennes.",
+              title: "Déposer ce que vous portez",
+              text: "Écrivez librement. LifeBook repère un thème et propose un passage approuvé avec une méditation guidée. L’enregistrement dans votre historique reste facultatif.",
               tone: "benefit-blue",
               iconType: "pencil" as const,
             },
             {
-              title: "Garder votre habitude sans culpabilité",
-              text: "Une journée chargée ? Le repos du sabbat et la protection de grâce préservent votre élan spirituel sans jamais remettre votre série à zéro.",
+              title: "Grandir avec des enseignements",
+              text: "Explorez LivingWord par thème, restez avec un enseignement biblique et rejoignez les échanges de la communauté.",
               tone: "benefit-mint",
               iconType: "leaf" as const,
             },
           ]
         : [
             {
-              title: "Read today's verse without searching",
-              text: "Open the app and find today's curated passage ready in your preferred translation (ESV, NIV, CSB, KJV, NLT). Zero flipping or guessing.",
+              title: "Meditate on a passage",
+              text: "Begin with a passage selected from an approved Scripture collection, then move through a guided rhythm of reading, reflection, and prayer.",
               tone: "benefit-lilac",
               iconType: "book" as const,
             },
             {
-              title: "Pray with guided reflection prompts",
-              text: "Answer three short, practical questions based on the morning reading to turn biblical truth into real-world action.",
+              title: "Bring what you are carrying",
+              text: "Write freely. LifeBook identifies a theme and offers an approved passage with a guided meditation. Saving it to your account history is optional.",
               tone: "benefit-blue",
               iconType: "pencil" as const,
             },
             {
-              title: "Keep your habit without guilt",
-              text: "Missed a hectic day? Sabbath rest and grace protection keep your spiritual rhythm alive without resetting your streak to zero.",
+              title: "Grow through teaching",
+              text: "Explore LivingWord by topic, stay with a biblical teaching, and join conversations with the community.",
               tone: "benefit-mint",
               iconType: "leaf" as const,
             },
@@ -123,30 +123,30 @@ export default function HomePage() {
       isFr
         ? [
             [
-              "Lire le passage quotidien",
-              "Prenez 90 secondes pour lire un texte biblique ciblé avec son contexte historique vérifié.",
+              "Lire le passage",
+              "Commencez par un passage tiré de la collection biblique approuvée de LifeBook.",
             ],
             [
-              "Répondre à 3 questions de réflexion",
-              "Passez 2 minutes à relier le verset à votre travail, votre famille et vos défis.",
+              "Réfléchir et méditer",
+              "Répondez à une question, puis choisissez un temps de méditation de 2, 5 ou 10 minutes.",
             ],
             [
-              "Enregistrer une prière de 60 secondes",
-              "Clôturez votre recueillement par une prière sincère conservée en toute intimité sur votre appareil.",
+              "Prier à votre rythme",
+              "Terminez par une prière guidée ou écrite. Vous choisissez si vous souhaitez l'enregistrer.",
             ],
           ]
         : [
             [
-              "Read the daily passage",
-              "Take 90 seconds to read one focused Scripture text with verified historical context.",
+              "Read the passage",
+              "Begin with a focused text selected from LifeBook's approved Scripture collection.",
             ],
             [
-              "Answer 3 reflection prompts",
-              "Spend 2 minutes applying the verse directly to your work, family, and relationships.",
+              "Reflect and meditate",
+              "Respond to one reflection question, then choose a 2, 5, or 10-minute meditation.",
             ],
             [
-              "Record a 60-second prayer",
-              "Close your quiet time with an honest prayer stored privately on your device.",
+              "Pray at your pace",
+              "Finish with a guided or written prayer. Choose whether to save it to your account history.",
             ],
           ],
     [isFr]
@@ -186,15 +186,15 @@ export default function HomePage() {
             step: "02",
             label: "Étape 02 / 03 · Méditer",
             quote: "Où avez-vous besoin de\nla paix de Dieu aujourd'hui ?",
-            ref: "Question 01 sur 03 · Application concrète",
-            phase: "Méditer (2m)",
+            ref: "Une question · Application concrète",
+            phase: "Réfléchir · Méditer",
           },
           {
             step: "03",
             label: "Étape 03 / 03 · Prier",
             quote: "« Seigneur, guide mes pas\net apaise mes inquiétudes. »",
-            ref: "Sauvegardé en local sur votre appareil",
-            phase: "Prier (60s)",
+            ref: "Prière guidée ou écrite · Enregistrement facultatif",
+            phase: "Prier",
           },
         ]
       : [
@@ -209,15 +209,15 @@ export default function HomePage() {
             step: "02",
             label: "Step 02 / 03 · Reflect",
             quote: "Where do you need\nGod's peace today?",
-            ref: "Prompt 01 of 03 · Practical application",
-            phase: "Reflect (2m)",
+            ref: "One question · Practical application",
+            phase: "Reflect · Meditate",
           },
           {
             step: "03",
             label: "Step 03 / 03 · Pray",
             quote: "“Lord, guide my steps\nand quiet my worry.”",
-            ref: "Saved privately on device",
-            phase: "Pray (60s)",
+            ref: "Guided or written prayer · Optional saving",
+            phase: "Pray",
           },
         ];
   }, [isFr, selectedTranslation]);
@@ -256,7 +256,7 @@ export default function HomePage() {
               title: "Wisdom for Decisions",
               scripture: "James 1:5 · Proverbs 3:5-6",
               days: "5 days · 5 min / day",
-              summary: "Navigate career and family crossroads with verified Scripture context and focused prayer.",
+              summary: "Navigate career and family crossroads with Scripture, reflection, and focused prayer.",
             },
             {
               title: "The Habit of Gratitude",
@@ -273,38 +273,38 @@ export default function HomePage() {
       isFr
         ? [
             [
-              "Combien de temps prend chaque méditation ?",
-              "Exactement 5 minutes. Vous lisez un passage clé (90 secondes), répondez à trois questions de réflexion (2 minutes) et enregistrez une prière privée (90 secondes).",
+              "Combien de temps prend une pratique ?",
+              "La pratique quotidienne est conçue pour tenir dans quelques minutes. La durée de méditation est au choix, et vous pouvez passer une étape si votre journée est chargée.",
             ],
             [
               "Que se passe-t-il si je manque un jour ?",
               "Vous n'êtes jamais pénalisé. LifeBook intègre le repos du sabbat et la protection de grâce pour préserver votre élan spirituel.",
             ],
             [
-              "Quelles versions de la Bible sont proposées ?",
-              "LifeBook propose la version Louis Segond (LSG) et la Bible du Semeur en français, ainsi que ESV, NIV, CSB, KJV et NLT en anglais.",
+              "Quelle source biblique LifeBook utilise-t-il ?",
+              "Les passages du parcours guidé sont sélectionnés dans une collection biblique approuvée. La référence reste visible à côté du texte.",
             ],
             [
-              "Mes prières et notes restent-elles privées ?",
-              "Oui. Vos réflexions et prières restent exclusivement stockées sur votre appareil avec un chiffrement local.",
+              "Comment mes prières sont-elles utilisées ?",
+              "Votre prière est envoyée à LifeBook pour repérer un thème; le texte original n'est pas inclus dans la demande de génération. L'enregistrement dans votre historique est facultatif et vous pouvez supprimer un élément enregistré.",
             ],
           ]
         : [
             [
-              "How much time does each devotion take?",
-              "Exactly 5 minutes. You read one key passage (90 seconds), answer three reflection prompts (2 minutes), and record a private prayer (90 seconds).",
+              "How long does a practice take?",
+              "The daily rhythm is designed to fit into a few minutes. Choose your meditation length, and skip a step when the day is full.",
             ],
             [
               "What happens if I miss a day?",
               "You never get penalized. LifeBook includes built-in Sabbath rest and grace protection, so your momentum stays intact when life gets busy.",
             ],
             [
-              "Which Bible translations do you provide?",
-              "LifeBook includes the English Standard Version (ESV), New International Version (NIV), Christian Standard Bible (CSB), King James Version (KJV), and New Living Translation (NLT), as well as Louis Segond (LSG) in French.",
+              "What Scripture source does LifeBook use?",
+              "Guided passages are selected from LifeBook's approved Scripture collection. The passage reference stays visible beside the text.",
             ],
             [
-              "Are my prayers and notes kept private?",
-              "Yes. Your journal entries and prayers remain securely stored on your own device with local encryption. We never sell your data or serve third-party ads.",
+              "How is my prayer used?",
+              "Your prayer is sent to LifeBook to identify a theme; the original text is not included in the generation request. Saving it to your account history is optional, and saved entries can be deleted.",
             ],
           ],
     [isFr]
@@ -669,30 +669,30 @@ export default function HomePage() {
             </h1>
             <p>
               {isFr
-                ? "LifeBook aide les personnes occupées à entrer dans la Parole de Dieu, à déposer leurs craintes devant le Seigneur et à grandir sans culpabilité ni pression de performance."
-                : "LifeBook helps busy people pause, read a grounded Scripture passage, pray honestly, and grow in faith without guilt, performance pressure, or another habit tracker to manage."}
+                ? "LifeBook vous aide à méditer la Parole, à apporter vos vraies préoccupations dans la prière et à grandir grâce à des enseignements bibliques."
+                : "LifeBook helps you sit with Scripture, bring real concerns into prayer, and grow through biblical teaching and community."}
             </p>
 
             <div className="mt-6 mb-6 grid max-w-md gap-2 text-sm text-[#3D354E] dark:text-[#E2DCEF]">
               <div className="flex items-center gap-2">
                 <span className="text-[#2D2542]">•</span>
                 <span>
-                  <strong>{isFr ? "5 minutes" : "5 minutes"}</strong>
-                  {isFr ? " pour lire, méditer et prier" : " to read, reflect, and pray"}
+                  <strong>{isFr ? "Quelques minutes" : "A few minutes"}</strong>
+                  {isFr ? " pour lire, réfléchir et prier" : " to read, reflect, and pray"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[#2D2542]">•</span>
+                <span className="text-[#1D8A5F]">•</span>
                 <span>
-                  <strong>{isFr ? "Privé" : "Private"}</strong>
-                  {isFr ? " et sécurisé sur votre appareil" : " and stored securely on your device"}
+                  <strong>{isFr ? "À votre choix" : "Your choice"}</strong>
+                  {isFr ? " pour enregistrer vos prières" : " whether to save a prayer"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[#2D2542]">•</span>
+                <span className="text-[#B36A3C]">•</span>
                 <span>
-                  <strong>{isFr ? "Bilingue" : "Bilingual"}</strong>
-                  {isFr ? " avec les versions EN/FR" : " with English and French experience"}
+                  <strong>{isFr ? "Ancré dans l'Écriture" : "Scripture first"}</strong>
+                  {isFr ? " avec la référence toujours visible" : " with the source always visible"}
                 </span>
               </div>
             </div>
@@ -748,13 +748,13 @@ export default function HomePage() {
 
               <span className="rating-note w-full sm:w-auto">
                 <b>
-                  {isFr ? "Versions bibliques" : "Verified translations"}:
+                  {isFr ? "Source biblique" : "Scripture source"}:
                 </b>
                 <br />
                 <small>
                   {isFr
-                    ? "LSG · Semeur · ESV · NIV · KJV · sans publicité"
-                    : "ESV · NIV · CSB · KJV · NLT · ad-free"}
+                    ? "Collection approuvée · Référence affichée"
+                    : "Approved collection · Source shown"}
                 </small>
               </span>
             </div>
@@ -796,33 +796,27 @@ export default function HomePage() {
           <div>
             <p>
               {isFr
-                ? "LifeBook combine lecture biblique, prière honnête et enseignement pastoral dans un parcours simple que les gens peuvent réellement reprendre, même les jours chargés."
-                : "LifeBook combines Scripture reading, honest prayer, and pastoral teaching in a simple routine people can actually repeat on busy days."}
+                ? "Trois façons complémentaires de rester près de la Parole : une pratique quotidienne, un espace de prière personnel et des enseignements à explorer."
+                : "Three connected ways to stay close to the Word: a daily practice, a personal prayer space, and teaching to explore."}
             </p>
             <ul className="mt-4 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
               <li>
-                <strong>
-                  {isFr ? "5 minutes" : "5 minutes"}
-                </strong>{" "}
+                <strong>{isFr ? "Un rythme simple" : "A simple rhythm"}</strong>{" "}
                 {isFr
-                  ? "pour lire, méditer et prier"
+                  ? "pour lire, réfléchir et prier"
                   : "to read, reflect, and pray"}
               </li>
               <li>
-                <strong>
-                  {isFr ? "Privé" : "Private"}
-                </strong>{" "}
+                <strong>{isFr ? "Prière personnelle" : "Personal prayer"}</strong>{" "}
                 {isFr
-                  ? "et sécurisé sur votre appareil"
-                  : "and stored securely on your device"}
+                  ? "avec historique facultatif"
+                  : "with optional private history"}
               </li>
               <li>
-                <strong>
-                  {isFr ? "Bilingue" : "Bilingual"}
-                </strong>{" "}
+                <strong>{isFr ? "Écriture visible" : "Visible Scripture"}</strong>{" "}
                 {isFr
-                  ? "avec des expériences EN/FR"
-                  : "with English and French support"}
+                  ? "pour garder la source au centre"
+                  : "to keep the source at the center"}
               </li>
             </ul>
           </div>
@@ -1093,8 +1087,8 @@ export default function HomePage() {
             </ul>
             <p className="text-xs text-[#5B4894] dark:text-[#4EE2D8] font-semibold mb-4">
               {isFr
-                ? "5 minutes par jour · Commencez ou suspendez à tout moment sans pénalité"
-                : "Takes 5 minutes per day · Start or pause anytime without penalty"}
+                ? "Une courte pratique quotidienne · Reprenez à votre rythme"
+                : "A short daily practice · Return at your own pace"}
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link className="underlined-link" href="/dashboard">
@@ -1130,25 +1124,25 @@ export default function HomePage() {
         <div className="proof-copy">
           <p>
             {isFr
-              ? "LifeBook repose sur un ancrage théologique fidèle, une stricte confidentialité des données et l'absence totale de régies publicitaires pour que votre recueillement reste centré sur Dieu."
-              : "LifeBook is built with orthodox theological grounding, strict data privacy, and zero ad networks so your quiet time stays focused on God."}
+              ? "La référence biblique apparaît à côté du passage; la méditation générée est clairement séparée du texte cité. Vos mots restent privés et leur enregistrement est facultatif."
+              : "The Scripture reference appears beside the passage; generated meditation is clearly separated from quoted text. Your prayer stays private, and saving it is optional."}
           </p>
           <ul className="space-y-2 my-4 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4">
             <li>
               <strong>
-                {isFr ? "Traductions reconnues :" : "5 major translations:"}
+                {isFr ? "Source affichée :" : "Visible source:"}
               </strong>{" "}
               {isFr
-                ? "lisez et comparez en Louis Segond (LSG), Semeur, ESV, NIV, KJV"
-                : "read and compare passages in ESV, NIV, CSB, KJV, and NLT"}
+                ? "chaque passage guidé montre sa référence"
+                : "each guided passage includes its reference"}
             </li>
             <li>
               <strong>
-                {isFr ? "Chiffrement local :" : "Local device encryption:"}
+                {isFr ? "Historique facultatif :" : "Optional history:"}
               </strong>{" "}
               {isFr
-                ? "vos prières et notes privées ne quittent jamais votre appareil"
-                : "your private prayers and journal notes stay on your phone"}
+                ? "enregistrez ou supprimez une prière depuis votre compte"
+                : "save or delete a prayer from your account"}
             </li>
             <li>
               <strong>
@@ -1164,13 +1158,13 @@ export default function HomePage() {
           <div className="proof-note">
             <strong>
               {isFr
-                ? "Enraciné dans la Parole vérifiée"
-                : "Grounded in verified Scripture"}
+                ? "Texte et méditation distingués"
+                : "Scripture and reflection distinguished"}
             </strong>
             <small>
               {isFr
-                ? "Chaque passage quotidien est remis dans le contexte de son chapitre."
-                : "Every daily passage is paired with verified chapter context."}
+                ? "La référence reste visible; la méditation générée est identifiée séparément."
+                : "The source stays visible; generated meditation is labeled separately."}
             </small>
           </div>
           <Link className="underlined-link" href="/sign-up">
@@ -1187,37 +1181,37 @@ export default function HomePage() {
       <section className="team-section page-shell">
         <div className="team-heading">
           <p className="showcase-eyebrow">
-            {isFr ? "Engagement pastoral" : "Biblical stewardship"}
+            {isFr ? "Une source claire" : "A clear source"}
           </p>
           <h2>
-            {isFr
-              ? "Porté par le soin pastoral et un "
-              : "Rooted in pastoral care and "}
+              {isFr
+                ? "La Parole au centre, la réflexion en "
+                : "Scripture at the center, reflection in "}
             <em>
-              {isFr ? "enseignement fidèle." : "faithful teaching."}
+              {isFr ? "complément." : "its place."}
             </em>
           </h2>
           <p>
-            {isFr
-              ? "LifeBook est conçu et relu par des pasteurs et enseignants engagés pour une doctrine solide et une vie de disciple pratique."
-              : "LifeBook is curated and reviewed by pastors and biblical educators committed to sound doctrine and practical discipleship."}
+              {isFr
+                ? "Les passages cités proviennent d'une collection approuvée. Le texte biblique et la méditation générée ne sont jamais confondus."
+                : "Quoted passages come from an approved collection. Scripture text and generated meditation are never presented as the same thing."}
           </p>
           <ul className="mt-4 space-y-1.5 text-sm text-[#3F3750] dark:text-[#D5CEE6] list-disc pl-4 text-left max-w-md mx-auto">
             <li>
               <strong>
-                {isFr ? "Veille pastorale :" : "Pastoral oversight:"}
+                {isFr ? "Référence visible :" : "Visible reference:"}
               </strong>{" "}
               {isFr
-                ? "enseignements vérifiés pour leur justesse biblique et leur sensibilité humaine"
-                : "teachings checked for doctrinal clarity and pastoral sensitivity"}
+                ? "le passage cité peut être consulté à sa source"
+                : "the quoted passage can be checked at its source"}
             </li>
             <li>
               <strong>
-                {isFr ? "Centré sur Christ :" : "Christ-centered focus:"}
+                {isFr ? "Réflexion distincte :" : "Distinct reflection:"}
               </strong>{" "}
               {isFr
-                ? "chaque méditation mène du texte à la prière et à l'obéissance concrète"
-                : "every devotional moves from Scripture to prayerful obedience"}
+                ? "les textes générés sont présentés comme des aides à la réflexion"
+                : "generated text is presented as reflection guidance"}
             </li>
           </ul>
         </div>
@@ -1424,8 +1418,8 @@ export default function HomePage() {
               </h3>
               <span className="footer-note">
                 {isFr
-                  ? "Bilingue Français & Anglais. Versions LSG, Semeur, ESV, NIV. Sauvegarde locale privée."
-                  : "Bilingual English & French. Versions ESV, NIV, CSB, KJV, LSG. Private local device storage."}
+                  ? "Interface en français et en anglais. Les références bibliques restent visibles; l'enregistrement des prières est facultatif."
+                  : "English and French interface. Scripture references stay visible; saving prayers is optional."}
               </span>
             </div>
           </div>
@@ -1444,17 +1438,13 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {isSignedIn ? (
+      {isScrolled && (isSignedIn ? (
         <Link
           className="sticky-mobile-cta"
           href="/dashboard"
           id="sticky-continue-journey-btn"
         >
-          <span>
-            {isFr
-              ? "Ouvrir le Tableau de Bord (5 min)"
-              : "Open Sanctuary Dashboard"}
-          </span>{" "}
+          <span>{isFr ? "Ouvrir mon sanctuaire" : "Open My Sanctuary"}</span>{" "}
           <ArrowUpRightIcon />
         </Link>
       ) : (
@@ -1465,7 +1455,7 @@ export default function HomePage() {
         >
           <span>{t("nav_start_devotion")}</span> <ArrowUpRightIcon />
         </Link>
-      )}
+      ))}
 
       {isScrolled && (
         <button

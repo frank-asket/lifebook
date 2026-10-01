@@ -32,6 +32,7 @@ def empty_db() -> Dict[str, Any]:
         "playlistItems": [],
         "waitlistMembers": [],
         "analyticsEvents": [],
+        "privatePrayers": [],
     }
 
 class JSONDatabase:

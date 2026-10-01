@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
-import { AudioWaveform } from '../components/AudioWaveform';
 
 interface Props {
   hasActiveContent: boolean;
@@ -9,6 +8,7 @@ interface Props {
   onMeditate: () => void;
   onPray: () => void;
   onReflect: () => void;
+  onOpenPrayerSanctuary: () => void;
 }
 
 // This screen is intentionally a shortcuts menu, not a new guided step-by-step
@@ -16,10 +16,7 @@ interface Props {
 // their own transitions) — that deeper interaction redesign is real future
 // scope, not something folded quietly into this pass. What's here routes
 // into the flows that already exist and work.
-export function PracticeScreen({ hasActiveContent, onReadScripture, onMeditate, onPray, onReflect }: Props) {
-  const [isVoiceListening, setIsVoiceListening] = useState(false);
-  const [voicePrompt, setVoicePrompt] = useState<string | null>(null);
-
+export function PracticeScreen({ hasActiveContent, onReadScripture, onMeditate, onPray, onReflect, onOpenPrayerSanctuary }: Props) {
   const rhythmSteps = [
     {
       icon: '📖',
@@ -43,16 +40,6 @@ export function PracticeScreen({ hasActiveContent, onReadScripture, onMeditate, 
       action: onPray,
     },
   ];
-
-  function handleToggleVoicePractice() {
-    if (isVoiceListening) {
-      setIsVoiceListening(false);
-      setVoicePrompt('“Be still, and know that I am God.” — Psalm 46:10');
-    } else {
-      setVoicePrompt(null);
-      setIsVoiceListening(true);
-    }
-  }
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -97,29 +84,12 @@ export function PracticeScreen({ hasActiveContent, onReadScripture, onMeditate, 
         />
       </View>
 
-      {/* Voice Practice Section with Real-Time AudioWaveform */}
-      <View style={styles.voiceSection}>
-        <Text style={styles.sectionEyebrow}>VOICE PRACTICE</Text>
-        <Text style={styles.voiceTitle}>Speak a prayer or ask for a verse</Text>
-        <Text style={styles.voiceDesc}>
-          Visualize your voice in real time while practicing spoken prayer or Scripture recitation.
-        </Text>
-
-        <AudioWaveform isListening={isVoiceListening} />
-
-        {voicePrompt && (
-          <View style={styles.voiceAnswerBox}>
-            <Text style={styles.voiceAnswerText}>{voicePrompt}</Text>
-          </View>
-        )}
-
-        <Pressable
-          onPress={handleToggleVoicePractice}
-          style={[styles.voiceBtn, isVoiceListening && styles.voiceBtnActive]}
-        >
-          <Text style={styles.voiceBtnText}>
-            {isVoiceListening ? '⏹ Stop Voice Practice' : '🎙️ Start Voice Practice'}
-          </Text>
+      <View style={styles.sanctuaryCard}>
+        <Text style={styles.sectionEyebrow}>PRAYER SANCTUARY</Text>
+        <Text style={styles.sanctuaryTitle}>Bring what&apos;s on your heart.</Text>
+        <Text style={styles.sanctuaryBody}>Write privately, meet a passage from the approved Scripture collection, and continue with a short guided reflection.</Text>
+        <Pressable onPress={onOpenPrayerSanctuary} style={styles.primaryButton} accessibilityRole="button">
+          <Text style={styles.primaryButtonText}>Open Prayer Sanctuary</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -194,13 +164,13 @@ const styles = StyleSheet.create({
   icon: { fontSize: 26 },
   label: { color: colors.white, fontWeight: '700', fontSize: 15, marginBottom: 3 },
   desc: { color: '#B6ABCF', fontSize: 12 },
-  voiceSection: {
+  sanctuaryCard: {
     marginTop: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 18,
+    backgroundColor: 'rgba(31,182,176,0.08)',
+    borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(31,182,176,0.22)',
+    borderColor: 'rgba(31,182,176,0.28)',
   },
   sectionEyebrow: {
     color: colors.teal,
@@ -209,41 +179,16 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     marginBottom: 10,
   },
-  voiceTitle: {
+  sanctuaryTitle: {
     color: colors.white,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  voiceDesc: {
+  sanctuaryBody: {
     color: '#B6ABCF',
     fontSize: 12,
-    lineHeight: 17,
-  },
-  voiceAnswerBox: {
-    backgroundColor: 'rgba(31,182,176,0.12)',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 10,
-  },
-  voiceAnswerText: {
-    color: '#E8F8F7',
-    fontSize: 12.5,
-    fontStyle: 'italic',
-  },
-  voiceBtn: {
-    backgroundColor: colors.teal,
-    borderRadius: 12,
-    paddingVertical: 11,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  voiceBtnActive: {
-    backgroundColor: '#A25B6C',
-  },
-  voiceBtnText: {
-    color: colors.white,
-    fontWeight: '700',
-    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 14,
   },
 });
