@@ -347,6 +347,32 @@ export default function HomePage() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    const page = document.querySelector<HTMLElement>(".showcase-page");
+    if (!page) return;
+    const revealItems = Array.from(page.querySelectorAll<HTMLElement>("[data-reveal]"));
+    if (!("IntersectionObserver" in window)) {
+      revealItems.forEach(item => item.classList.add("is-visible"));
+      return;
+    }
+
+    page.classList.add("reveal-ready");
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      }
+    }, { threshold: 0.12, rootMargin: "0px 0px -32px 0px" });
+    revealItems.forEach(item => observer.observe(item));
+
+    return () => {
+      observer.disconnect();
+      page.classList.remove("reveal-ready");
+    };
+  }, []);
+
   const renderBenefitIcon = (type: "book" | "pencil" | "leaf") => {
     switch (type) {
       case "book":
@@ -775,7 +801,7 @@ export default function HomePage() {
         </a>
       </section>
 
-      <section className="benefits-section page-shell" id="features">
+      <section className="benefits-section page-shell" id="features" data-reveal>
         <div className="section-heading">
           <div>
             <p className="showcase-eyebrow">
@@ -827,6 +853,8 @@ export default function HomePage() {
             <article
               key={item.title}
               className={`benefit-card ${item.tone} cursor-pointer`}
+              data-reveal
+              style={{ transitionDelay: `${idx * 90}ms` }}
               onClick={() => {
                 setSelectedStep(idx);
                 const el = document.getElementById("how-it-works");
@@ -844,7 +872,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="how-section" id="how-it-works">
+      <section className="how-section" id="how-it-works" data-reveal>
         <div className="page-shell">
           <div className="how-heading">
             <p className="showcase-eyebrow">{t("how_eyebrow")}</p>
@@ -1002,7 +1030,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="journeys-section page-shell" id="journeys">
+      <section className="journeys-section page-shell" id="journeys" data-reveal>
         <div className="journey-panel">
           <div className="journey-panel-art">
             <span className="journey-orbit" />
@@ -1104,11 +1132,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      <VoicePractice />
+      <div data-reveal><VoicePractice /></div>
 
-      <LivingWord />
+      <div data-reveal><LivingWord /></div>
 
-      <section className="community-proof-section page-shell">
+      <section className="community-proof-section page-shell" data-reveal>
         <div>
           <p className="showcase-eyebrow">
             {isFr
@@ -1178,7 +1206,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="team-section page-shell">
+      <section className="team-section page-shell" data-reveal>
         <div className="team-heading">
           <p className="showcase-eyebrow">
             {isFr ? "Une source claire" : "A clear source"}
@@ -1214,6 +1242,10 @@ export default function HomePage() {
                 : "generated text is presented as reflection guidance"}
             </li>
           </ul>
+          <div className="partner-path">
+            <span>{isFr ? "Enseignants et équipes de ministère" : "For teachers and ministry teams"}</span>
+            <Link href="/teachers">{isFr ? "Explorer les contributeurs" : "Explore teaching contributors"} <ArrowUpRightIcon /></Link>
+          </div>
         </div>
 
         <div className="team-portraits">
@@ -1247,7 +1279,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="questions-section page-shell" id="questions">
+      <section className="questions-section page-shell" id="questions" data-reveal>
         <div className="questions-heading">
           <p className="showcase-eyebrow">{t("faq_eyebrow")}</p>
           <h2>{t("faq_heading")}</h2>
@@ -1293,7 +1325,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="closing-section" id="join">
+      <section className="closing-section" id="join" data-reveal>
         <div className="closing-band page-shell">
           <div>
             <p className="showcase-eyebrow">{t("cta_eyebrow")}</p>

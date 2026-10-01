@@ -798,3 +798,152 @@ html.dark .voice-save:hover,[data-theme=dark] .voice-save:hover{color:#0e0c18;ba
 html.dark .voice-hint,[data-theme=dark] .voice-hint{color:#b8b0c8}
 @media (prefers-reduced-motion:reduce){*,:before,:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+
+.showcase-page .benefit-grid{
+	grid-template-columns:repeat(12,minmax(0,1fr));
+	gap:16px;
+}
+.showcase-page .benefit-card{
+	min-height:286px;
+	padding:30px;
+	border-radius:24px;
+	transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease;
+}
+.showcase-page .benefit-card:nth-child(1){grid-column:span 7}
+.showcase-page .benefit-card:nth-child(2){grid-column:span 5}
+.showcase-page .benefit-card:nth-child(3){
+	grid-column:1/-1;
+	min-height:180px;
+	display:grid;
+	grid-template-columns:52px minmax(180px,.8fr) minmax(0,1.2fr);
+	align-items:center;
+	column-gap:24px;
+}
+.showcase-page .benefit-card:hover{
+	transform:translateY(-3px);
+}
+.showcase-page .benefit-card:nth-child(3) h3{margin:0}
+.showcase-page .benefit-card:nth-child(3) p{max-width:none;margin:0}
+
+/* Partner Path (Ministry & Church Teachers) */
+.showcase-page .partner-path{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:16px;
+	margin-top:28px;
+	padding:18px 0;
+	border-top:1px solid #1e19311a;
+}
+.showcase-page .partner-path span{
+	color:#5c4b78;
+	font-size:13px;
+	font-weight:500;
+}
+.showcase-page .partner-path a{
+	color:#5b4894;
+	font-size:13px;
+	font-weight:700;
+	display:inline-flex;
+	align-items:center;
+	gap:6px;
+	transition:color .2s;
+}
+.showcase-page .partner-path a:hover{
+	color:#211b3b;
+}
+
+/* Light Mode specific refinements for Bento & Lifebook Identity */
+.showcase-page .benefit-card:hover{
+	border-color:rgba(91,72,148,.35);
+	box-shadow:0 16px 36px rgba(44,34,60,.1);
+}
+.showcase-page .benefit-icon{
+	color:#fff;
+	background:#2d2542;
+	border-radius:14px;
+}
+.showcase-page .benefit-arrow{
+	color:#5b4894;
+}
+
+/* Dark Mode (Sanctuary Plum & Gold & Teal) */
+html.dark .showcase-page,
+[data-theme=dark] .showcase-page{
+	color:#fdfcfb;
+	background:#0e0c18;
+}
+html.dark .showcase-page .benefit-card,
+[data-theme=dark] .showcase-page .benefit-card{
+	border:1px solid rgba(255,255,255,.12);
+	box-shadow:0 14px 34px rgba(0,0,0,.45);
+}
+html.dark .showcase-page .benefit-card:hover,
+[data-theme=dark] .showcase-page .benefit-card:hover{
+	border-color:rgba(78,226,216,.5);
+	box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 24px rgba(78,226,216,.12);
+}
+html.dark .showcase-page .benefit-lilac,
+[data-theme=dark] .showcase-page .benefit-lilac{
+	background:#1e1730;
+}
+html.dark .showcase-page .benefit-blue,
+[data-theme=dark] .showcase-page .benefit-blue{
+	background:#121f33;
+}
+html.dark .showcase-page .benefit-mint,
+[data-theme=dark] .showcase-page .benefit-mint{
+	background:#0f241e;
+}
+html.dark .showcase-page .benefit-icon,
+[data-theme=dark] .showcase-page .benefit-icon{
+	color:#4ee2d8;
+	background:#281f3e;
+	border:1px solid rgba(78,226,216,.25);
+	border-radius:14px;
+}
+html.dark .showcase-page .benefit-arrow,
+[data-theme=dark] .showcase-page .benefit-arrow{
+	color:#4ee2d8;
+}
+html.dark .showcase-page .partner-path,
+[data-theme=dark] .showcase-page .partner-path{
+	border-top-color:rgba(255,255,255,.12);
+}
+html.dark .showcase-page .partner-path span,
+[data-theme=dark] .showcase-page .partner-path span{
+	color:#b8b0c8;
+}
+html.dark .showcase-page .partner-path a,
+[data-theme=dark] .showcase-page .partner-path a{
+	color:#4ee2d8;
+}
+html.dark .showcase-page .partner-path a:hover,
+[data-theme=dark] .showcase-page .partner-path a:hover{
+	color:#88ede5;
+}
+
+/* Scroll-triggered Reveal Animations */
+.showcase-page.reveal-ready [data-reveal]{
+	opacity:0;
+	transform:translateY(18px);
+	transition-property:opacity,transform;
+	transition-duration:.6s;
+	transition-timing-function:cubic-bezier(.2,0,0,1);
+}
+.showcase-page.reveal-ready [data-reveal].is-visible{
+	opacity:1;
+	transform:translateY(0);
+}
+
+/* Mobile Responsiveness */
+@media (max-width:760px){
+	.showcase-page .benefit-grid{grid-template-columns:1fr}
+	.showcase-page .benefit-card:nth-child(n){grid-column:1/-1;min-height:220px;display:block}
+	.showcase-page .benefit-card:nth-child(3) h3{margin-top:28px}
+	.showcase-page .benefit-card:nth-child(3) p{margin:0}
+	.showcase-page .partner-path{align-items:flex-start;flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+	.showcase-page.reveal-ready [data-reveal]{opacity:1;transform:none;transition:none}
+}
