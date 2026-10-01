@@ -669,7 +669,7 @@ export default function HomePage() {
             </h1>
             <p>
               {isFr
-                ? "LifeBook aide les personnes occupées à entrer dans le Word of God, à déposer leurs craintes devant le Seigneur et à grandir sans culpabilité ni pression de performance."
+                ? "LifeBook aide les personnes occupées à entrer dans la Parole de Dieu, à déposer leurs craintes devant le Seigneur et à grandir sans culpabilité ni pression de performance."
                 : "LifeBook helps busy people pause, read a grounded Scripture passage, pray honestly, and grow in faith without guilt, performance pressure, or another habit tracker to manage."}
             </p>
 
