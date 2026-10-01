@@ -96,7 +96,15 @@ async function forward(request: Request, path: string[]) {
     path[0] === 'waitlist' || 
     (path[0] === 'livingword' && path[1] !== 'playlists');
 
-  if (isRealClerkConfigured && !userId && !isPublicRoute && (path[0] === 'me' || path[0] === 'subscription' || (path[0] === 'livingword' && path[1] === 'playlists'))) {
+  if (
+    isRealClerkConfigured &&
+    !userId &&
+    !isPublicRoute &&
+    (path[0] === 'me' ||
+      path[0] === 'subscription' ||
+      path[0] === 'prayer-sanctuary' ||
+      (path[0] === 'livingword' && path[1] === 'playlists'))
+  ) {
     return Response.json({ error: 'unauthorized', detail: 'Valid session required' }, { status: 401 });
   }
 

@@ -27,6 +27,7 @@ import { SanctuaryWalkthroughModal } from "@/components/SanctuaryWalkthroughModa
 import { HumanVoiceSelector } from "@/components/HumanVoiceSelector";
 import { speakWithHumanVoice, stopHumanVoice } from "@/lib/human-voice";
 import { ProgressScreen } from "@/components/ProgressScreen";
+import { PrayerSanctuary } from "@/components/PrayerSanctuary";
 import {
   Sparkle,
   Fire,
@@ -172,10 +173,11 @@ export default function DashboardPage() {
     useSanctuaryAudio();
 
   const [activeTab, setActiveTab] = useState<
-    "overview" | "heatmap" | "journal" | "audio"
+    "overview" | "prayer" | "heatmap" | "journal" | "audio"
   >(() => {
     if (typeof window !== "undefined") {
       const tabParam = new URLSearchParams(window.location.search).get("tab");
+      if (tabParam === "prayer" || tabParam === "sanctuary") return "prayer";
       if (tabParam === "progress" || tabParam === "heatmap") return "heatmap";
       if (tabParam === "journal") return "journal";
       if (tabParam === "audio") return "audio";
@@ -544,6 +546,10 @@ export default function DashboardPage() {
                   label: isFr ? "Vue d'Ensemble" : "Overview",
                 },
                 {
+                  id: "prayer",
+                  label: isFr ? "Sanctuaire de Prière" : "Prayer Sanctuary",
+                },
+                {
                   id: "heatmap",
                   label: isFr
                     ? "Progrès & Sabbat"
@@ -593,6 +599,17 @@ export default function DashboardPage() {
         <section id="dashboard-live-call-section">
           <TeacherLiveCallBanner />
         </section>
+
+        {activeTab === "prayer" && (
+          <section className="animate-fade-in mb-8">
+            <PrayerSanctuary
+              userId={user?.id}
+              onActivityRecorded={() => {
+                recordDailyActivity();
+              }}
+            />
+          </section>
+        )}
 
         {activeTab === "audio" && (
           <section>

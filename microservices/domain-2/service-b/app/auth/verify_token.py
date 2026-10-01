@@ -189,6 +189,7 @@ def is_staff_claims(claims: Dict[str, Any]) -> bool:
         claims.get("role")
         or claims.get("metadata", {}).get("role")
         or claims.get("public_metadata", {}).get("role")
+        or claims.get("publicMetadata", {}).get("role")
         or claims.get("org_role")
     )
     if isinstance(role, str) and role.lower() in [
@@ -200,7 +201,12 @@ def is_staff_claims(claims: Dict[str, Any]) -> bool:
     ]:
         return True
 
-    if claims.get("is_staff") is True or claims.get("public_metadata", {}).get("isStaff") is True:
+    if (
+        claims.get("is_staff") is True
+        or claims.get("public_metadata", {}).get("isStaff") is True
+        or claims.get("publicMetadata", {}).get("isStaff") is True
+        or claims.get("metadata", {}).get("isStaff") is True
+    ):
         return True
 
     perms = claims.get("permissions") or []
