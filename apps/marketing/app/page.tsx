@@ -1,0 +1,1 @@
+export default function Home() {return <main><h1>LifeBook — Grow in the Word</h1><p>A place for Scripture, prayer, and Christian learning.</p><p>Phase 1 foundation — authentication and feature interfaces are upcoming.</p></main>;}

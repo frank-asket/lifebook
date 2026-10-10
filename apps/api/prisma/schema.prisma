@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum FaithJourney {
+  EXPLORING
+  NEW_BELIEVER
+  GROWING_BELIEVER
+  DISCIPLESHIP
+  MINISTRY_PREPARATION
+  SERVING_IN_MINISTRY
+}
+enum PlatformRole {
+  MEMBER
+  CREATOR
+  MODERATOR
+  ADMIN
+}
+enum VerificationStatus {
+  NOT_REQUESTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+model User {
+  id String @id @default(cuid())
+  oidcSubject String @unique
+  email String? @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  profile FaithProfile?
+  prayers PrayerEntry[]
+  enrollments Enrollment[]
+  verification MinistryVerification?
+  role PlatformRole @default(MEMBER)
+}
+model FaithProfile {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journey FaithJourney?
+  language String @default("en")
+  learningGoals String[]
+  preferredFormats String[]
+  personalizationConsent Boolean @default(false)
+  aiProcessingConsent Boolean @default(false)
+  updatedAt DateTime @updatedAt
+}
+model Devotional {
+  id String @id @default(cuid())
+  title String
+  scriptureReference String
+  body String
+  locale String @default("en")
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+}
+model PrayerEntry {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Encrypt content at application layer before persisting; never store plaintext.
+  ciphertext String
+  keyVersion Int
+  createdAt DateTime @default(now())
+}
+model Sermon {
+  id String @id @default(cuid())
+  title String
+  description String?
+  mediaKey String
+  publishedAt DateTime?
+  creatorId String
+  createdAt DateTime @default(now())
+}
+model LearningPath {
+  id String @id @default(cuid())
+  slug String @unique
+  title String
+  description String
+  isPublished Boolean @default(false)
+  lessons Lesson[]
+  enrollments Enrollment[]
+}
+model Lesson {
+  id String @id @default(cuid())
+  pathId String
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  title String
+  position Int
+  content String
+  @@unique([pathId, position])
+}
+model Enrollment {
+  id String @id @default(cuid())
+  userId String
+  pathId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  path LearningPath @relation(fields: [pathId], references: [id])
+  startedAt DateTime @default(now())
+  @@unique([userId, pathId])
+}
+model MinistryVerification {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status VerificationStatus @default(NOT_REQUESTED)
+  reviewedAt DateTime?
+  reviewerNotes String?
+}

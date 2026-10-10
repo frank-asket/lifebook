@@ -1,0 +1,1 @@
+{"name":"lifebook","private":true,"packageManager":"pnpm@9.15.4","scripts":{"dev:api":"pnpm --filter @lifebook/api start:dev","dev:web":"pnpm --filter @lifebook/web dev","dev:marketing":"pnpm --filter @lifebook/marketing dev","db:generate":"pnpm --filter @lifebook/api prisma:generate","db:migrate":"pnpm --filter @lifebook/api prisma:migrate","build":"pnpm -r --if-present build"}}
