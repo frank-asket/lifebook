@@ -1,0 +1,5 @@
+'use client';
+import {useState} from 'react';
+import {Brand} from './brand';
+const links=[['Why LifeBook','/#why'],['Features','/#features'],['How it works','/#how'],['Questions','/#faq']];
+export function SiteHeader(){const [open,setOpen]=useState(false);return <header className="site-header"><div className="container header-inner"><Brand/><nav className={open?'nav open':'nav'} aria-label="Main navigation">{links.map(([label,href])=><a key={href} href={href} onClick={()=>setOpen(false)}>{label}</a>)}<a className="mobile-signin" href={process.env.NEXT_PUBLIC_APP_URL||'http://localhost:3001'}>Open LifeBook →</a></nav><div className="header-actions"><a className="header-login" href={process.env.NEXT_PUBLIC_APP_URL||'http://localhost:3001'}>Sign in</a><a className="button button-small" href={process.env.NEXT_PUBLIC_APP_URL||'http://localhost:3001'}>Get started <span aria-hidden="true">↗</span></a></div><button className="menu-toggle" aria-label={open?'Close menu':'Open menu'} aria-expanded={open} onClick={()=>setOpen(!open)}>{open?'✕':'☰'}</button></div></header>}
