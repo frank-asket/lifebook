@@ -2,6 +2,7 @@
 
 import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
+
 import {
   useCallback,
   useEffect,
@@ -77,8 +78,7 @@ export function MeditationView({
     null,
   );
 
-  // Prevent responses from an old meditation/account
-  // from updating the current view.
+  // Prevent outdated requests from updating the current view.
   const requestVersion = useRef(0);
 
   const mounted = useRef(false);
@@ -87,7 +87,8 @@ export function MeditationView({
 
   const busy = busyAction !== null;
 
-  const hasUnsavedChanges = draft !== state.reflection;
+  const hasUnsavedChanges =
+    draft.trim() !== state.reflection.trim();
 
   // ============================================================
   // LOAD PERSONAL MEDITATION STATE
@@ -287,7 +288,9 @@ export function MeditationView({
   function saveReflection() {
     const text = draft.trim();
 
-    if (!text || text.length > 10000) return;
+    if (!text || text.length > 10000) {
+      return;
+    }
 
     void action(
       'reflection',
@@ -334,26 +337,38 @@ export function MeditationView({
         maxWidth: 820,
         margin: '0 auto',
         padding: '30px 18px 90px',
-        color: '#2d2445',
+        color: 'var(--text)',
       }}
     >
-      {/* Navigation */}
+      {/* ======================================================
+          NAVIGATION
+      ====================================================== */}
 
       <Link
         href="/meditation"
-        style={{ color: '#7657bb' }}
+        style={{
+          color: 'var(--accent)',
+          fontWeight: 600,
+        }}
       >
         ← Daily meditation
       </Link>
 
-      {/* Header */}
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
 
-      <header style={{ margin: '30px 0' }}>
+      <header
+        style={{
+          margin: '30px 0',
+        }}
+      >
         <span
           style={{
-            color: '#805db5',
+            color: 'var(--accent)',
             fontWeight: 700,
             letterSpacing: 2,
+            fontSize: 11,
           }}
         >
           TODAY IN THE WORD
@@ -363,12 +378,18 @@ export function MeditationView({
           style={{
             fontSize: 'clamp(32px,5vw,52px)',
             margin: '12px 0',
+            color: 'var(--text)',
           }}
         >
           {meditation.title}
         </h1>
 
-        <p style={{ color: '#766b88' }}>
+        <p
+          style={{
+            color: 'var(--text-muted)',
+            lineHeight: 1.6,
+          }}
+        >
           {meditation.scriptureReference}
 
           {meditation.translation
@@ -389,17 +410,28 @@ export function MeditationView({
             style={{
               fontSize: 23,
               lineHeight: 1.7,
-              borderLeft: '4px solid #ab8ad8',
+              borderLeft: '4px solid var(--accent)',
               paddingLeft: 20,
               marginLeft: 0,
+              marginRight: 0,
+              color: 'var(--text)',
             }}
           >
             {meditation.scriptureText}
           </blockquote>
         ) : (
-          <p>
+          <p
+            style={{
+              lineHeight: 1.8,
+              color: 'var(--text-muted)',
+            }}
+          >
             Open your Bible to{' '}
-            <strong>
+            <strong
+              style={{
+                color: 'var(--text)',
+              }}
+            >
               {meditation.scriptureReference}
             </strong>
             .
@@ -418,6 +450,7 @@ export function MeditationView({
           style={{
             whiteSpace: 'pre-wrap',
             lineHeight: 1.9,
+            color: 'var(--text)',
           }}
         >
           {meditation.explanation}
@@ -433,10 +466,21 @@ export function MeditationView({
 
         {Array.isArray(meditation.questions) &&
           meditation.questions.length > 0 && (
-            <ul style={{ lineHeight: 1.9 }}>
+            <ul
+              style={{
+                lineHeight: 1.9,
+                color: 'var(--text)',
+                paddingLeft: 24,
+              }}
+            >
               {meditation.questions.map(
                 (question, index) => (
-                  <li key={index}>
+                  <li
+                    key={index}
+                    style={{
+                      marginBottom: 8,
+                    }}
+                  >
                     {question}
                   </li>
                 ),
@@ -445,7 +489,12 @@ export function MeditationView({
           )}
 
         {!isLoaded ? (
-          <p role="status">
+          <p
+            role="status"
+            style={{
+              color: 'var(--text-muted)',
+            }}
+          >
             Checking your session…
           </p>
         ) : authenticated ? (
@@ -456,13 +505,19 @@ export function MeditationView({
                 display: 'block',
                 marginTop: 20,
                 fontWeight: 600,
+                color: 'var(--text)',
               }}
             >
               Your personal reflection
             </label>
 
             {loadingState ? (
-              <p role="status">
+              <p
+                role="status"
+                style={{
+                  color: 'var(--text-muted)',
+                }}
+              >
                 Loading your saved reflection…
               </p>
             ) : (
@@ -485,7 +540,9 @@ export function MeditationView({
                     boxSizing: 'border-box',
                     padding: 14,
                     borderRadius: 12,
-                    border: '1px solid #d4c9e5',
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface-secondary)',
+                    color: 'var(--text)',
                     margin: '12px 0',
                     fontFamily: 'inherit',
                     fontSize: 15,
@@ -520,7 +577,7 @@ export function MeditationView({
                   {hasUnsavedChanges && (
                     <span
                       style={{
-                        color: '#805db5',
+                        color: 'var(--accent)',
                         fontSize: 13,
                       }}
                     >
@@ -532,8 +589,9 @@ export function MeditationView({
                 <p
                   style={{
                     fontSize: 13,
-                    color: '#766b88',
+                    color: 'var(--text-muted)',
                     lineHeight: 1.6,
+                    marginTop: 16,
                   }}
                 >
                   Your reflection is associated with your
@@ -545,8 +603,19 @@ export function MeditationView({
             )}
           </>
         ) : (
-          <p>
-            <Link href="/sign-in">
+          <p
+            style={{
+              color: 'var(--text-muted)',
+              lineHeight: 1.7,
+            }}
+          >
+            <Link
+              href="/sign-in"
+              style={{
+                color: 'var(--accent)',
+                fontWeight: 600,
+              }}
+            >
               Sign in
             </Link>{' '}
             to save your personal reflection.
@@ -565,6 +634,7 @@ export function MeditationView({
           style={{
             whiteSpace: 'pre-wrap',
             lineHeight: 1.9,
+            color: 'var(--text)',
           }}
         >
           {meditation.guidedPrayer}
@@ -580,12 +650,22 @@ export function MeditationView({
           <h2>Continue Your Journey</h2>
 
           {loadingState ? (
-            <p role="status">
+            <p
+              role="status"
+              style={{
+                color: 'var(--text-muted)',
+              }}
+            >
               Loading your progress…
             </p>
           ) : (
             <>
-              <p>
+              <p
+                style={{
+                  color: 'var(--text-muted)',
+                  lineHeight: 1.7,
+                }}
+              >
                 {state.completedAt
                   ? 'You completed this meditation.'
                   : 'Ready to mark this meditation complete?'}
@@ -594,7 +674,7 @@ export function MeditationView({
               {hasUnsavedChanges && (
                 <p
                   style={{
-                    color: '#805db5',
+                    color: 'var(--accent)',
                     fontSize: 14,
                   }}
                 >
@@ -628,7 +708,7 @@ export function MeditationView({
 
                 <button
                   type="button"
-                  style={button}
+                  style={secondaryButton}
                   disabled={busy}
                   onClick={toggleBookmark}
                 >
@@ -659,22 +739,25 @@ export function MeditationView({
           style={{
             color:
               feedback.type === 'error'
-                ? '#b42318'
-                : '#327a52',
+                ? 'var(--error, #b42318)'
+                : 'var(--success, #327a52)',
             marginBottom: 24,
+            lineHeight: 1.6,
           }}
         >
           {feedback.text}
         </p>
       )}
 
-      {/* Footer navigation */}
+      {/* ======================================================
+          FOOTER NAVIGATION
+      ====================================================== */}
 
       {authenticated && (
         <Link
           href="/meditation/history"
           style={{
-            color: '#7657bb',
+            color: 'var(--accent)',
             fontWeight: 600,
           }}
         >
@@ -690,18 +773,29 @@ export function MeditationView({
 // ============================================================
 
 const box: CSSProperties = {
-  background: '#fff',
-  border: '1px solid #eee7f5',
+  background: 'var(--surface)',
+  color: 'var(--text)',
+  border: '1px solid var(--border)',
   borderRadius: 22,
   padding: 'clamp(20px,4vw,36px)',
   marginBottom: 22,
-  boxShadow: '0 6px 24px rgba(50,30,80,.04)',
+  boxShadow: 'var(--shadow)',
 };
 
 const button: CSSProperties = {
-  background: '#6842a5',
-  color: 'white',
+  background: 'var(--primary)',
+  color: 'var(--primary-contrast)',
   border: 0,
+  borderRadius: 10,
+  padding: '12px 20px',
+  cursor: 'pointer',
+  fontWeight: 650,
+};
+
+const secondaryButton: CSSProperties = {
+  background: 'var(--surface-secondary)',
+  color: 'var(--text)',
+  border: '1px solid var(--border)',
   borderRadius: 10,
   padding: '12px 20px',
   cursor: 'pointer',
