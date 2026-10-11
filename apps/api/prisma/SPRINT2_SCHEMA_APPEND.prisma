@@ -1,0 +1,54 @@
+// Add these relation fields inside the EXISTING User model:
+// meditationReflections MeditationReflection[]
+// meditationCompletions MeditationCompletion[]
+// meditationBookmarks MeditationBookmark[]
+
+model Meditation {
+  id String @id @default(cuid())
+  slug String @unique
+  title String
+  scriptureReference String
+  scriptureText String? // Only text licensed for republication
+  translation String?
+  explanation String @db.Text
+  questions Json
+  guidedPrayer String @db.Text
+  locale String @default("en")
+  publishDate DateTime? @db.Date
+  isPublished Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reflections MeditationReflection[]
+  completions MeditationCompletion[]
+  bookmarks MeditationBookmark[]
+  @@index([locale, isPublished, publishDate])
+}
+model MeditationReflection {
+  id String @id @default(cuid())
+  userId String
+  meditationId String
+  text String @db.Text // Private; encrypt at application layer before production if required
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meditation Meditation @relation(fields: [meditationId], references: [id], onDelete: Cascade)
+  @@unique([userId, meditationId])
+}
+model MeditationCompletion {
+  id String @id @default(cuid())
+  userId String
+  meditationId String
+  completedAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meditation Meditation @relation(fields: [meditationId], references: [id], onDelete: Cascade)
+  @@unique([userId, meditationId])
+}
+model MeditationBookmark {
+  id String @id @default(cuid())
+  userId String
+  meditationId String
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meditation Meditation @relation(fields: [meditationId], references: [id], onDelete: Cascade)
+  @@unique([userId, meditationId])
+}
