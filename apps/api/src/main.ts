@@ -29,7 +29,7 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
   });
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }));
   const spec = new DocumentBuilder().setTitle('LifeBook API').setVersion('1.0').addBearerAuth().build();
   if (process.env.NODE_ENV !== 'production') SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, spec));
 

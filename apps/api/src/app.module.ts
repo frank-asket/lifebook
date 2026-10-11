@@ -2,6 +2,7 @@ import { Module, Controller, Get, Injectable, UnauthorizedException, Headers, Pu
 import { PrismaClient, FaithJourney } from '@prisma/client';
 import { verifyToken } from '@clerk/backend';
 import { ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 @Injectable()
 class Database extends PrismaClient {}
@@ -20,7 +21,14 @@ class Identity {
   }
 }
 class ProfileDto {
-  @IsOptional() @IsEnum(FaithJourney) journey?: FaithJourney;
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'STRUCTURED_DISCIPLESHIP') return FaithJourney.DISCIPLESHIP;
+    if (value === '' || value === null) return undefined;
+    return value;
+  })
+  @IsEnum(FaithJourney)
+  journey?: FaithJourney;
   @IsOptional() @IsIn(['en','fr']) language?: string;
   @IsOptional() @IsArray() @ArrayMaxSize(12) @IsString({each:true}) learningGoals?: string[];
   @IsOptional() @IsArray() @ArrayMaxSize(5) @IsString({each:true}) preferredFormats?: string[];
