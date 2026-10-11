@@ -1,1 +1,2 @@
-import { SignUp } from '@clerk/nextjs'; export default function Page(){return <SignUp/>}
+import {SignUp} from '@clerk/nextjs';import {BookOpen} from 'lucide-react';
+export default function Page(){return <div className="auth-page"><div className="auth-visual"><div style={{maxWidth:470}}><BookOpen size={52}/><h1 style={{marginTop:35}}>A new chapter starts here.</h1><p>Make room for reflection, prayer and the life-changing truth of scripture.</p></div></div><div className="auth-panel"><div className="auth-panel-inner"><h1 style={{fontSize:27}}>Create your LifeBook account</h1><p className="subheading">Start with a single step.</p><SignUp routing="path" path="/sign-up" signInUrl="/sign-in" fallbackRedirectUrl="/onboarding"/></div></div></div>}

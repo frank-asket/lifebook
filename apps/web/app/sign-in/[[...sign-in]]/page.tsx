@@ -1,1 +1,2 @@
-import { SignIn } from '@clerk/nextjs'; export default function Page(){return <SignIn/>}
+import {SignIn} from '@clerk/nextjs';import {BookOpen} from 'lucide-react';
+export default function Page(){return <div className="auth-page"><div className="auth-visual"><div style={{maxWidth:470}}><BookOpen size={52}/><h1 style={{marginTop:35}}>Welcome back to your quiet place.</h1><p>Pick up where you left off. Every moment with the Word matters.</p></div></div><div className="auth-panel"><div className="auth-panel-inner"><h1 style={{fontSize:27}}>Sign in to LifeBook</h1><p className="subheading">Continue your journey.</p><SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" fallbackRedirectUrl="/dashboard"/></div></div></div>}

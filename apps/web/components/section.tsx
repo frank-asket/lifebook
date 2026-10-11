@@ -1,0 +1,4 @@
+import Link from 'next/link';import {ArrowRight} from 'lucide-react';
+export function SectionTitle({title,href,action='View all'}:{title:string;href?:string;action?:string}){return <div className="section-title"><h2>{title}</h2>{href&&<Link className="text-link icon-line" href={href}>{action}<ArrowRight size={14}/></Link>}</div>}
+export function FeatureCard({icon:Icon,title,description,href,tone='lilac',action='Explore'}:{icon:React.ElementType;title:string;description:string;href:string;tone?:string;action?:string}){return <div className="card feature-card"><span className={'feature-icon '+tone}><Icon size={23}/></span><h3>{title}</h3><p>{description}</p><Link className="text-link icon-line" href={href}>{action}<ArrowRight size={14}/></Link></div>}
+export function EmptyState({icon:Icon,title,description}:{icon:React.ElementType;title:string;description:string}){return <div className="empty"><Icon size={35}/><h3>{title}</h3><p>{description}</p></div>}
