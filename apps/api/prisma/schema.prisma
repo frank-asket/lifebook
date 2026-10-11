@@ -1,11 +1,24 @@
+// ============================================================
+// LIFEBOOK DATABASE SCHEMA
+// Sprint 1 + Sprint 2
+// Prisma ORM 5.22.0
+// PostgreSQL / Supabase
+// ============================================================
+
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+// ============================================================
+// ENUMS
+// ============================================================
+
 enum FaithJourney {
   EXPLORING
   NEW_BELIEVER
@@ -14,99 +27,261 @@ enum FaithJourney {
   MINISTRY_PREPARATION
   SERVING_IN_MINISTRY
 }
+
 enum PlatformRole {
   MEMBER
   CREATOR
   MODERATOR
   ADMIN
 }
+
 enum VerificationStatus {
   NOT_REQUESTED
   PENDING
   APPROVED
   REJECTED
 }
+
+// ============================================================
+// USER
+// ============================================================
+
 model User {
-  id String @id @default(cuid())
-  oidcSubject String @unique
-  email String? @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  profile FaithProfile?
-  prayers PrayerEntry[]
-  enrollments Enrollment[]
+  id          String   @id @default(cuid())
+  oidcSubject String   @unique
+  email       String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  profile      FaithProfile?
+  prayers      PrayerEntry[]
+  enrollments  Enrollment[]
   verification MinistryVerification?
-  role PlatformRole @default(MEMBER)
+  role         PlatformRole          @default(MEMBER)
+
+  // Sprint 2 relationships
+  meditationReflections MeditationReflection[]
+  meditationCompletions MeditationCompletion[]
+  meditationBookmarks   MeditationBookmark[]
 }
+
+// ============================================================
+// FAITH PROFILE
+// ============================================================
+
 model FaithProfile {
   userId String @id
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  journey FaithJourney?
-  language String @default("en")
-  learningGoals String[]
+
+  journey  FaithJourney?
+  language String        @default("en")
+
+  learningGoals    String[]
   preferredFormats String[]
+
   personalizationConsent Boolean @default(false)
-  aiProcessingConsent Boolean @default(false)
+  aiProcessingConsent    Boolean @default(false)
+
   updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+// DEVOTIONAL
+// ============================================================
+
 model Devotional {
-  id String @id @default(cuid())
-  title String
+  id                 String    @id @default(cuid())
+  title              String
   scriptureReference String
-  body String
-  locale String @default("en")
-  publishedAt DateTime?
-  createdAt DateTime @default(now())
+  body               String
+  locale             String    @default("en")
+  publishedAt        DateTime?
+  createdAt          DateTime  @default(now())
 }
+
+// ============================================================
+// PRAYER SANCTUARY
+// ============================================================
+
 model PrayerEntry {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
   userId String
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // Encrypt content at application layer before persisting; never store plaintext.
+
+  // Encrypted prayer content
   ciphertext String
   keyVersion Int
+
   createdAt DateTime @default(now())
 }
+
+// ============================================================
+// LIVINGWORD — SERMONS
+// ============================================================
+
 model Sermon {
-  id String @id @default(cuid())
-  title String
+  id          String    @id @default(cuid())
+  title       String
   description String?
-  mediaKey String
+  mediaKey    String
   publishedAt DateTime?
-  creatorId String
-  createdAt DateTime @default(now())
+  creatorId   String
+  createdAt   DateTime  @default(now())
 }
+
+// ============================================================
+// DISCIPLESHIP — LEARNING PATHS
+// ============================================================
+
 model LearningPath {
-  id String @id @default(cuid())
-  slug String @unique
-  title String
+  id          String @id @default(cuid())
+  slug        String @unique
+  title       String
   description String
+
   isPublished Boolean @default(false)
-  lessons Lesson[]
+
+  lessons     Lesson[]
   enrollments Enrollment[]
 }
+
+// ============================================================
+// DISCIPLESHIP — LESSONS
+// ============================================================
+
 model Lesson {
-  id String @id @default(cuid())
-  pathId String
-  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
-  title String
+  id       String @id @default(cuid())
+  pathId   String
+  title    String
   position Int
-  content String
+  content  String
+
+  path LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+
   @@unique([pathId, position])
 }
+
+// ============================================================
+// DISCIPLESHIP — ENROLLMENTS
+// ============================================================
+
 model Enrollment {
-  id String @id @default(cuid())
+  id     String @id @default(cuid())
   userId String
   pathId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   path LearningPath @relation(fields: [pathId], references: [id])
+
   startedAt DateTime @default(now())
+
   @@unique([userId, pathId])
 }
+
+// ============================================================
+// MINISTRY VERIFICATION
+// ============================================================
+
 model MinistryVerification {
   userId String @id
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status VerificationStatus @default(NOT_REQUESTED)
-  reviewedAt DateTime?
+
+  status        VerificationStatus @default(NOT_REQUESTED)
+  reviewedAt    DateTime?
   reviewerNotes String?
+}
+
+// ============================================================
+// SPRINT 2 — DAILY BIBLE MEDITATION
+// ============================================================
+
+model Meditation {
+  id    String @id @default(cuid())
+  slug  String @unique
+  title String
+
+  scriptureReference String
+  scriptureText      String?
+  translation        String?
+
+  explanation  String @db.Text
+  questions    Json
+  guidedPrayer String @db.Text
+
+  locale      String    @default("en")
+  publishDate DateTime? @db.Date
+  isPublished Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reflections MeditationReflection[]
+  completions MeditationCompletion[]
+  bookmarks   MeditationBookmark[]
+
+  @@index([locale, isPublished, publishDate])
+}
+
+// ============================================================
+// SPRINT 2 — PRIVATE REFLECTIONS
+// ============================================================
+
+model MeditationReflection {
+  id           String @id @default(cuid())
+  userId       String
+  meditationId String
+
+  // Private content: encrypt at application level before production.
+  text String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  meditation Meditation @relation(fields: [meditationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, meditationId])
+  @@index([userId])
+}
+
+// ============================================================
+// SPRINT 2 — COMPLETION TRACKING
+// ============================================================
+
+model MeditationCompletion {
+  id           String @id @default(cuid())
+  userId       String
+  meditationId String
+
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  meditation Meditation @relation(fields: [meditationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, meditationId])
+  @@index([userId])
+}
+
+// ============================================================
+// SPRINT 2 — BOOKMARKS
+// ============================================================
+
+model MeditationBookmark {
+  id           String @id @default(cuid())
+  userId       String
+  meditationId String
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  meditation Meditation @relation(fields: [meditationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, meditationId])
+  @@index([userId])
 }
