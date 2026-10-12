@@ -1,4 +1,5 @@
 'use client';
+import {useLanguage} from '../../components/language-provider';
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -17,9 +18,9 @@ function isMeditation(value: unknown): value is Meditation {
     && typeof m.guidedPrayer === 'string' && Array.isArray(m.questions);
 }
 
-export default function DailyMeditationPage() {
+export default function DailyMeditationPage() { const {language,setLanguage}=useLanguage(); const tr=(en:string,fr:string)=>language==='fr'?fr:en;
   const [state, setState] = useState<PageState>({ item: null, loading: true, error: '' });
-  const [locale, setLocale] = useState<'en' | 'fr'>('en');
+  const locale = language; const setLocale = setLanguage;
   const [retry, setRetry] = useState(0);
 
   const loadMeditation = useCallback(async (signal: AbortSignal) => {
@@ -47,46 +48,46 @@ export default function DailyMeditationPage() {
   const refresh = () => setRetry(value => value + 1);
 
   return (
-    <Shell title="Daily Bible Meditation">
+    <Shell title={tr('Daily Bible Meditation','Méditation biblique quotidienne')}>
       <div className="meditation-page">
         <header className="meditation-page-header">
           <div>
-            <span className="meditation-kicker"><BookOpen size={15} /> YOUR DAILY MOMENT</span>
-            <h1>Make room for the Word.</h1>
-            <p>Read Scripture, reflect at your own pace, and respond in prayer.</p>
+            <span className="meditation-kicker"><BookOpen size={15} /> {tr('YOUR DAILY MOMENT','VOTRE MOMENT QUOTIDIEN')}</span>
+            <h1>{tr('Make room for the Word.','Faites place à la Parole.')}</h1>
+            <p>{tr('Read Scripture, reflect at your own pace, and respond in prayer.','Lisez les Écritures, méditez à votre rythme et répondez par la prière.')}</p>
           </div>
-          <label className="meditation-language">Language
-            <select aria-label="Meditation language" value={locale} onChange={e => setLocale(e.target.value as 'en' | 'fr')}>
+          <label className="meditation-language">{tr('Language','Langue')}
+            <select aria-label={tr('Meditation language','Langue de méditation')} value={locale} onChange={e => setLocale(e.target.value as 'en' | 'fr')}>
               <option value="en">English</option><option value="fr">Français</option>
             </select>
           </label>
         </header>
 
-        <div className="meditation-steps" aria-label="Meditation steps">
-          <span><BookOpen size={17} /> Read</span><span><Heart size={17} /> Reflect</span><span><CalendarDays size={17} /> Pray</span>
+        <div className="meditation-steps" aria-label={tr('Meditation steps','Étapes de méditation')}>
+          <span><BookOpen size={17} /> {tr('Read','Lire')}</span><span><Heart size={17} /> {tr('Reflect','Méditer')}</span><span><CalendarDays size={17} /> {tr('Pray','Prier')}</span>
         </div>
 
         {state.loading && (
           <section className="meditation-status-card" role="status" aria-live="polite">
             <div className="meditation-loading-mark" aria-hidden="true" />
-            <h2>Preparing your meditation…</h2>
-            <p>Finding today's Scripture reflection.</p>
+            <h2>{tr('Preparing your meditation…','Préparation de votre méditation…')}</h2>
+            <p>{tr("Finding today's Scripture reflection.",'Recherche de la réflexion biblique du jour.')}</p>
           </section>
         )}
         {!state.loading && state.error && (
           <section className="meditation-status-card" role="alert">
             <AlertCircle size={30} aria-hidden="true" />
-            <h2>We couldn't load your meditation</h2>
+            <h2>{tr("We couldn't load your meditation",'Impossible de charger votre méditation')}</h2>
             <p>{state.error}</p>
-            <button className="btn-primary" type="button" onClick={refresh}><RefreshCw size={17} /> Try again</button>
+            <button className="btn-primary" type="button" onClick={refresh}><RefreshCw size={17} /> {tr('Try again','Réessayer')}</button>
           </section>
         )}
         {!state.loading && !state.error && state.item && (
           <>
             <MeditationView key={state.item.id} meditation={state.item} />
             <div className="meditation-bottom-actions">
-              <button className="btn-outline" type="button" onClick={refresh}><RefreshCw size={16} /> Refresh</button>
-              <Link href="/meditation/history">Meditation history <ArrowRight size={16} /></Link>
+              <button className="btn-outline" type="button" onClick={refresh}><RefreshCw size={16} /> {tr('Refresh','Actualiser')}</button>
+              <Link href="/meditation/history">{tr('Meditation history','Historique des méditations')} <ArrowRight size={16} /></Link>
             </div>
           </>
         )}

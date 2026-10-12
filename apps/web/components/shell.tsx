@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { UserButton, useUser } from '@clerk/nextjs';
+import {useLanguage} from './language-provider';
 
 
 // ============================================================
@@ -89,6 +90,8 @@ export function Shell({
     title?: string;
 }) {
     const path = usePathname();
+    const {language,setLanguage}=useLanguage();
+    const tr=(en:string,fr:string)=>language==='fr'?fr:en;
 
     const { user } = useUser();
 
@@ -104,7 +107,7 @@ export function Shell({
                 <Brand />
 
                 <div className="side-label">
-                    YOUR SPACE
+                    {tr('YOUR SPACE','VOTRE ESPACE')}
                 </div>
 
                 <nav className="nav-links">
@@ -125,7 +128,7 @@ export function Shell({
                             >
                                 <Icon size={19} />
 
-                                {item.label}
+                                {tr(item.label, ({'Home':'Accueil','Daily Meditation':'Méditation quotidienne','Prayer Sanctuary':'Sanctuaire de prière','LivingWord':'Parole vivante','Bible Study':'Étude biblique','My Journey':'Mon parcours','Settings':'Paramètres','Profile':'Profil'} as Record<string,string>)[item.label]||item.label)}
                             </Link>
                         );
                     })}
@@ -138,7 +141,7 @@ export function Shell({
 
                     <div className="small-verse">
                         <strong>
-                            A MOMENT OF PEACE
+                            {tr('A MOMENT OF PEACE','UN MOMENT DE PAIX')}
                         </strong>
 
                         “Be still, and know that I am God.”
@@ -172,11 +175,11 @@ export function Shell({
                                     whiteSpace: 'nowrap',
                                 }}
                             >
-                                {user?.firstName || 'LifeBook member'}
+                                {user?.firstName || tr('LifeBook member','Membre LifeBook')}
                             </strong>
 
                             <small>
-                                My account
+                                {tr('My account','Mon compte')}
                             </small>
                         </div>
 
@@ -199,6 +202,7 @@ export function Shell({
                     <Brand />
 
                     <div className="mobile-header-actions">
+                        <select aria-label={tr('Application language','Langue de l’application')} value={language} onChange={e=>setLanguage(e.target.value as 'en'|'fr')}><option value="en">EN</option><option value="fr">FR</option></select>
 
                         <UserButton />
                     </div>
@@ -215,11 +219,15 @@ export function Shell({
                         </div>
 
                         <span className="muted">
-                            A little time in the Word can shape your day.
+                            {tr('A little time in the Word can shape your day.','Un moment dans la Parole peut transformer votre journée.')}
                         </span>
                     </div>
 
                     <div className="topbar-right">
+                        <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12}}>
+                          <span className="sr-only">{tr('Language','Langue')}</span>
+                          <select aria-label={tr('Application language','Langue de l’application')} value={language} onChange={e=>setLanguage(e.target.value as 'en'|'fr')} style={{padding:'7px 9px',borderRadius:8}}><option value="en">EN</option><option value="fr">FR</option></select>
+                        </label>
 
 
                         <Link
@@ -286,7 +294,7 @@ export function Shell({
                             >
                                 <Icon size={21} />
 
-                                {item.label}
+                                {tr(item.label, ({'Home':'Accueil','Daily Meditation':'Méditation quotidienne','Prayer Sanctuary':'Sanctuaire de prière','LivingWord':'Parole vivante','Bible Study':'Étude biblique','My Journey':'Mon parcours','Settings':'Paramètres','Profile':'Profil'} as Record<string,string>)[item.label]||item.label)}
                             </Link>
                         );
                     })}

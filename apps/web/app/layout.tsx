@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '../components/theme-provider';
+import { LanguageProvider } from '../components/language-provider';
 
 import './globals.css';
 
@@ -64,7 +65,7 @@ export default function RootLayout({
 
                 <body>
                     <ThemeProvider>
-                        {children}
+                        <LanguageProvider>{children}</LanguageProvider>
                     </ThemeProvider>
                 </body>
             </html>
