@@ -36,95 +36,65 @@ export type LearningPath = {
 // API CONFIGURATION
 // ============================================================
 
-const base = (
-    process.env.NEXT_PUBLIC_API_URL || ''
-)
-    .trim()
-    .replace(/\/+$/, '');
+const configuredBase = (process.env.NEXT_PUBLIC_API_URL || '').trim().replace(/\/+$/, '');
+// Accept both https://host and https://host/api/v1 without duplicating the prefix.
+const base = configuredBase.replace(/\/api\/v1$/, '');
 
-// ============================================================
-// API CLIENT
-// ============================================================
+export class ApiError extends Error {
+    constructor(message: string, public readonly status?: number) {
+        super(message);
+        this.name = 'ApiError';
+    }
+}
 
 export async function api<T>(
     path: string,
     token?: string | null,
     options: RequestInit = {},
 ): Promise<T> {
-    if (!base) {
-        throw new Error(
-            'NEXT_PUBLIC_API_URL is not configured',
-        );
-    }
-
-    if (!path.startsWith('/')) {
-        throw new Error(
-            'API path must start with "/"',
-        );
-    }
-
+    if (!base) throw new ApiError('LifeBook API is not configured. Set NEXT_PUBLIC_API_URL in Vercel.');
+    if (!path.startsWith('/')) throw new Error('API path must start with "/"');
     const headers = new Headers(options.headers);
+    if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+    if (token) headers.set('Authorization', `Bearer ${token}`);
 
-    if (options.body && !headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
+    let response: Response;
+    try {
+        response = await fetch(`${base}/api/v1${path}`, { ...options, cache: 'no-store', headers });
+    } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') throw error;
+        throw new ApiError('Cannot connect to LifeBook right now. Please check your connection and try again.');
     }
 
-    if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
+    if (response.status === 204) return undefined as T;
+    const raw = await response.text();
+    const contentType = response.headers.get('content-type') || '';
+    let parsed: unknown;
+    if (contentType.includes('json') && raw) {
+        try { parsed = JSON.parse(raw); } catch { /* handled below */ }
     }
-
-    const response = await fetch(
-        `${base}/api/v1${path}`,
-        {
-            ...options,
-            cache: 'no-store',
-            headers,
-        },
-    );
-
-    // ==========================================================
-    // ERROR HANDLING
-    // ==========================================================
 
     if (!response.ok) {
-        let message = `API request failed (${response.status})`;
-
-        try {
-            const body = await response.text();
-
-            if (body) {
-                const parsed = JSON.parse(body);
-
-                if (typeof parsed.message === 'string') {
-                    message = parsed.message;
-                } else if (Array.isArray(parsed.message)) {
-                    message = parsed.message.join(', ');
-                }
-            }
-        } catch {
-            // Keep the generic error message.
-        }
-
-        throw new Error(message);
+        const body = parsed && typeof parsed === 'object' ? parsed as { message?: unknown } : null;
+        const message = typeof body?.message === 'string'
+            ? body.message
+            : Array.isArray(body?.message)
+                ? body.message.join(', ')
+                : response.status === 404
+                    ? 'The requested meditation could not be found.'
+                    : response.status === 503 || response.status === 502
+                        ? 'The meditation service is temporarily unavailable. Please try again shortly.'
+                        : `LifeBook API returned HTTP ${response.status}.`;
+        throw new ApiError(message, response.status);
     }
 
-    // ==========================================================
-    // EMPTY RESPONSES
-    // ==========================================================
-
-    if (response.status === 204) {
-        return undefined as T;
-    }
-
-    const contentType = response.headers.get('content-type');
-
-    if (!contentType?.includes('application/json')) {
-        throw new Error(
-            'Unexpected API response format',
+    if (parsed === undefined) {
+        throw new ApiError(
+            'The meditation service returned a non-JSON response. Check NEXT_PUBLIC_API_URL points to your Render API, not the web app, and confirm the API is running.',
+            response.status,
         );
     }
-
-    return (await response.json()) as T;
+    return parsed as T;
 }
 
 // ============================================================
