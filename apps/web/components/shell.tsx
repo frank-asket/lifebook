@@ -15,18 +15,10 @@ import {
     Bell,
     UserRound,
     House,
-    Sun,
-    Moon,
-    Monitor,
-    Clock3,
 } from 'lucide-react';
 
 import { UserButton, useUser } from '@clerk/nextjs';
 
-import {
-    useTheme,
-    type ThemeMode,
-} from './theme-provider';
 
 // ============================================================
 // NAVIGATION
@@ -86,66 +78,6 @@ export function Brand() {
 }
 
 // ============================================================
-// APPEARANCE SELECTOR
-// ============================================================
-
-function AppearanceSelector({
-    compact = false,
-}: {
-    compact?: boolean;
-}) {
-    const { theme, resolvedTheme, setTheme } = useTheme();
-
-    const Icon =
-        theme === 'system'
-            ? Monitor
-            : theme === 'schedule'
-                ? Clock3
-                : resolvedTheme === 'dark'
-                    ? Moon
-                    : Sun;
-
-    return (
-        <div
-            className={
-                compact
-                    ? 'appearance-control appearance-compact'
-                    : 'appearance-control'
-            }
-        >
-            <Icon
-                size={18}
-                aria-hidden="true"
-            />
-
-            <select
-                aria-label="Appearance preference"
-                value={theme}
-                onChange={(event) =>
-                    setTheme(event.target.value as ThemeMode)
-                }
-            >
-                <option value="system">
-                    System
-                </option>
-
-                <option value="schedule">
-                    Auto (6 PM–6 AM)
-                </option>
-
-                <option value="light">
-                    Light
-                </option>
-
-                <option value="dark">
-                    Dark
-                </option>
-            </select>
-        </div>
-    );
-}
-
-// ============================================================
 // APPLICATION SHELL
 // ============================================================
 
@@ -201,15 +133,6 @@ export function Shell({
 
                 <div className="sidebar-bottom">
 
-                    {/* Appearance settings */}
-
-                    <div className="sidebar-appearance">
-                        <span className="side-label">
-                            APPEARANCE
-                        </span>
-
-                        <AppearanceSelector />
-                    </div>
 
                     {/* Scripture encouragement */}
 
@@ -276,7 +199,6 @@ export function Shell({
                     <Brand />
 
                     <div className="mobile-header-actions">
-                        <AppearanceSelector compact />
 
                         <UserButton />
                     </div>
@@ -299,7 +221,6 @@ export function Shell({
 
                     <div className="topbar-right">
 
-                        <AppearanceSelector compact />
 
                         <Link
                             href="/bible"

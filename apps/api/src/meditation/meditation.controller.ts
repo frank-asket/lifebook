@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -50,28 +51,51 @@ class BookmarkDto {
 export class MeditationController {
   constructor(
     private readonly service: MeditationService,
-  ) { }
+  ) {}
 
   /**
    * GET /api/v1/meditations/today
    *
    * Public endpoint.
-   * Returns today's published meditation.
+   *
+   * Returns the latest eligible published meditation
+   * for the requested language.
+   *
+   * Supported languages:
+   * - en: English (default)
+   * - fr: French
+   *
+   * Returns:
+   * - 200: Published meditation
+   * - 404: No published meditation available
    */
   @Get('today')
   @ApiOperation({
     summary: "Get today's meditation",
   })
-  today(@Query('locale') locale?: string) {
-    return this.service.today(
-      locale === 'fr' ? 'fr' : 'en',
-    );
+  async today(
+    @Query('locale') locale?: string,
+  ) {
+    const language = locale === 'fr' ? 'fr' : 'en';
+
+    const meditation = await this.service.today(language);
+
+    if (!meditation) {
+      throw new NotFoundException(
+        `No published meditation is available for locale "${language}".`,
+      );
+    }
+
+    return meditation;
   }
 
   /**
    * GET /api/v1/meditations/history
    *
    * Authentication required.
+   *
+   * Returns the authenticated user's
+   * completed meditation history.
    */
   @Get('history')
   @ApiBearerAuth()
@@ -88,6 +112,9 @@ export class MeditationController {
    * GET /api/v1/meditations/saved
    *
    * Authentication required.
+   *
+   * Returns the authenticated user's
+   * bookmarked meditations.
    */
   @Get('saved')
   @ApiBearerAuth()
@@ -104,6 +131,10 @@ export class MeditationController {
    * GET /api/v1/meditations/:id/state
    *
    * Authentication required.
+   *
+   * Returns the authenticated user's
+   * reflection, completion status,
+   * and bookmark status.
    */
   @Get(':id/state')
   @ApiBearerAuth()
@@ -121,6 +152,8 @@ export class MeditationController {
    * GET /api/v1/meditations/:id
    *
    * Public endpoint.
+   *
+   * Returns a meditation by its ID.
    */
   @Get(':id')
   @ApiOperation({
@@ -136,6 +169,14 @@ export class MeditationController {
    * PUT /api/v1/meditations/:id/reflection
    *
    * Authentication required.
+   *
+   * Saves or updates the authenticated
+   * user's personal reflection.
+   *
+   * Validation:
+   * - Must be a string
+   * - Minimum 1 character
+   * - Maximum 10,000 characters
    */
   @Put(':id/reflection')
   @ApiBearerAuth()
@@ -144,11 +185,13 @@ export class MeditationController {
   })
   reflect(
     @Param('id') id: string,
-    @Body(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }))
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
     body: ReflectionDto,
     @Headers('authorization') auth?: string,
   ) {
@@ -163,6 +206,9 @@ export class MeditationController {
    * POST /api/v1/meditations/:id/complete
    *
    * Authentication required.
+   *
+   * Marks the meditation as completed
+   * for the authenticated user.
    */
   @Post(':id/complete')
   @ApiBearerAuth()
@@ -180,6 +226,14 @@ export class MeditationController {
    * PUT /api/v1/meditations/:id/bookmark
    *
    * Authentication required.
+   *
+   * Request body:
+   * {
+   *   "saved": true
+   * }
+   *
+   * Set saved to false to remove
+   * an existing bookmark.
    */
   @Put(':id/bookmark')
   @ApiBearerAuth()
@@ -188,11 +242,13 @@ export class MeditationController {
   })
   bookmark(
     @Param('id') id: string,
-    @Body(new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }))
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    )
     body: BookmarkDto,
     @Headers('authorization') auth?: string,
   ) {

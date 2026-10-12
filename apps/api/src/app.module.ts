@@ -31,6 +31,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 // ============================================================
 
 import { MeditationModule } from './meditation/meditation.module';
+import { BibleStudyModule } from './bible-study/bible-study.module';
 
 // ============================================================
 // DATABASE SERVICE
@@ -274,6 +275,7 @@ class ProfileController {
   imports: [
     // Sprint 2 — Daily Bible Meditation
     MeditationModule,
+    BibleStudyModule,
   ],
 
   controllers: [

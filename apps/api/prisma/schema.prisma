@@ -285,3 +285,78 @@ model MeditationBookmark {
   @@unique([userId, meditationId])
   @@index([userId])
 }
+
+// ============================================================
+// BIBLE STUDY — CURATED LEARNING LIBRARY
+// ============================================================
+
+enum StudyMethod {
+  THEMATIC
+  CHARACTER
+  BOOK
+  SYSTEMATIC
+}
+
+enum StudyStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+model StudySeries {
+  id          String @id @default(cuid())
+  slug        String
+  locale      String @default("en")
+  title       String
+  description String @db.Text
+  method      StudyMethod
+  status      StudyStatus @default(DRAFT)
+  difficulty  String @default("BEGINNER")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lessons     StudyLesson[]
+  enrollments StudyEnrollment[]
+  @@unique([slug, locale])
+  @@index([method, status, locale])
+}
+
+model StudyLesson {
+  id              String @id @default(cuid())
+  seriesId        String
+  position        Int
+  title           String
+  scriptureReference String
+  introduction    String @db.Text
+  historicalContext String? @db.Text
+  exegesis        String @db.Text
+  theology        String? @db.Text
+  reflectionQuestions Json
+  guidedPrayer    String? @db.Text
+  application     String? @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  series          StudySeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  completions     StudyLessonCompletion[]
+  @@unique([seriesId, position])
+}
+
+model StudyEnrollment {
+  id        String @id @default(cuid())
+  userId    String
+  seriesId  String
+  startedAt DateTime @default(now())
+  series    StudySeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  @@unique([userId, seriesId])
+  @@index([userId])
+}
+
+model StudyLessonCompletion {
+  id          String @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+  lesson      StudyLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
