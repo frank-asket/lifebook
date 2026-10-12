@@ -69,6 +69,14 @@ export class MeditationController {
    * - 200: Published meditation
    * - 404: No published meditation available
    */
+
+  /** Public, curated scripture-first daily journey; independent of published meditations. */
+  @Get('daily-word/today')
+  @ApiOperation({ summary: 'Get the scripture-first daily journey' })
+  dailyWord(@Query('locale') locale?: string) {
+    return this.service.dailyWord(locale);
+  }
+
   @Get('today')
   @ApiOperation({
     summary: "Get today's meditation",
