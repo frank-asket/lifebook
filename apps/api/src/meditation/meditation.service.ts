@@ -72,6 +72,69 @@ export class MeditationService implements OnModuleDestroy {
     }
   }
 
+
+  /**
+   * A small, editorially curated starter rotation. UTC day is shared by all users.
+   * Reference-only by design: do not redistribute unlicensed Bible translations.
+   * Published meditation is intentionally NOT required for this response.
+   * Replace the rotation with a reviewed editorial schedule in a later milestone.
+   */
+  dailyWord(locale?: string) {
+    const language = this.normalizeLocale(locale);
+    const day = this.getCurrentUtcDay();
+    const entries = [
+      { ref: 'Joshua 1:8', fr: 'Josué 1:8',
+        enTitle: 'Meditate on the Word', frTitle: 'Méditer la Parole',
+        enContext: 'God commissions Joshua after Moses and calls him to keep the law before him.',
+        frContext: 'Dieu confie une mission à Josué après Moïse et l’appelle à garder la loi devant lui.',
+        enMeaning: 'Meditation is joined to obedience; the passage addresses Joshua in his leadership calling.',
+        frMeaning: 'La méditation est liée à l’obéissance ; ce passage s’adresse à Josué dans sa mission de dirigeant.',
+        enQuestion: 'How can Scripture shape one decision today?', frQuestion: 'Comment la Parole peut-elle guider une décision aujourd’hui?',
+        enPrayer: 'Lord, help me understand your Word and obey it with wisdom. Amen.',
+        frPrayer: 'Seigneur, aide-moi à comprendre ta Parole et à lui obéir avec sagesse. Amen.',
+        enAction: 'Read Joshua 1:1–9 and note one practical step.',
+        frAction: 'Lisez Josué 1:1–9 et notez une action concrète.' },
+      { ref: 'Psalm 119:105', fr: 'Psaume 119:105',
+        enTitle: 'A Lamp for the Next Step', frTitle: 'Une lampe pour le prochain pas',
+        enContext: 'Psalm 119 celebrates God’s instruction and its role in a faithful life.',
+        frContext: 'Le Psaume 119 célèbre l’enseignement de Dieu et sa place dans une vie fidèle.',
+        enMeaning: 'The image of a lamp points to guidance for walking faithfully, not a promise of knowing every future detail.',
+        frMeaning: 'L’image de la lampe évoque la direction pour marcher fidèlement, non la connaissance de tout l’avenir.',
+        enQuestion: 'Where do I need guidance for my next step?', frQuestion: 'Dans quel domaine ai-je besoin de direction pour mon prochain pas?',
+        enPrayer: 'Lord, guide my steps as I learn and follow your Word. Amen.',
+        frPrayer: 'Seigneur, guide mes pas pendant que j’apprends et suis ta Parole. Amen.',
+        enAction: 'Read Psalm 119:97–112 and reflect on one choice.',
+        frAction: 'Lisez Psaume 119:97–112 et réfléchissez à un choix.' },
+      { ref: 'James 1:22', fr: 'Jacques 1:22',
+        enTitle: 'Hear and Do', frTitle: 'Écouter et pratiquer',
+        enContext: 'James urges believers to receive the Word and put it into practice.',
+        frContext: 'Jacques exhorte les croyants à accueillir la Parole et à la mettre en pratique.',
+        enMeaning: 'Listening without action is incomplete; genuine reception bears fruit in conduct.',
+        frMeaning: 'Écouter sans agir reste incomplet ; accueillir vraiment la Parole transforme la conduite.',
+        enQuestion: 'What have I heard but not yet practiced?', frQuestion: 'Qu’ai-je entendu sans encore le mettre en pratique?',
+        enPrayer: 'Lord, make me attentive to your Word and ready to act. Amen.',
+        frPrayer: 'Seigneur, rends-moi attentif à ta Parole et prêt à agir. Amen.',
+        enAction: 'Read James 1:19–27 and practice one instruction.',
+        frAction: 'Lisez Jacques 1:19–27 et pratiquez une instruction.' },
+    ];
+    const dayNumber = Math.floor(day.getTime() / 86400000);
+    const entry = entries[((dayNumber % entries.length) + entries.length) % entries.length];
+    const fr = language === 'fr';
+    return {
+      date: day.toISOString().slice(0, 10), locale: language,
+      source: 'editorially-curated-starter-rotation',
+      verse: { reference: fr ? entry.fr : entry.ref, text: null,
+        readingNote: fr ? 'Lisez ce passage dans votre traduction biblique préférée.' : 'Read this passage in your preferred Bible translation.' },
+      explanation: { title: fr ? entry.frTitle : entry.enTitle,
+        context: fr ? entry.frContext : entry.enContext,
+        meaning: fr ? entry.frMeaning : entry.enMeaning },
+      meditation: { content: fr ? entry.frMeaning : entry.enMeaning },
+      reflection: { questions: [fr ? entry.frQuestion : entry.enQuestion] },
+      prayer: { content: fr ? entry.frPrayer : entry.enPrayer },
+      dailyAction: { description: fr ? entry.frAction : entry.enAction },
+    };
+  }
+
   // ============================================================
   // AUTHENTICATION
   // ============================================================
