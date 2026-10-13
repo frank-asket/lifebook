@@ -25,6 +25,7 @@ import {
 } from 'class-validator';
 
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { BibleContentModule } from './bible-content/bible-content.module';
 
 // ============================================================
 // LIFEBOOK FEATURE MODULES
@@ -329,6 +330,29 @@ class ProfileController {
     });
   }
 }
+// ==========================================
+// LIFEBOOK BIBLE API CONFIGURATION
+// ==========================================
+@Module({
+  imports: [
+    MeditationModule,
+    BibleStudyModule,
+    DailyWordModule,
+    BibleContentModule,
+  ],
+
+  controllers: [
+    HealthController,
+    DevotionalsController,
+    PathsController,
+    ProfileController,
+  ],
+
+  providers: [
+    Database,
+    Identity,
+  ],
+})
 
 // ============================================================
 // ROOT APPLICATION MODULE
@@ -359,4 +383,7 @@ class ProfileController {
     Identity,
   ],
 })
+
+
 export class AppModule {}
+
