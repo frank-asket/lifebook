@@ -156,6 +156,69 @@ export class MeditationService implements OnModuleDestroy {
     return user.id;
   }
 
+  /** Curated Scripture-first starter rotation; no database writes. */
+  dailyWord(locale = 'en') {
+    const language = this.normalizeLocale(locale);
+    const days = Math.floor(this.getCurrentUtcDay().getTime() / 86400000);
+    const passages = [
+      {
+        reference: 'Joshua 1:8', referenceFr: 'Josué 1:8',
+        en: 'This book of the law shall not depart out of thy mouth; but thou shalt meditate therein day and night, that thou mayest observe to do according to all that is written therein: for then thou shalt make thy way prosperous, and then thou shalt have good success.',
+        fr: 'Que ce livre de la loi ne s’éloigne pas de ta bouche. Médite-le jour et nuit, afin de veiller à agir selon tout ce qui y est écrit. Alors tu avanceras avec sagesse dans ta voie.',
+        explanationEn: 'God speaks to Joshua as he prepares to lead Israel. Meditation is linked to faithful action, not merely acquiring information.',
+        explanationFr: 'Dieu parle à Josué alors qu’il se prépare à conduire Israël. La méditation est liée à une mise en pratique fidèle, et pas seulement à la connaissance.',
+        questionEn: 'What part of God’s Word can guide one decision today?',
+        questionFr: 'Quelle parole de Dieu peut guider une décision aujourd’hui?',
+        prayerEn: 'Lord, teach me to listen to your Word and act on it today. Amen.',
+        prayerFr: 'Seigneur, apprends-moi à écouter ta Parole et à la mettre en pratique aujourd’hui. Amen.',
+        actionEn: 'Choose one concrete action shaped by today’s Scripture.',
+        actionFr: 'Choisissez une action concrète inspirée de la Parole du jour.',
+      },
+      {
+        reference: 'Psalm 119:105', referenceFr: 'Psaume 119:105',
+        en: 'Thy word is a lamp unto my feet, and a light unto my path.',
+        fr: 'Ta parole est une lampe pour mes pieds et une lumière sur mon chemin.',
+        explanationEn: 'The psalmist describes God’s Word as guidance for the next steps of life, not a promise that every future detail will be visible.',
+        explanationFr: 'Le psalmiste présente la Parole de Dieu comme une lumière pour les prochains pas, non comme la promesse de connaître chaque détail de l’avenir.',
+        questionEn: 'Where do I need guidance for my next step?',
+        questionFr: 'Dans quel domaine ai-je besoin de lumière pour mon prochain pas?',
+        prayerEn: 'God, guide my next step through your Word. Amen.',
+        prayerFr: 'Seigneur, guide mon prochain pas par ta Parole. Amen.',
+        actionEn: 'Take one thoughtful step guided by Scripture.',
+        actionFr: 'Faites un pas réfléchi à la lumière des Écritures.',
+      },
+      {
+        reference: 'James 1:22', referenceFr: 'Jacques 1:22',
+        en: 'But be ye doers of the word, and not hearers only, deceiving your own selves.',
+        fr: 'Mettez la parole en pratique, ne vous contentez pas de l’écouter en vous trompant vous-mêmes.',
+        explanationEn: 'James challenges believers to connect hearing with obedience. Genuine listening produces a response in daily life.',
+        explanationFr: 'Jacques invite les croyants à unir écoute et obéissance. Une écoute sincère se traduit par des actes au quotidien.',
+        questionEn: 'What have I heard in Scripture that I still need to practice?',
+        questionFr: 'Quelle parole entendue dois-je encore mettre en pratique?',
+        prayerEn: 'Lord, help me respond to your Word with action. Amen.',
+        prayerFr: 'Seigneur, aide-moi à répondre à ta Parole par des actes. Amen.',
+        actionEn: 'Put one biblical teaching into practice today.',
+        actionFr: 'Mettez un enseignement biblique en pratique aujourd’hui.',
+      },
+    ];
+    const item = passages[((days % passages.length) + passages.length) % passages.length];
+    const french = language === 'fr';
+    return {
+      date: this.getCurrentUtcDay().toISOString().slice(0, 10),
+      locale: language,
+      verse: {
+        reference: french ? item.referenceFr : item.reference,
+        text: french ? item.fr : item.en,
+        translation: french ? 'Traduction française de travail — révision éditoriale requise' : 'King James Version (KJV)',
+      },
+      explanation: french ? item.explanationFr : item.explanationEn,
+      meditation: french ? 'Relisez lentement ce passage. Observez les mots qui vous interpellent et considérez leur sens dans votre vie.' : 'Read the passage slowly again. Notice what stands out and consider how its meaning relates to your life.',
+      reflectionQuestion: french ? item.questionFr : item.questionEn,
+      prayer: french ? item.prayerFr : item.prayerEn,
+      application: french ? item.actionFr : item.actionEn,
+    };
+  }
+
   // ============================================================
   // DAILY MEDITATION
   // ============================================================

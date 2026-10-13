@@ -69,6 +69,12 @@ export class MeditationController {
    * - 200: Published meditation
    * - 404: No published meditation available
    */
+  @Get('daily-word/today')
+  @ApiOperation({ summary: 'Get the curated Daily Word in English or French' })
+  dailyWord(@Query('locale') locale?: string) {
+    return this.service.dailyWord(locale);
+  }
+
   @Get('today')
   @ApiOperation({
     summary: "Get today's meditation",

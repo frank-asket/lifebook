@@ -1569,3 +1569,18 @@ select:focus-visible {
 .study-reader{line-height:1.8;font-size:15px;overflow-wrap:anywhere}.study-reader h2{margin:15px 0 22px}.study-reader h3{margin-top:25px}.study-reader li{margin:10px 0}
 @media(max-width:1100px){.study-categories{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.study-categories,.study-list,.study-detail-grid{grid-template-columns:1fr}.study-section-heading{align-items:stretch;flex-direction:column}.study-section-heading .searchbar{max-width:none;width:100%}}
+
+/* Milestone 3.3: scoped Daily Word reader */
+.dailyword-page{max-width:920px;margin:0 auto;display:grid;gap:22px;padding-bottom:48px}
+.dailyword-page header{margin-top:8px}
+.dailyword-scripture blockquote{font-size:clamp(1.35rem,2.5vw,2rem);line-height:1.7;margin:20px 0;font-family:Georgia,serif}
+.dailyword-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.dailyword-actions button:disabled{opacity:.45;cursor:not-allowed}
+.dailyword-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.dailyword-step{padding:12px 7px;border:1px solid #d9d1e6;border-radius:12px;background:white;color:#40364e;cursor:pointer;font:inherit;font-size:.85rem}
+.dailyword-step.active{background:#48336e;color:white;border-color:#48336e}
+.dailyword-panel{min-height:230px}
+.dailyword-panel p{line-height:1.8}
+.dailyword-panel label{display:block;margin:15px 0 8px;font-weight:600}
+.dailyword-panel textarea{width:100%;box-sizing:border-box;border:1px solid #c9c2d4;border-radius:12px;padding:14px;font:inherit;resize:vertical}
+@media(max-width:650px){.dailyword-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.dailyword-step:last-child{grid-column:1/-1}}

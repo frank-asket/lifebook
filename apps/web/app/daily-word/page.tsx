@@ -1,0 +1,27 @@
+'use client';
+import {useEffect,useState} from 'react';
+import Link from 'next/link';
+import {Shell} from '../../components/shell';
+import {useLanguage} from '../../components/language-provider';
+import {api} from '../../lib/api';
+
+type DailyWord = {date:string;locale:'en'|'fr';verse:{reference:string;text:string;translation:string};explanation:string;meditation:string;reflectionQuestion:string;prayer:string;application:string};
+const steps = [['Understand','Comprendre'],['Meditate','Méditer'],['Reflect','Réfléchir'],['Pray','Prier'],['Live the Word','Vivre la Parole']];
+export default function DailyWordPage(){
+ const {language}=useLanguage();const tr=(en:string,fr:string)=>language==='fr'?fr:en;
+ const [word,setWord]=useState<DailyWord|null>(null);const [error,setError]=useState('');const [loading,setLoading]=useState(true);const [retry,setRetry]=useState(0);const [step,setStep]=useState(0);const [reflection,setReflection]=useState('');const [speech,setSpeech]=useState<'idle'|'playing'|'paused'>('idle');
+ useEffect(()=>{let active=true;setLoading(true);setError('');setWord(null);setStep(0);setReflection('');(async()=>{try{const result=await api<DailyWord>(`/meditations/daily-word/today?locale=${language}`);if(active)setWord(result)}catch(e){if(active)setError(e instanceof Error?e.message:'Unable to load Scripture')}finally{if(active)setLoading(false)}})();return()=>{active=false}},[language,retry]);
+ useEffect(()=>()=>{if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel()},[]);
+ useEffect(()=>{if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();setSpeech('idle')},[language,word?.verse.text]);
+ const supported=typeof window!=='undefined'&&'speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
+ function play(){if(!word||!supported)return;const synth=window.speechSynthesis;if(speech==='paused'&&synth.paused){synth.resume();setSpeech('playing');return} synth.cancel();const utterance=new SpeechSynthesisUtterance(`${word.verse.reference}. ${word.verse.text}`);utterance.lang=language==='fr'?'fr-FR':'en-US';utterance.rate=0.9;utterance.onend=()=>setSpeech('idle');utterance.onerror=()=>setSpeech('idle');synth.speak(utterance);setSpeech('playing')}
+ function pause(){if(supported){window.speechSynthesis.pause();setSpeech('paused')}}
+ function stop(){if(supported){window.speechSynthesis.cancel();setSpeech('idle')}}
+ return <Shell title={tr('Daily Word','Parole du jour')}><div className="dailyword-page"><Link href="/dashboard" className="text-link">← {tr('Dashboard','Tableau de bord')}</Link><header><span className="eyebrow">{tr('SCRIPTURE FIRST','LA PAROLE D’ABORD')}</span><h1 className="page-heading">{tr('Today’s Word','Parole du jour')}</h1><p className="subheading">{tr('Read, listen, reflect and live the Word.','Lisez, écoutez, méditez et vivez la Parole.')}</p></header>
+ {loading&&<div className="card" role="status">{tr('Loading today’s Scripture…','Chargement de la Parole du jour…')}</div>}
+ {error&&<div className="card" role="alert"><p>{error}</p><button type="button" className="btn" onClick={()=>setRetry(x=>x+1)}>{tr('Try again','Réessayer')}</button></div>}
+ {word&&<><section className="card dailyword-scripture"><span className="eyebrow">{word.date}</span><h2>{word.verse.reference}</h2><blockquote lang={language}>{word.verse.text}</blockquote><p className="muted">{word.verse.translation}</p><div className="dailyword-actions">{supported?<><button type="button" className="btn" onClick={play}>{speech==='paused'?tr('Resume','Reprendre'):tr('Listen','Écouter')}</button><button type="button" className="btn" onClick={pause} disabled={speech!=='playing'}>{tr('Pause','Pause')}</button><button type="button" className="btn" onClick={stop} disabled={speech==='idle'}>{tr('Stop','Arrêter')}</button></>:<p className="muted">{tr('Audio is not available in this browser.','La lecture audio n’est pas disponible dans ce navigateur.')}</p>}</div></section>
+ <nav className="dailyword-steps" aria-label={tr('Meditation journey','Parcours de méditation')}>{steps.map(([en,fr],index)=><button type="button" key={en} className={index===step?'dailyword-step active':'dailyword-step'} aria-current={index===step?'step':undefined} onClick={()=>setStep(index)}>{index+1}. {tr(en,fr)}</button>)}</nav>
+ <section className="card dailyword-panel" aria-live="polite"><span className="eyebrow">{tr(steps[step][0],steps[step][1])}</span>{step===0&&<p>{word.explanation}</p>}{step===1&&<p>{word.meditation}</p>}{step===2&&<><p>{word.reflectionQuestion}</p><label htmlFor="dailyword-reflection">{tr('Private reflection (not saved)','Réflexion personnelle (non enregistrée)')}</label><textarea id="dailyword-reflection" rows={6} maxLength={5000} value={reflection} onChange={e=>setReflection(e.target.value)} placeholder={tr('Write your thoughts here…','Écrivez vos pensées ici…')}/><p className="muted">{tr('Your writing stays on this page and is not sent to our servers.','Votre texte reste sur cette page et n’est pas envoyé à nos serveurs.')}</p></>}{step===3&&<p>{word.prayer}</p>}{step===4&&<p>{word.application}</p>}<div className="dailyword-actions"><button type="button" className="btn" disabled={step===0} onClick={()=>setStep(x=>Math.max(0,x-1))}>{tr('Previous','Précédent')}</button><button type="button" className="btn" disabled={step===4} onClick={()=>setStep(x=>Math.min(4,x+1))}>{tr('Next','Suivant')}</button></div></section></>}
+ </div></Shell>
+}
