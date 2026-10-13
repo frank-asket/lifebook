@@ -63,6 +63,7 @@ model User {
   meditationReflections MeditationReflection[]
   meditationCompletions MeditationCompletion[]
   meditationBookmarks   MeditationBookmark[]
+  dailyWordSessions     DailyWordSession[]
 }
 
 // ============================================================
@@ -305,58 +306,110 @@ enum StudyStatus {
 }
 
 model StudySeries {
-  id          String @id @default(cuid())
+  id          String            @id @default(cuid())
   slug        String
-  locale      String @default("en")
+  locale      String            @default("en")
   title       String
-  description String @db.Text
+  description String            @db.Text
   method      StudyMethod
-  status      StudyStatus @default(DRAFT)
-  difficulty  String @default("BEGINNER")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      StudyStatus       @default(DRAFT)
+  difficulty  String            @default("BEGINNER")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   lessons     StudyLesson[]
   enrollments StudyEnrollment[]
+
   @@unique([slug, locale])
   @@index([method, status, locale])
 }
 
 model StudyLesson {
-  id              String @id @default(cuid())
-  seriesId        String
-  position        Int
-  title           String
-  scriptureReference String
-  introduction    String @db.Text
-  historicalContext String? @db.Text
-  exegesis        String @db.Text
-  theology        String? @db.Text
+  id                  String                  @id @default(cuid())
+  seriesId            String
+  position            Int
+  title               String
+  scriptureReference  String
+  introduction        String                  @db.Text
+  historicalContext   String?                 @db.Text
+  exegesis            String                  @db.Text
+  theology            String?                 @db.Text
   reflectionQuestions Json
-  guidedPrayer    String? @db.Text
-  application     String? @db.Text
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  series          StudySeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
-  completions     StudyLessonCompletion[]
+  guidedPrayer        String?                 @db.Text
+  application         String?                 @db.Text
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+  series              StudySeries             @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  completions         StudyLessonCompletion[]
+
   @@unique([seriesId, position])
 }
 
 model StudyEnrollment {
-  id        String @id @default(cuid())
+  id        String      @id @default(cuid())
   userId    String
   seriesId  String
-  startedAt DateTime @default(now())
+  startedAt DateTime    @default(now())
   series    StudySeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
   @@unique([userId, seriesId])
   @@index([userId])
 }
 
 model StudyLessonCompletion {
-  id          String @id @default(cuid())
+  id          String      @id @default(cuid())
   userId      String
   lessonId    String
-  completedAt DateTime @default(now())
+  completedAt DateTime    @default(now())
   lesson      StudyLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
   @@unique([userId, lessonId])
   @@index([userId])
+}
+
+// Milestone 3.4 — Daily Word progress (migration already applied)
+enum DailyWordSessionStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum DailyWordStep {
+  UNDERSTAND
+  MEDITATE
+  REFLECT
+  PRAY
+  LIVE
+}
+
+model DailyWordSession {
+  id String @id @default(cuid())
+  userId String
+  journeyDate DateTime @db.Date
+  passageKey String
+  status DailyWordSessionStatus @default(IN_PROGRESS)
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps DailyWordStepProgress[]
+  reflection DailyWordReflection?
+  @@unique([userId, journeyDate])
+  @@index([userId, status])
+}
+
+model DailyWordStepProgress {
+  id String @id @default(cuid())
+  sessionId String
+  step DailyWordStep
+  completedAt DateTime @default(now())
+  session DailyWordSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  @@unique([sessionId, step])
+}
+
+model DailyWordReflection {
+  id String @id @default(cuid())
+  sessionId String @unique
+  content String @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session DailyWordSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }

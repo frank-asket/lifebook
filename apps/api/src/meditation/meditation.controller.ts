@@ -73,8 +73,8 @@ export class MeditationController {
   /** Public, curated scripture-first daily journey; independent of published meditations. */
   @Get('daily-word/today')
   @ApiOperation({ summary: 'Get the scripture-first daily journey' })
-  dailyWord(@Query('locale') locale?: string) {
-    return this.service.dailyWord(locale);
+  dailyWord(@Query('locale') locale?: string, @Query('date') date?: string) {
+    return this.service.dailyWord(locale, date);
   }
 
   @Get('today')

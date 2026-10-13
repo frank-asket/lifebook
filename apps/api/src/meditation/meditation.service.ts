@@ -165,9 +165,13 @@ export class MeditationService implements OnModuleDestroy {
   }
 
   /** Curated Scripture-first starter rotation; no database writes. */
-  dailyWord(locale = 'en') {
+  dailyWord(locale = 'en', date?: string) {
+    const selectedDate = date ?? this.getCurrentUtcDay().toISOString().slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedDate) || Number.isNaN(Date.parse(selectedDate + 'T00:00:00Z'))) {
+      throw new BadRequestException('Invalid date');
+    }
     const language = this.normalizeLocale(locale);
-    const days = Math.floor(this.getCurrentUtcDay().getTime() / 86400000);
+    const days = Math.floor(Date.parse(selectedDate + 'T00:00:00Z') / 86400000);
     const passages = [
       {
         reference: 'Joshua 1:8', referenceFr: 'Josué 1:8',
@@ -212,7 +216,8 @@ export class MeditationService implements OnModuleDestroy {
     const item = passages[((days % passages.length) + passages.length) % passages.length];
     const french = language === 'fr';
     return {
-      date: this.getCurrentUtcDay().toISOString().slice(0, 10),
+      date: selectedDate,
+      passageKey: ['JOSHUA_1_8', 'PSALM_119_105', 'JAMES_1_22'][((days % passages.length) + passages.length) % passages.length],
       locale: language,
       verse: {
         reference: french ? item.referenceFr : item.reference,

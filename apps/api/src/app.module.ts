@@ -27,11 +27,17 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 // ============================================================
-// SPRINT 2 — MEDITATION MODULE
+// LIFEBOOK FEATURE MODULES
 // ============================================================
 
+// Sprint 2 — Daily Bible Meditation
 import { MeditationModule } from './meditation/meditation.module';
+
+// Bible Study — Curated Learning Library
 import { BibleStudyModule } from './bible-study/bible-study.module';
+
+// Milestone 3.4 — Persistent Daily Word Sessions
+import { DailyWordModule } from './daily-word/daily-word.module';
 
 // ============================================================
 // DATABASE SERVICE
@@ -40,12 +46,13 @@ import { BibleStudyModule } from './bible-study/bible-study.module';
 @Injectable()
 class Database
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy {
-  async onModuleInit() {
+  implements OnModuleInit, OnModuleDestroy
+{
+  async onModuleInit(): Promise<void> {
     await this.$connect();
   }
 
-  async onModuleDestroy() {
+  async onModuleDestroy(): Promise<void> {
     await this.$disconnect();
   }
 }
@@ -56,39 +63,73 @@ class Database
 
 @Injectable()
 class Identity {
+  /**
+   * Verify the Clerk session token.
+   *
+   * Returns the authenticated Clerk subject.
+   *
+   * The internal LifeBook user ID is resolved separately
+   * using the User.oidcSubject field.
+   */
   async subject(authorization?: string): Promise<string> {
     if (!authorization?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Bearer token required');
+      throw new UnauthorizedException(
+        'Bearer token required',
+      );
+    }
+
+    const token = authorization.slice(7).trim();
+
+    if (!token) {
+      throw new UnauthorizedException(
+        'Bearer token required',
+      );
     }
 
     const secretKey = process.env.CLERK_SECRET_KEY;
 
     if (!secretKey) {
-      throw new UnauthorizedException('Clerk not configured');
+      throw new UnauthorizedException(
+        'Clerk authentication is not configured',
+      );
     }
 
+    // --------------------------------------------------------
+    // Parse configured authorized parties
+    // --------------------------------------------------------
+
+    const authorizedParties: string[] = (
+      process.env.CLERK_AUTHORIZED_PARTIES ?? ''
+    )
+      .split(',')
+      .map((value: string) => value.trim())
+      .filter((value: string) => value.length > 0);
+
+    // --------------------------------------------------------
+    // Verify Clerk token
+    // --------------------------------------------------------
+
     try {
-      const token = authorization.slice(7);
-
-      const authorizedParties = (
-        process.env.CLERK_AUTHORIZED_PARTIES || ''
-      )
-        .split(',')
-        .map((value) => value.trim())
-        .filter(Boolean);
-
       const payload = await verifyToken(token, {
         secretKey,
-        authorizedParties,
+
+        // Only include authorizedParties when configured.
+        ...(authorizedParties.length > 0
+          ? { authorizedParties }
+          : {}),
       });
 
       if (!payload.sub) {
-        throw new Error('Missing subject');
+        throw new UnauthorizedException(
+          'Token subject is missing',
+        );
       }
 
       return payload.sub;
     } catch {
-      throw new UnauthorizedException('Invalid access token');
+      throw new UnauthorizedException(
+        'Invalid or expired access token',
+      );
     }
   }
 }
@@ -134,6 +175,9 @@ class ProfileDto {
 @ApiTags('system')
 @Controller('health')
 class HealthController {
+  /**
+   * GET /api/v1/health
+   */
   @Get()
   health() {
     return {
@@ -150,8 +194,13 @@ class HealthController {
 @ApiTags('content')
 @Controller('devotionals')
 class DevotionalsController {
-  constructor(private readonly db: Database) { }
+  constructor(
+    private readonly db: Database,
+  ) {}
 
+  /**
+   * GET /api/v1/devotionals/latest
+   */
   @Get('latest')
   latest() {
     return this.db.devotional.findFirst({
@@ -174,8 +223,13 @@ class DevotionalsController {
 @ApiTags('discipleship')
 @Controller('paths')
 class PathsController {
-  constructor(private readonly db: Database) { }
+  constructor(
+    private readonly db: Database,
+  ) {}
 
+  /**
+   * GET /api/v1/paths
+   */
   @Get()
   list() {
     return this.db.learningPath.findMany({
@@ -203,13 +257,18 @@ class ProfileController {
   constructor(
     private readonly db: Database,
     private readonly identity: Identity,
-  ) { }
+  ) {}
 
   /**
-   * Resolve Clerk identity to internal LifeBook user.
+   * Resolve the authenticated Clerk identity
+   * to the internal LifeBook database user.
+   *
+   * If the user does not exist, create their record.
    */
   private async user(authorization?: string) {
-    const subject = await this.identity.subject(authorization);
+    const subject = await this.identity.subject(
+      authorization,
+    );
 
     return this.db.user.upsert({
       where: {
@@ -226,7 +285,9 @@ class ProfileController {
    * GET /api/v1/me/profile
    */
   @Get()
-  async get(@Headers('authorization') auth?: string) {
+  async get(
+    @Headers('authorization') auth?: string,
+  ) {
     const user = await this.user(auth);
 
     const profile = await this.db.faithProfile.findUnique({
@@ -256,12 +317,14 @@ class ProfileController {
       where: {
         userId: user.id,
       },
+
       create: {
         userId: user.id,
         learningGoals: [],
         preferredFormats: [],
         ...dto,
       },
+
       update: dto,
     });
   }
@@ -275,7 +338,13 @@ class ProfileController {
   imports: [
     // Sprint 2 — Daily Bible Meditation
     MeditationModule,
+
+    // Bible Study — Curated Learning Library
     BibleStudyModule,
+    DailyWordModule,
+
+    // Milestone 3.4 — Persistent Daily Word Sessions
+    DailyWordModule,
   ],
 
   controllers: [
@@ -290,4 +359,4 @@ class ProfileController {
     Identity,
   ],
 })
-export class AppModule { }
+export class AppModule {}
