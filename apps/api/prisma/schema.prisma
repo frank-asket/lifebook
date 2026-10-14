@@ -64,6 +64,9 @@ model User {
   meditationCompletions MeditationCompletion[]
   meditationBookmarks   MeditationBookmark[]
   dailyWordSessions     DailyWordSession[]
+
+  // M3.5.3 — Bible Reader annotations
+  bibleAnnotations      BibleAnnotation[]
 }
 
 // ============================================================
@@ -412,4 +415,26 @@ model DailyWordReflection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   session DailyWordSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// MILESTONE 3.5.3 — BIBLE ANNOTATIONS
+// Bookmarks, highlights, and encrypted personal notes
+// ============================================================
+
+model BibleAnnotation {
+  id             String   @id @default(cuid())
+  userId         String
+  locale         String
+  passageId      String
+  bookmarked     Boolean  @default(false)
+  highlight      String?
+  noteCiphertext String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, locale, passageId])
+  @@index([userId, updatedAt])
 }
