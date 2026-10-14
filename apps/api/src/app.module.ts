@@ -1,3 +1,4 @@
+import { BibleReadingModule } from './bible-reading/bible-reading.module';
 import {
   Module,
   Controller,
@@ -330,29 +331,6 @@ class ProfileController {
     });
   }
 }
-// ==========================================
-// LIFEBOOK BIBLE API CONFIGURATION
-// ==========================================
-@Module({
-  imports: [
-    MeditationModule,
-    BibleStudyModule,
-    DailyWordModule,
-    BibleContentModule,
-  ],
-
-  controllers: [
-    HealthController,
-    DevotionalsController,
-    PathsController,
-    ProfileController,
-  ],
-
-  providers: [
-    Database,
-    Identity,
-  ],
-})
 
 // ============================================================
 // ROOT APPLICATION MODULE
@@ -360,6 +338,7 @@ class ProfileController {
 
 @Module({
   imports: [
+    BibleReadingModule,
     // Sprint 2 — Daily Bible Meditation
     MeditationModule,
 
