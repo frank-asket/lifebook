@@ -4,7 +4,7 @@
 >
 > This document describes the **code and configuration present in the supplied LifeBook source**. Solid arrows indicate implemented or configured integrations; dashed arrows indicate planned integrations. Deployment and operational readiness are **not** implied by a box appearing in a diagram.
 
-**M3.6 update (15 October 2026):** The Bible Reader now uses `apps/web/app/bible/read`, supports English/French chapter links from plans and reading history, and connects authenticated reading tracking. Bible Study and the main dashboard link to reading features. See [the M3.6 source and migration review](M3.6_SOURCE_REVIEW.md) for validation and database prerequisites. Pending migrations have not been applied; persistence and live provider access remain unverified.
+**M3.6 update (15 October 2026):** The Bible Reader now uses `apps/web/app/bible/read`, supports English/French chapter links from plans and reading history, and connects authenticated reading tracking. Bible Study and the main dashboard link to reading features. See [the M3.6 source and migration review](M3.6_SOURCE_REVIEW.md) for validation and database prerequisites. The two Bible migrations have since been applied after a verified application-data backup and isolated rehearsal; see [database verification](M3.6_DATABASE_VERIFICATION.md). Bible Study tables and meditation migration history are now reconciled, with zero database schema drift; see [study database verification](BIBLE_STUDY_DATABASE_VERIFICATION.md). Live provider access and application authentication remain unverified.
 
 ## 1. Product overview
 
