@@ -1,3 +1,4 @@
+import { BibleAnnotationsModule } from './bible-annotations/bible-annotations.module';
 import { BibleReadingModule } from './bible-reading/bible-reading.module';
 import {
   Module,
@@ -339,12 +340,13 @@ class ProfileController {
 @Module({
   imports: [
     BibleReadingModule,
+    BibleContentModule,
+    BibleAnnotationsModule,
     // Sprint 2 — Daily Bible Meditation
     MeditationModule,
 
     // Bible Study — Curated Learning Library
     BibleStudyModule,
-    DailyWordModule,
 
     // Milestone 3.4 — Persistent Daily Word Sessions
     DailyWordModule,
