@@ -56,7 +56,7 @@ export class BibleReadingService implements OnModuleDestroy {
     const chapterId = this.chapter(input.chapterId);
     const verse = input.verse === undefined ? null : input.verse;
     if (verse !== null && (!Number.isInteger(verse) || verse < 1 || verse > 200)) throw new BadRequestException('Invalid verse');
-    return this.db.bibleReadingHistory.upsert({ where: { userId_locale_chapterId: { userId, locale, chapterId } }, create: { userId, locale, chapterId, verse }, update: { verse } });
+    return this.db.bibleReadingHistory.upsert({ where: { userId_locale_chapterId: { userId, locale, chapterId } }, create: { userId, locale, chapterId, verse }, update: { verse, updatedAt: new Date() } });
   }
   async continueReading(auth?: string) {
     const userId = await this.userId(auth);
