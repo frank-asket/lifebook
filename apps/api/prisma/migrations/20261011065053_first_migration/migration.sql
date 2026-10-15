@@ -144,4 +144,3 @@ ALTER TABLE "Enrollment" ADD CONSTRAINT "Enrollment_pathId_fkey" FOREIGN KEY ("p
 
 -- AddForeignKey
 ALTER TABLE "MinistryVerification" ADD CONSTRAINT "MinistryVerification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
