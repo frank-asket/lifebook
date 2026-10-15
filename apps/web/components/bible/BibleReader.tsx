@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { ReadingTracker } from './ReadingTracker';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
 
 const labels = {
@@ -9,8 +10,8 @@ const labels = {
   fr: { title: 'Lire la Bible', book: 'Livre', chapter: 'Chapitre', language: 'Langue', prev: 'Précédent', next: 'Suivant', study: 'Étude biblique', loading: 'Chargement des Écritures…', retry: 'Réessayer', empty: 'Choisissez un livre et un chapitre.' },
 };
 
-export default function BibleReader() {
-  const [locale, setLocale] = useState<BibleLocale>('en');
+export default function BibleReader({ initialLocale = 'en', initialChapter }: { initialLocale?: BibleLocale; initialChapter?: string }) {
+  const [locale, setLocale] = useState<BibleLocale>(initialLocale);
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [bookId, setBookId] = useState('');
   const [chapters, setChapters] = useState<BibleChapter[]>([]);
@@ -30,7 +31,8 @@ export default function BibleReader() {
       .then(([items, version]) => {
         if (abort.signal.aborted) return;
         setBooks(items); setTranslation(version);
-        setBookId(items.find(x => x.id === 'GEN')?.id ?? items[0]?.id ?? '');
+        const requestedBook = initialChapter?.split('.')[0];
+        setBookId(items.find(x => x.id === requestedBook)?.id ?? items.find(x => x.id === 'GEN')?.id ?? items[0]?.id ?? '');
       })
       .catch(e => { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load books'); })
       .finally(() => { if (!abort.signal.aborted) setBusy(false); });
@@ -45,7 +47,7 @@ export default function BibleReader() {
       .then(items => {
         if (abort.signal.aborted) return;
         const numbered = items.filter(x => /^\d+$/.test(x.number));
-        setChapters(numbered); setChapterId(numbered[0]?.id ?? '');
+        setChapters(numbered); setChapterId(numbered.find(x => x.id === initialChapter)?.id ?? numbered[0]?.id ?? '');
       })
       .catch(e => { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load chapters'); })
       .finally(() => { if (!abort.signal.aborted) setBusy(false); });
@@ -93,6 +95,7 @@ export default function BibleReader() {
       {error && <div role="alert" className="my-4 rounded-lg border border-red-400 p-4">{error} <button className="ml-3 underline" onClick={() => setRetry(x => x + 1)}>{t.retry}</button></div>}
       <article className="rounded-xl border p-6 sm:p-10" aria-busy={busy}>
         {busy ? <p role="status">{t.loading}</p> : content ? <>
+          <ReadingTracker locale={locale} chapterId={content.id} />
           <h2 className="mb-6 text-center text-2xl font-semibold">{content.reference}</h2>
           <p className="whitespace-pre-wrap font-serif text-lg leading-9">{content.content}</p>
           <footer className="mt-8 border-t pt-4 text-xs opacity-75">
