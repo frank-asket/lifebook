@@ -17,5 +17,8 @@ jobs:
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm --filter @lifebook/api prisma:generate
       - run: pnpm --filter @lifebook/api build
+      - run: pnpm --filter @lifebook/api exec node --test test/bible-reading.test.cjs
       - run: pnpm --filter @lifebook/marketing build
       - run: pnpm --filter @lifebook/web build
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}

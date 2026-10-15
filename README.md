@@ -4,6 +4,8 @@
 >
 > This document describes the **code and configuration present in the supplied LifeBook source**. Solid arrows indicate implemented or configured integrations; dashed arrows indicate planned integrations. Deployment and operational readiness are **not** implied by a box appearing in a diagram.
 
+**M3.6 update (15 October 2026):** The Bible Reader now uses `apps/web/app/bible/read`, supports English/French chapter links from plans and reading history, and connects authenticated reading tracking. Bible Study and the main dashboard link to reading features. See [the M3.6 source and migration review](M3.6_SOURCE_REVIEW.md) for validation and database prerequisites. Pending migrations have not been applied; persistence and live provider access remain unverified.
+
 ## 1. Product overview
 
 LifeBook is a mobile-first Christian devotional and discipleship platform bringing Scripture, personal reflection, prayer, teaching and user-directed spiritual learning into one experience. The initial release centers on **Daily Bible Meditation**, with **Prayer Sanctuary**, **LivingWord**, Bible Study and discipleship pathways expanding in later releases.
