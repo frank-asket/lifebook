@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { Brand } from '../../components/shell';
+import { useLanguage } from '../../components/language-provider';
 
 import {
     api,
@@ -127,6 +128,7 @@ const descriptions = [
 // ============================================================
 
 export default function Onboarding() {
+    const { setLanguage } = useLanguage();
     const router = useRouter();
     const { getToken } = useAuth();
 
@@ -286,6 +288,7 @@ export default function Onboarding() {
                 body: JSON.stringify(payload),
             });
 
+            setLanguage(payload.language === 'fr' ? 'fr' : 'en');
             router.push('/dashboard');
             router.refresh();
         } catch (err) {
@@ -324,7 +327,7 @@ export default function Onboarding() {
     // ==========================================================
 
     return (
-        <>
+        <main id="main-content">
             <div
                 style={{
                     maxWidth: 840,
@@ -389,6 +392,7 @@ export default function Onboarding() {
                                 ].map((option) => (
                                     <button
                                         key={option.value}
+                                        aria-pressed={form.language === option.value}
                                         type="button"
                                         className={
                                             'choice ' +
@@ -423,6 +427,7 @@ export default function Onboarding() {
                                 {JOURNEYS.map((journey) => (
                                     <button
                                         key={journey.value}
+                                        aria-pressed={form.journey === journey.value}
                                         type="button"
                                         className={
                                             'choice ' +
@@ -462,6 +467,7 @@ export default function Onboarding() {
                                 {GOALS.map((goal) => (
                                     <button
                                         key={goal}
+                                        aria-pressed={form.learningGoals?.includes(goal) ?? false}
                                         type="button"
                                         className={
                                             'tag ' +
@@ -498,6 +504,7 @@ export default function Onboarding() {
                                         {FORMATS.map((format) => (
                                             <button
                                                 key={format}
+                                                aria-pressed={form.preferredFormats?.includes(format) ?? false}
                                                 type="button"
                                                 className={
                                                     'tag ' +
@@ -685,6 +692,6 @@ export default function Onboarding() {
                     determine your spiritual maturity.
                 </p>
             </div>
-        </>
+        </main>
     );
 }

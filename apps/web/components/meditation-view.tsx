@@ -54,9 +54,12 @@ const EMPTY_STATE: MeditationState = {
 
 export function MeditationView({
   meditation,
+  headingLevel = 'h1',
 }: {
   meditation: Meditation;
+  headingLevel?: 'h1' | 'h2';
 }) {
+  const Heading = headingLevel;
   const {
     isLoaded,
     isSignedIn,
@@ -374,15 +377,15 @@ export function MeditationView({
           TODAY IN THE WORD
         </span>
 
-        <h1
+        <Heading
           style={{
-            fontSize: 'clamp(32px,5vw,52px)',
+            fontSize: headingLevel === 'h1' ? 'clamp(32px,5vw,52px)' : 'clamp(26px,4vw,38px)',
             margin: '12px 0',
             color: 'var(--text)',
           }}
         >
           {meditation.title}
-        </h1>
+        </Heading>
 
         <p
           style={{
