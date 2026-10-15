@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.2.0] - 2026-10-15
+
+### Fixed
+- Restore Bible Study persistence and make the full database migration history reproducible.
+- Reconcile the initial migration file with the checksum recorded by the database.
+
 ## [0.0.1.0] - 2026-10-15
 
 ### Fixed

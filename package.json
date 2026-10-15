@@ -16,5 +16,5 @@
   "dependencies": {
     "dotenv": "^18.0.7"
   },
-  "version": "0.0.1.0"
+  "version": "0.0.2.0"
 }
