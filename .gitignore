@@ -12,3 +12,6 @@ dist
 .DS_Store
 .vercel
 .env*
+.gstack/
+
+*.tsbuildinfo
