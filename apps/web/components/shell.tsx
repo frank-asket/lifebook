@@ -2,306 +2,57 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-import {
-    BookOpen,
-    LayoutDashboard,
-    HeartHandshake,
-    Headphones,
-    GraduationCap,
-    BookMarked,
-    Settings,
-    Search,
-    Bell,
-    UserRound,
-    House,
-} from 'lucide-react';
-
+import { useRef } from 'react';
+import { BookOpen, LayoutDashboard, HeartHandshake, Headphones, GraduationCap, BookMarked, Settings, Search, UserRound, Menu, Sun } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/nextjs';
-import {useLanguage} from './language-provider';
-
-
-// ============================================================
-// NAVIGATION
-// ============================================================
+import { useLanguage } from './language-provider';
 
 const links = [
-    {
-        href: '/dashboard',
-        label: 'Home',
-        icon: LayoutDashboard,
-    },
-    {
-        href: '/meditation',
-        label: 'Daily Meditation',
-        icon: BookOpen,
-    },
-    {
-        href: '/prayer',
-        label: 'Prayer Sanctuary',
-        icon: HeartHandshake,
-    },
-    {
-        href: '/livingword',
-        label: 'LivingWord',
-        icon: Headphones,
-    },
-    {
-        href: '/bible',
-        label: 'Bible Study',
-        icon: BookMarked,
-    },
-    {
-        href: '/discipleship',
-        label: 'My Journey',
-        icon: GraduationCap,
-    },
-    {
-        href: '/settings',
-        label: 'Settings',
-        icon: Settings,
-    },
+  { href: '/dashboard', en: 'Home', fr: 'Accueil', icon: LayoutDashboard },
+  { href: '/daily-word', en: 'Daily Word', fr: 'Parole du jour', icon: Sun },
+  { href: '/bible/dashboard', en: 'Bible Reading', fr: 'Lecture biblique', icon: BookOpen },
+  { href: '/bible', en: 'Bible Study', fr: 'Étude biblique', icon: BookMarked },
+  { href: '/meditation', en: 'Daily Meditation', fr: 'Méditation quotidienne', icon: BookOpen },
+  { href: '/prayer', en: 'Prayer Sanctuary', fr: 'Sanctuaire de prière', icon: HeartHandshake },
+  { href: '/livingword', en: 'LivingWord', fr: 'Parole vivante', icon: Headphones },
+  { href: '/discipleship', en: 'My Journey', fr: 'Mon parcours', icon: GraduationCap },
+  { href: '/settings', en: 'Settings', fr: 'Paramètres', icon: Settings },
 ];
 
-// ============================================================
-// BRAND
-// ============================================================
-
 export function Brand() {
-    return (
-        <Link className="brand" href="/dashboard">
-            <span className="brand-mark">
-                <BookOpen size={22} strokeWidth={2.4} />
-            </span>
-            LifeBook
-        </Link>
-    );
+  return <Link className="brand" href="/dashboard"><span className="brand-mark"><BookOpen size={22} strokeWidth={2.4} aria-hidden="true" /></span>LifeBook</Link>;
 }
 
-// ============================================================
-// APPLICATION SHELL
-// ============================================================
+export function Shell({ children, title = 'Your space to grow' }: { children: React.ReactNode; title?: string }) {
+  const path = usePathname();
+  const { language, setLanguage } = useLanguage();
+  const { user } = useUser();
+  const more = useRef<HTMLDetailsElement>(null);
+  const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
+  const reading = /^\/bible\/(read|plans|my-reading|dashboard)(\/|$)/.test(path);
+  const active = (href: string) => href === '/bible/dashboard' ? reading : href === '/bible' ? path === '/bible' || (path.startsWith('/bible/') && !reading) : path === href || path.startsWith(`${href}/`);
+  const languageControl = <select className="language-select" aria-label={tr('Application language', 'Langue de l’application')} value={language} onChange={e => setLanguage(e.target.value as 'en' | 'fr')}><option value="en">EN</option><option value="fr">FR</option></select>;
+  const navigation = links.map(({ href, en, fr, icon: Icon }) => <Link key={href} href={href} className={`nav-link ${active(href) ? 'active' : ''}`} aria-current={active(href) ? 'page' : undefined} onClick={() => { if (more.current) more.current.open = false; }}><Icon size={19} aria-hidden="true" />{tr(en, fr)}</Link>);
 
-export function Shell({
-    children,
-    title = 'Your space to grow',
-}: {
-    children: React.ReactNode;
-    title?: string;
-}) {
-    const path = usePathname();
-    const {language,setLanguage}=useLanguage();
-    const tr=(en:string,fr:string)=>language==='fr'?fr:en;
-
-    const { user } = useUser();
-
-    return (
-        <div className="app-shell">
-
-            {/* ======================================================
-          SIDEBAR
-      ====================================================== */}
-
-            <aside className="sidebar">
-
-                <Brand />
-
-                <div className="side-label">
-                    {tr('YOUR SPACE','VOTRE ESPACE')}
-                </div>
-
-                <nav className="nav-links">
-                    {links.map((item) => {
-                        const active =
-                            path === item.href ||
-                            path.startsWith(`${item.href}/`);
-
-                        const Icon = item.icon;
-
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={
-                                    `nav-link ${active ? 'active' : ''}`
-                                }
-                            >
-                                <Icon size={19} />
-
-                                {tr(item.label, ({'Home':'Accueil','Daily Meditation':'Méditation quotidienne','Prayer Sanctuary':'Sanctuaire de prière','LivingWord':'Parole vivante','Bible Study':'Étude biblique','My Journey':'Mon parcours','Settings':'Paramètres','Profile':'Profil'} as Record<string,string>)[item.label]||item.label)}
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                <div className="sidebar-bottom">
-
-
-                    {/* Scripture encouragement */}
-
-                    <div className="small-verse">
-                        <strong>
-                            {tr('A MOMENT OF PEACE','UN MOMENT DE PAIX')}
-                        </strong>
-
-                        “Be still, and know that I am God.”
-
-                        <br />
-
-                        <small>
-                            Psalm 46:10
-                        </small>
-                    </div>
-
-                    {/* User profile */}
-
-                    <div className="sidebar-profile">
-
-                        <div className="avatar">
-                            <UserRound size={19} />
-                        </div>
-
-                        <div
-                            style={{
-                                flex: 1,
-                                minWidth: 0,
-                            }}
-                        >
-                            <strong
-                                style={{
-                                    display: 'block',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                }}
-                            >
-                                {user?.firstName || tr('LifeBook member','Membre LifeBook')}
-                            </strong>
-
-                            <small>
-                                {tr('My account','Mon compte')}
-                            </small>
-                        </div>
-
-                        <UserButton />
-
-                    </div>
-                </div>
-            </aside>
-
-            {/* ======================================================
-          MAIN CONTENT
-      ====================================================== */}
-
-            <div className="main-column">
-
-                {/* Mobile header */}
-
-                <div className="mobile-top">
-
-                    <Brand />
-
-                    <div className="mobile-header-actions">
-                        <select aria-label={tr('Application language','Langue de l’application')} value={language} onChange={e=>setLanguage(e.target.value as 'en'|'fr')}><option value="en">EN</option><option value="fr">FR</option></select>
-
-                        <UserButton />
-                    </div>
-
-                </div>
-
-                {/* Desktop header */}
-
-                <header className="topbar">
-
-                    <div>
-                        <div className="greeting">
-                            {title}
-                        </div>
-
-                        <span className="muted">
-                            {tr('A little time in the Word can shape your day.','Un moment dans la Parole peut transformer votre journée.')}
-                        </span>
-                    </div>
-
-                    <div className="topbar-right">
-                        <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12}}>
-                          <span className="sr-only">{tr('Language','Langue')}</span>
-                          <select aria-label={tr('Application language','Langue de l’application')} value={language} onChange={e=>setLanguage(e.target.value as 'en'|'fr')} style={{padding:'7px 9px',borderRadius:8}}><option value="en">EN</option><option value="fr">FR</option></select>
-                        </label>
-
-
-                        <Link
-                            href="/bible"
-                            className="icon-button"
-                            aria-label="Bible search"
-                        >
-                            <Search size={17} />
-                        </Link>
-
-                        <Link
-                            href="/settings"
-                            className="icon-button"
-                            aria-label="Settings"
-                        >
-                            <Bell size={17} />
-                        </Link>
-
-                        <UserButton />
-
-                    </div>
-                </header>
-
-                {/* Page content */}
-
-                <main className="page">
-                    {children}
-                </main>
-
-                {/* ====================================================
-            MOBILE NAVIGATION
-        ==================================================== */}
-
-                <nav className="mobile-menu">
-
-                    {[
-                        {
-                            href: '/dashboard',
-                            label: 'Home',
-                            icon: House,
-                        },
-
-                        ...links.slice(1, 4),
-
-                        {
-                            href: '/settings',
-                            label: 'Profile',
-                            icon: UserRound,
-                        },
-                    ].map((item) => {
-                        const Icon = item.icon;
-
-                        const active =
-                            path === item.href ||
-                            path.startsWith(`${item.href}/`);
-
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={
-                                    active ? 'active' : ''
-                                }
-                            >
-                                <Icon size={21} />
-
-                                {tr(item.label, ({'Home':'Accueil','Daily Meditation':'Méditation quotidienne','Prayer Sanctuary':'Sanctuaire de prière','LivingWord':'Parole vivante','Bible Study':'Étude biblique','My Journey':'Mon parcours','Settings':'Paramètres','Profile':'Profil'} as Record<string,string>)[item.label]||item.label)}
-                            </Link>
-                        );
-                    })}
-
-                </nav>
-
-            </div>
-        </div>
-    );
+  return <div className="app-shell">
+    <a className="skip-link" href="#main-content">{tr('Skip to content', 'Aller au contenu')}</a>
+    <aside className="sidebar">
+      <Brand />
+      <div className="side-label">{tr('YOUR SPACE', 'VOTRE ESPACE')}</div>
+      <nav className="nav-links" aria-label={tr('Main navigation', 'Navigation principale')}>{navigation}</nav>
+      <div className="sidebar-bottom">
+        <div className="small-verse"><strong>{tr('A MOMENT OF PEACE', 'UN MOMENT DE PAIX')}</strong>{tr('“Be still, and know that I am God.”', '« Arrêtez, et sachez que je suis Dieu. »')}<br /><small>{tr('Psalm 46:10', 'Psaume 46:10')}</small></div>
+        <div className="sidebar-profile"><div className="avatar"><UserRound size={19} aria-hidden="true" /></div><div className="profile-name"><strong>{user?.firstName || tr('LifeBook member', 'Membre LifeBook')}</strong><small>{tr('My account', 'Mon compte')}</small></div><UserButton /></div>
+      </div>
+    </aside>
+    <div className="main-column">
+      <div className="mobile-top"><Brand /><div className="mobile-header-actions">{languageControl}<UserButton /></div></div>
+      <header className="topbar"><div><div className="greeting">{title}</div><span className="muted">{tr('A little time in the Word can shape your day.', 'Un moment dans la Parole peut transformer votre journée.')}</span></div><div className="topbar-right">{languageControl}<Link href="/bible" className="icon-button" aria-label={tr('Find a Bible study', 'Rechercher une étude biblique')}><Search size={18} aria-hidden="true" /></Link><Link href="/settings" className="icon-button" aria-label={tr('Settings', 'Paramètres')}><Settings size={18} aria-hidden="true" /></Link><UserButton /></div></header>
+      <main id="main-content" className="page" tabIndex={-1}>{children}</main>
+      <nav className="mobile-menu" aria-label={tr('Mobile navigation', 'Navigation mobile')}>
+        {[links[0], links[1], links[2], links[5]].map(({ href, en, fr, icon: Icon }) => <Link key={href} href={href} className={active(href) ? 'active' : ''} aria-current={active(href) ? 'page' : undefined} onClick={() => { if (more.current) more.current.open = false; }}><Icon size={21} aria-hidden="true" />{href === '/bible/dashboard' ? tr('Bible', 'Bible') : href === '/prayer' ? tr('Prayer', 'Prière') : tr(en, fr)}</Link>)}
+        <details className="mobile-more" ref={more} onKeyDown={e => { if (e.key === 'Escape' && more.current) { more.current.open = false; more.current.querySelector('summary')?.focus(); } }}><summary><Menu size={21} aria-hidden="true" />{tr('More', 'Plus')}</summary><div className="mobile-more-panel"><h2>{tr('Explore LifeBook', 'Explorer LifeBook')}</h2>{navigation}</div></details>
+      </nav>
+    </div>
+  </div>;
 }
