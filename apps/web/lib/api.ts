@@ -52,7 +52,7 @@ export async function api<T>(
     token?: string | null,
     options: RequestInit = {},
 ): Promise<T> {
-    if (!base) throw new ApiError('LifeBook API is not configured. Set NEXT_PUBLIC_API_URL in Vercel.');
+    if (!base) throw new ApiError('LifeBook is temporarily unavailable. Please try again later.');
     if (!path.startsWith('/')) throw new Error('API path must start with "/"');
     const headers = new Headers(options.headers);
     if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
@@ -81,16 +81,16 @@ export async function api<T>(
             : Array.isArray(body?.message)
                 ? body.message.join(', ')
                 : response.status === 404
-                    ? 'The requested meditation could not be found.'
+                    ? 'The requested content could not be found.'
                     : response.status === 503 || response.status === 502
-                        ? 'The meditation service is temporarily unavailable. Please try again shortly.'
+                        ? 'LifeBook is temporarily unavailable. Please try again shortly.'
                         : `LifeBook API returned HTTP ${response.status}.`;
         throw new ApiError(message, response.status);
     }
 
     if (parsed === undefined) {
         throw new ApiError(
-            'The meditation service returned a non-JSON response. Check NEXT_PUBLIC_API_URL points to your Render API, not the web app, and confirm the API is running.',
+            'We could not load this content. Please try again shortly.',
             response.status,
         );
     }

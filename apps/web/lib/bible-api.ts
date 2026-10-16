@@ -1,3 +1,4 @@
+import { api } from './api';
 export type BibleLocale = 'en' | 'fr';
 export type BibleBook = { id: string; name: string; abbreviation?: string };
 export type BibleChapter = { id: string; number: string; reference?: string };
@@ -6,12 +7,7 @@ export type BibleTranslation = { id: string; name: string; abbreviation?: string
 export type BiblePassage = { reference: string; text: string; translation: string; copyright: string | null; provider: string };
 type Wrapped<T> = { data: T };
 
-const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '').replace(/\/api\/v1$/, '');
-async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(`${base}/api/v1/bible-content${path}`, { signal, cache: 'no-store' });
-  if (!res.ok) throw new Error(`Scripture request failed (HTTP ${res.status})`);
-  return res.json() as Promise<T>;
-}
+const get = <T>(path: string, signal?: AbortSignal) => api<T>(`/bible-content${path}`, null, { signal });
 export const bibleApi = {
   books: async (locale: BibleLocale, signal?: AbortSignal) => (await get<Wrapped<BibleBook[]>>(`/books?locale=${locale}`, signal)).data,
   chapters: async (bookId: string, locale: BibleLocale, signal?: AbortSignal) => (await get<Wrapped<BibleChapter[]>>(`/books/${encodeURIComponent(bookId)}/chapters?locale=${locale}`, signal)).data,
