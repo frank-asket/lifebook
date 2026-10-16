@@ -15,6 +15,10 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
   const db = new PrismaClient({ datasources: { db: { url } } });
   const rollback = new Error('ROLLBACK_M36_TEST');
   const previousKey = process.env.BIBLE_NOTES_ENCRYPTION_KEY;
+  const previousRing = process.env.REFLECTION_ENCRYPTION_KEYS;
+  const previousActive = process.env.REFLECTION_ENCRYPTION_ACTIVE_KEY;
+  process.env.REFLECTION_ENCRYPTION_KEYS = JSON.stringify({ test: randomBytes(32).toString('hex') });
+  process.env.REFLECTION_ENCRYPTION_ACTIVE_KEY = 'test';
   process.env.BIBLE_NOTES_ENCRYPTION_KEY = randomBytes(32).toString('hex');
   try {
     await assert.rejects(db.$transaction(async tx => {
@@ -54,10 +58,15 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
       assert.ok(!stored.noteCiphertext.includes('Synthetic private note'));
       assert.equal((await annotations.list('first'))[0].note, 'Synthetic private note');
       assert.deepEqual(await annotations.list('second'), []);
+      assert.equal((await annotations.list('first','fr','LUK.1')).length,1);
+      assert.deepEqual(await annotations.list('first','en','LUK.1'),[]);
+      await assert.rejects(annotations.list('first','fr','bad'), /Invalid chapter filter/);
       await assert.rejects(annotations.remove('second', note.id), /not found/);
       const session = await daily.today('first', 'Africa/Accra');
       assert.equal((await daily.today('first', 'Africa/Accra')).id, session.id);
       await daily.saveReflection('first', session.id, 'Synthetic daily reflection');
+      assert.ok((await tx.dailyWordReflection.findUnique({where:{sessionId:session.id}})).content.startsWith('lbenc:v1:test:'));
+      assert.equal((await daily.today('first','Africa/Accra')).reflection.content, 'Synthetic daily reflection');
       await assert.rejects(daily.saveReflection('second', session.id, 'Wrong owner'), /not found/);
       for (const step of ['UNDERSTAND', 'MEDITATE', 'REFLECT', 'PRAY', 'LIVE']) await daily.completeStep('first', session.id, step);
       await daily.completeStep('first', session.id, 'LIVE');
@@ -66,6 +75,7 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
       assert.deepEqual(await daily.history('second'), []);
       const item = await tx.meditation.create({ data: { slug: prefix, title: 'Fixture meditation', scriptureReference: 'LUK.1', explanation: 'Fixture', questions: [], guidedPrayer: 'Fixture', isPublished: true } });
       await meditation.reflect(item.id, 'Synthetic meditation reflection', 'first');
+      assert.ok((await tx.meditationReflection.findUnique({where:{userId_meditationId:{userId:first.id,meditationId:item.id}}})).text.startsWith('lbenc:v1:test:'));
       assert.equal((await meditation.myState(item.id, 'first')).reflection, 'Synthetic meditation reflection');
       assert.equal((await meditation.myState(item.id, 'second')).reflection, '');
       await meditation.complete(item.id, 'first');
@@ -76,6 +86,8 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
   } finally {
     if (previousKey === undefined) delete process.env.BIBLE_NOTES_ENCRYPTION_KEY;
     else process.env.BIBLE_NOTES_ENCRYPTION_KEY = previousKey;
+    if (previousRing === undefined) delete process.env.REFLECTION_ENCRYPTION_KEYS; else process.env.REFLECTION_ENCRYPTION_KEYS = previousRing;
+    if (previousActive === undefined) delete process.env.REFLECTION_ENCRYPTION_ACTIVE_KEY; else process.env.REFLECTION_ENCRYPTION_ACTIVE_KEY = previousActive;
     await db.$disconnect();
   }
 });

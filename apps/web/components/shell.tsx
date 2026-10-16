@@ -31,7 +31,7 @@ export function Shell({ children, title = 'Your space to grow' }: { children: Re
   const { user } = useUser();
   const more = useRef<HTMLDetailsElement>(null);
   const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
-  const reading = /^\/bible\/(read|plans|my-reading|dashboard)(\/|$)/.test(path);
+  const reading = /^\/bible\/(read|plans|my-reading|dashboard|annotations)(\/|$)/.test(path);
   const active = (href: string) => href === '/bible/dashboard' ? reading : href === '/bible' ? path === '/bible' || (path.startsWith('/bible/') && !reading) : path === href || path.startsWith(`${href}/`);
   const navigation = links.map(({ href, en, fr, icon: Icon }) => <Link key={href} href={href} className={`nav-link ${active(href) ? 'active' : ''}`} aria-current={active(href) ? 'page' : undefined} onClick={() => { if (more.current) more.current.open = false; }}><Icon size={19} aria-hidden="true" />{tr(en, fr)}</Link>);
 

@@ -2,10 +2,12 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Shell } from '../../../../components/shell';
 import { useLanguage } from '../../../../components/language-provider';
 import { readingApi, type PlanDetails } from '../../../../lib/bible-reading-api';
-export default function ReadingPlanPage({ params }: { params: { id: string } }) {
+export default function ReadingPlanPage() {
+  const params = useParams<{id:string}>();
   const { language: locale } = useLanguage();
   const tr = (en: string, fr: string) => locale === 'fr' ? fr : en;
   const { getToken, isSignedIn } = useAuth();

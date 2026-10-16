@@ -76,7 +76,7 @@ export async function api<T>(
 
     if (!response.ok) {
         const body = parsed && typeof parsed === 'object' ? parsed as { message?: unknown } : null;
-        const message = typeof body?.message === 'string'
+        const message = response.status === 429 ? 'Too many requests. Please wait a moment and try again.' : typeof body?.message === 'string'
             ? body.message
             : Array.isArray(body?.message)
                 ? body.message.join(', ')

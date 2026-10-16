@@ -8,6 +8,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: API_RATE_LIMIT
+        value: "120"
+      - key: TRUST_PROXY_HOPS
+        value: "1"
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
@@ -18,11 +22,23 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
+      - key: API_BIBLE_KEY
+        sync: false
+      - key: API_BIBLE_EN_BIBLE_ID
+        value: de4e12af7f28f599-01
+      - key: API_BIBLE_FR_BIBLE_ID
+        value: a93a92589195411f-01
+      - key: BIBLE_NOTES_ENCRYPTION_KEY
+        sync: false
+      - key: REFLECTION_ENCRYPTION_KEYS
+        sync: false
+      - key: REFLECTION_ENCRYPTION_ACTIVE_KEY
+        sync: false
   - type: web
     name: lifebook-ai
     runtime: docker
     dockerfilePath: ./apps/ai-service/Dockerfile
     dockerContext: ./apps/ai-service
     envVars:
-      - key: AI_INTERNAL_API_KEY
+      - key: AI_INTERNAL_TOKEN
         sync: false

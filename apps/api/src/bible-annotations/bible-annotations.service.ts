@@ -33,9 +33,10 @@ export class BibleAnnotationsService implements OnModuleDestroy {
     decipher.setAuthTag(Buffer.from(tag, 'base64'));
     return Buffer.concat([decipher.update(Buffer.from(content, 'base64')), decipher.final()]).toString('utf8');
   }
-  async list(auth?: string) {
+  async list(auth?: string, locale?: string, chapterId?: string) {
     const userId = await this.meditation.userId(auth);
-    const rows = await this.db.bibleAnnotation.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: 200 });
+    if ((locale || chapterId) && ((locale !== 'en' && locale !== 'fr') || !chapterId || !/^[A-Z0-9]{3}\.[1-9][0-9]{0,2}$/.test(chapterId))) throw new BadRequestException('Invalid chapter filter');
+    const rows = await this.db.bibleAnnotation.findMany({ where: { userId, ...(chapterId ? { locale, passageId: { startsWith: chapterId + '.' } } : {}) }, orderBy: { updatedAt: 'desc' }, take: 200 });
     return rows.map(({ noteCiphertext, ...row }) => ({ ...row, note: noteCiphertext ? this.decrypt(noteCiphertext) : null }));
   }
   async save(auth: string | undefined, input: { passageId: string; locale: Locale; bookmark?: boolean; highlight?: string | null; note?: string | null }) {

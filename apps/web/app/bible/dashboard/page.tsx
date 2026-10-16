@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { BookOpen, CalendarDays, ArrowRight, ChartNoAxesCombined } from 'lucide-react';
+import { BookOpen, CalendarDays, ArrowRight, ChartNoAxesCombined, Bookmark } from 'lucide-react';
 import { Shell } from '../../../components/shell';
 import { useLanguage } from '../../../components/language-provider';
 import { ContinueReading } from '../../../components/bible/ContinueReading';
@@ -13,6 +13,7 @@ export default function BibleReadingDashboard() {
     <div className="reading-entry-grid">{[
       {href:`/bible/read?locale=${language}`,icon:BookOpen,title:tr('Open the Bible','Ouvrir la Bible'),description:tr('Choose a book and make space for the Word.','Choisissez un livre et faites place à la Parole.')},
       {href:'/bible/plans',icon:CalendarDays,title:tr('Find a reading plan','Trouver un plan de lecture'),description:tr('Build a gentle rhythm with guided daily readings.','Cultivez un rythme régulier avec des lectures guidées.')},
+      {href:'/bible/annotations',icon:Bookmark,title:tr('Saved verses','Versets enregistrés'),description:tr('Return to your bookmarks, verse marks and private notes.','Retrouvez vos favoris, marques de versets et notes privées.')},
       {href:'/bible/my-reading',icon:ChartNoAxesCombined,title:tr('See your progress','Voir votre progression'),description:tr('Revisit recent chapters and continue your plans.','Retrouvez vos chapitres récents et poursuivez vos plans.')}
     ].map(({href,icon:Icon,title,description})=><Link className="card" href={href} key={href}><Icon size={26} aria-hidden="true"/><h2>{title}</h2><p>{description}</p><span className="text-link icon-line">{tr('Explore','Découvrir')} <ArrowRight size={16}/></span></Link>)}</div>
   </Shell>;

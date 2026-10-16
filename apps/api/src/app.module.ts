@@ -1,3 +1,5 @@
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BibleAnnotationsModule } from './bible-annotations/bible-annotations.module';
 import { BibleReadingModule } from './bible-reading/bible-reading.module';
 import {
@@ -337,8 +339,12 @@ class ProfileController {
 // ROOT APPLICATION MODULE
 // ============================================================
 
+const requestLimit = Number(process.env.API_RATE_LIMIT || '120');
+if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000) throw new Error('API_RATE_LIMIT must be between 1 and 10000');
+
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: requestLimit }]),
     BibleReadingModule,
     BibleContentModule,
     BibleAnnotationsModule,
@@ -359,7 +365,7 @@ class ProfileController {
     ProfileController,
   ],
 
-  providers: [
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard },
     Database,
     Identity,
   ],
