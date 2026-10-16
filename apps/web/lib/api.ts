@@ -105,36 +105,42 @@ export const JOURNEYS = [
     {
         value: 'EXPLORING',
         label: 'Exploring Christianity',
+        labelFr: 'Découvrir la foi chrétienne',
         description:
             'Curious about faith and looking for a place to begin.',
     },
     {
         value: 'NEW_BELIEVER',
         label: 'New Believer',
+        labelFr: 'Nouveau croyant',
         description:
             'Beginning to discover life with Christ.',
     },
     {
         value: 'GROWING_BELIEVER',
         label: 'Growing Believer',
+        labelFr: 'Grandir dans la foi',
         description:
             'Building steady habits of Scripture and prayer.',
     },
     {
         value: 'DISCIPLESHIP',
         label: 'Structured Discipleship',
+        labelFr: 'Parcours de disciple structuré',
         description:
             'Ready to follow a guided learning pathway.',
     },
     {
         value: 'MINISTRY_PREPARATION',
         label: 'Ministry Preparation',
+        labelFr: 'Se préparer au service',
         description:
             'Exploring biblical foundations for serving others.',
     },
     {
         value: 'SERVING_IN_MINISTRY',
         label: 'Serving in Ministry',
+        labelFr: 'Servir dans un ministère',
         description:
             'Seeking to grow while actively serving.',
     },
@@ -165,3 +171,22 @@ export const FORMATS = [
     'Video',
     'Guided reflection',
 ];
+
+// Translate display labels only; stored choices and custom goals remain unchanged.
+export function faithJourneyLabel(value: string | null | undefined, language: 'en' | 'fr'): string | undefined {
+    const journey = JOURNEYS.find(item => item.value === value);
+    return language === 'fr' ? journey?.labelFr : journey?.label;
+}
+const frenchGoals: Record<string, string> = {
+    'Build a daily prayer habit': 'Cultiver une habitude de prière quotidienne',
+    'Understand the Bible': 'Comprendre la Bible',
+    'Grow in faith': 'Grandir dans la foi',
+    'Learn about Jesus': 'Découvrir Jésus',
+    'Explore discipleship': 'Explorer la vie de disciple',
+    'Prepare to serve': 'Se préparer à servir',
+    'Find encouragement': 'Trouver de l’encouragement',
+    'Develop consistency': 'Développer la régularité',
+};
+export function learningGoalLabel(value: string, language: 'en' | 'fr'): string {
+    return language === 'fr' && Object.hasOwn(frenchGoals, value) ? frenchGoals[value] : value;
+}
