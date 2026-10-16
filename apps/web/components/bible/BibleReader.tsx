@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Shell } from '../shell';
 import { useLanguage } from '../language-provider';
+import { AnnotationPanel } from './AnnotationPanel';
 import { ReadingTracker } from './ReadingTracker';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
 
@@ -12,7 +13,7 @@ const labels = {
   fr: { title: 'Lire la Bible', book: 'Livre', chapter: 'Chapitre', language: 'Langue de la Bible', prev: 'Précédent', next: 'Suivant', study: 'Étude biblique', loading: 'Chargement des Écritures…', retry: 'Réessayer', empty: 'Choisissez un livre et un chapitre.' },
 };
 
-export default function BibleReader({ initialLocale, initialChapter }: { initialLocale?: BibleLocale; initialChapter?: string }) {
+export default function BibleReader({ initialLocale, initialChapter, initialVerse }: { initialLocale?: BibleLocale; initialChapter?: string; initialVerse?: string }) {
   const { language } = useLanguage();
   const [locale, setLocale] = useState<BibleLocale>(initialLocale ?? language);
   useEffect(() => { if (!initialLocale) setLocale(language); }, [language, initialLocale]);
@@ -29,6 +30,8 @@ export default function BibleReader({ initialLocale, initialChapter }: { initial
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const t = labels[locale];
+  const [annotationDirty, setAnnotationDirty] = useState(false);
+  const canLeave = () => !annotationDirty || window.confirm(locale === 'fr' ? 'Quitter sans enregistrer votre note ?' : 'Leave without saving your note?');
 
   // Changing locale invalidates the book and chapter lists. Abort stale requests.
   useEffect(() => {
@@ -80,20 +83,21 @@ export default function BibleReader({ initialLocale, initialChapter }: { initial
     <Shell title={t.title}><div className="bible-reader" lang={locale}>
       <Link href="/bible" className="text-link">← {t.study}</Link>
       <h1 className="page-heading" style={{ marginTop: 20 }}>{t.title}</h1>
+      <nav className="page-actions" aria-label={locale === 'fr' ? 'Votre lecture' : 'Your reading'}><Link href="/bible/dashboard">{locale === 'fr' ? 'Mon parcours de lecture' : 'Reading journey'}</Link><Link href="/bible/annotations">{locale === 'fr' ? 'Versets enregistrés' : 'Saved verses'}</Link></nav>
       <section className="reader-controls card" aria-label={locale === 'fr' ? 'Navigation biblique' : 'Bible navigation'}>
         <label className="form-field">{t.language}
-          <select className="select" value={locale} onChange={e => { setLocale(e.target.value as BibleLocale); }}>
+          <select className="select" value={locale} onChange={e => { if (canLeave()) setLocale(e.target.value as BibleLocale); }}>
             <option value="en">English</option><option value="fr">Français</option>
           </select>
         </label>
         <label className="form-field">{t.book}
-          <select className="select" value={bookId} disabled={!books.length} onChange={e => setBookId(e.target.value)}>
+          <select className="select" value={bookId} disabled={!books.length} onChange={e => { if (canLeave()) setBookId(e.target.value); }}>
             {!bookId && <option value="">—</option>}
             {books.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
         </label>
         <label className="form-field">{t.chapter}
-          <select className="select" value={chapterId} disabled={!chapters.length} onChange={e => setChapterId(e.target.value)}>
+          <select className="select" value={chapterId} disabled={!chapters.length} onChange={e => { if (canLeave()) setChapterId(e.target.value); }}>
             {!chapterId && <option value="">—</option>}
             {chapters.map(x => <option key={x.id} value={x.id}>{x.number}</option>)}
           </select>
@@ -113,9 +117,10 @@ export default function BibleReader({ initialLocale, initialChapter }: { initial
           </footer>
         </> : <p>{t.empty}</p>}
       </article>
+      {!busy && content && <AnnotationPanel chapterId={content.id} locale={locale} initialVerse={content.id === initialChapter ? initialVerse : undefined} onDirtyChange={setAnnotationDirty}/>}
       <nav className="reader-pagination" aria-label={locale === 'fr' ? 'Navigation des chapitres' : 'Chapter navigation'}>
-        <button className="btn btn-outline" disabled={!previous || busy} onClick={() => previous && setChapterId(previous.id)}>← {t.prev}</button>
-        <button className="btn btn-outline" disabled={!next || busy} onClick={() => next && setChapterId(next.id)}>{t.next} →</button>
+        <button className="btn btn-outline" disabled={!previous || busy} onClick={() => previous && canLeave() && setChapterId(previous.id)}>← {t.prev}</button>
+        <button className="btn btn-outline" disabled={!next || busy} onClick={() => next && canLeave() && setChapterId(next.id)}>{t.next} →</button>
       </nav>
     </div></Shell>
   );

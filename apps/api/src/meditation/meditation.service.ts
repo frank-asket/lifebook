@@ -1,3 +1,4 @@
+import { encryptReflection, decryptReflection } from '../security/reflection-crypto';
 import {
   BadRequestException,
   Injectable,
@@ -427,7 +428,7 @@ export class MeditationService implements OnModuleDestroy {
     ]);
 
     return {
-      reflection: reflection?.text ?? '',
+      reflection: reflection ? decryptReflection(reflection.text, `meditation:${userId}:${id}`) : '',
 
       completedAt: completion?.completedAt ?? null,
 
@@ -439,20 +440,7 @@ export class MeditationService implements OnModuleDestroy {
   // PRIVATE REFLECTION
   // ============================================================
 
-  /**
-   * Save or update a personal reflection.
-   *
-   * IMPORTANT:
-   * Reflection content is sensitive.
-   *
-   * This implementation preserves the existing
-   * plaintext database storage behavior.
-   *
-   * Application-level encryption and appropriate
-   * key management should be implemented before
-   * enabling sensitive reflection storage
-   * in production.
-   */
+  /** New writes are encrypted; legacy values stay readable until approved backfill. */
   async reflect(
     id: string,
     text: string,
@@ -484,6 +472,7 @@ export class MeditationService implements OnModuleDestroy {
 
     await this.one(id);
 
+    const encrypted = encryptReflection(normalizedText, `meditation:${userId}:${id}`);
     return this.db.meditationReflection.upsert({
       where: {
         userId_meditationId: {
@@ -495,11 +484,11 @@ export class MeditationService implements OnModuleDestroy {
       create: {
         userId,
         meditationId: id,
-        text: normalizedText,
+        text: encrypted,
       },
 
       update: {
-        text: normalizedText,
+        text: encrypted,
       },
 
       select: {

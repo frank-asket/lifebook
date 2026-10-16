@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.3.0] - 2026-10-16
+
+### Added
+- Save private Bible notes, bookmarks and colored verse marks, then reopen them from Saved verses.
+- Encrypt new Daily Word and meditation reflections, with guarded local backfill rehearsal and staging checks.
+
+### Fixed
+- Show an honest empty state when no meditation is published.
+- Update the web and API framework dependencies and verify persistence, access controls and responsive layouts.
+
+### Changed
+- Strengthen CI, container defaults and migration safeguards without changing the production schema.
+
 ## [0.0.2.0] - 2026-10-15
 
 ### Fixed

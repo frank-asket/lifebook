@@ -14,12 +14,12 @@
 - `corepack enable && pnpm install`
 - Create `.env` and `apps/web/.env.local` and `apps/mobile/.env` from their examples.
 - For local PostgreSQL: point both `DATABASE_URL` and `DIRECT_URL` at a disposable local instance before using development migrations. Do not run `pnpm db:migrate` against the existing Supabase database.
-- `pnpm db:generate`; use `pnpm db:migrate` only for that disposable local database.
+- `pnpm db:generate`; the generic migration shortcut is disabled. Review explicit migration SQL and rehearse deployment only on the intended disposable database.
 - `pnpm dev:api`, `pnpm dev:web`, `pnpm dev:marketing`, and `pnpm --filter @lifebook/mobile start`.
 - FastAPI: `cd apps/ai-service && pip install -r requirements.txt && uvicorn main:app --reload`.
 
 ## Important boundaries
-- **Bible Reader:** Configure server-only `API_BIBLE_KEY`, `API_BIBLE_EN_BIBLE_ID`, and `API_BIBLE_FR_BIBLE_ID` in Render. Notes additionally require `BIBLE_NOTES_ENCRYPTION_KEY` (64 hexadecimal characters); preserve an existing key so stored notes remain readable. These values are not declared in the current Render Blueprint. Open `/bible/read?locale=en&chapter=GEN.1` to check Scripture delivery, then verify French and authenticated history/plans after the database prerequisites are satisfied.
+- **Bible Reader:** Configure server-only `API_BIBLE_KEY`, `API_BIBLE_EN_BIBLE_ID`, and `API_BIBLE_FR_BIBLE_ID` in Render. Notes additionally require `BIBLE_NOTES_ENCRYPTION_KEY` (64 hexadecimal characters); preserve an existing key so stored notes remain readable. These values are declared in the Blueprint and must be supplied securely. Open `/bible/read?locale=en&chapter=GEN.1` to check Scripture delivery, then verify French and authenticated history/plans after the database prerequisites are satisfied.
 - **Clerk** is the identity provider. The NestJS API verifies Clerk bearer tokens, then maps `sub` to `User.oidcSubject`. Client-supplied role or user ID must never be trusted.
 - **Supabase** is managed PostgreSQL, not a second authentication provider. Keep sensitive prayers and religious profiles behind the NestJS API. Do not expose database service-role keys to clients.
 - **Profile onboarding** currently stores selected journey, language, and consent. This is an MVP vertical slice; no spiritual classification is inferred.
@@ -27,3 +27,7 @@
 - **Render AI** service is a placeholder. Do not expose AI-generation endpoints publicly without service authentication. No production prayer data should be sent to the placeholder.
 - **Not yet production-ready:** webhook synchronization, production-grade rate limits, logging/redaction, secrets rotation, user deletion workflow, security tests, complete E2E tests, and database migration validation.
 - **Versioning:** dependency ranges in this starter are templates; install and pin tested versions and commit a lockfile before deployment.
+
+## M3.6 implementation rollout
+
+The web/marketing apps now use Next 15 / React 19; the API uses Nest 11 on Node 22. Configure and confirm recoverability of the reflection key ring before rolling out the API. After encrypted writes begin, any rollback build must retain decrypt-capable reflection services and all required keys; the previous API returns cipher envelopes. Follow [the staging and privacy runbook](deploy/staging/README.md); it includes separate resources, approved translation IDs, provider checks, local-only backfill rehearsal and the production approval gate. Do not merge or deploy this feature branch without readiness review.

@@ -1,10 +1,10 @@
-import { BadRequestException, Body, Controller, Delete, Get, Headers, Param, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Headers, Param, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BibleAnnotationsService } from './bible-annotations.service';
 @ApiTags('bible-annotations') @ApiBearerAuth() @Controller('bible-annotations')
 export class BibleAnnotationsController {
   constructor(private readonly service: BibleAnnotationsService) {}
-  @Get() list(@Headers('authorization') auth?: string) { return this.service.list(auth); }
+  @Get() list(@Headers('authorization') auth?: string, @Query('locale') locale?: string, @Query('chapterId') chapterId?: string) { return this.service.list(auth, locale, chapterId); }
   @Put() save(@Headers('authorization') auth: string | undefined, @Body() body: Record<string, unknown>) {
     if (!body || typeof body.passageId !== 'string' || (body.locale !== 'en' && body.locale !== 'fr') ||
       (body.bookmark !== undefined && typeof body.bookmark !== 'boolean') ||

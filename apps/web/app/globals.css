@@ -1748,3 +1748,20 @@ progress::-moz-progress-bar { background: var(--purple); }
 .reading-entry-grid h2 { font-size: 20px; margin: 0; }
 .reading-entry-grid p { margin: 0; line-height: 1.7; color: var(--muted); }
 @media(max-width:1050px) { .reading-entry-grid { grid-template-columns: 1fr; } }
+.annotation-panel { margin: 24px 0; }
+.annotation-panel h2 { display: flex; align-items: center; gap: 10px; font-size: 23px; margin: 12px 0; }
+.annotation-panel fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.annotation-toolbar { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin: 24px 0; }
+.annotation-toolbar .form-field { flex: 1; min-width: 130px; margin: 0; }
+.annotation-panel .textarea { width: 100%; }
+.annotation-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.annotation-actions > span { margin-right: auto; font-size: 12px; }
+.annotation-saved { border-top: 1px solid var(--line); padding-top: 22px; margin-top: 24px; }
+.annotation-mark { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--soft); color: var(--ink); }
+.annotation-mark[aria-pressed=true] { outline: 2px solid var(--purple); outline-offset: 2px; }
+.mark-yellow { border-left: 6px solid #c89913; }.mark-green { border-left: 6px solid #218564; }.mark-blue { border-left: 6px solid #447dcb; }.mark-pink { border-left: 6px solid #c35c99; }
+@media(max-width:600px) { .annotation-panel .split-title { flex-wrap: wrap; }.annotation-toolbar { gap: 16px; }.annotation-actions .btn { flex: 1; } }
+.saved-annotation h2 { margin: 20px 0 14px; font-size: 23px; }
+.saved-note { white-space: pre-wrap; line-height: 1.75; overflow-wrap: anywhere; max-height: 12em; overflow: auto; }
+.reading-entry-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+@media(max-width:700px) { .reading-entry-grid { grid-template-columns: 1fr; } }

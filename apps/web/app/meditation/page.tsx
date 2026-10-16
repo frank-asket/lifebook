@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, RefreshCw, CalendarDays, Heart, ArrowRight, AlertCircle } from 'lucide-react';
 import { Shell } from '../../components/shell';
-import { api } from '../../lib/api';
+import { api, ApiError } from '../../lib/api';
 import { MeditationView, type Meditation } from '../../components/meditation-view';
 
 type PageState = { item: Meditation | null; loading: boolean; error: string };
@@ -28,13 +28,18 @@ export default function DailyMeditationPage() { const {language}=useLanguage(); 
     try {
       const result = await api<unknown>(`/meditations/today?locale=${locale}`, null, { signal });
       if (signal.aborted) return;
-      // NestJS returns a single meditation or null. Don't silently accept an unrelated response.
+      // Accept a meditation or an empty response, never an unrelated payload.
       if (result !== null && !isMeditation(result)) {
         throw new Error('The meditation data is incomplete. Please contact LifeBook support.');
       }
       setState({ item: result as Meditation | null, loading: false, error: '' });
     } catch (error) {
       if (signal.aborted) return;
+      // The API uses 404 when no meditation has been published for this locale.
+      if (error instanceof ApiError && error.status === 404) {
+        setState({ item: null, loading: false, error: '' });
+        return;
+      }
       setState({ item: null, loading: false, error: error instanceof Error ? error.message : 'Unable to load today’s meditation.' });
     }
   }, [locale]);

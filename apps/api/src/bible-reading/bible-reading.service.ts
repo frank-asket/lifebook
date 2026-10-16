@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@clerk/backend';
 
@@ -15,16 +15,16 @@ export class BibleReadingService implements OnModuleDestroy {
   async onModuleDestroy() { await this.db.$disconnect(); }
 
   async userId(auth?: string): Promise<string> {
-    if (!auth?.startsWith('Bearer ')) throw new BadRequestException('Authorization bearer token required');
+    if (!auth?.startsWith('Bearer ')) throw new UnauthorizedException('Authorization bearer token required');
     const secretKey = process.env.CLERK_SECRET_KEY;
-    if (!secretKey) throw new BadRequestException('Authentication is not configured');
+    if (!secretKey) throw new UnauthorizedException('Authentication is not configured');
     const authorizedParties = (process.env.CLERK_AUTHORIZED_PARTIES || '').split(',').map(s => s.trim()).filter(Boolean);
     let subject: string;
     try {
       const claims = await verifyToken(auth.slice(7).trim(), { secretKey, ...(authorizedParties.length ? { authorizedParties } : {}) });
       if (!claims.sub) throw new Error('No subject');
       subject = claims.sub;
-    } catch { throw new BadRequestException('Invalid session token'); }
+    } catch { throw new UnauthorizedException('Invalid session token'); }
     const user = await this.db.user.upsert({ where: { oidcSubject: subject }, create: { oidcSubject: subject }, update: {} });
     return user.id;
   }

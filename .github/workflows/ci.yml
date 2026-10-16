@@ -2,23 +2,47 @@ name: CI
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: lifebook-ci-only
+          POSTGRES_DB: lifebook_restore
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lifebook_restore"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
+      DIRECT_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
+      LIFEBOOK_STUDY_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
+      LIFEBOOK_M36_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 9.15.4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @lifebook/api prisma:generate
+      - run: pnpm --filter @lifebook/api exec prisma validate
+      - name: Replay migrations only into the disposable CI database
+        run: pnpm --filter @lifebook/api exec prisma migrate deploy
       - run: pnpm --filter @lifebook/api build
-      - run: pnpm --filter @lifebook/api exec node --test test/bible-reading.test.cjs
+      - run: node --test apps/api/test/*.test.cjs
+      - run: node --test apps/web/test/*.test.cjs
       - run: pnpm --filter @lifebook/marketing build
       - run: pnpm --filter @lifebook/web build
         env:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      - run: pnpm --filter @lifebook/mobile exec tsc --noEmit
