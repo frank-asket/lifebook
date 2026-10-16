@@ -68,6 +68,7 @@ export function ThemeProvider({
 }: {
     children: ReactNode;
 }) {
+    const [ready, setReady] = useState(false);
     const [theme, setThemeState] = useState<ThemeMode>('system');
     const [resolvedTheme, setResolvedTheme] =
         useState<ResolvedTheme>('light');
@@ -81,10 +82,13 @@ export function ThemeProvider({
             }
         } catch {
             // Continue using system mode if storage is unavailable.
+        } finally {
+            setReady(true);
         }
     }, []);
 
     useEffect(() => {
+        if (!ready) return;
         const media = window.matchMedia('(prefers-color-scheme: dark)');
 
         function applyTheme() {
@@ -116,7 +120,7 @@ export function ThemeProvider({
             window.clearInterval(interval);
             document.removeEventListener('visibilitychange', applyTheme);
         };
-    }, [theme]);
+    }, [theme, ready]);
 
     const setTheme = useCallback((nextTheme: ThemeMode) => {
         setThemeState(nextTheme);

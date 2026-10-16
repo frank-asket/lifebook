@@ -84,7 +84,7 @@ export default function DailyMeditationPage() { const {language,setLanguage}=use
         )}
         {!state.loading && !state.error && state.item && (
           <>
-            <MeditationView key={state.item.id} meditation={state.item} />
+            <MeditationView headingLevel="h2" key={state.item.id} meditation={state.item} />
             <div className="meditation-bottom-actions">
               <button className="btn-outline" type="button" onClick={refresh}><RefreshCw size={16} /> {tr('Refresh','Actualiser')}</button>
               <Link href="/meditation/history">{tr('Meditation history','Historique des méditations')} <ArrowRight size={16} /></Link>

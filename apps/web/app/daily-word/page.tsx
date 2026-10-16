@@ -5,6 +5,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useLanguage } from '../../components/language-provider';
 import { Shell } from '../../components/shell';
 import { api } from '../../lib/api';
+import { DAILY_WORD_STEPS as steps, initialDailyWordStep } from '../../lib/daily-word-navigation';
 
 type DailyWord = {
   date: string; passageKey: string;
@@ -16,7 +17,7 @@ type Session = {
   id: string; passageKey: string; status: 'IN_PROGRESS' | 'COMPLETED';
   steps: { step: string }[]; reflection: { content: string } | null;
 };
-const steps = ['UNDERSTAND', 'MEDITATE', 'REFLECT', 'PRAY', 'LIVE'] as const;
+
 export default function DailyWordPage() {
   const { language } = useLanguage();
   const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -34,7 +35,7 @@ export default function DailyWordPage() {
     let active = true;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     (async () => {
-      setLoading(true); setError('');
+      setLoading(true); setError(''); setWord(null); setSession(null); setMessage('');
       try {
         let current: Session | null = null;
         if (isSignedIn) {
@@ -47,7 +48,7 @@ export default function DailyWordPage() {
         const data = await api<DailyWord>(`/meditations/daily-word/today?locale=${language}${date ? `&date=${date}` : ''}`);
         if (!active) return;
         setWord(data); setSession(current); setReflection(current?.reflection?.content || '');
-        if (current) { const next = steps.findIndex(s => !current!.steps.some(done => done.step === s)); setStep(next < 0 ? 4 : next); }
+        setStep(initialDailyWordStep(new URLSearchParams(window.location.search).get('step'), current?.steps.map(done => done.step)));
       } catch (e) { if (active) setError(e instanceof Error ? e.message : 'Unable to load Daily Word'); }
       finally { if (active) setLoading(false); }
     })();
@@ -95,13 +96,13 @@ export default function DailyWordPage() {
           {!isSignedIn && <p>{tr('Sign in to save your progress.', 'Connectez-vous pour enregistrer votre progression.')}</p>}
         </div>
         <nav aria-label={tr('Journey steps', 'Étapes')} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '20px 0' }}>
-          {labels.map((label, i) => <button key={i} type="button" onClick={() => setStep(i)} className={step === i ? 'btn btn-primary' : 'btn btn-light'}>{session?.steps.some(s => s.step === steps[i]) ? '✓ ' : ''}{i + 1}. {label}</button>)}
+          {labels.map((label, i) => <button key={i} type="button" disabled={busy} aria-current={step === i ? 'step' : undefined} onClick={() => { setStep(i); setMessage(''); }} className={step === i ? 'btn btn-primary' : 'btn btn-light'}>{session?.steps.some(s => s.step === steps[i]) ? '✓ ' : ''}{i + 1}. {label}</button>)}
         </nav>
         <section className="card" aria-live="polite">
           <span className="eyebrow">{tr('STEP', 'ÉTAPE')} {step + 1} / 5</span><h2>{labels[step]}</h2>
           {step === 0 && <p>{word.explanation}</p>}
           {step === 1 && <p>{word.meditation}</p>}
-          {step === 2 && <><p>{word.reflectionQuestion}</p><label htmlFor="daily-reflection">{tr('Your private reflection', 'Votre réflexion privée')}</label><textarea id="daily-reflection" value={reflection} onChange={e => setReflection(e.target.value)} maxLength={10000} rows={5} style={{ width: '100%', padding: 12, marginTop: 10 }} />{session && <button className="btn btn-light" type="button" disabled={busy || !reflection.trim()} onClick={saveReflection}>{tr('Save reflection', 'Enregistrer')}</button>}</>}
+          {step === 2 && <><p>{word.reflectionQuestion}</p><label htmlFor="daily-reflection">{tr('Your private reflection', 'Votre réflexion privée')}</label><textarea className="textarea" disabled={busy} id="daily-reflection" value={reflection} onChange={e => setReflection(e.target.value)} maxLength={10000} rows={5} style={{ width: '100%', padding: 12, marginTop: 10 }} />{session && <button className="btn btn-light" type="button" disabled={busy || !reflection.trim()} onClick={saveReflection}>{tr('Save reflection', 'Enregistrer')}</button>}</>}
           {step === 3 && <p>{word.prayer}</p>}
           {step === 4 && <p>{word.application}</p>}
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
