@@ -30,4 +30,4 @@
 
 ## M3.6 implementation rollout
 
-The web/marketing apps now use Next 15 / React 19; the API uses Nest 11 on Node 22. Configure the reflection key ring before rolling out the API. Follow [the staging and privacy runbook](deploy/staging/README.md); it includes separate resources, approved translation IDs, provider checks, local-only backfill rehearsal and the production approval gate. Do not merge or deploy this feature branch without readiness review.
+The web/marketing apps now use Next 15 / React 19; the API uses Nest 11 on Node 22. Configure and confirm recoverability of the reflection key ring before rolling out the API. After encrypted writes begin, any rollback build must retain decrypt-capable reflection services and all required keys; the previous API returns cipher envelopes. Follow [the staging and privacy runbook](deploy/staging/README.md); it includes separate resources, approved translation IDs, provider checks, local-only backfill rehearsal and the production approval gate. Do not merge or deploy this feature branch without readiness review.

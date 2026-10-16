@@ -62,6 +62,8 @@ Existing plaintext stays readable so rollout does not destroy or hide existing r
 5. Compare pre/post counts and owner-visible content on the isolated copy. Verify no ciphertext escapes through `today`, completion, history or saved-state responses.
 6. Prepare a bounded production plan with a fresh recoverable backup, retained keys, concurrency/locking review and rollback procedure. **Obtain explicit user approval before any production data rewrite.** The supplied tool deliberately cannot apply to Supabase; a production operator procedure still needs separate review.
 
+**Application rollback:** Once this release writes an encrypted reflection, the previous API revision cannot read it correctly and may return the cipher envelope to clients. Keep the decrypt-capable reflection services and every required key in any rollback build. Disabling new writes alone does not restore old readers. Rehearse recovery on an isolated copy; do not restore an older production database over newer user records or decrypt production rows as an automatic rollback step. Database backups and the separately protected key ring must both be recoverable.
+
 For rotation, distribute the ring containing both old and new keys to every reader first, then change the active ID for new writes. Never remove an old key while any live rows or retained backups need it. This backfill tool skips already encrypted rows; it does not rewrap old-key ciphertext. Losing encryption keys cannot be repaired by schema migration or a database-only backup.
 
 ## Functional smoke checks

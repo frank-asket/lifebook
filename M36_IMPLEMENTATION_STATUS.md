@@ -34,7 +34,7 @@ The existing `BIBLE_NOTES_ENCRYPTION_KEY` format/ciphertext is preserved. No Pri
 1. API.Bible rejected the supplied credential with **403 / Invalid API key** for both approved IDs. A working server credential with access is required. None was committed or deployed.
 2. Separate staging resources and two real Clerk accounts/tokens have not been supplied/provisioned. Real sign-up/in/out, cross-session persistence and real-device acceptance still need execution.
 3. Existing production plaintext reflections require a separately approved, backed-up backfill. New-code encryption does not retroactively protect old rows or backups.
-4. Production encryption keys must be configured/recoverable before rollout; production-mode startup now rejects missing reflection configuration.
+4. Production encryption keys must be configured/recoverable before rollout; production-mode startup now rejects missing reflection configuration. After encrypted writes begin, rollback builds must retain decrypt-capable services and the required key ring; the previous API returns raw cipher envelopes.
 5. Mobile SDK/toolchain audit findings remain; no blind native major upgrade was made during M3.6.
 6. No live content was seeded/published, no schema/data migration was deployed, and this branch has not been merged or deployed.
 

@@ -10,6 +10,12 @@
 - Authorization roles are separate from faith journey.
 - API should be the only database access point for private user data.
 
+## M3.6 source implementation
+
+Web and marketing use Next.js 15 / React 19; the API uses NestJS 11 on Node.js 22. Mobile remains Expo 52 / React 18. The reader has authenticated history, plans, progress, bookmarks, colored verse marks and encrypted private notes. New meditation/Daily Word reflections use owner-bound AES-GCM envelopes; legacy plaintext remains until separately approved backfill.
+
+API requests have per-route/IP/process throttling. CI replays migrations only in disposable loopback PostgreSQL and runs persistence/security tests. Application startup does not run migrations. See the [staging/privacy runbook](../deploy/staging/README.md) for environment settings, recovery and the requirement to retain decrypt-capable services and keys during rollback.
+
 ## Production gaps
 
-This starter does not include complete billing, sermon ingestion, prayer encryption, AI RAG, pastor verification workflow, production rate limiting, automated end-to-end tests, or a fully verified deployment. Do not treat it as launch-ready.
+This starter does not include complete billing, sermon ingestion, prayer encryption, AI RAG, pastor verification workflow, distributed rate limiting, real-account end-to-end acceptance tests, or a fully verified deployment. Do not treat it as launch-ready.

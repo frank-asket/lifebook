@@ -131,10 +131,10 @@ flowchart TB
 |---|---|---|
 | Authentication / onboarding | Clerk integration; profile GET/PUT endpoints | Verify production keys and end-to-end onboarding |
 | Dashboard | Web route exists | Confirm live data and mobile responsiveness |
-| Daily Bible Meditation | Public today/detail routes; authenticated reflection, completion, bookmarks, history | Resolve live response-format error; verify published data and integration tests |
+| Daily Bible Meditation | Public today/detail routes; authenticated encrypted new reflections, completion, bookmarks, history; missing-content empty state | Verify published content and real authenticated acceptance |
 | Prayer Sanctuary | Web route and `PrayerEntry` model exist | Full workflows, sensitive-data protection and consent-gated AI |
 | LivingWord | Web route and `Sermon` model exist | Media ingestion, playback pipeline, moderation and live events |
-| Bible Study | Web route exists | Confirm content provider, licensing and reading/search implementation |
+| Bible Study | English/French reader, reading history/plans/progress, saved verses and private annotation editor | Valid provider access, licensing and real-session acceptance; search remains pending |
 | Discipleship | Web route; published paths endpoint; path/lesson/enrollment models | Program UX and progress integration |
 | AI-assisted prayer meditation | Private FastAPI endpoint skeleton | Explicitly returns HTTP 501; LLM/RAG/safety not implemented |
 
@@ -238,11 +238,11 @@ flowchart LR
 2. Scope private reflections, bookmarks, prayer entries and progress by the authenticated internal user.
 3. Keep `CLERK_SECRET_KEY`, database credentials and AI internal secrets on server environments only.
 4. Require explicit user consent before transmitting prayer text to any AI processor.
-5. Treat reflection and prayer content as sensitive. The supplied architecture does **not** establish application-level encryption, retention/deletion workflows or production-grade privacy controls.
-6. Add rate limits, request size limits, audit logging, abuse protections and automated security tests before launch.
+5. Treat reflection and prayer content as sensitive. New meditation/Daily Word reflections use application-level encryption; legacy plaintext requires separately approved backfill. Prayer encryption and retention/deletion workflows remain pending.
+6. The API has per-route/IP/process throttling and automated authorization/validation tests. Distributed rate limiting, request size review, audit logging and broader abuse protection remain launch work.
 7. Keep platform roles and verified ministry status separate from self-selected faith journey.
 
-**Configuration discrepancy to resolve:** `render.yaml` sets `AI_INTERNAL_API_KEY`, while `apps/ai-service/main.py` checks `AI_INTERNAL_TOKEN`. Align these names before enabling internal AI calls. The endpoint currently intentionally returns `501 Not Implemented` after consent and token checks.
+**AI configuration:** Render and the FastAPI stub both use `AI_INTERNAL_TOKEN`. The endpoint intentionally returns `501 Not Implemented` after consent and token checks; generation is not enabled.
 
 ## 8. Deployment architecture
 
@@ -276,22 +276,23 @@ flowchart TB
 | Web | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Public build-time values; no secrets |
 | Mobile | `EXPO_PUBLIC_API_URL`, Clerk publishable key | Public mobile values |
 | API | `DATABASE_URL`, `DIRECT_URL`, `CLERK_SECRET_KEY`, `CLERK_AUTHORIZED_PARTIES`, `CORS_ORIGINS`, `PORT` | Server-only |
-| AI | `AI_INTERNAL_TOKEN` (code), `AI_INTERNAL_API_KEY` (Render YAML) | **Mismatch — resolve before use** |
+| AI | `AI_INTERNAL_TOKEN` | Server-only; stub generation remains disabled |
 
 Do not commit `.env`, `.env.local`, database URLs, Clerk secrets or other credentials.
 
 ## 9. Local setup and commands
 
-Requirements: Node.js 20, pnpm 9, Python 3.11+; Docker optional.
+Requirements: Node.js 22, pnpm 9.15.4, Python 3.11+; Docker optional. Web/marketing use Next.js 15 / React 19; the API uses NestJS 11. Mobile remains Expo 52 / React 18.
 
 ```bash
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 
 # Configure root and app-specific environment files from examples.
 # Configure Supabase pooled and direct connection strings.
 pnpm db:generate
-pnpm db:migrate  # local/staging only; use deploy migrations in production
+# The generic db:migrate shortcut is disabled.
+# Review target/history/backup before explicit migration deployment; see the rollout runbook.
 
 # Separate terminals
 pnpm dev:api
@@ -333,7 +334,7 @@ API health check after deployment: `GET /api/v1/health`.
 - [ ] Test Clerk production instance and API JWT verification together.
 - [ ] Verify all private queries enforce per-user authorization.
 - [ ] Add appropriate protection, retention and deletion for reflections and prayers.
-- [ ] Align AI internal secret configuration; keep AI generation disabled until reviewed.
+- [x] Align AI internal secret configuration; AI generation remains disabled until reviewed.
 - [ ] Add automated API, integration, accessibility and end-to-end tests.
 - [ ] Verify responsive UI, dark mode, keyboard access and loading/empty/error states.
 - [ ] Establish production monitoring, structured logs, backups and incident response.
@@ -354,7 +355,8 @@ flowchart LR
 ## 13. Source-of-truth files
 
 - `README.md` — original monorepo setup and project overview.
-- `docs/ARCHITECTURE.md` — source architecture boundaries and known gaps.
+- [Architecture notes](docs/ARCHITECTURE.md) — source boundaries and known gaps.
+- [Staging and privacy rollout](deploy/staging/README.md) — environment setup, verification, key recovery and rollback requirements.
 - `render.yaml` — Render service declarations.
 - `apps/api/src/app.module.ts` — API composition, identity, profiles, devotionals and paths.
 - `apps/api/src/meditation/` — meditation API behavior.
