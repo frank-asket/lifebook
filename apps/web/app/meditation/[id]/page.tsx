@@ -2,10 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import {useLanguage} from '../../../components/language-provider';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
 import { MeditationView, type Meditation } from '../../../components/meditation-view';
 export default function MeditationDetailPage() {
+  const {language}=useLanguage();const tr=(en:string,fr:string)=>language==='fr'?fr:en;
+  const [retry,setRetry]=useState(0);
   const { id } = useParams<{ id: string }>();
   const [item, setItem] = useState<Meditation | null>(null);
   const [error, setError] = useState('');
@@ -19,10 +22,10 @@ export default function MeditationDetailPage() {
       .catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Could not load meditation.'); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [id]);
-  return <Shell title="Meditation"><div className="meditation-page">
-    {loading ? <section className="meditation-status-card" role="status"><div className="meditation-loading-mark" />Loading meditation…</section>
-      : error ? <section className="meditation-status-card" role="alert"><h2>Unable to open meditation</h2><p>{error}</p><Link href="/meditation">Return to Daily Meditation</Link></section>
-      : item ? <MeditationView meditation={item} /> : null}
+  }, [id,retry]);
+  return <Shell title={tr("Meditation","Méditation")}><div className="meditation-page"><h1 className="page-heading">{tr("Meditation","Méditation")}</h1>
+    {loading ? <section className="meditation-status-card" role="status"><div className="meditation-loading-mark" />{tr("Loading meditation…","Chargement de la méditation…")}</section>
+      : error ? <section className="meditation-status-card" role="alert"><h2>{tr("Unable to open meditation","Impossible de charger la méditation")}</h2><p>{error}</p><button className="btn btn-primary" onClick={()=>setRetry(n=>n+1)}>{tr("Try again","Réessayer")}</button> <Link className="btn btn-soft" href="/meditation">{tr("Return to Daily Meditation","Retour à la méditation du jour")}</Link></section>
+      : item ? <MeditationView headingLevel="h2" meditation={item} /> : null}
   </div></Shell>;
 }

@@ -3,16 +3,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import { useLanguage } from '../../components/language-provider';
+import { useDailyWord } from '../../components/daily-word-provider';
 import { Shell } from '../../components/shell';
 import { api } from '../../lib/api';
 import { DAILY_WORD_STEPS as steps, initialDailyWordStep } from '../../lib/daily-word-navigation';
 
-type DailyWord = {
-  date: string; passageKey: string;
-  verse: { reference: string; text: string; translation: string };
-  explanation: string; meditation: string; reflectionQuestion: string;
-  prayer: string; application: string;
-};
 type Session = {
   id: string; passageKey: string; status: 'IN_PROGRESS' | 'COMPLETED';
   steps: { step: string }[]; reflection: { content: string } | null;
@@ -20,40 +15,37 @@ type Session = {
 
 export default function DailyWordPage() {
   const { language } = useLanguage();
-  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const { getToken, isLoaded, isSignedIn, userId } = useAuth();
   const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
-  const [word, setWord] = useState<DailyWord | null>(null);
+  const { word, loading: wordLoading, error: wordError, date, retry } = useDailyWord();
   const [session, setSession] = useState<Session | null>(null);
   const [step, setStep] = useState(0);
   const [reflection, setReflection] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [attempt, setAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !date) return;
     let active = true;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     (async () => {
-      setLoading(true); setError(''); setWord(null); setSession(null); setMessage('');
+      setLoading(true); setError(''); setSession(null); setReflection(''); setMessage('');
       try {
         let current: Session | null = null;
         if (isSignedIn) {
           const token = await getToken();
           if (token) current = await api<Session>('/daily-word/sessions/today', token, { method: 'POST', body: JSON.stringify({ timezone }) });
         }
-        const parts = new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-        const part = (type: string) => parts.find(p => p.type === type)?.value;
-        const date = current ? `${part('year')}-${part('month')}-${part('day')}` : undefined;
-        const data = await api<DailyWord>(`/meditations/daily-word/today?locale=${language}${date ? `&date=${date}` : ''}`);
         if (!active) return;
-        setWord(data); setSession(current); setReflection(current?.reflection?.content || '');
+        setSession(current); setReflection(current?.reflection?.content || '');
         setStep(initialDailyWordStep(new URLSearchParams(window.location.search).get('step'), current?.steps.map(done => done.step)));
       } catch (e) { if (active) setError(e instanceof Error ? e.message : 'Unable to load Daily Word'); }
       finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [language, isLoaded, isSignedIn, getToken]);
+  }, [date, isLoaded, isSignedIn, userId, getToken, attempt]);
   async function saveReflection() {
     if (!session) return;
     if (!reflection.trim()) { setError(tr('Write a reflection first.', 'Écrivez une réflexion.')); return; }
@@ -85,8 +77,8 @@ export default function DailyWordPage() {
     <div style={{ maxWidth: 850, margin: '0 auto' }}>
       <Link href="/dashboard" className="text-link">← {tr('Dashboard', 'Tableau de bord')}</Link>
       <h1 className="page-heading" style={{ marginTop: 20 }}>{tr('Today’s Word', 'Parole du jour')}</h1>
-      {loading && <p role="status">{tr('Loading…', 'Chargement…')}</p>}
-      {error && <div className="alert" role="alert">{error}</div>}
+      {(loading || wordLoading) && <p role="status">{tr('Loading…', 'Chargement…')}</p>}
+      {(error || wordError) && <div className="alert reader-error" role="alert"><span>{error || wordError}</span>{(wordError || !session) && <button className="btn btn-soft" onClick={()=>{retry();setAttempt(n=>n+1)}}>{tr("Try again","Réessayer")}</button>}</div>}
       {message && <p role="status">{message}</p>}
       {word && <>
         <div className="card" style={{ margin: '20px 0' }}>
@@ -107,7 +99,7 @@ export default function DailyWordPage() {
           {step === 4 && <p>{word.application}</p>}
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
             <button type="button" className="btn btn-light" disabled={busy || step === 0} onClick={() => setStep(n => Math.max(0, n - 1))}>{tr('Back', 'Retour')}</button>
-            <button type="button" className="btn btn-primary" disabled={busy || (step === 4 && session?.status === 'COMPLETED')} onClick={continueJourney}>{busy ? tr('Saving…', 'Enregistrement…') : step === 4 ? tr('Complete', 'Terminer') : tr('Continue', 'Continuer')}</button>
+            <button type="button" className="btn btn-primary" disabled={busy || loading || (isSignedIn && !session) || (step === 4 && session?.status === 'COMPLETED')} onClick={continueJourney}>{busy ? tr('Saving…', 'Enregistrement…') : step === 4 ? tr('Complete', 'Terminer') : tr('Continue', 'Continuer')}</button>
           </div>
         </section>
       </>}

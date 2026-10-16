@@ -3,6 +3,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '../components/theme-provider';
 import { LanguageProvider } from '../components/language-provider';
 
+import { DailyWordProvider } from '../components/daily-word-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -65,7 +66,7 @@ export default function RootLayout({
 
                 <body>
                     <ThemeProvider>
-                        <LanguageProvider>{children}</LanguageProvider>
+                        <LanguageProvider><DailyWordProvider>{children}</DailyWordProvider></LanguageProvider>
                     </ThemeProvider>
                 </body>
             </html>

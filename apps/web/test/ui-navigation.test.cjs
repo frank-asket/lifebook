@@ -38,3 +38,10 @@ test('unconfigured production marketing links never point at localhost', () => {
   const development = load('../../marketing/lib/app-links.ts', { NODE_ENV: 'development' });
   assert.equal(development.appLinks.home, 'http://localhost:3001/dashboard');
 });
+
+const { dailyWordDate } = load('../lib/daily-word.ts');
+test('daily Scripture follows the local calendar day at midnight and year boundaries', () => {
+  assert.equal(dailyWordDate(new Date(2026, 9, 16, 0, 1)), '2026-10-16');
+  assert.equal(dailyWordDate(new Date(2026, 11, 31, 23, 59)), '2026-12-31');
+  assert.equal(dailyWordDate(new Date(2027, 0, 1, 0, 0)), '2027-01-01');
+});

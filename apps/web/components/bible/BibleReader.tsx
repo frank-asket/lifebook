@@ -8,12 +8,12 @@ import { ReadingTracker } from './ReadingTracker';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
 
 const labels = {
-  en: { title: 'Read the Bible', book: 'Book', chapter: 'Chapter', language: 'Language', prev: 'Previous', next: 'Next', study: 'Bible Study', loading: 'Loading Scripture…', retry: 'Try again', empty: 'Choose a book and chapter.' },
-  fr: { title: 'Lire la Bible', book: 'Livre', chapter: 'Chapitre', language: 'Langue', prev: 'Précédent', next: 'Suivant', study: 'Étude biblique', loading: 'Chargement des Écritures…', retry: 'Réessayer', empty: 'Choisissez un livre et un chapitre.' },
+  en: { title: 'Read the Bible', book: 'Book', chapter: 'Chapter', language: 'Bible language', prev: 'Previous', next: 'Next', study: 'Bible Study', loading: 'Loading Scripture…', retry: 'Try again', empty: 'Choose a book and chapter.' },
+  fr: { title: 'Lire la Bible', book: 'Livre', chapter: 'Chapitre', language: 'Langue de la Bible', prev: 'Précédent', next: 'Suivant', study: 'Étude biblique', loading: 'Chargement des Écritures…', retry: 'Réessayer', empty: 'Choisissez un livre et un chapitre.' },
 };
 
 export default function BibleReader({ initialLocale, initialChapter }: { initialLocale?: BibleLocale; initialChapter?: string }) {
-  const { language, setLanguage } = useLanguage();
+  const { language } = useLanguage();
   const [locale, setLocale] = useState<BibleLocale>(initialLocale ?? language);
   useEffect(() => { if (!initialLocale) setLocale(language); }, [language, initialLocale]);
   const [books, setBooks] = useState<BibleBook[]>([]);
@@ -82,7 +82,7 @@ export default function BibleReader({ initialLocale, initialChapter }: { initial
       <h1 className="page-heading" style={{ marginTop: 20 }}>{t.title}</h1>
       <section className="reader-controls card" aria-label={locale === 'fr' ? 'Navigation biblique' : 'Bible navigation'}>
         <label className="form-field">{t.language}
-          <select className="select" value={locale} onChange={e => { setLocale(e.target.value as BibleLocale); setLanguage(e.target.value as BibleLocale); }}>
+          <select className="select" value={locale} onChange={e => { setLocale(e.target.value as BibleLocale); }}>
             <option value="en">English</option><option value="fr">Français</option>
           </select>
         </label>

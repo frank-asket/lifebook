@@ -11,6 +11,7 @@ import {
   type CSSProperties,
 } from 'react';
 
+import {useLanguage} from './language-provider';
 import { api } from '../lib/api';
 
 // ============================================================
@@ -59,6 +60,8 @@ export function MeditationView({
   meditation: Meditation;
   headingLevel?: 'h1' | 'h2';
 }) {
+  const {language}=useLanguage();
+  const tr=(en:string,fr:string)=>language==='fr'?fr:en;
   const Heading = headingLevel;
   const {
     isLoaded,
@@ -353,9 +356,7 @@ export function MeditationView({
           color: 'var(--accent)',
           fontWeight: 600,
         }}
-      >
-        ← Daily meditation
-      </Link>
+      >{tr("← Daily meditation","← Méditation quotidienne")}</Link>
 
       {/* ======================================================
           HEADER
@@ -373,9 +374,7 @@ export function MeditationView({
             letterSpacing: 2,
             fontSize: 11,
           }}
-        >
-          TODAY IN THE WORD
-        </span>
+        >{tr("TODAY IN THE WORD","AUJOURD’HUI DANS LA PAROLE")}</span>
 
         <Heading
           style={{
@@ -406,7 +405,7 @@ export function MeditationView({
       ====================================================== */}
 
       <section style={box}>
-        <h2>Read Scripture</h2>
+        <h2>{tr("Read Scripture","Lire les Écritures")}</h2>
 
         {meditation.scriptureText ? (
           <blockquote
@@ -447,7 +446,7 @@ export function MeditationView({
       ====================================================== */}
 
       <section style={box}>
-        <h2>Understand the Word</h2>
+        <h2>{tr("Understand the Word","Comprendre la Parole")}</h2>
 
         <p
           style={{
@@ -465,7 +464,7 @@ export function MeditationView({
       ====================================================== */}
 
       <section style={box}>
-        <h2>Reflect</h2>
+        <h2>{tr("Reflect","Réfléchir")}</h2>
 
         {Array.isArray(meditation.questions) &&
           meditation.questions.length > 0 && (
@@ -497,9 +496,7 @@ export function MeditationView({
             style={{
               color: 'var(--text-muted)',
             }}
-          >
-            Checking your session…
-          </p>
+          >{tr("Checking your session…","Vérification de votre session…")}</p>
         ) : authenticated ? (
           <>
             <label
@@ -510,9 +507,7 @@ export function MeditationView({
                 fontWeight: 600,
                 color: 'var(--text)',
               }}
-            >
-              Your personal reflection
-            </label>
+            >{tr("Your personal reflection","Votre réflexion personnelle")}</label>
 
             {loadingState ? (
               <p
@@ -520,14 +515,12 @@ export function MeditationView({
                 style={{
                   color: 'var(--text-muted)',
                 }}
-              >
-                Loading your saved reflection…
-              </p>
+              >{tr("Loading your saved reflection…","Chargement de votre réflexion…")}</p>
             ) : (
               <>
                 <textarea
                   id={`reflection-${meditation.id}`}
-                  aria-label="Your personal reflection"
+                  aria-label={tr("Your personal reflection","Votre réflexion personnelle")}
                   value={draft}
                   onChange={(event) => {
                     setDraft(event.target.value);
@@ -536,7 +529,7 @@ export function MeditationView({
                   maxLength={10000}
                   rows={7}
                   disabled={busy}
-                  placeholder="What is God teaching you through this passage?"
+                  placeholder={tr("What is God teaching you through this passage?","Que vous enseigne Dieu à travers ce passage ?")}
                   style={{
                     display: 'block',
                     width: '100%',
@@ -573,8 +566,8 @@ export function MeditationView({
                     style={button}
                   >
                     {busyAction === 'reflection'
-                      ? 'Saving…'
-                      : 'Save reflection'}
+                      ? tr("Saving…","Enregistrement…")
+                      : tr("Save reflection","Enregistrer la réflexion")}
                   </button>
 
                   {hasUnsavedChanges && (
@@ -583,9 +576,7 @@ export function MeditationView({
                         color: 'var(--accent)',
                         fontSize: 13,
                       }}
-                    >
-                      Unsaved changes
-                    </span>
+                    >{tr("Unsaved changes","Modifications non enregistrées")}</span>
                   )}
                 </div>
 
@@ -618,9 +609,7 @@ export function MeditationView({
                 color: 'var(--accent)',
                 fontWeight: 600,
               }}
-            >
-              Sign in
-            </Link>{' '}
+            >{tr("Sign in","Se connecter")}</Link>{' '}
             to save your personal reflection.
           </p>
         )}
@@ -631,7 +620,7 @@ export function MeditationView({
       ====================================================== */}
 
       <section style={box}>
-        <h2>Respond in Prayer</h2>
+        <h2>{tr("Respond in Prayer","Répondre par la prière")}</h2>
 
         <p
           style={{
@@ -650,7 +639,7 @@ export function MeditationView({
 
       {authenticated && (
         <section style={box}>
-          <h2>Continue Your Journey</h2>
+          <h2>{tr("Continue Your Journey","Poursuivre votre parcours")}</h2>
 
           {loadingState ? (
             <p
@@ -658,9 +647,7 @@ export function MeditationView({
               style={{
                 color: 'var(--text-muted)',
               }}
-            >
-              Loading your progress…
-            </p>
+            >{tr("Loading your progress…","Chargement de votre progression…")}</p>
           ) : (
             <>
               <p
@@ -670,8 +657,8 @@ export function MeditationView({
                 }}
               >
                 {state.completedAt
-                  ? 'You completed this meditation.'
-                  : 'Ready to mark this meditation complete?'}
+                  ? tr("You completed this meditation.","Vous avez terminé cette méditation.")
+                  : tr("Ready to mark this meditation complete?","Prêt à terminer cette méditation ?")}
               </p>
 
               {hasUnsavedChanges && (
@@ -703,10 +690,10 @@ export function MeditationView({
                   onClick={markComplete}
                 >
                   {busyAction === 'complete'
-                    ? 'Completing…'
+                    ? tr("Completing…","Enregistrement…")
                     : state.completedAt
-                      ? 'Completed ✓'
-                      : 'Mark complete'}
+                      ? tr("Completed ✓","Terminé ✓")
+                      : tr("Mark complete","Terminer")}
                 </button>
 
                 <button
@@ -716,10 +703,10 @@ export function MeditationView({
                   onClick={toggleBookmark}
                 >
                   {busyAction === 'bookmark'
-                    ? 'Updating…'
+                    ? tr("Updating…","Actualisation…")
                     : state.bookmarked
-                      ? 'Remove bookmark'
-                      : 'Save for later'}
+                      ? tr("Remove bookmark","Retirer le favori")
+                      : tr("Save for later","Garder pour plus tard")}
                 </button>
               </div>
             </>
@@ -763,9 +750,7 @@ export function MeditationView({
             color: 'var(--accent)',
             fontWeight: 600,
           }}
-        >
-          View meditation history →
-        </Link>
+        >{tr("View meditation history →","Voir l’historique des méditations →")}</Link>
       )}
     </article>
   );

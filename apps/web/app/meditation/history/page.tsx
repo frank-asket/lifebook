@@ -3,30 +3,34 @@ import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Shell } from '../../../components/shell';
+import { useLanguage } from '../../../components/language-provider';
 import { api } from '../../../lib/api';
 type Entry = { id: string; completedAt: string; meditation: { id: string; title: string; scriptureReference: string } };
 export default function HistoryPage() {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { isLoaded, isSignedIn, userId, getToken } = useAuth();
+  const { language } = useLanguage();
+  const tr = (en:string,fr:string) => language === 'fr' ? fr : en;
   const [items, setItems] = useState<Entry[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!isLoaded) return;
-    if (!isSignedIn) { setLoading(false); setItems([]); return; }
-    let active = true;
-    setLoading(true); setError('');
+    setItems([]); setError('');
+    if (!isSignedIn) { setLoading(false); return; }
+    let active = true; setLoading(true);
     getToken().then(token => api<Entry[]>('/meditations/history', token))
       .then(data => { if (active) setItems(data); })
       .catch(e => { if (active) setError(e instanceof Error ? e.message : 'Could not load history.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [isLoaded, isSignedIn, getToken]);
-  return <Shell title="Meditation History"><div className="meditation-page">
-    <header className="meditation-page-header"><div><span className="meditation-kicker">YOUR JOURNEY</span><h1>Meditation history</h1><p>Revisit the Scriptures you've spent time with.</p></div></header>
-    {!isLoaded || loading ? <section className="meditation-status-card" role="status">Loading your history…</section>
-      : !isSignedIn ? <section className="meditation-status-card"><h2>Sign in to view your journey</h2><p>Your meditation progress is private to your account.</p><Link href="/sign-in">Sign in</Link></section>
-      : error ? <section className="meditation-status-card" role="alert"><h2>Unable to load history</h2><p>{error}</p></section>
-      : !items.length ? <section className="meditation-status-card"><h2>Your journey begins today</h2><p>Completed meditations will appear here.</p><Link href="/meditation">Start today's meditation →</Link></section>
-      : <div>{items.map(item => <article key={item.id} className="card" style={{marginBottom:14,padding:24}}><Link href={`/meditation/${encodeURIComponent(item.meditation.id)}`} style={{color:'var(--accent)',fontWeight:700}}>{item.meditation.title}</Link><p style={{color:'var(--text-muted)',marginTop:8}}>{item.meditation.scriptureReference} · {new Date(item.completedAt).toLocaleDateString()}</p></article>)}</div>}
+  }, [isLoaded, isSignedIn, userId, getToken, retry]);
+  return <Shell title={tr('Meditation History','Historique des méditations')}><div className="meditation-page">
+    <header className="meditation-page-header"><div><span className="meditation-kicker">{tr('YOUR JOURNEY','VOTRE PARCOURS')}</span><h1>{tr('Meditation history','Historique des méditations')}</h1><p>{tr('Revisit the Scriptures you have spent time with.','Retrouvez les Écritures que vous avez méditées.')}</p></div><Link className="btn btn-soft" href="/meditation">{tr('Today’s meditation','Méditation du jour')} →</Link></header>
+    {!isLoaded || loading ? <section className="meditation-status-card" role="status">{tr('Loading your history…','Chargement de votre historique…')}</section>
+      : !isSignedIn ? <section className="meditation-status-card"><h2>{tr('Sign in to view your journey','Connectez-vous pour retrouver votre parcours')}</h2><p>{tr('Your meditation progress is private to your account.','Votre progression est privée et liée à votre compte.')}</p><Link className="btn btn-primary" href="/sign-in">{tr('Sign in','Se connecter')}</Link></section>
+      : error ? <section className="meditation-status-card" role="alert"><h2>{tr('Unable to load history','Impossible de charger l’historique')}</h2><p>{error}</p><button className="btn btn-primary" onClick={()=>setRetry(n=>n+1)}>{tr('Try again','Réessayer')}</button></section>
+      : !items.length ? <section className="meditation-status-card"><h2>{tr('Your journey begins today','Votre parcours commence aujourd’hui')}</h2><p>{tr('Completed meditations will appear here.','Les méditations terminées apparaîtront ici.')}</p><Link className="btn btn-primary" href="/meditation">{tr('Start today’s meditation','Commencer la méditation')} →</Link></section>
+      : <div className="grid cols-2">{items.map(item => <article key={item.id} className="card"><span className="eyebrow">{new Date(item.completedAt).toLocaleDateString(language,{year:'numeric',month:'short',day:'numeric'})}</span><h2 style={{fontSize:20,margin:'14px 0'}}><Link href={`/meditation/${encodeURIComponent(item.meditation.id)}`}>{item.meditation.title}</Link></h2><p className="muted">{item.meditation.scriptureReference}</p><Link className="text-link" href={`/meditation/${encodeURIComponent(item.meditation.id)}`}>{tr('Read again','Relire')} →</Link></article>)}</div>}
   </div></Shell>;
 }

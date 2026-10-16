@@ -18,9 +18,9 @@ function isMeditation(value: unknown): value is Meditation {
     && typeof m.guidedPrayer === 'string' && Array.isArray(m.questions);
 }
 
-export default function DailyMeditationPage() { const {language,setLanguage}=useLanguage(); const tr=(en:string,fr:string)=>language==='fr'?fr:en;
+export default function DailyMeditationPage() { const {language}=useLanguage(); const tr=(en:string,fr:string)=>language==='fr'?fr:en;
   const [state, setState] = useState<PageState>({ item: null, loading: true, error: '' });
-  const locale = language; const setLocale = setLanguage;
+  const locale = language;
   const [retry, setRetry] = useState(0);
 
   const loadMeditation = useCallback(async (signal: AbortSignal) => {
@@ -56,11 +56,7 @@ export default function DailyMeditationPage() { const {language,setLanguage}=use
             <h1>{tr('Make room for the Word.','Faites place à la Parole.')}</h1>
             <p>{tr('Read Scripture, reflect at your own pace, and respond in prayer.','Lisez les Écritures, méditez à votre rythme et répondez par la prière.')}</p>
           </div>
-          <label className="meditation-language">{tr('Language','Langue')}
-            <select aria-label={tr('Meditation language','Langue de méditation')} value={locale} onChange={e => setLocale(e.target.value as 'en' | 'fr')}>
-              <option value="en">English</option><option value="fr">Français</option>
-            </select>
-          </label>
+
         </header>
 
         <div className="meditation-steps" aria-label={tr('Meditation steps','Étapes de méditation')}>
@@ -94,9 +90,9 @@ export default function DailyMeditationPage() { const {language,setLanguage}=use
         {!state.loading && !state.error && !state.item && (
           <section className="meditation-status-card">
             <BookOpen size={32} aria-hidden="true" />
-            <h2>Today's meditation is being prepared</h2>
-            <p>There isn't a published meditation in this language yet. Please check back soon.</p>
-            <div className="meditation-bottom-actions"><button className="btn-primary" onClick={refresh}>Check again</button><Link href="/dashboard">Return home <ArrowRight size={16} /></Link></div>
+            <h2>{tr('Today’s meditation is being prepared','La méditation du jour se prépare')}</h2>
+            <p>{tr('There is not a published meditation in this language yet. Please check back soon.','Aucune méditation n’est encore publiée dans cette langue. Revenez bientôt.')}</p>
+            <div className="meditation-bottom-actions"><button className="btn-primary" onClick={refresh}>{tr('Check again','Actualiser')}</button><Link href="/dashboard">{tr('Return home','Retour à l’accueil')} <ArrowRight size={16} /></Link></div>
           </section>
         )}
       </div>
