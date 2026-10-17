@@ -60,6 +60,8 @@ model User {
   enrollments  Enrollment[]
   verification MinistryVerification?
   pastorProfile PastorProfile?
+  careRequests  CareRequest[] @relation("CareMember")
+  pastoralCases CareRequest[] @relation("CarePastor")
   role         PlatformRole          @default(MEMBER)
 
   // Sprint 2 relationships
@@ -516,4 +518,60 @@ model BibleReadingPlanDayCompletion {
   completedAt DateTime @default(now())
   enrollment BibleReadingPlanEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   @@unique([enrollmentId, day])
+}
+
+// ============================================================
+// PASTORAL CARE — requests and private threads
+// ============================================================
+
+enum CareRequestStatus {
+  OPEN
+  CLAIMED
+  CLOSED
+}
+
+// Text fields hold lbenc:v1 envelopes bound to the request; only the member and the claiming pastor can read them.
+model CareRequest {
+  id       String @id
+  memberId String
+  pastorId String?
+
+  member User  @relation("CareMember", fields: [memberId], references: [id], onDelete: Cascade)
+  pastor User? @relation("CarePastor", fields: [pastorId], references: [id], onDelete: SetNull)
+
+  topic             String
+  language          String
+  contactPreference String
+  nameCiphertext    String?
+  phoneCiphertext   String?
+  messageCiphertext String
+  consentAt         DateTime
+  status            CareRequestStatus @default(OPEN)
+  claimedAt         DateTime?
+  closedAt          DateTime?
+  closedBy          String?
+  deleteAfter       DateTime?
+  memberReadAt      DateTime?
+  pastorReadAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  messages CareMessage[]
+
+  @@index([status, language, createdAt])
+  @@index([memberId, createdAt])
+  @@index([pastorId, status])
+}
+
+model CareMessage {
+  id         String   @id
+  requestId  String
+  senderRole String
+  ciphertext String
+  createdAt  DateTime @default(now())
+
+  request CareRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
 }

@@ -16,7 +16,7 @@ test('HTTP API denies unauthenticated private access, rejects invalid input and 
   await app.listen(0, '127.0.0.1');
   try {
     const base = await app.getUrl();
-    for (const path of ['me/profile','bible-reading/history','bible-annotations','daily-word/sessions','meditations/history','prayers']) {
+    for (const path of ['me/profile','bible-reading/history','bible-annotations','daily-word/sessions','meditations/history','prayers','care/requests','care/pastor/queue']) {
       const response = await fetch(`${base}/api/v1/${path}`);
       assert.equal(response.status, 401, path);
     }
