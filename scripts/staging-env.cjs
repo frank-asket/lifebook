@@ -2,6 +2,7 @@
 //   node scripts/staging-env.cjs init     create .env.staging with fresh staging-only keys
 //   node scripts/staging-env.cjs check    report which settings are present (names only)
 //   node scripts/staging-env.cjs migrate  replay reviewed migrations into the staging database
+//   node scripts/staging-env.cjs render | pbcopy   copy the API settings for Render's "Add from .env"
 const fs = require('node:fs');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
@@ -63,10 +64,21 @@ function migrate() {
   if (run(['migrate', 'diff', '--from-schema-datasource', 'prisma/schema.prisma', '--to-schema-datamodel', 'prisma/schema.prisma', '--exit-code']) !== 0) throw new Error('Staging schema differs from schema.prisma');
 }
 
-const commands = { init, check, migrate };
+// Run by the operator only: the output contains secrets, so pipe it straight to the clipboard.
+function render() {
+  const env = load(file);
+  const api = required.filter(name => !name.startsWith('NEXT_PUBLIC_'));
+  const missing = api.filter(name => !env[name]);
+  if (missing.length) throw new Error(`Fill in first: ${missing.join(', ')}`);
+  // Fixed settings from render.staging.yaml, for services created without a Blueprint.
+  const fixed = ['NODE_ENV=production', 'API_RATE_LIMIT=120', 'TRUST_PROXY_HOPS=1'];
+  process.stdout.write([...fixed, ...api.map(name => `${name}=${env[name]}`)].join('\n') + '\n');
+}
+
+const commands = { init, check, migrate, render };
 try {
   const command = commands[process.argv[2]];
-  if (!command) throw new Error('Usage: node scripts/staging-env.cjs init|check|migrate');
+  if (!command) throw new Error('Usage: node scripts/staging-env.cjs init|check|migrate|render');
   command();
 } catch (error) {
   console.error(`staging-env: ${error.message}`);
