@@ -60,13 +60,13 @@ Icons come from `lucide-react` only, at the stroke width used around them.
 
 Adapted from the `apple-design` skill (Apple's *Designing Fluid Interfaces*) to fit the calm character above. The styles live in the "Interaction and craft" block at the end of each `globals.css`.
 
-- **Respond on press.** Interactive elements give feedback on `:active` (pointer-down): `scale(.97)` over 100ms for buttons, icons and nav items, and `scale(.985)` for larger tappable cards. Add `touch-action: manipulation` to remove the double-tap delay.
+- **Respond on press.** Interactive elements give feedback on `:active` (pointer-down): `scale(.97)` over 100ms for buttons, icons and nav items, `scale(.985)` for larger tappable cards and card links, and `opacity: .65` for inline text links (scaling text looks wobbly). Add `touch-action: manipulation` to remove the double-tap delay.
 - **Hover lifts only on hover-capable pointers.** Under `@media (hover: none)`, a `translateY` hover is reset, so it does not stick after a tap.
-- **Spatial consistency.** A panel enters from the control that opened it and leaves the same way. The web app's mobile More panel rises from the bottom bar (`transform-origin: bottom right`). The marketing mobile menu drops from the header and retracts upward (`@starting-style` with `transition-behavior: allow-discrete`).
+- **Spatial consistency.** A panel enters from the control that opened it and leaves the same way. The web app's mobile More panel rises from the bottom bar (`transform-origin: bottom right`). The marketing mobile menu drops from the header and retracts upward (`@starting-style` with `transition-behavior: allow-discrete`). Marketing FAQ answers expand and collapse in place (`::details-content` with `interpolate-size`). Reversible transitions mirror their easing: `cubic-bezier(.2, .8, .2, 1)` on the way in, its inverse `cubic-bezier(.8, 0, .8, .2)` on the way out. Browsers without these features simply show and hide the panel.
 - **Scroll edges, not permanent dividers.** Sticky headers show their bottom border only once content scrolls under them (a scroll-driven animation, with a plain border as the fallback).
 - **No springs or gesture physics yet.** LifeBook has no drag, swipe or sheet gestures. Add a spring library only when one is built, and then follow the skill: interruptible motion, velocity handoff, critically damped by default.
 - **No glassmorphism.** Translucency stays limited to the existing near-opaque marketing header, which turns solid under `prefers-reduced-transparency` and `prefers-contrast: more`.
-- **Accessibility signals.** `prefers-reduced-motion` removes movement; `prefers-contrast: more` darkens `--line` and `--muted` in both themes; theme changes ease the large surfaces over 180ms instead of flashing.
+- **Accessibility signals.** `prefers-reduced-motion` removes movement; `prefers-contrast: more` darkens `--line` (to at least 3:1 against `--paper`, the non-text contrast minimum) and `--muted` (about 7:1) in both themes; theme changes ease the large surfaces over 180ms instead of flashing.
 
 ## Non-negotiables
 

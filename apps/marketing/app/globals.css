@@ -99,13 +99,23 @@ a, button, summary { touch-action: manipulation; }
 /* The mobile menu drops from the header and leaves the same way. */
 @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
   .nav { transform-origin: top right; opacity: 0; transform: translateY(-8px); transition: opacity .16s ease-out, transform .16s ease-out, display .16s allow-discrete; }
-  .nav.open { opacity: 1; transform: none; }
+  .nav.open { opacity: 1; transform: none; transition-timing-function: cubic-bezier(.2, .8, .2, 1); }
+  .nav:not(.open) { transition-timing-function: cubic-bezier(.8, 0, .8, .2); }
   @starting-style { .nav.open { opacity: 0; transform: translateY(-8px); } }
 }
 @media (prefers-reduced-transparency: reduce) { .site-header { background: var(--cream); backdrop-filter: none; } }
 @media (prefers-contrast: more) {
-  :root { --muted: #4f4a5c; --line: #c9c1cf; }
+  :root { --muted: #4f4a5c; --line: #8f879a; }
   .site-header { background: var(--cream); backdrop-filter: none; border-bottom-color: var(--line); }
 }
 /* `.nav a { display: inline-flex }` outranks `.mobile-signin { display: none }`; keep the mobile-only link off desktop. */
 @media (min-width: 761px) { .nav .mobile-signin { display: none; } }
+/* FAQ answers expand and collapse along the same path instead of jumping. */
+@supports selector(::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    .faq-items details { interpolate-size: allow-keywords; }
+    .faq-items details::details-content { block-size: 0; overflow: hidden; transition: block-size .18s ease-out, content-visibility .18s allow-discrete; }
+    .faq-items details[open]::details-content { block-size: auto; }
+  }
+}
+.feature-card > a:active, .footer-grid a:not(.brand):active, .text-link:active, .underlined-link:active { opacity: .65; transition: opacity .1s ease-out; }

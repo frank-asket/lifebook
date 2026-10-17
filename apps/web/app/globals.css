@@ -1844,7 +1844,25 @@ a, summary, label, .choice, .tag { touch-action: manipulation; }
 
 /* Higher contrast when the system asks for it. */
 @media (prefers-contrast: more) {
-  :root { --line: #c4bdd4; --muted: #57526a; }
-  :root[data-theme='dark'] { --line: #6a5f80; --muted: #d6cce4; }
+  /* Borders reach 3:1 against --paper (non-text contrast); muted text reaches 7:1. */
+  :root { --line: #8f87a3; --muted: #57526a; }
+  :root[data-theme='dark'] { --line: #857a9b; --muted: #d6cce4; }
   .card, .prayer-item, .input, .textarea, .select { border-width: 1.5px; }
+}
+
+/* Remaining tappable surfaces get the same press feedback; text links dim instead of scaling. */
+.page-actions a:active, .annotation-mark:active, .meditation-status-card button:active, .meditation-bottom-actions button:active { transform: scale(.97); transition: transform .1s ease-out; }
+a.card:active, .study-item:active { transform: scale(.985); transition: transform .1s ease-out; }
+.text-link:active, .meditation-bottom-actions a:active { opacity: .65; transition: opacity .1s ease-out; }
+
+/* The More panel also leaves the way it came, with the easing mirrored (ease-out in, ease-in out).
+   Browsers without ::details-content keep the open-only animation above. */
+@supports selector(::details-content) {
+  @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+    .mobile-more::details-content { transition: content-visibility .16s allow-discrete; }
+    .mobile-more .mobile-more-panel { transform-origin: bottom right; transition: opacity .18s cubic-bezier(.2, .8, .2, 1), transform .18s cubic-bezier(.2, .8, .2, 1); }
+    .mobile-more[open] .mobile-more-panel { animation: none; }
+    .mobile-more:not([open]) .mobile-more-panel { opacity: 0; transform: translateY(10px) scale(.98); transition-duration: .16s; transition-timing-function: cubic-bezier(.8, 0, .8, .2); }
+    @starting-style { .mobile-more[open] .mobile-more-panel { opacity: 0; transform: translateY(10px) scale(.98); } }
+  }
 }
