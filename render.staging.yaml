@@ -41,4 +41,7 @@ services:
         sync: false
       - key: REFLECTION_ENCRYPTION_ACTIVE_KEY
         sync: false
+      # Guided meditation (optional): without it the feature reports that it is unavailable.
+      - key: OPENAI_API_KEY
+        sync: false
 # AI service intentionally omitted: it stays disabled until M3.7 Prayer Sanctuary.

@@ -17,7 +17,7 @@ Always use the variable, never the hex value. Dark mode redefines the same varia
 | `--bg` | `#f7f7fb` | `#121019` | Page background |
 | `--paper` | `#fff` | `#1d1927` | Cards, panels, sidebar |
 | `--ink` | `#201b32` | `#f1edf8` | Body text, headings |
-| `--muted` | `#7a768b` | `#b9adc9` | Secondary text, labels |
+| `--muted` | `#686176` | `#b9adc9` | Secondary text, labels (5.90:1 on `--paper`, 5.52:1 on `--bg`; keep ≥ 4.5:1) |
 | `--line` | `#ebe9f2` | `#3b334c` | Borders, dividers |
 | `--purple` | `#7252ca` | `#b79aee` | The single accent: primary actions, links, active state |
 | `--deep` | `#49328c` | `#d1bdf8` | Emphasis text on soft surfaces, stat numbers |
