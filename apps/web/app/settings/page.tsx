@@ -6,7 +6,7 @@ import { ArrowRight, Globe2, LogOut, Settings2, ShieldCheck, UserRound } from 'l
 import { Shell } from '../../components/shell';
 import { ThemeToggle } from '../../components/theme-toggle';
 import { useLanguage, type Language } from '../../components/language-provider';
-import { api, type FaithProfile, type ProfileResponse, JOURNEYS } from '../../lib/api';
+import { api, type FaithProfile, type ProfileResponse, faithJourneyLabel, learningGoalLabel } from '../../lib/api';
 
 export default function Settings() {
   const { language, setLanguage } = useLanguage();
@@ -58,7 +58,7 @@ export default function Settings() {
             {saveError && <p className="alert" role="alert">{saveError}</p>}{saved && <p className="notice" role="status">{tr('Language saved.', 'Langue enregistrée.')}</p>}
           </form><div className="divider"/><h3>{tr('Appearance', 'Apparence')}</h3><p className="muted">{tr('Choose how LifeBook looks on this device.', 'Choisissez l’apparence de LifeBook sur cet appareil.')}</p><ThemeToggle/>
         </section>
-        <section className="card settings-card"><div className="split-title"><h2>{tr('Learning preferences', 'Préférences d’apprentissage')}</h2><Link className="btn btn-soft btn-sm" href="/onboarding">{tr('Edit', 'Modifier')} <ArrowRight size={14}/></Link></div><div className="list-row"><div><h3>{tr('Faith journey', 'Parcours de foi')}</h3><p>{data ? JOURNEYS.find(x => x.value === p?.journey)?.label || tr('Not selected', 'Non défini') : unavailable}</p></div></div><div className="list-row"><div><h3>{tr('Goals', 'Objectifs')}</h3><p>{data ? p?.learningGoals?.join(', ') || tr('Not selected', 'Non définis') : unavailable}</p></div></div></section>
+        <section className="card settings-card"><div className="split-title"><h2>{tr('Learning preferences', 'Préférences d’apprentissage')}</h2><Link className="btn btn-soft btn-sm" href="/onboarding">{tr('Edit', 'Modifier')} <ArrowRight size={14}/></Link></div><div className="list-row"><div><h3>{tr('Faith journey', 'Parcours de foi')}</h3><p>{data ? faithJourneyLabel(p?.journey, language) || tr('Not selected', 'Non défini') : unavailable}</p></div></div><div className="list-row"><div><h3>{tr('Goals', 'Objectifs')}</h3><p>{data ? p?.learningGoals?.map(goal => learningGoalLabel(goal, language)).join(', ') || tr('Not selected', 'Non définis') : unavailable}</p></div></div></section>
       </div>
       <div className="stack">
         <section className="card settings-card"><div className="settings-card-heading"><span className="feature-icon lilac"><UserRound aria-hidden="true"/></span><div><h2>{tr('Your account', 'Votre compte')}</h2><p className="muted">{user?.primaryEmailAddress?.emailAddress || tr('Signed-in member', 'Membre connecté')}</p></div></div><div className="list-row"><div><h3>{tr('Display name', 'Nom affiché')}</h3><p>{user?.fullName || tr('Not provided', 'Non renseigné')}</p></div></div><div className="list-row"><div><h3>{tr('Account role','Rôle du compte')}</h3><p>{data?.role || unavailable}</p></div></div><p className="muted">{tr('Use your account menu to manage your email, password and account security.', 'Utilisez le menu du compte pour gérer votre e-mail, votre mot de passe et la sécurité.')}</p></section>

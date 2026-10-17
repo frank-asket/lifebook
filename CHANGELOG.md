@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.3.1] - 2026-10-16
+
+### Fixed
+- Display French labels for dashboard actions and saved learning preferences when French is selected in Settings. Existing choices and custom goals are preserved.
+
 ## [0.0.3.0] - 2026-10-16
 
 ### Added
