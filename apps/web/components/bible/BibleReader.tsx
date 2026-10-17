@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@clerk/nextjs';
 import { Shell } from '../shell';
 import { useLanguage } from '../language-provider';
 import { AnnotationPanel } from './AnnotationPanel';
 import { ReadingTracker } from './ReadingTracker';
+import { readingApi } from '../../lib/bible-reading-api';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
 
 const labels = {
@@ -15,8 +17,24 @@ const labels = {
 
 export default function BibleReader({ initialLocale, initialChapter, initialVerse }: { initialLocale?: BibleLocale; initialChapter?: string; initialVerse?: string }) {
   const { language } = useLanguage();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
   const [locale, setLocale] = useState<BibleLocale>(initialLocale ?? language);
-  useEffect(() => { if (!initialLocale) setLocale(language); }, [language, initialLocale]);
+  // Chapter to open once its book list loads: the link target, the resumed position, or the chapter kept across a language switch.
+  const [target, setTarget] = useState(initialChapter);
+  // Without a link target, wait for the saved position so a default chapter is never opened and recorded over it.
+  const [ready, setReady] = useState(Boolean(initialChapter));
+  const [resumed, setResumed] = useState(false);
+  useEffect(() => { if (!initialLocale && !resumed) setLocale(language); }, [language, initialLocale, resumed]);
+  useEffect(() => {
+    if (ready || !isLoaded) return;
+    if (!isSignedIn) { setReady(true); return; }
+    let active = true;
+    getToken().then(token => readingApi.latest(token)).then(item => {
+      if (!active || !item) return;
+      setResumed(true); setLocale(item.locale); setTarget(item.chapterId);
+    }).catch(() => undefined).finally(() => { if (active) setReady(true); });
+    return () => { active = false; };
+  }, [ready, isLoaded, isSignedIn, getToken]);
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [bookId, setBookId] = useState('');
   const [chapters, setChapters] = useState<BibleChapter[]>([]);
@@ -35,19 +53,20 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
 
   // Changing locale invalidates the book and chapter lists. Abort stale requests.
   useEffect(() => {
+    if (!ready) return;
     const abort = new AbortController();
     setBooksBusy(true); setError(''); setBooks([]); setBookId(''); setChapters([]); setChapterId(''); setContent(null); setTranslation(null);
     Promise.all([bibleApi.books(locale, abort.signal), bibleApi.translation(locale, abort.signal)])
       .then(([items, version]) => {
         if (abort.signal.aborted) return;
         setBooks(items); setTranslation(version);
-        const requestedBook = initialChapter?.split('.')[0];
+        const requestedBook = target?.split('.')[0];
         setBookId(items.find(x => x.id === requestedBook)?.id ?? items.find(x => x.id === 'GEN')?.id ?? items[0]?.id ?? '');
       })
       .catch(e => { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load books'); })
       .finally(() => { if (!abort.signal.aborted) setBooksBusy(false); });
     return () => abort.abort();
-  }, [locale, retry]);
+  }, [locale, retry, ready]);
 
   useEffect(() => {
     if (!bookId) { setChaptersBusy(false); return; }
@@ -57,7 +76,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
       .then(items => {
         if (abort.signal.aborted) return;
         const numbered = items.filter(x => /^\d+$/.test(x.number));
-        setChapters(numbered); setChapterId(numbered.find(x => x.id === initialChapter)?.id ?? numbered[0]?.id ?? '');
+        setChapters(numbered); setChapterId(numbered.find(x => x.id === target)?.id ?? numbered[0]?.id ?? '');
       })
       .catch(e => { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load chapters'); })
       .finally(() => { if (!abort.signal.aborted) setChaptersBusy(false); });
@@ -86,7 +105,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
       <nav className="page-actions" aria-label={locale === 'fr' ? 'Votre lecture' : 'Your reading'}><Link href="/bible/dashboard">{locale === 'fr' ? 'Mon parcours de lecture' : 'Reading journey'}</Link><Link href="/bible/annotations">{locale === 'fr' ? 'Versets enregistrés' : 'Saved verses'}</Link></nav>
       <section className="reader-controls card" aria-label={locale === 'fr' ? 'Navigation biblique' : 'Bible navigation'}>
         <label className="form-field">{t.language}
-          <select className="select" value={locale} onChange={e => { if (canLeave()) setLocale(e.target.value as BibleLocale); }}>
+          <select className="select" value={locale} onChange={e => { if (canLeave()) { setTarget(chapterId || target); setResumed(true); setLocale(e.target.value as BibleLocale); } }}>
             <option value="en">English</option><option value="fr">Français</option>
           </select>
         </label>
