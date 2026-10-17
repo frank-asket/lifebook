@@ -558,6 +558,7 @@ model CareRequest {
   updatedAt DateTime @default(now()) @updatedAt
 
   messages CareMessage[]
+  reports  CareReport[]
 
   @@index([status, language, createdAt])
   @@index([memberId, createdAt])
@@ -574,4 +575,49 @@ model CareMessage {
   request CareRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([requestId, createdAt])
+}
+
+enum CareReportStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+// A concern raised from a conversation. The lead sees the conversation only if the reporter shared a copy.
+// Kept when the member deletes the request (requestId becomes null) until its own deletion date.
+model CareReport {
+  id                   String           @id
+  requestId            String?
+  reporterId           String
+  reporterRole         String
+  subjectPastorId      String?
+  category             String
+  detailsCiphertext    String
+  transcriptCiphertext String?
+  status               CareReportStatus @default(OPEN)
+  acknowledgedAt       DateTime?
+  resolvedAt           DateTime?
+  handledById          String?
+  resolutionCiphertext String?
+  deleteAfter          DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @default(now()) @updatedAt
+
+  request CareRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt])
+}
+
+// Who did what in safeguarding, for accountability. Holds no conversation content.
+model SafeguardingAction {
+  id           String   @id @default(cuid())
+  actorId      String
+  action       String
+  pastorUserId String?
+  reportId     String?
+  note         String?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
 }
