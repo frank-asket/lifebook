@@ -70,7 +70,9 @@ function render() {
   const api = required.filter(name => !name.startsWith('NEXT_PUBLIC_'));
   const missing = api.filter(name => !env[name]);
   if (missing.length) throw new Error(`Fill in first: ${missing.join(', ')}`);
-  process.stdout.write(api.map(name => `${name}=${env[name]}`).join('\n') + '\n');
+  // Fixed settings from render.staging.yaml, for services created without a Blueprint.
+  const fixed = ['NODE_ENV=production', 'API_RATE_LIMIT=120', 'TRUST_PROXY_HOPS=1'];
+  process.stdout.write([...fixed, ...api.map(name => `${name}=${env[name]}`)].join('\n') + '\n');
 }
 
 const commands = { init, check, migrate, render };
