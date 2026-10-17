@@ -55,6 +55,24 @@ export class PrayerCompanionService {
     return value;
   }
 
+  /** For guided meditation: the reviewed themes and their passage ids (English ids; French overrides applied later). */
+  candidates() {
+    this.ensureAvailable();
+    return this.library.topics.map(t => ({ id: t.id, title: t.title.en, description: t.description.en, passages: t.passages.map(p => typeof p === 'string' ? p : p.id) }));
+  }
+  /** Verified text for library passage ids, in the reader's translation. Unknown ids are rejected. */
+  async resolve(localeInput: string | undefined, ids: string[]) {
+    this.ensureAvailable();
+    const locale = this.locale(localeInput);
+    const refs = new Map(this.library.topics.flatMap(t => t.passages).map(p => typeof p === 'string' ? [p, p] as const : [p.id, locale === 'fr' && p.fr ? p.fr : p.id] as const));
+    return Promise.all(ids.map(async id => {
+      const target = refs.get(id);
+      if (!target) throw new Error(`Passage ${id} is not in the reviewed library`);
+      const passage = await this.passage(locale, target);
+      return { id: target, reference: passage.reference, text: passage.text, copyright: passage.copyright };
+    }));
+  }
+
   topics(localeInput?: string) {
     this.ensureAvailable();
     const locale = this.locale(localeInput);

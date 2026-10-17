@@ -5,5 +5,6 @@ import { PrayerCompanionController } from './prayer-companion.controller';
 import { PrayerCompanionService } from './prayer-companion.service';
 import { PrayerController } from './prayer.controller';
 import { PrayerService } from './prayer.service';
-@Module({ imports: [MeditationModule, BibleContentModule], controllers: [PrayerController, PrayerCompanionController], providers: [PrayerService, PrayerCompanionService] })
+import { GuidedMeditationService } from './guided-meditation.service';
+@Module({ imports: [MeditationModule, BibleContentModule], controllers: [PrayerController, PrayerCompanionController], providers: [PrayerService, PrayerCompanionService, GuidedMeditationService] })
 export class PrayerModule {}

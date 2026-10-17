@@ -125,6 +125,8 @@ model PrayerEntry {
   titleCiphertext      String?
   answerNoteCiphertext String?
   answeredAt           DateTime?
+  meditationCiphertext String?
+  meditationAt         DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -574,4 +576,15 @@ model CareMessage {
   request CareRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([requestId, createdAt])
+}
+
+// One row per AI request, for daily limits and cost tracking. Never holds prayer text or output.
+model AiUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String
+  outcome   String
+  createdAt DateTime @default(now())
+
+  @@index([userId, feature, createdAt])
 }
