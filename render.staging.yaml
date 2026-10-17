@@ -5,6 +5,9 @@ services:
     runtime: docker
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
+    branch: staging
+    region: frankfurt
+    plan: free
     healthCheckPath: /api/v1/health
     envVars:
       - key: NODE_ENV
@@ -35,11 +38,4 @@ services:
         sync: false
       - key: REFLECTION_ENCRYPTION_ACTIVE_KEY
         sync: false
-  - type: web
-    name: lifebook-ai-staging
-    runtime: docker
-    dockerfilePath: ./apps/ai-service/Dockerfile
-    dockerContext: ./apps/ai-service
-    envVars:
-      - key: AI_INTERNAL_TOKEN
-        sync: false
+# AI service intentionally omitted: it stays disabled until M3.7 Prayer Sanctuary.
