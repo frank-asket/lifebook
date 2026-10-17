@@ -1774,3 +1774,5 @@ progress::-moz-progress-bar { background: var(--purple); }
 .prayer-item-head .muted { flex-shrink: 0; font-size: 12px; }
 .prayer-item-preview { color: var(--muted); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .prayer-answered { justify-self: start; }
+.companion-passage { margin: 16px 0 0; }
+.companion-passage blockquote { margin: 0 0 6px; font-size: 16px; line-height: 1.7; }

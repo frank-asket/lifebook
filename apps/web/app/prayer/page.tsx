@@ -2,9 +2,10 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { HeartHandshake, LockKeyhole, BookOpen, ShieldCheck, CheckCircle2, NotebookPen, Plus } from 'lucide-react';
+import { HeartHandshake, LockKeyhole, ShieldCheck, CheckCircle2, NotebookPen, Plus } from 'lucide-react';
 import { Shell } from '../../components/shell';
 import { useLanguage } from '../../components/language-provider';
+import { ScriptureCompanion } from '../../components/prayer/ScriptureCompanion';
 import { PRAYER_LIMITS, prayerApi, type Prayer as PrayerEntry, type PrayerSummary } from '../../lib/prayer-api';
 
 export default function Prayer() {
@@ -20,7 +21,7 @@ export default function Prayer() {
         : <Journal key={userId} language={language}/>}
       <div className="stack">
         <div className="card"><span className="feature-icon rose"><HeartHandshake size={24}/></span><h3>{tr('Prayer without pressure', 'Prier sans pression')}</h3><p className="subheading">{tr('Your prayer is between you and God. LifeBook is a tool for reflection, not a substitute for pastoral care or spiritual community.', 'Votre prière est entre Dieu et vous. LifeBook accompagne la réflexion sans remplacer l’accompagnement pastoral ni la communauté.')}</p></div>
-        <div className="card"><span className="feature-icon lilac"><BookOpen size={24}/></span><h3>{tr('Pray with scripture', 'Prier avec les Écritures')}</h3><p className="verse-quote" style={{ fontSize: 17 }}>{tr('“Casting all your care upon him; for he careth for you.”', '« rejetant sur lui tout votre souci, car il a soin de vous. »')}</p><span className="verse-ref">{tr('1 PETER 5:7 · KING JAMES VERSION', '1 PIERRE 5:7 · BIBLE J.N. DARBY')}</span><p className="muted" style={{ fontSize: 11, marginTop: 14 }}>{tr('A passage to reflect on as you pray.', 'Un passage à méditer pendant votre prière.')}</p></div>
+        <ScriptureCompanion language={language}/>
         <div className="card" style={{ background: 'var(--pink)' }}><span className="eyebrow">{tr('YOUR PRIVACY MATTERS', 'VOTRE CONFIDENTIALITÉ COMPTE')}</span><p style={{ marginTop: 13, marginBottom: 0, lineHeight: 1.7 }}>{tr('Saved prayers are encrypted and only you can open them. They are never used to infer your faith journey, never sent for AI processing, and you can delete them at any time, one by one or all at once in Settings.', 'Vos prières enregistrées sont chiffrées et vous seul pouvez les ouvrir. Elles ne servent jamais à déduire votre parcours de foi, ne sont jamais envoyées à une IA, et vous pouvez les supprimer à tout moment, une par une ou toutes depuis les Paramètres.')}</p></div>
       </div>
     </div>

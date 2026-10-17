@@ -16,6 +16,9 @@ services:
         value: "120"
       - key: TRUST_PROXY_HOPS
         value: "1"
+      # Staging may show the prayer topic library before pastoral review; production must not.
+      - key: PRAYER_COMPANION_ALLOW_DRAFT
+        value: "true"
       - key: DATABASE_URL
         sync: false
       - key: DIRECT_URL
