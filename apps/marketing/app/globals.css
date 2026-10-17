@@ -78,3 +78,44 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px soli
 .moment-visual { overflow: hidden; }
 .moment-circle { max-width: 100%; height: auto; aspect-ratio: 1; }
 .verse-card { width: min(345px, calc(100% - 28px)); }
+
+/* Interaction and craft (see DESIGN.md "Motion and feedback"). */
+/* Tracking in em so it scales with the fluid heading sizes instead of a fixed px value. */
+.hero h1 { letter-spacing: -.05em; }
+.intro h2, .section-heading h2, .moment h2, .center-heading h2, .faq h2, .cta-inner h2, .legal-content h1 { letter-spacing: -.04em; }
+.hero h1 em, .serif-italic { letter-spacing: -.02em; }
+a, button, summary { touch-action: manipulation; }
+.button:active { transform: scale(.97); transition-duration: .1s; }
+.menu-toggle:active, .nav a:active, .faq-items summary:active { transform: scale(.97); transition: transform .1s ease-out; }
+@media (hover: none) { .button:hover { transform: none; } }
+.faq-items summary span { transition: transform .16s ease-out; }
+/* Scroll edge: the header divider appears only once content scrolls under it. */
+@keyframes lb-scroll-edge { from { border-bottom-color: transparent; } to { border-bottom-color: rgba(60, 44, 80, .08); } }
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header { animation: lb-scroll-edge linear both; animation-timeline: scroll(root); animation-range: 0 40px; }
+  }
+}
+/* The mobile menu drops from the header and leaves the same way. */
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  .nav { transform-origin: top right; opacity: 0; transform: translateY(-8px); transition: opacity .16s ease-out, transform .16s ease-out, display .16s allow-discrete; }
+  .nav.open { opacity: 1; transform: none; transition-timing-function: cubic-bezier(.2, .8, .2, 1); }
+  .nav:not(.open) { transition-timing-function: cubic-bezier(.8, 0, .8, .2); }
+  @starting-style { .nav.open { opacity: 0; transform: translateY(-8px); } }
+}
+@media (prefers-reduced-transparency: reduce) { .site-header { background: var(--cream); backdrop-filter: none; } }
+@media (prefers-contrast: more) {
+  :root { --muted: #4f4a5c; --line: #8f879a; }
+  .site-header { background: var(--cream); backdrop-filter: none; border-bottom-color: var(--line); }
+}
+/* `.nav a { display: inline-flex }` outranks `.mobile-signin { display: none }`; keep the mobile-only link off desktop. */
+@media (min-width: 761px) { .nav .mobile-signin { display: none; } }
+/* FAQ answers expand and collapse along the same path instead of jumping. */
+@supports selector(::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    .faq-items details { interpolate-size: allow-keywords; }
+    .faq-items details::details-content { block-size: 0; overflow: hidden; transition: block-size .18s ease-out, content-visibility .18s allow-discrete; }
+    .faq-items details[open]::details-content { block-size: auto; }
+  }
+}
+.feature-card > a:active, .footer-grid a:not(.brand):active, .text-link:active, .underlined-link:active { opacity: .65; transition: opacity .1s ease-out; }
