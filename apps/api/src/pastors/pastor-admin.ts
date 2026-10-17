@@ -109,7 +109,9 @@ export class PastorAdmin {
     await this.verification(userId);
     await this.db.ministryVerification.update({ where: { userId }, data: { suspendedAt: new Date(), suspensionReason: text(reason, PASTOR_LIMITS.reason, 'Reason') } });
     await this.db.pastorProfile.updateMany({ where: { userId }, data: { acceptingRequests: false } });
-    return this.summary(userId);
+    // Members are not left waiting on a suspended pastor: their conversations go back to the shared queue.
+    const released = await this.db.careRequest.updateMany({ where: { pastorId: userId, status: 'CLAIMED' }, data: { status: 'OPEN', pastorId: null, claimedAt: null } });
+    return { ...(await this.summary(userId)), releasedConversations: released.count };
   }
 
   async reinstate(userId: string, moderatorId: string) {

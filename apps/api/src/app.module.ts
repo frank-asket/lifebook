@@ -45,6 +45,7 @@ import { BibleStudyModule } from './bible-study/bible-study.module';
 import { DailyWordModule } from './daily-word/daily-word.module';
 import { PrayerModule } from './prayer/prayer.module';
 import { PastorsModule } from './pastors/pastors.module';
+import { CareModule } from './care/care.module';
 
 // ============================================================
 // DATABASE SERVICE
@@ -364,6 +365,7 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
 
     // Pastoral care pilot — verified pastor directory
     PastorsModule,
+    CareModule,
   ],
 
   controllers: [

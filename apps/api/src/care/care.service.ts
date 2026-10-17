@@ -1,0 +1,196 @@
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
+import { MeditationService } from '../meditation/meditation.service';
+import { isActivePastor } from '../pastors/pastor-admin';
+import { decryptReflection, encryptReflection } from '../security/reflection-crypto';
+
+export const CARE_TOPICS = ['prayer', 'grief', 'family', 'faith', 'relationships', 'work', 'health', 'loneliness', 'other'] as const;
+export const CARE_LIMITS = { message: 2000, name: 60, openPerMember: 2, retentionDays: 90 };
+type Role = 'member' | 'pastor';
+type Field = 'request' | 'name' | 'phone' | 'message';
+type Request = { id: string; memberId: string; pastorId: string | null; topic: string; language: string; contactPreference: string; nameCiphertext: string | null; phoneCiphertext: string | null; messageCiphertext: string; status: string; claimedAt: Date | null; closedAt: Date | null; closedBy: string | null; createdAt: Date; memberReadAt: Date | null; pastorReadAt: Date | null; updatedAt: Date };
+
+@Injectable()
+export class CareService implements OnModuleDestroy {
+  private readonly db = new PrismaClient();
+  constructor(private readonly meditation: MeditationService) {}
+  async onModuleDestroy() { await this.db.$disconnect(); }
+  userId(auth?: string) { return this.meditation.userId(auth); }
+
+  // Bound to the request (and message) so ciphertext cannot be moved between requests.
+  private seal(field: Field, request: { id: string; memberId: string }, text: string, messageId = '') { return encryptReflection(text, `care:${field}:${request.memberId}:${request.id}:${messageId}`); }
+  private open(field: Field, request: { id: string; memberId: string }, value: string, messageId = '') {
+    if (!value.startsWith('lbenc:v1:')) throw new ServiceUnavailableException('This conversation cannot be opened right now');
+    return decryptReflection(value, `care:${field}:${request.memberId}:${request.id}:${messageId}`);
+  }
+  private text(value: unknown, max: number, label: string): string {
+    if (typeof value !== 'string' || !value.trim()) throw new BadRequestException(`${label} is required`);
+    if (value.trim().length > max) throw new BadRequestException(`${label} is too long`);
+    return value.trim();
+  }
+  private checkId(id: string) { if (!/^[0-9a-f-]{36}$/.test(id)) throw new NotFoundException('Request not found'); }
+
+  /** The signed-in user as an active pastor, or 403. Re-checked on every pastor action so suspension is immediate. */
+  private async activePastor(auth?: string) {
+    const userId = await this.userId(auth);
+    const [verification, profile] = await Promise.all([this.db.ministryVerification.findUnique({ where: { userId } }), this.db.pastorProfile.findUnique({ where: { userId } })]);
+    if (!profile || !isActivePastor(verification)) throw new ForbiddenException('Only active, verified pastors can do this');
+    return { userId, profile };
+  }
+
+  private async thread(request: Request, viewer: Role) {
+    const messages = await this.db.careMessage.findMany({ where: { requestId: request.id }, orderBy: { createdAt: 'asc' }, take: 500 });
+    const pastor = request.pastorId ? await this.db.pastorProfile.findUnique({ where: { userId: request.pastorId }, select: { displayName: true, slug: true } }) : null;
+    await this.db.careRequest.update({ where: { id: request.id }, data: viewer === 'member' ? { memberReadAt: new Date() } : { pastorReadAt: new Date() } });
+    return {
+      id: request.id, topic: request.topic, language: request.language, status: request.status, contactPreference: request.contactPreference,
+      createdAt: request.createdAt, claimedAt: request.claimedAt, closedAt: request.closedAt, closedBy: request.closedBy,
+      name: request.nameCiphertext ? this.open('name', request, request.nameCiphertext) : null,
+      // The phone number is shown only to the pastor who claimed a callback request.
+      phone: viewer === 'pastor' && request.phoneCiphertext ? this.open('phone', request, request.phoneCiphertext) : null,
+      message: this.open('request', request, request.messageCiphertext),
+      pastor: pastor ? { displayName: pastor.displayName, slug: pastor.slug } : null,
+      messages: messages.map(m => ({ id: m.id, from: m.senderRole, text: this.open('message', request, m.ciphertext, m.id), createdAt: m.createdAt })),
+    };
+  }
+  private summary(request: Request & { messages?: { senderRole: string; createdAt: Date }[] }, viewer: Role, pastorName?: string | null) {
+    const lastReply = request.messages?.find(m => m.senderRole !== viewer)?.createdAt;
+    const readAt = viewer === 'member' ? request.memberReadAt : request.pastorReadAt;
+    return { id: request.id, topic: request.topic, language: request.language, status: request.status, createdAt: request.createdAt, claimedAt: request.claimedAt, closedAt: request.closedAt, pastor: pastorName ?? null, unread: !!lastReply && (!readAt || lastReply > readAt) };
+  }
+
+  // ---------- Member ----------
+
+  async create(auth: string | undefined, input: Record<string, unknown>) {
+    const memberId = await this.userId(auth);
+    if (input.consent !== true) throw new BadRequestException('Consent is required to share this with a pastor');
+    if (typeof input.topic !== 'string' || !(CARE_TOPICS as readonly string[]).includes(input.topic)) throw new BadRequestException('Invalid topic');
+    if (typeof input.language !== 'string' || !/^[a-z]{2,3}$/.test(input.language)) throw new BadRequestException('Invalid language');
+    if (input.contactPreference !== 'messages' && input.contactPreference !== 'callback') throw new BadRequestException('Invalid contact preference');
+    const message = this.text(input.message, CARE_LIMITS.message, 'Message');
+    const name = input.name === undefined || input.name === '' ? null : this.text(input.name, CARE_LIMITS.name, 'Name');
+    let phone: string | null = null;
+    if (input.contactPreference === 'callback') {
+      phone = this.text(input.phone, 24, 'Phone number').replace(/[\s().-]/g, '');
+      if (!/^\+?[0-9]{7,15}$/.test(phone)) throw new BadRequestException('Enter a phone number with country code, e.g. +233 20 000 0000');
+    } else if (input.phone !== undefined && input.phone !== '') throw new BadRequestException('A phone number is only used for a callback');
+    const open = await this.db.careRequest.count({ where: { memberId, status: { in: ['OPEN', 'CLAIMED'] } } });
+    if (open >= CARE_LIMITS.openPerMember) throw new ConflictException('You already have two open requests. Close one before asking again.');
+    const ref = { id: randomUUID(), memberId };
+    await this.db.careRequest.create({ data: {
+      ...ref, topic: input.topic, language: input.language, contactPreference: input.contactPreference, consentAt: new Date(),
+      messageCiphertext: this.seal('request', ref, message), nameCiphertext: name ? this.seal('name', ref, name) : null, phoneCiphertext: phone ? this.seal('phone', ref, phone) : null,
+    } });
+    return this.mine(auth, ref.id);
+  }
+
+  async listMine(auth?: string) {
+    const memberId = await this.userId(auth);
+    const rows = await this.db.careRequest.findMany({ where: { memberId }, orderBy: { createdAt: 'desc' }, take: 50, include: { messages: { orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } }, pastor: { select: { pastorProfile: { select: { displayName: true } } } } } });
+    return rows.map(r => this.summary(r, 'member', r.pastor?.pastorProfile?.displayName));
+  }
+
+  private async ownRequest(memberId: string, id: string) {
+    this.checkId(id);
+    const request = await this.db.careRequest.findFirst({ where: { id, memberId } });
+    if (!request) throw new NotFoundException('Request not found');
+    return request as Request;
+  }
+  async mine(auth: string | undefined, id: string) { return this.thread(await this.ownRequest(await this.userId(auth), id), 'member'); }
+
+  async memberReply(auth: string | undefined, id: string, text: unknown) {
+    const request = await this.ownRequest(await this.userId(auth), id);
+    if (request.status === 'CLOSED') throw new ConflictException('This conversation is closed');
+    await this.addMessage(request, 'member', text);
+    return this.thread(request, 'member');
+  }
+  async memberClose(auth: string | undefined, id: string) {
+    const request = await this.ownRequest(await this.userId(auth), id);
+    await this.close(request, 'member');
+    return this.mine(auth, id);
+  }
+  /** Permanent: the request and every message are deleted. */
+  async memberDelete(auth: string | undefined, id: string) {
+    const request = await this.ownRequest(await this.userId(auth), id);
+    await this.db.careRequest.delete({ where: { id: request.id } });
+    return { deleted: true };
+  }
+
+  // ---------- Pastor ----------
+
+  async pastorStatus(auth?: string) {
+    const userId = await this.userId(auth);
+    const [verification, profile] = await Promise.all([this.db.ministryVerification.findUnique({ where: { userId } }), this.db.pastorProfile.findUnique({ where: { userId } })]);
+    const active = !!profile && isActivePastor(verification);
+    if (!active) return { active: false };
+    const openCases = await this.db.careRequest.count({ where: { pastorId: userId, status: 'CLAIMED' } });
+    return { active: true, displayName: profile!.displayName, languages: profile!.languages, acceptingRequests: profile!.acceptingRequests, openCases, maxOpenRequests: profile!.maxOpenRequests };
+  }
+  async setAvailability(auth: string | undefined, accepting: unknown) {
+    const { userId } = await this.activePastor(auth);
+    if (typeof accepting !== 'boolean') throw new BadRequestException('Invalid availability');
+    await this.db.pastorProfile.update({ where: { userId }, data: { acceptingRequests: accepting } });
+    return this.pastorStatus(auth);
+  }
+
+  /** Waiting requests in the pastor's languages. Content stays hidden until a pastor claims the request. */
+  async queue(auth?: string) {
+    const { userId, profile } = await this.activePastor(auth);
+    const rows = await this.db.careRequest.findMany({ where: { status: 'OPEN', language: { in: profile.languages }, memberId: { not: userId } }, orderBy: { createdAt: 'asc' }, take: 100, select: { id: true, topic: true, language: true, contactPreference: true, createdAt: true } });
+    return rows;
+  }
+  async claim(auth: string | undefined, id: string) {
+    const { userId, profile } = await this.activePastor(auth);
+    this.checkId(id);
+    if (!profile.acceptingRequests) throw new ConflictException('Turn on “accepting requests” before claiming');
+    const open = await this.db.careRequest.count({ where: { pastorId: userId, status: 'CLAIMED' } });
+    if (open >= profile.maxOpenRequests) throw new ConflictException(`You already have ${open} open conversations, your limit`);
+    const request = await this.db.careRequest.findUnique({ where: { id } });
+    if (!request) throw new NotFoundException('Request not found');
+    if (request.memberId === userId) throw new ForbiddenException('You cannot take your own request');
+    if (!profile.languages.includes(request.language)) throw new ForbiddenException('This request is in a language you have not listed');
+    // Atomic: only one pastor can move a request from OPEN to CLAIMED.
+    const claimed = await this.db.careRequest.updateMany({ where: { id, status: 'OPEN' }, data: { status: 'CLAIMED', pastorId: userId, claimedAt: new Date() } });
+    if (!claimed.count) throw new ConflictException('Another pastor has already taken this request');
+    return this.case(auth, id);
+  }
+  async cases(auth?: string) {
+    const { userId } = await this.activePastor(auth);
+    const rows = await this.db.careRequest.findMany({ where: { pastorId: userId }, orderBy: { claimedAt: 'desc' }, take: 50, include: { messages: { orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } } } });
+    return rows.map(r => this.summary(r, 'pastor'));
+  }
+  private async ownCase(pastorId: string, id: string) {
+    this.checkId(id);
+    const request = await this.db.careRequest.findFirst({ where: { id, pastorId } });
+    if (!request) throw new NotFoundException('Request not found');
+    return request as Request;
+  }
+  async case(auth: string | undefined, id: string) { const { userId } = await this.activePastor(auth); return this.thread(await this.ownCase(userId, id), 'pastor'); }
+  async pastorReply(auth: string | undefined, id: string, text: unknown) {
+    const { userId } = await this.activePastor(auth);
+    const request = await this.ownCase(userId, id);
+    if (request.status !== 'CLAIMED') throw new ConflictException('This conversation is closed');
+    await this.addMessage(request, 'pastor', text);
+    return this.thread(request, 'pastor');
+  }
+  async pastorClose(auth: string | undefined, id: string) {
+    const { userId } = await this.activePastor(auth);
+    await this.close(await this.ownCase(userId, id), 'pastor');
+    return this.case(auth, id);
+  }
+
+  // ---------- Shared ----------
+
+  private async addMessage(request: Request, role: Role, text: unknown) {
+    const body = this.text(text, CARE_LIMITS.message, 'Message');
+    const id = randomUUID();
+    await this.db.careMessage.create({ data: { id, requestId: request.id, senderRole: role, ciphertext: this.seal('message', request, body, id) } });
+    await this.db.careRequest.update({ where: { id: request.id }, data: role === 'member' ? { memberReadAt: new Date() } : { pastorReadAt: new Date() } });
+  }
+  private async close(request: Request, by: Role) {
+    if (request.status === 'CLOSED') return;
+    const now = new Date();
+    await this.db.careRequest.update({ where: { id: request.id }, data: { status: 'CLOSED', closedAt: now, closedBy: by, deleteAfter: new Date(now.getTime() + CARE_LIMITS.retentionDays * 86400000) } });
+  }
+}
