@@ -1802,3 +1802,19 @@ progress::-moz-progress-bar { background: var(--purple); }
 .care-message p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
 .care-author { font-size: 12px; color: var(--muted); font-weight: 700; }
 .care-phone { user-select: all; font-variant-numeric: tabular-nums; }
+/* Pastoral care: shared states, touch targets and narrow screens */
+.care-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.care-check { min-height: 44px; align-items: center; }
+.care-check input { margin-top: 0; width: 18px; height: 18px; flex-shrink: 0; }
+.care-loading { display: grid; gap: 12px; padding: 6px 0; }
+.care-loading div:nth-of-type(3n+2) { width: 82%; }
+.care-loading div:nth-of-type(3n) { width: 64%; }
+.empty.care-empty { padding: 24px 12px; }
+.care-empty p { margin: 10px 0 0; line-height: 1.6; }
+.care-list .prayer-item-head { flex-wrap: wrap; }
+.status-card h1 { font-size: 22px; }
+.care-message:not(.mine) .care-author { color: var(--deep); }
+.care-phone { text-decoration: underline; text-underline-offset: 3px; font-weight: 800; color: var(--deep); }
+:root[data-theme='dark'] .text-link { color: var(--purple); }
+:root[data-theme='dark'] .empty svg { color: var(--purple); }
+@media (max-width: 420px) { .care-message { max-width: 100%; } .care-queue-item .btn { justify-self: stretch; } }
