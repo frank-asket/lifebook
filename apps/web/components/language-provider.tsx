@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { api, type ProfileResponse } from '../lib/api';
 export type Language = 'en' | 'fr';
@@ -40,11 +40,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = language;
     document.documentElement.dataset.language = language;
   }, [language]);
-  const change = (value: Language) => {
+  const change = useCallback((value: Language) => {
     revision.current += 1;
     setLanguage(value); remember(value);
-  };
-  return <LanguageContext.Provider value={{ language, setLanguage: change }}>{children}</LanguageContext.Provider>;
+  }, []);
+  // Every <L> string consumes this context, so keep the value stable across auth re-renders.
+  const value = useMemo(() => ({ language, setLanguage: change }), [language, change]);
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 export function useLanguage() { return useContext(LanguageContext); }
 export function L({ en, fr }: { en: string; fr: string }) {

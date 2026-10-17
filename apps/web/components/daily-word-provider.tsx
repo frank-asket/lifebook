@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { dailyWordDate, type DailyWord } from '../lib/daily-word';
 import { useLanguage } from './language-provider';
@@ -27,7 +27,11 @@ export function DailyWordProvider({ children }: { children: React.ReactNode }) {
       .catch(error => { if (!controller.signal.aborted) setState({ key, word: null, loading: false, error: error instanceof Error ? error.message : 'Unable to load today’s Word.' }); });
     return () => controller.abort();
   }, [key, date, language, attempt]);
-  const current = state.key === key ? state : { word: null, loading: true, error: '' };
-  return <DailyWordContext.Provider value={{ ...current, date, retry: () => setAttempt(n => n + 1) }}>{children}</DailyWordContext.Provider>;
+  const retry = useCallback(() => setAttempt(n => n + 1), []);
+  const value = useMemo(() => {
+    const current = state.key === key ? state : { word: null, loading: true, error: '' };
+    return { word: current.word, loading: current.loading, error: current.error, date, retry };
+  }, [state, key, date, retry]);
+  return <DailyWordContext.Provider value={value}>{children}</DailyWordContext.Provider>;
 }
 export const useDailyWord = () => useContext(DailyWordContext);
