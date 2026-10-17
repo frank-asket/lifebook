@@ -26,6 +26,15 @@ The supplied provider credential was tested only against API.Bible; both approve
 
 In production mode the API refuses startup without a valid reflection key ring and active key. Configure and verify keys **before** any application rollout. No startup task creates keys, runs migrations, or rewrites existing private records.
 
+## Local staging settings
+
+`node scripts/staging-env.cjs init` creates the gitignored `.env.staging` with fresh, staging-only annotation and reflection keys (never printed). Fill in the remaining values locally, then:
+
+- `node scripts/staging-env.cjs check` lists which settings are present, by name only.
+- `node scripts/staging-env.cjs migrate` refuses any database whose Supabase project matches production (`apps/api/.env`), runs `prisma migrate deploy`, then confirms there is no schema difference.
+
+Copy the same values into the Render and Vercel staging settings. Back up the generated keys in a password manager; losing them makes staging notes and reflections unreadable.
+
 ## Database setup and verification
 
 Fresh empty staging databases can replay all six reviewed migrations using explicit `prisma migrate deploy` after verifying the target. Existing databases must first be inspected and backed up; never reuse migration-reconciliation decisions without checking that specific database. The generic `db:migrate` shortcut is disabled to prevent accidental development migrations.
