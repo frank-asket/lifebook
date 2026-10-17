@@ -136,8 +136,8 @@ export class CareService implements OnModuleDestroy {
 
   /** Waiting requests in the pastor's languages. Content stays hidden until a pastor claims the request. */
   async queue(auth?: string) {
-    const { profile } = await this.activePastor(auth);
-    const rows = await this.db.careRequest.findMany({ where: { status: 'OPEN', language: { in: profile.languages } }, orderBy: { createdAt: 'asc' }, take: 100, select: { id: true, topic: true, language: true, contactPreference: true, createdAt: true } });
+    const { userId, profile } = await this.activePastor(auth);
+    const rows = await this.db.careRequest.findMany({ where: { status: 'OPEN', language: { in: profile.languages }, memberId: { not: userId } }, orderBy: { createdAt: 'asc' }, take: 100, select: { id: true, topic: true, language: true, contactPreference: true, createdAt: true } });
     return rows;
   }
   async claim(auth: string | undefined, id: string) {

@@ -58,6 +58,12 @@ test('care requests stay private to the member and the one pastor who claims the
       assert.deepEqual(queue.map(q => q.id), [request.id], 'the French request is outside this pastor’s languages');
       assert.deepEqual(Object.keys(queue[0]).sort(), ['contactPreference', 'createdAt', 'id', 'language', 'topic']);
       await assert.rejects(care.case('pastorA', request.id), /not found/, 'content is hidden until claimed');
+      // A pastor who asks for care as a member never sees their own request in the queue.
+      const own = await care.create('pastorB', { ...valid, contactPreference: 'messages', phone: undefined });
+      assert.equal((await care.queue('pastorB')).some(q => q.id === own.id), false);
+      assert.equal((await care.queue('pastorA')).some(q => q.id === own.id), true);
+      await assert.rejects(care.claim('pastorB', own.id), /accepting requests|your own request/);
+      await care.memberDelete('pastorB', own.id);
 
       await assert.rejects(care.claim('pastorA', request.id), /accepting requests/);
       await care.setAvailability('pastorA', true); await care.setAvailability('pastorB', true);

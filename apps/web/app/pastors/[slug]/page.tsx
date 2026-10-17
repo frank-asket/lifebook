@@ -35,7 +35,7 @@ export default function PastorProfile() {
             </dl>
           </article>
           <div className="stack">
-            <div className="card"><h3 className="icon-line"><Clock size={18} aria-hidden="true"/> {tr('Asking for a pastor', 'Demander un pasteur')}</h3><p className="subheading">{tr('Soon you will be able to ask a pastor to pray with you or reach out privately through LifeBook.', 'Vous pourrez bientôt demander à un pasteur de prier avec vous ou de vous contacter en privé via LifeBook.')}</p></div>
+            <div className="card"><h3 className="icon-line"><Clock size={18} aria-hidden="true"/> {tr('Asking for a pastor', 'Demander un pasteur')}</h3><p className="subheading">{tr('Ask a verified pastor to pray with you or reach out privately. The first available pastor who speaks your language will reply, usually within 24 hours.', 'Demandez à un pasteur vérifié de prier avec vous ou de vous contacter en privé. Le premier pasteur disponible qui parle votre langue répondra, en général sous 24 heures.')}</p><Link className="btn btn-primary" href="/care">{tr('Ask a pastor', 'Demander un pasteur')}</Link></div>
             <div className="card" style={{ background: 'var(--pink)' }}><span className="eyebrow">{tr('IN AN EMERGENCY', 'EN CAS D’URGENCE')}</span><p style={{ marginTop: 12, marginBottom: 0, lineHeight: 1.7 }}>{tr('Pastors are not an emergency service. If you or someone else is in danger, call 112 now.', 'Les pasteurs ne sont pas un service d’urgence. Si vous ou quelqu’un d’autre êtes en danger, appelez le 112.')}</p></div>
           </div>
         </div>}
