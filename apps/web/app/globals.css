@@ -1816,8 +1816,8 @@ progress::-moz-progress-bar { background: var(--purple); }
 .gm-crisis p { margin: 0; }
 .gm-crisis ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .sg-stat { display: grid; gap: 6px; }
-.sg-stat strong { font-size: 30px; font-variant-numeric: tabular-nums; }
-.sg-stat.warn { border-color: #d9a441; }
+.sg-stat strong { font-size: 30px; font-variant-numeric: tabular-nums; color: var(--deep); }
+.sg-stat.warn { border-color: #a8761c; border-width: 2px; }
 .sg-overdue { justify-self: start; background: #fbf1df; color: #8a5a12; }
 .sg-report { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
 .sg-table-wrap { overflow-x: auto; }
@@ -1826,3 +1826,10 @@ progress::-moz-progress-bar { background: var(--purple); }
 .sg-table th { font-size: 12px; color: var(--muted); font-weight: 700; }
 .sg-suspend { display: flex; gap: 8px; flex-wrap: wrap; }
 .sg-suspend .input { min-width: 160px; flex: 1; }
+
+/* Safeguarding: dark-theme versions of the amber warning colours, readable table headers and focus. */
+:root[data-theme='dark'] .sg-stat.warn { border-color: #b98a35; }
+:root[data-theme='dark'] .sg-overdue { background: #3a2c14; color: #f1c67e; }
+.sg-table tbody th { font-weight: 400; text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.sg-table-wrap:focus-visible, .sg-report h3:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; border-radius: 8px; }
+.sg-report h3:focus:not(:focus-visible) { outline: none; }

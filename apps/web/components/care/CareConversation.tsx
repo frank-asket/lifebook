@@ -6,6 +6,9 @@ import { LockKeyhole, Phone } from 'lucide-react';
 import { careApi, statusLabel, topicLabel, type CareThread } from '../../lib/care-api';
 import { CARE_MESSAGE_MAX } from './limits';
 import { ReportConcern } from './ReportConcern';
+import { CareError, CareLoading, useCareToken } from './states';
+
+type Ui = 'en' | 'fr';
 
 /** One private conversation, seen by the member or by the pastor who claimed it. */
 export function CareConversation({ id, viewer, language }: { id: string; viewer: 'member' | 'pastor'; language: Ui }) {
@@ -34,7 +37,7 @@ export function CareConversation({ id, viewer, language }: { id: string; viewer:
   return <div className="care-thread stack">
     {heading}
     <div className="card">
-      <div className="split-title" style={{ flexWrap: 'wrap', gap: 10 }}><span className="pill"><LockKeyhole size={13}/> {tr('Private conversation', 'Conversation privée')}</span><span className="muted">{topicLabel(thread.topic, language)} · {statusLabel(thread.status, language)}</span></div>
+      <div className="split-title" style={{ flexWrap: 'wrap', gap: 10 }}><span className="pill"><LockKeyhole size={13} aria-hidden="true"/> {tr('Private conversation', 'Conversation privée')}</span><span className="muted">{statusLabel(thread.status, language)}</span></div>
       {viewer === 'member' && thread.status === 'OPEN' && Date.now() - Date.parse(thread.createdAt) > 24 * 3600000 && <p className="alert" style={{ marginTop: 14 }}>{tr('No pastor has been able to take your request yet. We are sorry for the wait; LifeBook’s safeguarding lead has been alerted. If you need to talk to someone now, call 3114 in France or 0800 678 678 in Ghana; in danger, call 112.', 'Aucun pasteur n’a encore pu prendre votre demande. Nous sommes désolés de l’attente ; le référent protection de LifeBook a été alerté. Pour parler à quelqu’un maintenant, appelez le 3114 en France ou le 0800 678 678 au Ghana ; en cas de danger, le 112.')}</p>}
       {viewer === 'member' && thread.status === 'CLOSED' && thread.closedBy === 'system' && <p className="alert" style={{ marginTop: 14 }}>{tr('We are sorry: no pastor was able to take this request within 30 days, so it was closed. You are welcome to ask again.', 'Nous sommes désolés : aucun pasteur n’a pu prendre cette demande en 30 jours, elle a donc été fermée. Vous pouvez en faire une nouvelle.')}</p>}
       {viewer === 'member' && thread.status === 'OPEN' && <p className="notice" style={{ marginTop: 14 }}>{tr('A pastor who speaks your language will reply, usually within 24 hours. This is not an emergency service: if you are in danger, call 112.', 'Un pasteur qui parle votre langue vous répondra, en général sous 24 heures. Ce n’est pas un service d’urgence : en cas de danger, appelez le 112.')}</p>}
@@ -45,7 +48,7 @@ export function CareConversation({ id, viewer, language }: { id: string; viewer:
       {error ? <div style={{ marginTop: 12 }}><CareError error={error} language={language}/></div> : null}
     </div>
     {(viewer === 'pastor' || thread.status !== 'OPEN') && <ReportConcern id={id} viewer={viewer} language={language}/>}
-    {viewer === 'member' && <div className="card"><h3>{tr('Your data', 'Vos données')}</h3><p className="subheading">{tr('Only you and the pastor who takes your request can read this. Closed conversations are deleted after 90 days, or you can delete it now.', 'Seuls vous et le pasteur qui prend votre demande pouvez la lire. Les conversations terminées sont supprimées après 90 jours, ou vous pouvez la supprimer maintenant.')}</p><button className="btn btn-outline" disabled={busy} onClick={() => void remove()}>{tr('Delete permanently', 'Supprimer définitivement')}</button></div>}
+    {viewer === 'member' && <section className="card" aria-labelledby="care-data-title"><h2 id="care-data-title" style={{ fontSize: 19 }}>{tr('Your data', 'Vos données')}</h2><p className="subheading">{tr('Only you and the pastor who takes your request can read this. Closed conversations are deleted after 90 days, or you can delete it now.', 'Seuls vous et le pasteur qui prend votre demande pouvez la lire. Les conversations terminées sont supprimées après 90 jours, ou vous pouvez la supprimer maintenant.')}</p><button type="button" className="btn btn-outline" disabled={busy} onClick={remove}>{tr('Delete permanently', 'Supprimer définitivement')}</button></section>}
   </div>;
 }
 

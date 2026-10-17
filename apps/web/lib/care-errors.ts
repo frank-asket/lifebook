@@ -23,6 +23,17 @@ const french: Record<string, string> = {
   'You cannot take your own request': 'Vous ne pouvez pas prendre votre propre demande.',
   'This request is in a language you have not listed': 'Cette demande est dans une langue que vous n’avez pas indiquée.',
   'Another pastor has already taken this request': 'Un autre pasteur a déjà pris cette demande.',
+  'Choose what the concern is about': 'Choisissez l’objet du signalement.',
+  'Say whether to share the conversation': 'Indiquez si la conversation doit être partagée.',
+  'You have sent several reports today. If someone is in danger, call 112 now.': 'Vous avez déjà envoyé plusieurs signalements aujourd’hui. Si quelqu’un est en danger, appelez le 112 maintenant.',
+  'Only the safeguarding lead can open this': 'Seul le référent protection peut ouvrir ceci.',
+  'Report not found': 'Signalement introuvable.',
+  'Pastor not found': 'Pasteur introuvable.',
+  'Describe how the report was resolved': 'Décrivez comment le signalement a été résolu.',
+  'This report is already resolved': 'Ce signalement est déjà résolu.',
+  'This report is not waiting for acknowledgement': 'Ce signalement n’attend pas de prise en compte.',
+  'Give a reason for the suspension': 'Indiquez le motif de la suspension.',
+  'You cannot suspend yourself': 'Vous ne pouvez pas vous suspendre vous-même.',
 };
 const generic = { en: 'Something went wrong. Please try again.', fr: 'Une erreur est survenue. Veuillez réessayer.' };
 

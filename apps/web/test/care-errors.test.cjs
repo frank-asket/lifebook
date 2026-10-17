@@ -26,3 +26,7 @@ test('unknown or empty errors fall back to a generic message in the UI language'
   assert.equal(careErrorMessage(null, 'en'), 'Something went wrong. Please try again.');
   assert.equal(careErrorMessage({ message: '  ' }, 'fr'), 'Une erreur est survenue. Veuillez réessayer.');
 });
+test('safeguarding report errors are translated to French', () => {
+  assert.equal(careErrorMessage(new Error('You have sent several reports today. If someone is in danger, call 112 now.'), 'fr'), 'Vous avez déjà envoyé plusieurs signalements aujourd’hui. Si quelqu’un est en danger, appelez le 112 maintenant.');
+  assert.equal(careErrorMessage(new Error('Give a reason for the suspension'), 'fr'), 'Indiquez le motif de la suspension.');
+});
