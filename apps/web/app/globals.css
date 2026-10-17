@@ -1802,3 +1802,49 @@ progress::-moz-progress-bar { background: var(--purple); }
 .care-message p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
 .care-author { font-size: 12px; color: var(--muted); font-weight: 700; }
 .care-phone { user-select: all; font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   INTERACTION AND CRAFT (see DESIGN.md "Motion and feedback")
+   ============================================================ */
+
+/* Size-specific tracking and leading: large headings tighter, small ones near zero. */
+h1 { letter-spacing: -.03em; line-height: 1.2; }
+h2 { letter-spacing: -.022em; line-height: 1.3; }
+h3, h4 { letter-spacing: -.012em; line-height: 1.35; }
+
+/* Feedback on press, not on release; no 300ms double-tap delay. */
+a, summary, label, .choice, .tag { touch-action: manipulation; }
+.btn:active:not(:disabled) { transform: scale(.97); transition-duration: .1s; }
+.icon-button:active, .nav-link:active, .mobile-menu > a:active, .mobile-more > summary:active, .tag:active { transform: scale(.97); transition: transform .1s ease-out; }
+.prayer-item:active, .choice:active, .dw-step:active, .study-category:active, .journey-stages a:active, .reading-entry-grid a:active { transform: scale(.985); transition: transform .1s ease-out; }
+
+/* Hover lifts only where a pointer can hover; on touch they stick after a tap. */
+@media (hover: none) {
+  .btn:hover, .study-category:hover, .journey-stages a:hover { transform: none; }
+}
+
+/* Ease theme changes on the large surfaces instead of an abrupt brightness jump. */
+@media (prefers-reduced-motion: no-preference) {
+  body, .sidebar, .mobile-top, .mobile-menu { transition: background-color .18s, color .18s, border-color .18s; }
+}
+
+/* The More panel rises from the bottom bar that opened it. */
+@keyframes lb-rise { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  .mobile-more[open] .mobile-more-panel { transform-origin: bottom right; animation: lb-rise .18s cubic-bezier(.2, .8, .2, 1); }
+}
+
+/* Scroll edge: the mobile header's divider appears only once content scrolls under it. */
+@keyframes lb-scroll-edge { from { border-bottom-color: transparent; } to { border-bottom-color: var(--line); } }
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+    .mobile-top { animation: lb-scroll-edge linear both; animation-timeline: scroll(root); animation-range: 0 40px; }
+  }
+}
+
+/* Higher contrast when the system asks for it. */
+@media (prefers-contrast: more) {
+  :root { --line: #c4bdd4; --muted: #57526a; }
+  :root[data-theme='dark'] { --line: #6a5f80; --muted: #d6cce4; }
+  .card, .prayer-item, .input, .textarea, .select { border-width: 1.5px; }
+}
