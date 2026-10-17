@@ -7,6 +7,8 @@ import { decryptReflection, encryptReflection } from '../security/reflection-cry
 
 export const CARE_TOPICS = ['prayer', 'grief', 'family', 'faith', 'relationships', 'work', 'health', 'loneliness', 'other'] as const;
 export const CARE_LIMITS = { message: 2000, name: 60, openPerMember: 2, retentionDays: 90 };
+export const REPORT_CATEGORIES = ['safety', 'conduct', 'money', 'pressure', 'other'] as const;
+export const REPORT_LIMITS = { details: 2000, perDay: 5, retentionDaysAfterResolved: 365 };
 type Role = 'member' | 'pastor';
 type Field = 'request' | 'name' | 'phone' | 'message';
 type Request = { id: string; memberId: string; pastorId: string | null; topic: string; language: string; contactPreference: string; nameCiphertext: string | null; phoneCiphertext: string | null; messageCiphertext: string; status: string; claimedAt: Date | null; closedAt: Date | null; closedBy: string | null; createdAt: Date; memberReadAt: Date | null; pastorReadAt: Date | null; updatedAt: Date };
@@ -178,6 +180,38 @@ export class CareService implements OnModuleDestroy {
     const { userId } = await this.activePastor(auth);
     await this.close(await this.ownCase(userId, id), 'pastor');
     return this.case(auth, id);
+  }
+
+  // ---------- Reports ----------
+
+  async memberReport(auth: string | undefined, id: string, input: Record<string, unknown>) {
+    const memberId = await this.userId(auth);
+    return this.report(await this.ownRequest(memberId, id), memberId, 'member', input);
+  }
+  async pastorReport(auth: string | undefined, id: string, input: Record<string, unknown>) {
+    const { userId } = await this.activePastor(auth);
+    return this.report(await this.ownCase(userId, id), userId, 'pastor', input);
+  }
+  /** Sends a concern to the safeguarding lead. The conversation goes with it only if the reporter chooses. */
+  private async report(request: Request, reporterId: string, role: Role, input: Record<string, unknown>) {
+    if (typeof input.category !== 'string' || !(REPORT_CATEGORIES as readonly string[]).includes(input.category)) throw new BadRequestException('Choose what the concern is about');
+    if (typeof input.shareConversation !== 'boolean') throw new BadRequestException('Say whether to share the conversation');
+    const details = this.text(input.details, REPORT_LIMITS.details, 'Details');
+    const since = new Date(Date.now() - 86400000);
+    if (await this.db.careReport.count({ where: { reporterId, createdAt: { gte: since } } }) >= REPORT_LIMITS.perDay) throw new ConflictException('You have sent several reports today. If someone is in danger, call 112 now.');
+    const id = randomUUID();
+    let transcriptCiphertext: string | null = null;
+    if (input.shareConversation) {
+      const messages = await this.db.careMessage.findMany({ where: { requestId: request.id }, orderBy: { createdAt: 'asc' } });
+      const transcript = [{ from: 'member', at: request.createdAt, text: this.open('request', request, request.messageCiphertext) },
+        ...messages.map(m => ({ from: m.senderRole, at: m.createdAt, text: this.open('message', request, m.ciphertext, m.id) }))];
+      transcriptCiphertext = encryptReflection(JSON.stringify(transcript), `care-report:transcript:${id}`);
+    }
+    await this.db.careReport.create({ data: {
+      id, requestId: request.id, reporterId, reporterRole: role, subjectPastorId: role === 'member' ? request.pastorId : null, category: input.category,
+      detailsCiphertext: encryptReflection(details, `care-report:details:${id}`), transcriptCiphertext,
+    } });
+    return { reported: true, sharedConversation: !!transcriptCiphertext };
   }
 
   // ---------- Shared ----------
