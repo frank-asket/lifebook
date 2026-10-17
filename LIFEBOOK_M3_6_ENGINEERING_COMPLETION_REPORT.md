@@ -1,245 +1,178 @@
 # LifeBook M3.6 Engineering Completion Report
 
-**Assessment date:** 16 October 2026, Africa/Accra (UTC).  
-**Verdict:** **M3.6 NOT SIGNED OFF.** Builds, migration reconciliation and isolated persistence tests pass. Live Bible delivery is blocked by missing translation configuration; authenticated production journeys and a separate staging environment have not been validated. Do not start M3.7 as a substitute for these release gates.
+**Assessment date:** 17 October 2026  
+**Code assessed:** `main` at `d4a3e85` (v0.0.3.1, PR #14). This includes PR #13 (v0.0.3.0, M3.6 source readiness) and PR #14 (French label fixes).  
+**Supersedes:** the 16 October version of this report. That version was written before PR #13 and PR #14 landed. Its findings are in Git history (`dca2b2e`).
 
-**Scope:** Audited the deployed code tree at `ccc7da5` (equivalent to feature commit `28bc606`), its changes since M3.6 baseline `97a9f0a`, and the current public API/database state. New work is on `codex/m36-completion-audit`. The previous UI releases were already merged before this request. This audit introduces no production deployment, production database write, migration repair, seed or schema change.
+**Verdict: M3.6 is code-complete and technically verified. Operational sign-off is still pending.** Every build passes. All 17 automated tests (10 API, 7 web) pass with none skipped, including database integration tests run against a disposable PostgreSQL. Supabase has no pending migrations and no drift. The live Bible Reader now serves English and French. The remaining gates are operational, not code: an authenticated two-account acceptance run, a separate staging environment, a production Clerk instance, published meditation and study content, and an approved backfill of legacy plaintext reflections. **Do not start M3.7 until those gates close.**
+
+This assessment made **no production database writes, migrations, repairs, seeds, deployments or configuration changes**. The production checks were `prisma migrate status`, a `prisma migrate diff` (both read-only) and unauthenticated GET requests.
+
+---
 
 ## 1. Files modified and bugs fixed
 
-Historical fixes reviewed across the 64-path change inventory below:
+### Since the previous report (PR #13, v0.0.3.0, 46 files)
 
-- Removed duplicate `apps/web/src/app/bible/read` and its duplicate reader component; `apps/web/app` is the sole App Router root. Reader content routes are registered in NestJS. Both Next.js applications build their expected routes.
-- Reconciled the initial migration's exact original bytes and added the missing meditation/study migration history. Current source matches the live ledger; this is no longer pending work.
-- Fixed reader styling/integration, history error visibility, enrollment/completion feedback, user-scoped requests, and dashboard step links.
-- Fixed desktop rendering of mobile tabs; centralized the daily passage for Dashboard, Daily Word and Moment of Peace; moved application-language saving to Settings; improved theme, responsive navigation, accessibility and page states.
-- Marketing destinations and mobile/tablet overflow were corrected. Existing feature destinations remain present; dormant Prayer/LivingWord capabilities were not represented as implemented features.
-
-**New files/changes in this audit only:**
-
-| File | Change |
+| Area | Change |
 | --- | --- |
-| `apps/web/app/meditation/page.tsx` | Treat the API's unpublished-meditation 404 as the existing empty state. Previously the UI expected null and presented missing content as a service failure. 503 remains an error. |
-| `apps/api/test/m36-persistence.test.cjs` | Add opt-in, rollback-only PostgreSQL tests for reading, completion semantics, encrypted annotations, Daily Word, meditation and ownership. Rejects any target except loopback `/lifebook_restore`. Identity is stubbed deliberately. |
-| This report | Consolidate current results, feature gaps, security findings, staging gates and the historical change inventory. |
+| Bible annotations | Reader annotation panel for bookmarks, colored verse marks and private notes (`components/bible/AnnotationPanel.tsx`), plus a new **Saved verses** page (`app/bible/annotations`). |
+| Reflection privacy | Shared versioned AES-GCM envelope bound to the owner and record (`api/src/security/reflection-crypto.ts`). New meditation and Daily Word reflections are encrypted, and legacy plaintext rows can still be read. |
+| Backfill tooling | `scripts/reflection-backfill.cjs` scans read-only by default. `--apply` works only against a loopback database, is idempotent and prints counts only. |
+| Auth consistency | Bible reading now returns 401, not 400, when there is no token (confirmed live). |
+| Rate limiting | Global `@nestjs/throttler` guard (default 120 requests/min per route and IP) with validated `TRUST_PROXY_HOPS`. |
+| Dependencies | Next 15.5.28 / React 19.3.1 for web and marketing; NestJS 11.2.7. Async page params migrated. |
+| CI | Frozen installs, action SHAs pinned, PostgreSQL 17 service with migration replay, all API and web tests. |
+| Docker | Non-root Node 22 image built from the lockfile; secrets excluded from the build context; no migrations at startup. |
+| Deployment | `render.staging.yaml`, provider preflight (`verify-bible-provider.cjs`), two-account smoke test (`scripts/staging-smoke.cjs`), runbook at `deploy/staging/README.md`. |
+| Safety | Root `db:migrate` now refuses to run (`migration-safety.cjs`). Production startup refuses to run without reflection keys. |
 
-These changes stay on the feature branch. No new feature was removed or added to the public release in this audit.
+### PR #14 (v0.0.3.1, 7 files)
 
-## 2. Build and test results
+French labels for dashboard actions and saved learning preferences (`app/dashboard`, `app/settings`, `lib/api.ts`), with a new regression test `apps/web/test/profile-labels.regression-1.test.cjs`.
 
-| Check executed during this audit | Result |
+### Earlier M3.6 fixes (already verified in the previous report)
+
+These remain in place: the duplicate `apps/web/src` App Router tree is gone, the initial migration checksum is reconciled, meditation and study migration history is restored, the daily passage is shared across pages, and a 404 for an unpublished meditation shows the empty state.
+
+### This assessment
+
+The only change is this report. No source changes were needed: nothing failed.
+
+## 2. Build and test results (run 17 Oct on `d4a3e85`)
+
+| Check | Result |
 | --- | --- |
-| `pnpm --filter @lifebook/api exec prisma validate` | PASS |
-| `pnpm --filter @lifebook/api prisma:generate` | PASS |
-| `pnpm --filter @lifebook/api build` | PASS |
-| `pnpm --filter @lifebook/web build` | PASS, including a rebuild after the 404 fix |
-| `pnpm --filter @lifebook/marketing build` | PASS |
-| `pnpm --filter @lifebook/mobile exec tsc --noEmit` | PASS; no native-device session |
-| `node --test apps/web/test/ui-navigation.test.cjs` | 5 passed |
-| API tests without an isolated URL | 4 passed; study test correctly skipped. Not counted as database verification. |
-| All three API test files with isolated URLs | **6 passed, zero skipped**: four reader regressions, study integration, new M3.6 integration |
-| Empty local PostgreSQL 17 database: replay all migrations and compare schema | PASS; six migrations, 25 public tables, no difference |
-| Restore immutable pre-study backup into another new local database | PASS; 21 historical public tables restored |
-| Browser regression for unpublished meditation | PASS: 404 → empty state, 503 → error |
-| Production public API checks | Mixed; details below |
-| `git diff --check` | PASS |
+| `pnpm install --frozen-lockfile` | PASS (lockfile up to date) |
+| `prisma validate` / `prisma generate` | PASS / PASS |
+| `@lifebook/api build` (NestJS) | PASS |
+| `@lifebook/web build` (Next.js 15) | PASS (22 routes, listed below) |
+| `@lifebook/marketing build` | PASS |
+| `@lifebook/mobile tsc --noEmit` | PASS |
+| Replay all migrations into an empty PostgreSQL 17 (Docker, loopback only) | PASS: 6 migrations, 25 public tables |
+| `prisma migrate diff` (replayed DB against `schema.prisma`) | **No difference** |
+| API tests (`apps/api/test/*.test.cjs`) with the disposable DB | **10/10 pass, 0 skipped** |
+| Web tests (`apps/web/test/*.test.cjs`) | **7/7 pass, 0 skipped** |
+| Remote GitHub CI on the `main` merge of PR #14 | **success** (run 38990746954) |
 
-To rerun the integration suites: build the API, prepare a migrated disposable loopback database named `lifebook_restore`, and set `LIFEBOOK_STUDY_TEST_DATABASE_URL` and `LIFEBOOK_M36_TEST_DATABASE_URL` to that database before running `node --test apps/api/test/*.test.cjs`. Set runtime `DATABASE_URL`/`DIRECT_URL` to the same local target too. Never use Supabase URLs for these tests.
+The 10 API tests cover reader registration, the translation contract, history scoping, plan enrollment and completion ownership, Bible Study persistence, HTTP auth/validation/throttling (including spoofed IPs), M3.6 persistence with encrypted notes, an idempotent backfill dry-run, envelope tamper detection with key rotation, and staging tools refusing unsafe targets.
 
-The earlier UI release's **80 layout checks across 20 routes/four widths and 28 interaction/dark checks** remain supporting evidence for that unchanged baseline, documented in `WEB_EXPERIENCE_REVIEW.md`; those full suites were not rerun in this audit. The new 404 branch was checked separately in the isolated browser harness.
+**Web routes built:** `/`, `/bible`, `/bible/[studyId]`, `/bible/annotations`, `/bible/dashboard`, `/bible/my-reading`, `/bible/plans`, `/bible/plans/[id]`, `/bible/read`, `/daily-word`, `/dashboard`, `/discipleship`, `/livingword`, `/meditation`, `/meditation/[id]`, `/meditation/history`, `/onboarding`, `/prayer`, `/settings`, `/sign-in`, `/sign-up`. There are no duplicate routes, and `apps/web/src` no longer exists.
 
-Local persistence tests use two synthetic users and real PostgreSQL queries, with fixtures rolled back. They verify revisits/history ordering, separate ownership, idempotent enrollment/day completion, day bounds, localized progress, AES-GCM note round-trips, Daily Word completion/reflection and meditation state/history. They do **not** verify Clerk token issuance, a real sign-in session, concurrent writes, or a complete browser refresh/sign-in cycle.
+**To reproduce the database tests:** start a disposable `postgres:17` on loopback with database `lifebook_restore`. Set `DATABASE_URL`, `DIRECT_URL`, `LIFEBOOK_STUDY_TEST_DATABASE_URL` and `LIFEBOOK_M36_TEST_DATABASE_URL` to it. Run `prisma migrate deploy`, then `node --test apps/api/test/*.test.cjs`. The tests reject any host other than `127.0.0.1` and any database other than `/lifebook_restore`.
 
-## 3. Features verified and remaining gaps
+## 3. Features verified
 
-| Feature | Evidence | Status / outstanding acceptance gate |
+Live checks were made against API `lifebook-yhbx.onrender.com` and web `lifebook-inky.vercel.app` (production, deployed about 11 hours before the check).
+
+| Feature | Evidence | Status |
 | --- | --- | --- |
-| Authentication | Signed-out production browser routes redirect to Clerk; private API calls reject absent tokens; signature verification traced in source | Sign-up/sign-in/sign-out, expired/invalid/other-instance token tests and two real accounts still required. Development Clerk keys were confirmed again on the production sign-in page during this audit. |
-| Onboarding | Profile API/source and prior fixture UI checks | Real account creation, update, reload and second sign-in persistence not verified. |
-| Daily Bible Meditation | Real local reflection/history/ownership persistence; new 404 UI regression | Live `/meditations/today?locale=en` and `fr` both return **404**; no eligible published meditation. Publish reviewed content in staging rather than seeding production automatically. |
-| Prayer | Source confirms in-memory draft, no submission/persistence/AI processing | Submission/retrieval is **not implemented**, not a passing feature test. Keep in M3.7 scope. |
-| Daily Word | Live English/French endpoint 200 with verse; local sessions/reflection/completion/ownership tests | Real signed-in browser save/reload still required; reflection encryption is outstanding. |
-| Bible Study | Local publication/filter/order/progress/ownership integration passes; live list 200 | Live English/French lists are empty. Editorial content and real account lesson journeys remain unverified. |
-| Bible Reader | Registered content routes and fixture chapter/locale tests | **BLOCKED LIVE:** English and French book endpoints return **503: Translation is not configured**. This occurs before chapter navigation can work. |
-| Bible Annotations | Local API/service tests verify bookmark/highlight/note writes, encrypted storage and ownership | No annotation controls or annotation API calls in the web reader. Production encryption-key availability and key recovery are unverified. |
-| Reading history / resume | Real database revisit, recency and ownership checks | Live authenticated write/read/resume after reload/sign-in still required. |
-| Reading plans | Live public list returns 3 plans in both languages; real local idempotency/day-bound/ownership tests | Signed-in staging enrollment/completion/reload required. |
-| Reading dashboard | Source and prior fixture UI checks; local `completedDays` derived from completion rows | Completion is manually asserted, not inferred from chapter opens. Real account cross-screen totals remain unverified. |
-| LivingWord | Navigation and honest forthcoming-library state retained | Content catalogue, playback and saved teachings are not implemented; M3.8 scope. |
-| Settings | Prior fixture save/failure/reload checks; language-only partial update reviewed | Real account persistence and account-menu operations remain unverified. |
+| Authentication | Signed-out document requests to every protected route redirect to the Clerk handshake. Private API endpoints return 401 without a token. Tokens are verified via `@clerk/backend`. | Gating works. **Production runs a Clerk development instance** (`pk_test_`, `*.clerk.accounts.dev`). Real sign-up/in/out was not tested. |
+| Onboarding | Profile API and source reviewed; `/me/profile` returns 401 without a token | Real account create/reload not verified |
+| Daily Bible Meditation | Encrypted reflections, history and ownership pass the DB tests | **Live: 404 in EN and FR. No published meditation.** The UI shows the empty state. |
+| Prayer | Source: in-memory draft only | **Not implemented** (M3.7 scope) |
+| Daily Word | `devotionals/latest` returns 200 in EN and FR; sessions and stats return 401 without a token; encrypted reflections tested | Signed-in save/reload not verified |
+| Bible Study | DB tests pass; the live list returns 200 | **Live library is empty in EN and FR** |
+| **Bible Reader** | Live: translation metadata, books, chapter lists and **John 3 text return 200 in EN (KJV) and FR (Darby)** | **Previous P1 blocker resolved** |
+| Bible Annotations | UI and Saved verses page shipped; AES-GCM notes and ownership tested; live endpoint returns 401 without a token | Signed-in browser run not verified |
+| Reading history and resume | Revisit recency and user scoping tested; live returns 401 without a token | Signed-in resume after reload not verified |
+| Reading plans | Live returns 3 localized plans in EN and FR; idempotent completion and day bounds tested | Signed-in enrollment and completion not verified |
+| Reading dashboard | `completedDays` comes from completion rows. Opening a chapter does **not** count as completing a day (tested). | Cross-screen totals with a real account not verified |
+| LivingWord | A clear "forthcoming" state is shown | **Not implemented** (M3.8 scope) |
+| Settings | French labels fixed in v0.0.3.1 and covered by a regression test | Real account persistence not verified |
 
-**History semantics:** Opening a chapter updates `BibleReadingHistory`; completing a plan day writes `BibleReadingPlanDayCompletion`. The new local test proves an opened chapter leaves plan `completedDays` at zero until explicit completion. Neither chapter visits nor course completion should be described as spiritual maturity.
-
-**Live read-only API observations on 16 October:**
-
-- `https://lifebook-yhbx.onrender.com/api/v1/health`: 200.
-- Daily Word, English/French: 200. Reading plans, English/French: 200 / 3 plans.
-- Study library, English/French: 200 / 0 studies.
-- Daily meditation, English/French: 404.
-- Bible books, English/French: 503, explicit missing-translation message.
-- Absent-token profile, annotations and Daily Word history: 401. Reading history: 400 and no data; auth-status consistency should be corrected, but this is not evidence of a bypass.
+**What "not verified" means here:** every signed-in journey has been tested only with stubbed identity against a real database. None has been tested end to end with a real Clerk token in a browser, because no test accounts or staging environment exist yet. That run is the single largest remaining gap.
 
 ## 4. Outstanding issues and technical debt
 
-| Priority | Finding | Concrete next action |
+| Priority | Issue | Next action |
 | --- | --- | --- |
-| P1 — M3.6 blocker | Live Bible translations are unconfigured | Configure reviewed/licensed `API_BIBLE_EN_BIBLE_ID` and `API_BIBLE_FR_BIBLE_ID` on the Render API; confirm server-only `API_BIBLE_KEY` is valid. The current response proves missing translation IDs, not whether the key is valid. Verify metadata, books, chapters and next/previous in both languages. |
-| P1 — release gate | No real authenticated acceptance run or isolated staging proof | Provision isolated staging credentials/resources and execute the two-account checklist in section 7. |
-| P1 — privacy | Meditation and Daily Word reflections lack application-level encryption | Design key lifecycle and a reviewed additive/backfill plan; rehearse with synthetic/local data. Do not rewrite production data automatically. |
-| P1 — dependency readiness | Production-workspace audit reports high/critical affected versions | Triage by runtime/exploit prerequisites and upgrade compatible packages on a dedicated branch, followed by full builds/auth tests. No blind major-version upgrade in this report. |
-| P2 | Reader annotation UI is absent | Either deliver the intended annotation workflow before broad feature sign-off or explicitly agree its deferral; do not mark bookmarks/notes complete because a table exists. |
-| P2 | No eligible daily meditations; study library empty | Publish reviewed English/French staging content and exercise actual content journeys. |
-| P2 | CI misses web regression tests and opt-in DB integration coverage | Add web tests and an isolated PostgreSQL CI job. Current study and new persistence tests safely skip without opt-in URLs. Never supply a production URL. |
-| P2 | Multiple identity implementations and Prisma clients | Consolidate later with ownership/auth regression coverage; current source verifies tokens but uses inconsistent rejection status codes. |
-| P2 | Migration command footgun | Root `db:migrate` delegates to `prisma migrate dev`. It was not run. Add an explicit local-only guard or safer command naming before wider team use. |
-| P2 | Build reproducibility and container hardening | Freeze reviewed dependency installation, pass a committed lockfile into the API Docker build, define a non-root runtime and exclude local secret files from Docker context. No committed secret was found by the limited scan. |
-| P2 — M3.7 preparation | AI environment mismatch | Render declares `AI_INTERNAL_API_KEY` but FastAPI reads `AI_INTERNAL_TOKEN`; reconcile in staging before activating anything. Generation currently returns 501 after checks. |
-| P3 | Historical docs describe superseded failures | Treat this dated report and the completed database records as current evidence; older source/UI reports preserve their historical limitations. |
+| **P1** | No real authenticated acceptance run | Create two Clerk test accounts and run `scripts/staging-smoke.cjs` plus the browser checklist in section 7 |
+| **P1** | No separate staging environment. Vercel has only `lifebook` and `lifebook-marketing` (both production); no staging Render service or Supabase project was found. | Provision from `render.staging.yaml` and `deploy/staging/README.md` |
+| **P1** | Production uses a Clerk development instance | Create a Clerk production instance (custom domain, keys, allowed origins) before public launch |
+| **P1** | Reflections written before v0.0.3.0 may still be plaintext in production | Take a fresh backup, then run the backfill **dry-run** (read-only counts) with your approval. Rehearse `--apply` on a restored copy before any production apply. |
+| **P2** | No published meditations; the study library is empty | Publish reviewed EN/FR content in staging first, then in production |
+| **P2** | Mobile dependency advisories: 1 critical, 27 high, 13 moderate, **all under `apps/mobile`**. Web, marketing and API report none. | Plan an Expo SDK upgrade on its own branch before M4.2 Mobile |
+| **P2** | The whole `/bible(.*)` area, including the reader, requires sign-in | Product decision: should anonymous visitors be able to read Scripture? |
+| **P2** | Two identity implementations and more than one Prisma client | Consolidate behind ownership regression tests |
+| **P2** | `AI_INTERNAL_API_KEY` (Render) vs `AI_INTERNAL_TOKEN` (FastAPI) mismatch | Reconcile before M3.7 activates AI |
+| **P3** | Prisma 5.22 (6.x/7.x available); pnpm 9 | Upgrade later; not a release blocker |
+| **P3** | Many overlapping status documents at the repo root (`M3.6_*`, `M36_*`, `*_REVIEW.md`) | Archive the historical ones under `docs/history/` once M3.6 closes |
 
-## 5. Database migration and backup status
+## 5. Database migration status
 
-**Current read-only Supabase verification:**
+Production Supabase (`aws-1-eu-central-1.pooler.supabase.com`), checked read-only on 17 Oct:
 
-| Migration | Completed | Source checksum equals live ledger |
-| --- | --- | --- |
-| `20261011065053_first_migration` | Yes | Yes |
-| `20261013_daily_word_sessions` | Yes | Yes |
-| `20261014_bible_annotations` | Yes | Yes |
-| `20261014_bible_reading` | Yes | Yes |
-| `20261015232900_meditation_history` | Yes | Yes |
-| `20261015233000_bible_study` | Yes | Yes |
+| Migration | Applied |
+| --- | --- |
+| `20261011065053_first_migration` | Yes |
+| `20261013_daily_word_sessions` | Yes |
+| `20261014_bible_annotations` | Yes |
+| `20261014_bible_reading` | Yes |
+| `20261015232900_meditation_history` | Yes |
+| `20261015233000_bible_study` | Yes |
 
-`prisma migrate status` says up to date. `migrate diff` from the live datasource to `schema.prisma` reports no difference. A read-only ledger transaction confirmed each checksum/completion record. The initial checksum also matches the exact Git object at `20b1afb`. **No migration is pending and no repair is proposed.**
+- `prisma migrate status` reports **"Database schema is up to date!"** (6 of 6 found and applied).
+- `prisma migrate diff` (live datasource to `schema.prisma`) reports **no difference**, so there is no drift.
+- An empty replay of all 6 migrations matches the schema exactly.
 
-Both existing backup archives were rehashed; hashes match `M3.6_DATABASE_VERIFICATION.md` and `BIBLE_STUDY_DATABASE_VERIFICATION.md`. The later pre-study archive (`20261015T232544Z/lifebook-public-before-study.dump`, SHA-256 `5b020658ba1e4ece43b0144a4cd3197c06a50d270aa4dabf8291b7089d607f3a`) restored successfully into a new local database using its verified restore list. The migration chain also replayed independently from empty and matched Prisma.
+**The Phase 2 drift issue is closed.** The two migrations that were pending are applied, and the initial migration checksum was reconciled earlier (`356d8f7`, `807e8fb`). No repair is needed or proposed.
 
-These are **historical application/public-schema backups**, not fresh backups of today's whole Supabase project. They exclude managed Auth/Storage schemas, roles and storage objects; the later archive predates the study tables. No claim is made that they cover writes since the recovery point. Any future production database change still requires a fresh, appropriately scoped recovery point, verified restore, reviewed plan and explicit user approval.
+**Backups:** the existing verified archives are from 15 Oct and cover only the public schema (not Auth, Storage or roles), and they predate the study tables. **Take a fresh, restore-tested backup before any future production write**, including the reflection backfill.
 
-The only migration deployment executed in this audit targeted a newly created local Docker PostgreSQL 17 instance with both datasource URLs overridden to loopback. Production commands were status, schema comparison and SELECT-only ledger inspection. No reset, drop, schema push, production seed, checksum edit or production migration resolve/deploy was run.
+## 6. Security findings
 
-## 6. Security findings and limits
+**In place (verified in source and/or tests):**
 
-### Confirmed concerns / release gates
+- Clerk tokens are verified with `@clerk/backend`. There is no decode-only fallback.
+- All private data (history, enrollments, annotations, Daily Word sessions, meditation state) is scoped to the resolved user. Cross-user access is rejected in tests.
+- Annotation notes use AES-256-GCM. New reflections use a versioned AES-GCM envelope bound to the owner and record, with key rotation and tamper detection tested.
+- Production startup refuses to run without reflection keys. Because the live API is up and shows post-PR #13 behavior (401 on reading history), the keys are configured, so new reflections in production should now be encrypted.
+- A global rate limiter is in place, and spoofed `X-Forwarded-For` headers are tested.
+- Input bounds are enforced on notes, reflections, locales, chapters and plan days.
+- The API.Bible key stays server-side.
+- No reflection or prayer bodies are logged in API source, and no analytics SDK appears in the web or API source.
+- Docker runs as a non-root user, CI action SHAs are pinned, and installs are frozen.
 
-- **Private reflections are plaintext at application level.** `MeditationService.reflect` writes `MeditationReflection.text`; `DailyWordService.saveReflection` writes `DailyWordReflection.content`. Ownership checks do not protect these values from privileged database/backup access. This is distinct from infrastructure encryption at rest, whose settings were not audited.
-- **Production identity readiness is incomplete.** The production sign-in browser inspection during this audit emitted Clerk’s development-key warning. SDK signature verification exists; authorized-party restrictions are conditional on configuration. Verify production instance/origins, session expiry, wrong-instance tokens and two-account isolation in staging before launch. No authentic user token was available for this audit.
-- **Dependency advisory backlog:** `pnpm audit --prod --json` returned 91 reported vulnerability findings (3 critical, 47 high, 37 moderate, 4 low) across 86 advisory records in the workspace. These are advisory/path counts, not 91 proven exploitable production vulnerabilities. Installed web/marketing Next.js is `14.2.35`; API Nest core is `10.4.22`; mobile Expo is `52.0.49`. Workspace findings include mobile/build tooling and transitive packages.
-  - Next.js's [Windows-hosted RCE advisory](https://github.com/vercel/next.js/security/advisories/GHSA-p293-qw3h-jr36) requires Windows hosting; it is **not established as applicable to Vercel/Linux**.
-  - Its [AVIF image-optimization advisory](https://github.com/vercel/next.js/security/advisories/GHSA-2xp9-vwfh-vxw4) concerns image optimization and underlying `libheif`/`sharp`. This repository's image-optimization exposure and platform mitigations were not proven; no exploit was attempted.
-  - Triage remaining Next/Nest/mobile/transitive advisories separately. Do not treat a green build or lack of an exploit demonstration as dependency clearance.
+**Open:**
 
-### Positive evidence
-
-- Clerk bearer tokens are verified through `@clerk/backend`; no decode-only fallback was found.
-- Reading enrollments, history, annotations, Daily Word sessions and meditation state are scoped to the resolved internal user. Two-user local service tests reject cross-user access; they stub identity and therefore do not establish full HTTP/JWT isolation.
-- Annotation notes use AES-256-GCM with random IVs. Local tests verify encrypted bytes and an owner-only plaintext round-trip. Production key storage, rotation/recovery and corrupted-ciphertext handling still require operational tests.
-- DTO/manual validation bounds reflection/note lengths, locales, chapters, plan days and annotation fields. Bible provider keys stay server-side; fixed provider origin and eight-second timeout are present.
-- The inspected app code does not log prayer/reflection bodies or initialize a frontend analytics SDK. Logging/analytics/retention settings in external platforms were not inspected; this is not a privacy certification.
-- A limited tracked-file/history scan for Clerk/GitHub/AWS/private-key credential patterns returned no matching files/commits. This is not an exhaustive secret scan or evidence that previously shared credentials are valid/safe.
-
-### Reliability and hardening backlog
-
-No application rate-limiting middleware or deployment-level limit evidence was found; establish a baseline before public scale. CI uses mutable action tags and unfrozen installs; API Docker lacks an explicit non-root user and context secret exclusions. External branch protection, Supabase RLS/direct-access permissions, full backup policies, MFA, retention/deletion, monitoring and all platform access controls remain unverified. Source-level controls should not be substituted for those checks.
+1. Clerk development instance in production (see section 4).
+2. Legacy plaintext reflections pending the backfill (see section 4).
+3. Platform-side controls were not inspected: Supabase RLS and direct-access roles, Render, Vercel and Supabase log retention, MFA on provider accounts, branch protection. Source-level controls do not certify these.
+4. Rate limiting is per process (in memory). If the API scales beyond one instance, the effective limit multiplies; a shared store would be needed then.
+5. The encryption key-recovery procedure (where the key ring is backed up, and who can restore it) is documented but not exercised.
 
 ## 7. Staging deployment readiness
 
-**Ready to prepare a staging environment; not a validated release candidate.** Existing Vercel preview builds do not demonstrate an isolated Render API, separate Supabase database or Clerk instance. No separate staging resources were created or reused during this audit.
+**The code is ready for staging. The environment does not exist yet.**
 
-| Component | Required isolated setup / gate |
-| --- | --- |
-| Vercel web/marketing | Preview/staging projects; `NEXT_PUBLIC_APP_URL` points to staging web; web `NEXT_PUBLIC_API_URL` points only to staging API |
-| Render API | Staging service, explicit CORS/Clerk origins, valid licensed Bible provider key and both translation IDs; stable annotation key stored outside Git |
-| Supabase | Separate staging project/database, separate pooled/direct URLs; fresh empty schema can replay all six migrations. Existing databases require inspection before any reconciliation. |
-| Clerk | Dedicated development/staging instance, matching frontend/backend keys, allowed redirects/origins, two dedicated test accounts |
-| AI service | Keep disabled until M3.7; do not route prayer data to the current 501 stub |
-| CI/evidence | Locked build input, current dependency triage, isolated DB tests, browser and real-device evidence, agreed rollback/recovery procedure |
+| Component | Status | Needed |
+| --- | --- | --- |
+| Vercel | Production only | Staging/preview project with `NEXT_PUBLIC_API_URL` pointing at the staging API |
+| Render | Production API only | New service from `render.staging.yaml` |
+| Supabase | Production only | **Separate** project; `prisma migrate deploy` replays cleanly (verified locally) |
+| Clerk | One development instance, used by production | Dedicated staging instance and two test accounts |
+| API.Bible | Working in production (EN and FR) | Same key or a staging key, checked with `verify-bible-provider.cjs` |
+| Encryption keys | Configured in production | Separate staging key ring; never reuse production keys |
 
-Execute this acceptance sequence after configuration:
+**Staging acceptance sequence** (once provisioned):
 
-1. Sign up test A, sign out/in, verify protected routes and rejected expired/wrong-instance tokens; create test B.
-2. Save onboarding/preferences; reload and sign in again; verify language, consent and account separation.
-3. Read English/French chapters using actual provider text/attribution; navigate previous/next; verify revisit history and resume after a new session.
-4. Enroll A in a plan; open a chapter without completing it; verify no completion increment. Complete a day twice; verify one increment, ownership rejection for B and matching dashboard totals after reload.
-5. Exercise available annotation controls/API with reviewed encryption keys, including owner-only list/delete and recovery expectations. Do not sign off a missing UI as complete.
-6. Publish approved staging meditations/studies; exercise reflection/bookmark/completion/history with both accounts. Verify private bodies are absent from logs/analytics.
-7. Run keyboard/screen-reader, real iOS/Android browser and native Expo checks. Record failures and limitations.
-8. Review the completed evidence before any production release. Production database changes require separate explicit approval; a frontend deployment is not approval for a data migration.
+1. Sign up account A. Sign out and back in. Check protected routes, and that expired or wrong-instance tokens are rejected. Create account B.
+2. Complete onboarding and settings, reload and sign in again. Check that language and preferences persist and stay separate between A and B.
+3. Read EN and FR chapters with previous/next navigation. Check history, and resume in a new session.
+4. Enroll A in a plan. Open a chapter **without** completing it and check that the completion count does not change. Complete a day twice and check that it counts once. Check that B cannot touch A's plan and that dashboard totals match after reload.
+5. Add, list and delete annotations, and confirm B cannot see A's.
+6. Publish staging meditation and study content. Exercise reflection, completion and history for both accounts. Check that the database stores reflection ciphertext and that logs contain no reflection bodies.
+7. Test on real iOS and Android browsers, with keyboard navigation and a screen reader.
+8. Review the evidence, then plan the production release. Production database changes still need separate, explicit approval.
 
 ## 8. Recommended next engineering tasks
 
-1. Restore actual English/French Bible delivery through reviewed Render configuration and provider/licensing verification; rerun the full M3.6 reader acceptance path.
-2. Provision isolated staging and two test accounts. Complete authenticated reload/sign-in, ownership and dashboard tests using real JWTs.
-3. Triage/upgrade affected dependencies and implement the sensitive-reflection encryption/key-lifecycle plan on separate reviewed branches.
-4. Decide and deliver the annotation UI acceptance scope; publish approved staging content; wire all safe regression suites into CI.
-5. Complete M3.6 evidence and real-device/security review, then prepare the production release. Only afterward begin M3.7 Prayer Sanctuary, followed by M3.8 LivingWord.
-
-## Appendix: historical changed-path inventory
-
-Comparison: `97a9f0a..28bc606`. This inventory includes deleted duplicate routes and historical documentation, not just runtime code. Source/schema/API paths were traced with their callers/tests; UI and styling findings also use the earlier documented browser review. It is not a claim that every external integration passed a live acceptance test.
-
-```text
-M	.github/workflows/ci.yml
-M	.gitignore
-A	BIBLE_STUDY_DATABASE_VERIFICATION.md
-A	CHANGELOG.md
-M	CLOUD_SETUP.md
-A	M3.6_DATABASE_VERIFICATION.md
-A	M3.6_SOURCE_REVIEW.md
-M	README.md
-A	UI_UX_REVIEW.md
-A	VERSION
-A	WEB_EXPERIENCE_REVIEW.md
-M	apps/api/prisma/migrations/20261011065053_first_migration/migration.sql
-A	apps/api/prisma/migrations/20261015232900_meditation_history/migration.sql
-A	apps/api/prisma/migrations/20261015233000_bible_study/migration.sql
-M	apps/api/src/app.module.ts
-M	apps/api/src/bible-content/bible-content.module.ts
-M	apps/api/src/bible-reading/bible-reading.service.ts
-A	apps/api/test/bible-reading.test.cjs
-A	apps/api/test/bible-study.test.cjs
-M	apps/marketing/app/globals.css
-M	apps/marketing/app/layout.tsx
-M	apps/marketing/app/page.tsx
-M	apps/marketing/components/site-header.tsx
-A	apps/marketing/lib/app-links.ts
-A	apps/marketing/next-env.d.ts
-M	apps/web/app/bible/[studyId]/page.tsx
-M	apps/web/app/bible/dashboard/page.tsx
-M	apps/web/app/bible/my-reading/page.tsx
-M	apps/web/app/bible/page.tsx
-M	apps/web/app/bible/plans/[id]/page.tsx
-M	apps/web/app/bible/plans/page.tsx
-A	apps/web/app/bible/read/page.tsx
-M	apps/web/app/daily-word/page.tsx
-M	apps/web/app/dashboard/page.tsx
-M	apps/web/app/discipleship/page.tsx
-M	apps/web/app/globals.css
-M	apps/web/app/layout.tsx
-M	apps/web/app/livingword/page.tsx
-M	apps/web/app/meditation/[id]/page.tsx
-M	apps/web/app/meditation/history/page.tsx
-M	apps/web/app/meditation/page.tsx
-M	apps/web/app/onboarding/page.tsx
-M	apps/web/app/page.tsx
-M	apps/web/app/prayer/page.tsx
-M	apps/web/app/settings/page.tsx
-M	apps/web/app/sign-in/[[...sign-in]]/page.tsx
-M	apps/web/app/sign-up/[[...sign-up]]/page.tsx
-A	apps/web/components/bible/BibleReader.tsx
-M	apps/web/components/bible/ContinueReading.tsx
-M	apps/web/components/bible/ReadingTracker.tsx
-A	apps/web/components/daily-word-provider.tsx
-M	apps/web/components/language-provider.tsx
-M	apps/web/components/meditation-view.tsx
-M	apps/web/components/shell.tsx
-M	apps/web/components/theme-provider.tsx
-M	apps/web/components/theme-toggle.tsx
-M	apps/web/lib/api.ts
-R078	apps/web/src/lib/bible-api.ts	apps/web/lib/bible-api.ts
-A	apps/web/lib/daily-word-navigation.ts
-A	apps/web/lib/daily-word.ts
-D	apps/web/src/app/bible/read/page.tsx
-D	apps/web/src/components/bible/BibleReader.tsx
-A	apps/web/test/ui-navigation.test.cjs
-M	package.json
-```
+1. **Provision staging** (Render, Supabase and Clerk staging, plus a Vercel preview) and create two test accounts. This unblocks everything below.
+2. **Run the section 7 acceptance sequence** and record the results. This is the M3.6 sign-off gate.
+3. **Reflection backfill:** take a fresh backup, run a read-only dry-run on production (needs your approval), rehearse `--apply` on a restored copy, then apply with approval.
+4. **Clerk production instance** and custom domain, before any public launch.
+5. **Publish reviewed EN/FR meditation and Bible Study content**, staging first.
+6. Decide whether the Bible Reader should be readable without signing in.
+7. Plan the Expo/mobile dependency upgrade before M4.2.
+8. Then start **M3.7 Prayer Sanctuary**, beginning with a privacy and AI-boundary design review and the `AI_INTERNAL_*` variable fix.
