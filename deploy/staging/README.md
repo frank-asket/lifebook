@@ -33,7 +33,9 @@ In production mode the API refuses startup without a valid reflection key ring a
 - `node scripts/staging-env.cjs check` lists which settings are present, by name only.
 - `node scripts/staging-env.cjs migrate` refuses any database whose Supabase project matches production (`apps/api/.env`), runs `prisma migrate deploy`, then confirms there is no schema difference.
 
-Copy the same values into the Render and Vercel staging settings. Back up the generated keys in a password manager; losing them makes staging notes and reflections unreadable.
+- `node scripts/staging-env.cjs render | pbcopy` copies the API settings for Render's "Add from .env" without showing them. Run it yourself; never paste its output into chat.
+
+Copy the web settings into the Vercel `lifebook-staging` project (production branch `staging`). Back up the generated keys in a password manager; losing them makes staging notes and reflections unreadable.
 
 ## Database setup and verification
 
