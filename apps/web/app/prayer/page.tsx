@@ -2,10 +2,11 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { HeartHandshake, LockKeyhole, ShieldCheck, CheckCircle2, NotebookPen, Plus } from 'lucide-react';
+import { HeartHandshake, LockKeyhole, CheckCircle2, NotebookPen, Plus } from 'lucide-react';
 import { Shell } from '../../components/shell';
 import { useLanguage } from '../../components/language-provider';
 import { ScriptureCompanion } from '../../components/prayer/ScriptureCompanion';
+import { GuidedMeditation } from '../../components/prayer/GuidedMeditation';
 import { PRAYER_LIMITS, prayerApi, type Prayer as PrayerEntry, type PrayerSummary } from '../../lib/prayer-api';
 
 export default function Prayer() {
@@ -23,7 +24,7 @@ export default function Prayer() {
         <div className="card"><span className="feature-icon rose"><HeartHandshake size={24}/></span><h3>{tr('Prayer without pressure', 'Prier sans pression')}</h3><p className="subheading">{tr('Your prayer is between you and God. LifeBook is a tool for reflection, not a substitute for pastoral care or spiritual community.', 'Votre prière est entre Dieu et vous. LifeBook accompagne la réflexion sans remplacer l’accompagnement pastoral ni la communauté.')}</p></div>
         <ScriptureCompanion language={language}/>
         <div className="card"><h3>{tr('Would you like a pastor to pray with you?', 'Souhaitez-vous qu’un pasteur prie avec vous ?')}</h3><p className="subheading">{tr('A verified pastor can listen and pray with you, privately.', 'Un pasteur vérifié peut vous écouter et prier avec vous, en privé.')}</p><Link className="btn btn-soft" href="/care">{tr('Ask a pastor', 'Demander un pasteur')}</Link></div>
-        <div className="card" style={{ background: 'var(--pink)' }}><span className="eyebrow">{tr('YOUR PRIVACY MATTERS', 'VOTRE CONFIDENTIALITÉ COMPTE')}</span><p style={{ marginTop: 13, marginBottom: 0, lineHeight: 1.7 }}>{tr('Saved prayers are encrypted and only you can open them. They are never used to infer your faith journey, never sent for AI processing, and you can delete them at any time, one by one or all at once in Settings.', 'Vos prières enregistrées sont chiffrées et vous seul pouvez les ouvrir. Elles ne servent jamais à déduire votre parcours de foi, ne sont jamais envoyées à une IA, et vous pouvez les supprimer à tout moment, une par une ou toutes depuis les Paramètres.')}</p></div>
+        <div className="card" style={{ background: 'var(--pink)' }}><span className="eyebrow">{tr('YOUR PRIVACY MATTERS', 'VOTRE CONFIDENTIALITÉ COMPTE')}</span><p style={{ marginTop: 13, marginBottom: 0, lineHeight: 1.7 }}>{tr('Saved prayers are encrypted and only you can open them. They are never used to infer your faith journey, and never sent for AI processing unless you ask for a guided meditation on a prayer. You can delete them at any time, one by one or all at once in Settings.', 'Vos prières enregistrées sont chiffrées et vous seul pouvez les ouvrir. Elles ne servent jamais à déduire votre parcours de foi et ne sont envoyées à une IA que si vous demandez une méditation guidée pour une prière. Vous pouvez les supprimer à tout moment, une par une ou toutes depuis les Paramètres.')}</p></div>
       </div>
     </div>
   </Shell>;
@@ -90,7 +91,7 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
           {selected.answeredAt && <button type="button" className="btn btn-outline" disabled={busy} onClick={() => void markAnswered(false)}>{tr('Remove answered mark', 'Retirer la marque')}</button>}
         </div>
       </div>}
-      <p className="notice" style={{ marginTop: 18 }}><ShieldCheck size={15} style={{ verticalAlign: 'middle', marginRight: 6 }}/>{tr('Guided meditation is not available yet. When it arrives it will always ask before sending a prayer anywhere.', 'La méditation guidée n’est pas encore disponible. Elle demandera toujours votre accord avant de transmettre une prière.')}</p>
+      {selected && <><div className="divider"/><GuidedMeditation key={selected.id} prayerId={selected.id} existing={selected.meditation} language={language} onChange={() => void open(selected.id)}/></>}
     </form>
     <section className="card" aria-labelledby="prayer-journal-title">
       <h2 id="prayer-journal-title" className="icon-line" style={{ fontSize: 20 }}><NotebookPen size={18} aria-hidden="true"/> {tr('Your prayer journal', 'Votre journal de prière')}</h2>

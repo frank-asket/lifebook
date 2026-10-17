@@ -5,8 +5,8 @@ import { MeditationService } from '../meditation/meditation.service';
 import { decryptReflection, encryptReflection } from '../security/reflection-crypto';
 
 export const PRAYER_LIMITS = { body: 5000, title: 120, answerNote: 1000, list: 200, preview: 160 };
-type Field = 'body' | 'title' | 'answer';
-type Row = { id: string; userId: string; ciphertext: string; titleCiphertext: string | null; answerNoteCiphertext: string | null; answeredAt: Date | null; createdAt: Date; updatedAt: Date };
+type Field = 'body' | 'title' | 'answer' | 'meditation';
+type Row = { id: string; userId: string; ciphertext: string; titleCiphertext: string | null; answerNoteCiphertext: string | null; answeredAt: Date | null; meditationCiphertext?: string | null; meditationAt?: Date | null; createdAt: Date; updatedAt: Date };
 const idPattern = /^[A-Za-z0-9_-]{1,64}$/;
 
 @Injectable()
@@ -37,6 +37,7 @@ export class PrayerService implements OnModuleDestroy {
       id: row.id, title: row.titleCiphertext ? this.open('title', row, row.titleCiphertext) : null,
       body: this.open('body', row, row.ciphertext),
       answeredAt: row.answeredAt, answerNote: row.answerNoteCiphertext ? this.open('answer', row, row.answerNoteCiphertext) : null,
+      meditation: row.meditationCiphertext ? JSON.parse(this.open('meditation', row, row.meditationCiphertext)) as unknown : null, meditationAt: row.meditationAt ?? null,
       createdAt: row.createdAt, updatedAt: row.updatedAt,
     };
   }
@@ -51,7 +52,7 @@ export class PrayerService implements OnModuleDestroy {
     const userId = await this.userId(auth);
     const rows = await this.db.prayerEntry.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: PRAYER_LIMITS.list });
     return rows.map(row => {
-      const { body, answerNote: _answerNote, ...rest } = this.detail(row);
+      const { body, answerNote: _answerNote, meditation: _meditation, ...rest } = this.detail(row);
       return { ...rest, preview: body.length > PRAYER_LIMITS.preview ? body.slice(0, PRAYER_LIMITS.preview).trimEnd() + '…' : body };
     });
   }
@@ -76,10 +77,26 @@ export class PrayerService implements OnModuleDestroy {
     const body = input.body === undefined ? undefined : this.text(input.body, PRAYER_LIMITS.body, 'Prayer', true)!;
     const title = input.title === undefined ? undefined : this.text(input.title, PRAYER_LIMITS.title, 'Title', false);
     const updated = await this.db.prayerEntry.updateMany({ where: { id, userId }, data: {
-      ...(body !== undefined ? { ciphertext: this.seal('body', userId, id, body) } : {}),
+      // A meditation written for the old text no longer fits the edited prayer.
+      ...(body !== undefined ? { ciphertext: this.seal('body', userId, id, body), meditationCiphertext: null, meditationAt: null } : {}),
       ...(title !== undefined ? { titleCiphertext: title ? this.seal('title', userId, id, title) : null } : {}),
     } });
     if (!updated.count) throw new NotFoundException('Prayer not found');
+    return this.get(auth, id);
+  }
+  /** For guided meditation: the owner's prayer text, decrypted. */
+  async ownedBody(userId: string, id: string) {
+    const row = await this.owned(userId, id);
+    return this.open('body', row, row.ciphertext);
+  }
+  async saveMeditation(userId: string, id: string, meditation: unknown) {
+    await this.owned(userId, id);
+    await this.db.prayerEntry.updateMany({ where: { id, userId }, data: { meditationCiphertext: this.seal('meditation', userId, id, JSON.stringify(meditation)), meditationAt: new Date() } });
+  }
+  async clearMeditation(auth: string | undefined, id: string) {
+    const userId = await this.userId(auth);
+    await this.owned(userId, id);
+    await this.db.prayerEntry.updateMany({ where: { id, userId }, data: { meditationCiphertext: null, meditationAt: null } });
     return this.get(auth, id);
   }
   async answer(auth: string | undefined, id: string, input: { answered?: unknown; note?: unknown }) {

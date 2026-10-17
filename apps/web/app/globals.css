@@ -1802,6 +1802,19 @@ progress::-moz-progress-bar { background: var(--purple); }
 .care-message p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; }
 .care-author { font-size: 12px; color: var(--muted); font-weight: 700; }
 .care-phone { user-select: all; font-variant-numeric: tabular-nums; }
+.guided-meditation { display: grid; gap: 12px; }
+.guided-meditation h3, .guided-meditation h4 { margin: 0; }
+.guided-meditation h4 { font-size: 14px; margin-top: 6px; }
+.gm-disclosure { font-size: 13px; line-height: 1.6; padding: 12px 14px; border-radius: 12px; background: var(--soft); }
+.gm-disclosure p { margin: 0 0 6px; }
+.gm-disclosure ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.gm-result { display: grid; gap: 10px; }
+.gm-reflection, .gm-prayer { line-height: 1.75; margin: 0; white-space: pre-line; }
+.gm-prayer { font-style: italic; }
+.gm-questions { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.gm-crisis { display: grid; gap: 8px; padding: 14px 16px; border-radius: 12px; background: var(--pink); line-height: 1.6; }
+.gm-crisis p { margin: 0; }
+.gm-crisis ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .sg-stat { display: grid; gap: 6px; }
 .sg-stat strong { font-size: 30px; font-variant-numeric: tabular-nums; }
 .sg-stat.warn { border-color: #d9a441; }
