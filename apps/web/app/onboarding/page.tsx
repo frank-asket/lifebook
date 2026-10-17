@@ -406,7 +406,7 @@ export default function Onboarding() {
                                     >
                                         <Languages
                                             size={22}
-                                            color="#805cc5"
+                                            className="choice-icon"
                                         />
 
                                         <span>
@@ -444,7 +444,7 @@ export default function Onboarding() {
                                     >
                                         <Compass
                                             size={20}
-                                            color="#805cc5"
+                                            className="choice-icon"
                                         />
 
                                         <span>
@@ -549,12 +549,7 @@ export default function Onboarding() {
                                         />
 
                                         <span>
-                                            <strong
-                                                style={{
-                                                    display: 'block',
-                                                    color: '#383045',
-                                                }}
-                                            >
+                                            <strong className="check-row-title">
                                                 Personalize my recommendations
                                             </strong>
 
@@ -581,12 +576,7 @@ export default function Onboarding() {
                                         />
 
                                         <span>
-                                            <strong
-                                                style={{
-                                                    display: 'block',
-                                                    color: '#383045',
-                                                }}
-                                            >
+                                            <strong className="check-row-title">
                                                 Allow optional AI processing
                                             </strong>
 

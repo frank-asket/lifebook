@@ -470,17 +470,17 @@ select {
 
 .feature-icon.rose {
     background: #fce9f2;
-    color: #ca609e
+    color: #c85a9a
 }
 
 .feature-icon.mint {
     background: #e5f6f2;
-    color: #299d8b
+    color: #269382
 }
 
 .feature-icon.gold {
     background: #fff2dc;
-    color: #c48a31
+    color: #ae7a2b
 }
 
 .feature-card h3 {
@@ -636,7 +636,7 @@ select {
 }
 
 .empty svg {
-    color: #ad9bd3
+    color: #8d74c2
 }
 
 .empty h3 {
@@ -787,7 +787,7 @@ select {
 }
 
 .auth-visual {
-    background: linear-gradient(140deg, #4e348c, #a77fce);
+    background: linear-gradient(140deg, #4e348c, #76589f);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -801,8 +801,12 @@ select {
     line-height: 1.16
 }
 
+.auth-visual .eyebrow {
+    color: #f4e6ff
+}
+
 .auth-visual p {
-    color: #e9dff9;
+    color: #f4ecff;
     font-size: 16px;
     line-height: 1.7
 }
@@ -1416,6 +1420,66 @@ select {
 
 :root[data-theme='dark'] .footer-note {
     color: var(--muted);
+}
+
+:root[data-theme='dark'] .empty svg {
+    color: #ad9bd3;
+}
+
+.searchbar-icon {
+    color: var(--muted);
+    flex-shrink: 0;
+}
+
+.choice-icon {
+    color: var(--purple);
+    flex-shrink: 0;
+}
+
+.check-row-title {
+    display: block;
+    color: var(--ink);
+}
+
+/* ============================================================
+   PURPLE HERO PANELS (auth visual, LivingWord banner)
+   Light end of each gradient is kept dark enough for 4.5:1
+   with the tinted text on top.
+   ============================================================ */
+
+.card.lw-hero {
+    background: linear-gradient(115deg, #4e367e, #76589f);
+    color: #fff;
+    padding: 36px;
+}
+
+.card.lw-hero .eyebrow {
+    color: #f4e6ff;
+}
+
+.card.lw-hero p {
+    color: #f4ecff;
+    max-width: 550px;
+}
+
+.card.lw-hero .feature-icon {
+    background: #ffffff20;
+    color: #fff;
+    margin: 0;
+}
+
+.card.lw-hero .pill {
+    background: #ffffff14;
+    color: #fff;
+}
+
+:root[data-theme='dark'] .auth-visual {
+    background: linear-gradient(140deg, #3f2a73, #644b89);
+}
+
+:root[data-theme='dark'] .card.lw-hero {
+    background: linear-gradient(115deg, #3f2c68, #644b89);
+    border-color: var(--line);
 }
 
 /* ============================================================

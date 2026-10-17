@@ -28,6 +28,9 @@ Rules:
 - One accent. Do not introduce new brand colours; `--pink`/`--teal` are decorative tints, not alternate primaries.
 - A hard-coded colour in a new rule needs a matching `:root[data-theme='dark']` override in the same change. Prefer a token instead.
 - Text on `--soft` uses `--deep` or `--ink`, never `--muted` (contrast).
+- No inline `color` / `background` in TSX: put it in a class in `globals.css` so it can carry a dark override.
+- Meaningful icons need 3:1 against the chip or surface behind them (feature-icon tints: rose `#c85a9a`, mint `#269382`, gold `#ae7a2b`, lilac `#7b54cb`; `.empty svg` `#8d74c2`).
+- Text on a gradient is checked against its lightest stop. The purple panels (`.auth-visual`, `.lw-hero`) end at `#76589f` so white and the `#f4e6ff` / `#f4ecff` tints stay at 4.5:1 or above.
 
 ## Typography
 
