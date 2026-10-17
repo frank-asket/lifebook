@@ -20,7 +20,7 @@ const targets = {
   api: {
     cwd: root, command: process.execPath, args: ['apps/api/dist/main.js'],
     env: {
-      ...base, NODE_ENV: 'production', PORT: String(API_PORT), API_RATE_LIMIT: '120', TRUST_PROXY_HOPS: '0',
+      ...base, NODE_ENV: 'production', PORT: String(API_PORT), API_RATE_LIMIT: '120', TRUST_PROXY_HOPS: '0', PRAYER_COMPANION_ALLOW_DRAFT: 'true',
       CLERK_AUTHORIZED_PARTIES: WEB_ORIGIN, CORS_ORIGINS: WEB_ORIGIN,
       ...Object.fromEntries(['DATABASE_URL', 'DIRECT_URL', 'CLERK_SECRET_KEY', 'API_BIBLE_KEY', 'API_BIBLE_EN_BIBLE_ID', 'API_BIBLE_FR_BIBLE_ID', 'BIBLE_NOTES_ENCRYPTION_KEY', 'REFLECTION_ENCRYPTION_KEYS', 'REFLECTION_ENCRYPTION_ACTIVE_KEY'].map(name => [name, env[name]])),
     },

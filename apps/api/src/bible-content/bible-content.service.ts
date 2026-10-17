@@ -40,7 +40,10 @@ export class BibleContentService {
     }
     const bibleId = this.bibleId(locale);
     if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
-    const result = await this.request<BibleResponse>(`/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(passageId)}?content-type=text&include-notes=false&include-titles=false`);
+    // API.Bible rejects short ranges such as PHP.4.6-7; it needs PHP.4.6-PHP.4.7.
+    const range = passageId.match(/^([A-Z0-9]{3}\.[0-9]+\.)([0-9]+)-([0-9]+)$/);
+    const providerId = range ? `${range[1]}${range[2]}-${range[1]}${range[3]}` : passageId;
+    const result = await this.request<BibleResponse>(`/bibles/${encodeURIComponent(bibleId)}/passages/${encodeURIComponent(providerId)}?content-type=text&include-notes=false&include-titles=false`);
     const data = result.data;
     if (!data?.content) throw new ServiceUnavailableException('Scripture text unavailable');
     return {

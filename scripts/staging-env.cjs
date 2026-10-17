@@ -71,7 +71,7 @@ function render() {
   const missing = api.filter(name => !env[name]);
   if (missing.length) throw new Error(`Fill in first: ${missing.join(', ')}`);
   // Fixed settings from render.staging.yaml, for services created without a Blueprint.
-  const fixed = ['NODE_ENV=production', 'API_RATE_LIMIT=120', 'TRUST_PROXY_HOPS=1'];
+  const fixed = ['NODE_ENV=production', 'API_RATE_LIMIT=120', 'TRUST_PROXY_HOPS=1', 'PRAYER_COMPANION_ALLOW_DRAFT=true'];
   process.stdout.write([...fixed, ...api.map(name => `${name}=${env[name]}`)].join('\n') + '\n');
 }
 
