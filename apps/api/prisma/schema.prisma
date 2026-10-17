@@ -59,6 +59,7 @@ model User {
   prayers      PrayerEntry[]
   enrollments  Enrollment[]
   verification MinistryVerification?
+  pastorProfile PastorProfile?
   role         PlatformRole          @default(MEMBER)
 
   // Sprint 2 relationships
@@ -204,6 +205,39 @@ model MinistryVerification {
   status        VerificationStatus @default(NOT_REQUESTED)
   reviewedAt    DateTime?
   reviewerNotes String?
+
+  // Pastoral care pilot: who vouches for this minister and what they completed before activation.
+  churchName                 String?
+  ministryRole               String?
+  country                    String?
+  referenceName              String?
+  referenceContactCiphertext String?
+  trainingCourse             String?
+  trainingCompletedAt        DateTime?
+  codeOfConductSignedAt      DateTime?
+  verifiedById               String?
+  suspendedAt                DateTime?
+  suspensionReason           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+// Public pastor profile. Shown only while the owner's verification is active (see PastorDirectoryService).
+model PastorProfile {
+  userId String @id
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug              String   @unique
+  displayName       String
+  bio               String   @db.Text
+  languages         String[]
+  acceptingRequests Boolean  @default(false)
+  maxOpenRequests   Int      @default(5)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 // ============================================================

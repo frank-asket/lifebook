@@ -1776,3 +1776,15 @@ progress::-moz-progress-bar { background: var(--purple); }
 .prayer-answered { justify-self: start; }
 .companion-passage { margin: 16px 0 0; }
 .companion-passage blockquote { margin: 0 0 6px; font-size: 16px; line-height: 1.7; }
+.pastor-grid { align-items: start; }
+.pastor-card { display: grid; gap: 12px; }
+.pastor-card-head { display: flex; gap: 14px; align-items: center; }
+.pastor-card-head h2 { margin: 0; font-size: 19px; overflow-wrap: anywhere; }
+.pastor-card-head p { margin: 2px 0 0; font-size: 13px; }
+.pastor-initials { flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); color: var(--deep); font-weight: 800; font-size: 15px; letter-spacing: .03em; }
+.pastor-bio { white-space: pre-line; line-height: 1.75; overflow-wrap: anywhere; }
+.pastor-card .pastor-bio { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+.pastor-meta { display: flex; gap: 6px; align-items: center; font-size: 13px; margin: 0; }
+.pastor-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 18px 0 0; }
+.pastor-facts dt { color: var(--muted); font-size: 13px; }
+.pastor-facts dd { margin: 0; }

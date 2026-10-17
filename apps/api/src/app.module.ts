@@ -44,6 +44,7 @@ import { BibleStudyModule } from './bible-study/bible-study.module';
 // Milestone 3.4 — Persistent Daily Word Sessions
 import { DailyWordModule } from './daily-word/daily-word.module';
 import { PrayerModule } from './prayer/prayer.module';
+import { PastorsModule } from './pastors/pastors.module';
 
 // ============================================================
 // DATABASE SERVICE
@@ -360,6 +361,9 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
 
     // Milestone 3.7 — Private Prayer Journal
     PrayerModule,
+
+    // Pastoral care pilot — verified pastor directory
+    PastorsModule,
   ],
 
   controllers: [
