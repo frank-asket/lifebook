@@ -48,6 +48,12 @@ const themeScript = `
 })();
 `;
 
+// Opt-in render profiling for local development: NEXT_PUBLIC_REACT_SCAN=1 pnpm dev:web
+// Loaded before hydration so React Scan can attach to React; never rendered in production.
+const reactScan =
+    process.env.NODE_ENV === 'development' &&
+    process.env.NEXT_PUBLIC_REACT_SCAN === '1';
+
 export default function RootLayout({
     children,
 }: {
@@ -57,6 +63,12 @@ export default function RootLayout({
         <ClerkProvider>
             <html lang="en" suppressHydrationWarning>
                 <head>
+                    {reactScan && (
+                        <script
+                            src="https://unpkg.com/react-scan@0.5.7/dist/auto.global.js"
+                            crossOrigin="anonymous"
+                        />
+                    )}
                     <script
                         dangerouslySetInnerHTML={{
                             __html: themeScript,
