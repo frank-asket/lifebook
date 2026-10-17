@@ -17,6 +17,7 @@ export class CareController {
   @Get('requests/:id') mine(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.care.mine(auth, id); }
   @Post('requests/:id/messages') @HttpCode(201) memberReply(@Headers('authorization') auth: string | undefined, @Param('id') id: string, @Body() body: unknown) { return this.care.memberReply(auth, id, only(body, ['text']).text); }
   @Post('requests/:id/close') @HttpCode(200) memberClose(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.care.memberClose(auth, id); }
+  @Post('requests/:id/report') @HttpCode(201) memberReport(@Headers('authorization') auth: string | undefined, @Param('id') id: string, @Body() body: unknown) { return this.care.memberReport(auth, id, only(body, ['category', 'details', 'shareConversation'])); }
   @Delete('requests/:id') memberDelete(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.care.memberDelete(auth, id); }
 
   // Pastor
@@ -27,5 +28,6 @@ export class CareController {
   @Get('pastor/cases') cases(@Headers('authorization') auth?: string) { return this.care.cases(auth); }
   @Get('pastor/cases/:id') case(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.care.case(auth, id); }
   @Post('pastor/cases/:id/messages') @HttpCode(201) pastorReply(@Headers('authorization') auth: string | undefined, @Param('id') id: string, @Body() body: unknown) { return this.care.pastorReply(auth, id, only(body, ['text']).text); }
+  @Post('pastor/cases/:id/report') @HttpCode(201) pastorReport(@Headers('authorization') auth: string | undefined, @Param('id') id: string, @Body() body: unknown) { return this.care.pastorReport(auth, id, only(body, ['category', 'details', 'shareConversation'])); }
   @Post('pastor/cases/:id/close') @HttpCode(200) pastorClose(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.care.pastorClose(auth, id); }
 }

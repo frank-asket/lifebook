@@ -5,13 +5,16 @@ export type CareTopic = typeof CARE_TOPICS[number];
 export type CareSummary = { id: string; topic: CareTopic; language: string; status: 'OPEN' | 'CLAIMED' | 'CLOSED'; createdAt: string; claimedAt: string | null; closedAt: string | null; pastor: string | null; unread: boolean };
 export type CareThread = {
   id: string; topic: CareTopic; language: string; status: 'OPEN' | 'CLAIMED' | 'CLOSED'; contactPreference: 'messages' | 'callback';
-  createdAt: string; claimedAt: string | null; closedAt: string | null; closedBy: 'member' | 'pastor' | null;
+  createdAt: string; claimedAt: string | null; closedAt: string | null; closedBy: 'member' | 'pastor' | 'system' | null;
   name: string | null; phone: string | null; message: string; pastor: { displayName: string; slug: string } | null;
   messages: { id: string; from: 'member' | 'pastor'; text: string; createdAt: string }[];
 };
 export type QueueItem = { id: string; topic: CareTopic; language: string; contactPreference: 'messages' | 'callback'; createdAt: string };
 export type PastorStatus = { active: false } | { active: true; displayName: string; languages: string[]; acceptingRequests: boolean; openCases: number; maxOpenRequests: number };
 
+export const REPORT_CATEGORIES = ['safety', 'conduct', 'money', 'pressure', 'other'] as const;
+export type ReportCategory = typeof REPORT_CATEGORIES[number];
+export type ReportInput = { category: ReportCategory; details: string; shareConversation: boolean };
 const json = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body) });
 export const careApi = {
   create: (token: string, input: { topic: CareTopic; language: string; contactPreference: 'messages' | 'callback'; name?: string; phone?: string; message: string; consent: true }) => api<CareThread>('/care/requests', token, json(input)),
@@ -27,6 +30,8 @@ export const careApi = {
   cases: (token: string, signal?: AbortSignal) => api<CareSummary[]>('/care/pastor/cases', token, { signal }),
   case: (token: string, id: string, signal?: AbortSignal) => api<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}`, token, { signal }),
   pastorReply: (token: string, id: string, text: string) => api<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}/messages`, token, json({ text })),
+  report: (token: string, id: string, input: ReportInput) => api<{ reported: boolean; sharedConversation: boolean }>(`/care/requests/${encodeURIComponent(id)}/report`, token, json(input)),
+  pastorReport: (token: string, id: string, input: ReportInput) => api<{ reported: boolean; sharedConversation: boolean }>(`/care/pastor/cases/${encodeURIComponent(id)}/report`, token, json(input)),
   pastorClose: (token: string, id: string) => api<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}/close`, token, { method: 'POST' }),
 };
 
@@ -46,3 +51,8 @@ export function waited(since: string, ui: 'en' | 'fr') {
   const days = Math.floor(hours / 24);
   return ui === 'fr' ? `il y a ${days} jours` : `${days} days ago`;
 }
+const reportNames: Record<ReportCategory, [string, string]> = {
+  safety: ['Someone may be unsafe', 'Quelqu’un est peut-être en danger'], conduct: ['Inappropriate behaviour', 'Comportement inapproprié'],
+  money: ['Asked for money or gifts', 'Demande d’argent ou de cadeaux'], pressure: ['Pressure to join a church or change beliefs', 'Pression pour rejoindre une Église ou changer de croyance'], other: ['Something else', 'Autre chose'],
+};
+export function reportCategoryLabel(category: ReportCategory, ui: 'en' | 'fr') { return reportNames[category]?.[ui === 'fr' ? 1 : 0] ?? category; }
