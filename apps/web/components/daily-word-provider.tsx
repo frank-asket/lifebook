@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { api } from '../lib/api';
 import { dailyWordDate, type DailyWord } from '../lib/daily-word';
 import { useLanguage } from './language-provider';
+import { errorMessage } from '../lib/errors';
 
 const DailyWordContext = createContext<{ word: DailyWord | null; loading: boolean; error: string; date: string; retry: () => void }>({ word: null, loading: true, error: '', date: '', retry: () => {} });
 export function DailyWordProvider({ children }: { children: React.ReactNode }) {
@@ -24,7 +25,7 @@ export function DailyWordProvider({ children }: { children: React.ReactNode }) {
     setState({ key, word: null, loading: true, error: '' });
     api<DailyWord>(`/meditations/daily-word/today?locale=${language}&date=${date}`, null, { signal: controller.signal })
       .then(word => { if (!controller.signal.aborted) setState({ key, word, loading: false, error: '' }); })
-      .catch(error => { if (!controller.signal.aborted) setState({ key, word: null, loading: false, error: error instanceof Error ? error.message : 'Unable to load today’s Word.' }); });
+      .catch(error => { if (!controller.signal.aborted) setState({ key, word: null, loading: false, error: errorMessage(error, language) }); });
     return () => controller.abort();
   }, [key, date, language, attempt]);
   const retry = useCallback(() => setAttempt(n => n + 1), []);

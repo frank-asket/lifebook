@@ -6,6 +6,7 @@ import {useLanguage} from '../../../components/language-provider';
 import { Shell } from '../../../components/shell';
 import { api } from '../../../lib/api';
 import { MeditationView, type Meditation } from '../../../components/meditation-view';
+import { errorMessage } from '../../../lib/errors';
 export default function MeditationDetailPage() {
   const {language}=useLanguage();const tr=(en:string,fr:string)=>language==='fr'?fr:en;
   const [retry,setRetry]=useState(0);
@@ -19,7 +20,7 @@ export default function MeditationDetailPage() {
     setItem(null); setError(''); setLoading(true);
     api<Meditation>(`/meditations/${encodeURIComponent(id)}`, null, { signal: controller.signal })
       .then(value => { if (!controller.signal.aborted) setItem(value); })
-      .catch(e => { if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Could not load meditation.'); })
+      .catch(e => { if (!controller.signal.aborted) setError(errorMessage(e, language)); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [id,retry]);

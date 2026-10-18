@@ -7,6 +7,7 @@ import { Shell } from '../../../components/shell';
 import { useLanguage } from '../../../components/language-provider';
 import { readingApi, type Enrollment, type ReadingHistory } from '../../../lib/bible-reading-api';
 import { passageLabel } from '../../../lib/scripture';
+import { errorMessage } from '../../../lib/errors';
 
 export default function MyReadingPage() {
   const { language: locale } = useLanguage();
@@ -28,7 +29,7 @@ export default function MyReadingPage() {
       const [plans, entries] = await Promise.all([readingApi.mine(token, locale), readingApi.history(token)]);
       if (version !== requestVersion.current) return;
       setEnrollments(plans); setHistory(entries); setLoadedFor(userId ?? undefined);
-    } catch (e) { if (version === requestVersion.current) setError(e instanceof Error ? e.message : 'Unable to load reading progress'); }
+    } catch (e) { if (version === requestVersion.current) setError(errorMessage(e, locale)); }
     finally { if (version === requestVersion.current) setLoading(false); }
   }, [getToken, locale, userId]);
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function MyReadingPage() {
       if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.'));
       await readingApi.complete(token, id, day);
       if (version === requestVersion.current) await load();
-    } catch (e) { if (version === requestVersion.current) setError(e instanceof Error ? e.message : 'Unable to save progress'); }
+    } catch (e) { if (version === requestVersion.current) setError(errorMessage(e, locale)); }
     finally { setBusy(false); }
   };
   return <Shell title={tr('My Reading', 'Mon suivi')}>

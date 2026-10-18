@@ -7,6 +7,7 @@ import { Shell } from '../../../../components/shell';
 import { useLanguage } from '../../../../components/language-provider';
 import { readingApi, type PlanDetails } from '../../../../lib/bible-reading-api';
 import { passageLabel } from '../../../../lib/scripture';
+import { errorMessage } from '../../../../lib/errors';
 export default function ReadingPlanPage() {
   const params = useParams<{id:string}>();
   const { language: locale } = useLanguage();
@@ -18,8 +19,8 @@ export default function ReadingPlanPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [retry, setRetry] = useState(0);
-  useEffect(() => { let live = true; setPlan(null); setLoading(true); setError(''); setMessage(''); readingApi.plan(params.id, locale).then(p => { if (live) setPlan(p); }).catch(e => { if (live) setError(e instanceof Error ? e.message : 'Unable to load plan'); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [params.id, locale, retry]);
-  const enroll = async () => { setBusy(true); setError(''); try { const token = await getToken(); if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.')); await readingApi.enroll(token, params.id); setMessage(tr('This plan is now part of your reading journey.', 'Ce plan fait maintenant partie de votre parcours.')); } catch (e) { setError(e instanceof Error ? e.message : 'Unable to start plan'); } finally { setBusy(false); } };
+  useEffect(() => { let live = true; setPlan(null); setLoading(true); setError(''); setMessage(''); readingApi.plan(params.id, locale).then(p => { if (live) setPlan(p); }).catch(e => { if (live) setError(errorMessage(e, locale)); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [params.id, locale, retry]);
+  const enroll = async () => { setBusy(true); setError(''); try { const token = await getToken(); if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.')); await readingApi.enroll(token, params.id); setMessage(tr('This plan is now part of your reading journey.', 'Ce plan fait maintenant partie de votre parcours.')); } catch (e) { setError(errorMessage(e, locale)); } finally { setBusy(false); } };
   return <Shell title={plan?.title || tr('Reading Plan', 'Plan de lecture')}><Link className="text-link" href="/bible/plans">← {tr('All reading plans', 'Tous les plans')}</Link>
     {loading && <p className="notice" role="status">{tr('Preparing your plan…', 'Préparation de votre plan…')}</p>}
     {error && <div className="alert reader-error" role="alert"><span>{error}</span>{!plan && <button className="btn btn-soft" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button>}</div>}

@@ -6,6 +6,7 @@ import { Bookmark, NotebookPen, ArrowRight } from 'lucide-react';
 import { Shell } from '../../../components/shell';
 import { useLanguage } from '../../../components/language-provider';
 import { api } from '../../../lib/api';
+import { errorMessage } from '../../../lib/errors';
 type Mark = {id:string;locale:'en'|'fr';passageId:string;bookmarked:boolean;highlight:string|null;note:string|null};
 export default function SavedVerses() {
   const { isLoaded, isSignedIn, userId } = useAuth();
@@ -17,7 +18,7 @@ export default function SavedVerses() {
 function SavedList({language}:{language:'en'|'fr'}) {
   const {getToken}=useAuth();const tr=(en:string,fr:string)=>language==='fr'?fr:en;
   const [items,setItems]=useState<Mark[]>([]);const [loading,setLoading]=useState(true);const [error,setError]=useState('');const [retry,setRetry]=useState(0);
-  useEffect(()=>{const controller=new AbortController();setLoading(true);setError('');(async()=>{try{const token=await getToken();if(!token)throw new Error(tr('Please sign in again.','Reconnectez-vous.'));const rows=await api<Mark[]>('/bible-annotations',token,{signal:controller.signal});if(!controller.signal.aborted)setItems(rows)}catch(error){if(!controller.signal.aborted)setError(error instanceof Error?error.message:'Unable to load annotations')}finally{if(!controller.signal.aborted)setLoading(false)}})();return()=>controller.abort()},[getToken,retry]);
+  useEffect(()=>{const controller=new AbortController();setLoading(true);setError('');(async()=>{try{const token=await getToken();if(!token)throw new Error(tr('Please sign in again.','Reconnectez-vous.'));const rows=await api<Mark[]>('/bible-annotations',token,{signal:controller.signal});if(!controller.signal.aborted)setItems(rows)}catch(error){if(!controller.signal.aborted)setError(errorMessage(error,language))}finally{if(!controller.signal.aborted)setLoading(false)}})();return()=>controller.abort()},[getToken,retry]);
   if(loading)return <p className="notice" role="status">{tr('Loading saved verses…','Chargement des versets…')}</p>;
   if(error)return <div className="alert reader-error" role="alert"><span>{error}</span><button className="btn btn-soft" onClick={()=>setRetry(n=>n+1)}>{tr('Try again','Réessayer')}</button></div>;
   if(!items.length)return <div className="card status-card"><Bookmark size={32} aria-hidden="true"/><h2>{tr('Keep a verse close','Gardez un verset près de vous')}</h2><p>{tr('Add a bookmark or note while reading Scripture. It will appear here.','Ajoutez un favori ou une note pendant votre lecture. Vous le retrouverez ici.')}</p><Link className="btn btn-primary" href="/bible/read">{tr('Open the Bible','Ouvrir la Bible')} <ArrowRight size={16}/></Link></div>;

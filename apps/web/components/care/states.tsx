@@ -1,7 +1,7 @@
 'use client';
 import { useCallback } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { careErrorMessage, SIGN_IN_AGAIN } from '../../lib/care-errors';
+import { errorMessage, SIGN_IN_AGAIN } from '../../lib/errors';
 
 type Ui = 'en' | 'fr';
 
@@ -16,7 +16,7 @@ export function CareLoading({ label, lines = 3 }: { label: string; lines?: numbe
 }
 
 export function CareError({ error, language, onRetry }: { error: unknown; language: Ui; onRetry?: () => void }) {
-  return <div className="alert reader-error" role="alert"><span>{careErrorMessage(error, language)}</span>
+  return <div className="alert reader-error" role="alert"><span>{errorMessage(error, language)}</span>
     {onRetry && <button type="button" className="btn btn-soft" onClick={onRetry}>{language === 'fr' ? 'Réessayer' : 'Try again'}</button>}</div>;
 }
 

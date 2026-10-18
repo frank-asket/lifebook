@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { prayerApi, type Meditation, type MeditationResult } from '../../lib/prayer-api';
+import { errorMessage } from '../../lib/errors';
 
 /** Guided meditation for one saved prayer. Nothing is sent until the person ticks consent and asks. */
 export function GuidedMeditation({ prayerId, existing, language, onChange }: { prayerId: string; existing: Meditation | null; language: 'en' | 'fr'; onChange: () => void }) {
@@ -15,7 +16,7 @@ export function GuidedMeditation({ prayerId, existing, language, onChange }: { p
   const run = async (fn: (t: string) => Promise<void>) => {
     setBusy(true); setError(''); setNeedsSetting(false);
     try { const token = await getToken(); if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.')); await fn(token); }
-    catch (e) { if ((e as { status?: number }).status === 403) setNeedsSetting(true); else setError(e instanceof Error ? e.message : 'Something went wrong'); }
+    catch (e) { if ((e as { status?: number }).status === 403) setNeedsSetting(true); else setError(errorMessage(e, language)); }
     finally { setBusy(false); }
   };
   const ask = () => run(async t => { const r = await prayerApi.meditate(t, prayerId, language); setResult(r); setConsent(false); if (r.status === 'ok') onChange(); });

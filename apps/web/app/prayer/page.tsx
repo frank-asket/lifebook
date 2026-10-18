@@ -8,6 +8,7 @@ import { useLanguage } from '../../components/language-provider';
 import { ScriptureCompanion } from '../../components/prayer/ScriptureCompanion';
 import { GuidedMeditation } from '../../components/prayer/GuidedMeditation';
 import { PRAYER_LIMITS, prayerApi, type Prayer as PrayerEntry, type PrayerSummary } from '../../lib/prayer-api';
+import { errorMessage } from '../../lib/errors';
 
 export default function Prayer() {
   const { language } = useLanguage(); const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
@@ -39,11 +40,11 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [error, setError] = useState('');
   const dirty = selected ? title !== (selected.title ?? '') || body !== selected.body : Boolean(title.trim() || body.trim());
   const token = async () => { const value = await getToken(); if (!value) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.')); return value; };
-  const fail = (e: unknown) => setError(e instanceof Error ? e.message : tr('Something went wrong.', 'Une erreur est survenue.'));
+  const fail = (e: unknown) => setError(errorMessage(e, language));
 
   useEffect(() => {
     const controller = new AbortController(); setLoading(true); setLoadError('');
-    (async () => { try { const rows = await prayerApi.list(await token(), controller.signal); if (!controller.signal.aborted) setItems(rows); } catch (e) { if (!controller.signal.aborted) setLoadError(e instanceof Error ? e.message : 'Unable to load prayers'); } finally { if (!controller.signal.aborted) setLoading(false); } })();
+    (async () => { try { const rows = await prayerApi.list(await token(), controller.signal); if (!controller.signal.aborted) setItems(rows); } catch (e) { if (!controller.signal.aborted) setLoadError(errorMessage(e, language)); } finally { if (!controller.signal.aborted) setLoading(false); } })();
     return () => controller.abort();
   }, [getToken, reload]);
   useEffect(() => {
