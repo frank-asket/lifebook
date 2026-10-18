@@ -8,6 +8,7 @@ import { useDailyWord } from '../../components/daily-word-provider';
 import { useLanguage } from '../../components/language-provider';
 import { Shell } from '../../components/shell';
 import { Announcements } from '../../components/Announcement';
+import { Suggestions } from '../../components/Suggestions';
 import { reportScripture } from '../../lib/fums';
 import { api, type ProfileResponse, type LearningPath } from '../../lib/api';
 import { DAILY_WORD_STEPS } from '../../lib/daily-word-navigation';
@@ -96,6 +97,8 @@ export default function Dashboard() {
         </Link>
       </div>
     </div>
+
+    <Suggestions />
 
     {paths.length > 0 && <section className="home-paths" aria-labelledby="home-paths-title">
       <div className="section-title"><h2 id="home-paths-title">{tr('Discipleship pathways', 'Parcours de disciple')}</h2><Link className="text-link" href="/discipleship">{tr('View all', 'Tout voir')} →</Link></div>

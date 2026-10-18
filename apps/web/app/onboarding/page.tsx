@@ -618,15 +618,12 @@ export default function Onboarding() {
                                                 {tr(
                                                     'Personalized suggestions',
                                                     'Suggestions personnalisées'
-                                                )}{' '}
-                                                <span className="pill">
-                                                    {tr('Coming soon', 'Bientôt')}
-                                                </span>
+                                                )}
                                             </strong>
 
                                             {tr(
-                                                'When suggestions arrive, use my journey and goals to suggest reading plans and studies. Nothing is personalized yet, and today’s Word stays the same for everyone.',
-                                                'Quand les suggestions arriveront, utiliser mon parcours et mes objectifs pour me proposer des plans de lecture et des études. Rien n’est encore personnalisé, et la Parole du jour reste la même pour tous.'
+                                                'Use my journey and goals to suggest a reading plan or a small next step on Home. Today’s Word stays the same for everyone, and suggestions never use my prayers.',
+                                                'Utiliser mon parcours et mes objectifs pour me suggérer un plan de lecture ou un petit pas sur l’accueil. La Parole du jour reste la même pour tous, et les suggestions n’utilisent jamais mes prières.'
                                             )}
                                         </span>
                                     </label>

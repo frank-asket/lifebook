@@ -1,6 +1,6 @@
 # Personalized suggestions — plan
 
-Written 18 October 2026. Status: **proposed**, nothing built. Until it ships, onboarding and Settings label the consent switch "Coming soon".
+Written 18 October 2026. Status: **v1 built** (steps 2–4 and 6, without a migration): goals are mapped from their saved labels in code, and hidden suggestions are remembered per device. Steps 1 and 5, and moving hidden suggestions to the profile, are still to do.
 
 ## Where we are
 
