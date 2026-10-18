@@ -8,54 +8,19 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@clerk/backend';
 import { BibleContentService } from '../bible-content/bible-content.service';
+import { entryFor, validateDailyWordLibrary } from './daily-word-library';
 
 type SupportedLocale = 'en' | 'fr';
 
 const VERSE_CACHE_MS = 6 * 60 * 60 * 1000;
 
-/**
- * Curated Daily Word rotation. Verse text is never stored here: it is fetched from the
- * reader's published translation (KJV / J.N. Darby via API.Bible) by passage id.
- * Each id must name the same verse in both translations (check Psalms versification).
- */
-const DAILY_PASSAGES = [
-  {
-    key: 'JOSHUA_1_8', passageId: 'JOS.1.8',
-    explanationEn: 'God speaks to Joshua as he prepares to lead Israel. Meditation is linked to faithful action, not merely acquiring information.',
-    explanationFr: 'Dieu parle à Josué alors qu’il se prépare à conduire Israël. La méditation est liée à une mise en pratique fidèle, et pas seulement à la connaissance.',
-    questionEn: 'What part of God’s Word can guide one decision today?',
-    questionFr: 'Quelle parole de Dieu peut guider une décision aujourd’hui?',
-    prayerEn: 'Lord, teach me to listen to your Word and act on it today. Amen.',
-    prayerFr: 'Seigneur, apprends-moi à écouter ta Parole et à la mettre en pratique aujourd’hui. Amen.',
-    actionEn: 'Choose one concrete action shaped by today’s Scripture.',
-    actionFr: 'Choisissez une action concrète inspirée de la Parole du jour.',
-  },
-  {
-    key: 'PSALM_119_105', passageId: 'PSA.119.105',
-    explanationEn: 'The psalmist describes God’s Word as guidance for the next steps of life, not a promise that every future detail will be visible.',
-    explanationFr: 'Le psalmiste présente la Parole de Dieu comme une lumière pour les prochains pas, non comme la promesse de connaître chaque détail de l’avenir.',
-    questionEn: 'Where do I need guidance for my next step?',
-    questionFr: 'Dans quel domaine ai-je besoin de lumière pour mon prochain pas?',
-    prayerEn: 'God, guide my next step through your Word. Amen.',
-    prayerFr: 'Seigneur, guide mon prochain pas par ta Parole. Amen.',
-    actionEn: 'Take one thoughtful step guided by Scripture.',
-    actionFr: 'Faites un pas réfléchi à la lumière des Écritures.',
-  },
-  {
-    key: 'JAMES_1_22', passageId: 'JAS.1.22',
-    explanationEn: 'James challenges believers to connect hearing with obedience. Genuine listening produces a response in daily life.',
-    explanationFr: 'Jacques invite les croyants à unir écoute et obéissance. Une écoute sincère se traduit par des actes au quotidien.',
-    questionEn: 'What have I heard in Scripture that I still need to practice?',
-    questionFr: 'Quelle parole entendue dois-je encore mettre en pratique?',
-    prayerEn: 'Lord, help me respond to your Word with action. Amen.',
-    prayerFr: 'Seigneur, aide-moi à répondre à ta Parole par des actes. Amen.',
-    actionEn: 'Put one biblical teaching into practice today.',
-    actionFr: 'Mettez un enseignement biblique en pratique aujourd’hui.',
-  },
-];
+// The Daily Word library (content/daily-word-library.json): dated, reviewed entries with a legacy fallback rotation.
+const DAILY_WORD_LIBRARY = validateDailyWordLibrary(JSON.parse(readFileSync(join(__dirname, '../../content/daily-word-library.json'), 'utf8')));
 
 @Injectable()
 export class MeditationService implements OnModuleDestroy {
@@ -212,9 +177,8 @@ export class MeditationService implements OnModuleDestroy {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedDate) || Number.isNaN(Date.parse(selectedDate + 'T00:00:00Z'))) {
       throw new BadRequestException('Invalid date');
     }
-    const days = Math.floor(Date.parse(selectedDate + 'T00:00:00Z') / 86400000);
-    const item = DAILY_PASSAGES[((days % DAILY_PASSAGES.length) + DAILY_PASSAGES.length) % DAILY_PASSAGES.length];
-    return { date: selectedDate, passageKey: item.key, passageId: item.passageId, item };
+    const item = entryFor(DAILY_WORD_LIBRARY, selectedDate, process.env.DAILY_WORD_ALLOW_DRAFT === 'true');
+    return { date: selectedDate, passageKey: item.key, passageId: item.passage, item };
   }
 
   /** Verse text, name and attribution come from the published translation; fails with 503 rather than inventing text. */
@@ -240,17 +204,18 @@ export class MeditationService implements OnModuleDestroy {
     const { date: selectedDate, passageKey, passageId, item } = this.dailyPassage(date);
     const language = this.normalizeLocale(locale);
     const french = language === 'fr';
+    const text = french ? item.fr : item.en;
     return {
       date: selectedDate,
       passageKey,
       passageId,
       locale: language,
-      verse: await this.verse(language, passageId),
-      explanation: french ? item.explanationFr : item.explanationEn,
+      verse: await this.verse(language, french && item.passageFr ? item.passageFr : passageId),
+      explanation: text.explanation,
       meditation: french ? 'Relisez lentement ce passage. Observez les mots qui vous interpellent et considérez leur sens dans votre vie.' : 'Read the passage slowly again. Notice what stands out and consider how its meaning relates to your life.',
-      reflectionQuestion: french ? item.questionFr : item.questionEn,
-      prayer: french ? item.prayerFr : item.prayerEn,
-      application: french ? item.actionFr : item.actionEn,
+      reflectionQuestion: text.question,
+      prayer: text.prayer,
+      application: text.action,
     };
   }
 
