@@ -89,3 +89,18 @@ test('the week view shows the last seven days without streaks', () => {
   assert.equal(plain(lastSevenDays('2026-03-01', 'fr', []))[0].date, '2026-02-23');
   assert.deepEqual(plain(lastSevenDays('bad', 'en', [])), []);
 });
+const { pending } = (() => {
+  const code = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../lib/fums.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const exports = {}; vm.runInNewContext(code, { exports, process: { env: {} }, Set, Array, JSON }); return exports;
+})();
+test('each thing shown is reported once per session, whatever its token, skipping missing tokens', () => {
+  const already = new Set(['chapter:en:PSA.23']);
+  assert.deepEqual(plain(pending([
+    { key: 'chapter:en:PSA.23', token: 'token-aaaaaaa' },
+    { key: 'chapter:fr:PSA.23', token: 'token-bbbbbbb' },
+    { key: 'chapter:fr:PSA.23', token: 'token-ccccccc' },
+    { key: 'word:en:2026-10-18', token: null },
+    { key: 'word:fr:2026-10-18', token: 'short' },
+  ], already)), [{ key: 'chapter:fr:PSA.23', token: 'token-bbbbbbb' }]);
+  assert.equal(pending(Array.from({ length: 30 }, (_, i) => ({ key: `k${i}`, token: `token-number-${i}` })), new Set()).length, 20);
+});

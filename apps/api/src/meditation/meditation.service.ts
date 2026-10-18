@@ -25,7 +25,7 @@ const DAILY_WORD_LIBRARY = validateDailyWordLibrary(JSON.parse(readFileSync(join
 @Injectable()
 export class MeditationService implements OnModuleDestroy {
   private readonly db = new PrismaClient();
-  private readonly verseCache = new Map<string, { expires: number; value: { reference: string; text: string; translation: string; copyright: string | null; provider: string } }>();
+  private readonly verseCache = new Map<string, { expires: number; value: { reference: string; text: string; translation: string; copyright: string | null; provider: string; fumsToken: string | null } }>();
 
   constructor(private readonly bible?: BibleContentService) {}
 
@@ -194,7 +194,7 @@ export class MeditationService implements OnModuleDestroy {
     const name = translation.data?.nameLocal?.trim() || translation.data?.name?.trim();
     const text = passage.text.replace(/\[\d+\]/g, ' ').replace(/¶/g, ' ').replace(/\s+/g, ' ').trim();
     if (!name || !text) throw new ServiceUnavailableException('Scripture text unavailable');
-    const value = { reference: passage.reference, text, translation: name, copyright: passage.copyright, provider: passage.provider };
+    const value = { reference: passage.reference, text, translation: name, copyright: passage.copyright, provider: passage.provider, fumsToken: passage.fumsToken };
     this.verseCache.set(key, { expires: Date.now() + VERSE_CACHE_MS, value });
     return value;
   }
