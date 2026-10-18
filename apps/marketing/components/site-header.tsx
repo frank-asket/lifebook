@@ -8,7 +8,7 @@ import { CloseIcon, MenuIcon } from './icons';
 export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
   const t = content[locale].nav;
   const home = locale === 'fr' ? '/fr' : '/';
-  const links: [string, string][] = [[t.how, `${home}#how`], [t.inside, `${home}#inside`], [t.promises, `${home}#promises`], [t.faq, `${home}#faq`]];
+  const links: [string, string][] = [[t.how, `${home}#how`], [t.inside, `${home}#inside`], [t.ease, `${home}#ease`], [t.promises, `${home}#promises`], [t.faq, `${home}#faq`]];
   const [open, setOpen] = useState(false);
   const header = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);

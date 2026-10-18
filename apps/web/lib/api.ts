@@ -190,3 +190,12 @@ const frenchGoals: Record<string, string> = {
 export function learningGoalLabel(value: string, language: 'en' | 'fr'): string {
     return language === 'fr' && Object.hasOwn(frenchGoals, value) ? frenchGoals[value] : value;
 }
+const frenchFormats: Record<string, string> = {
+    Reading: 'Lecture',
+    Audio: 'Audio',
+    Video: 'Vidéo',
+    'Guided reflection': 'Réflexion guidée',
+};
+export function formatLabel(value: string, language: 'en' | 'fr'): string {
+    return language === 'fr' && Object.hasOwn(frenchFormats, value) ? frenchFormats[value] : value;
+}

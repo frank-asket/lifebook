@@ -57,7 +57,7 @@ export function GuidedMeditation({ prayerId, existing, language, onChange }: { p
       <p className="muted" style={{ fontSize: 12 }}>{tr('Up to 5 a day.', 'Jusqu’à 5 par jour.')}</p>
     </div>}
 
-    {needsSetting && <p className="notice">{tr('Optional AI processing is turned off in your preferences.', 'Le traitement IA facultatif est désactivé dans vos préférences.')} <Link className="text-link" href="/onboarding">{tr('Review your choices', 'Revoir vos choix')}</Link></p>}
+    {needsSetting && <p className="notice">{tr('Optional AI processing is turned off in your preferences.', 'Le traitement IA facultatif est désactivé dans vos préférences.')} <Link className="text-link" href="/onboarding?step=privacy">{tr('Review your choices', 'Revoir vos choix')}</Link></p>}
     {error && <p className="alert" role="alert">{error}</p>}
   </section>;
 }
