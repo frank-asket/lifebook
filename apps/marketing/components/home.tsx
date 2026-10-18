@@ -1,8 +1,8 @@
 import { content, type Locale } from '../lib/content';
 import { appLinks } from '../lib/app-links';
 import { ProductPreview } from './product-preview';
-import { Phone, ReaderScreen, StepScreen, TodayScreen } from './phone-screens';
-import { ArrowIcon, BookIcon, ChatIcon, CheckIcon, LockIcon, SunIcon } from './icons';
+import { JournalScreen, PastorScreen, Phone, ReaderScreen, StepScreen, TodayScreen } from './phone-screens';
+import { ArrowIcon, BookIcon, ChatIcon, LockIcon, SunIcon } from './icons';
 
 export function Home({ locale }: { locale: Locale }) {
   const t = content[locale];
@@ -49,24 +49,22 @@ export function Home({ locale }: { locale: Locale }) {
           <article className="tile tile-daily">
             <span className="tile-icon"><SunIcon /></span>
             <h3>{c.daily.title}</h3><p>{c.daily.text}</p>
-            <div className="mini-week" aria-hidden="true"><span className="mini-label">{c.daily.week}</span>
-              <span className="mini-days">{c.daily.days.map((d, i) => <span key={i} className={i === 1 || i === 2 || i === 4 ? 'done' : i === 6 ? 'today' : ''}><i>{(i === 1 || i === 2 || i === 4) && <CheckIcon size={11} />}</i>{d}</span>)}</span>
-            </div>
+            <div className="tile-phone"><Phone label={c.daily.title}><TodayScreen s={t.screens} /></Phone></div>
           </article>
           <article className="tile tile-bible">
             <span className="tile-icon"><BookIcon /></span>
             <h3>{c.bible.title}</h3><p>{c.bible.text}</p>
-            <figure className="mini-scripture"><blockquote><sup>1</sup>{c.bible.sample}</blockquote><figcaption>{c.bible.sampleRef}</figcaption></figure>
+            <div className="tile-phone"><Phone label={c.bible.title}><ReaderScreen s={t.screens} sheet={false} /></Phone></div>
           </article>
           <article className="tile tile-prayer">
             <span className="tile-icon rose"><LockIcon /></span>
             <h3>{c.prayer.title}</h3><p>{c.prayer.text}</p>
-            <span className="mini-pill" aria-hidden="true"><LockIcon size={13} /> {c.prayer.lock}</span>
+            <div className="tile-phone"><Phone label={c.prayer.title}><JournalScreen s={t.screens} /></Phone></div>
           </article>
           <article className="tile tile-pastor">
             <span className="tile-icon"><ChatIcon /></span>
             <h3>{c.pastor.title} <span className="badge">{c.pastor.badge}</span></h3><p>{c.pastor.text}</p>
-            <span className="mini-marks" aria-hidden="true">{c.pastor.marks.map(m => <span key={m} className="mini-pill"><CheckIcon size={12} /> {m}</span>)}</span>
+            <div className="tile-phone"><Phone label={c.pastor.title}><PastorScreen s={t.screens} /></Phone></div>
           </article>
         </div>
       </div>
@@ -80,9 +78,8 @@ export function Home({ locale }: { locale: Locale }) {
           <p className="section-lead">{t.ease.lead}</p>
         </header>
         <div className="ease-phones">
-          <figure><Phone label={t.ease.captions[0]}><TodayScreen s={t.screens} /></Phone><figcaption>{t.ease.captions[0]}</figcaption></figure>
-          <figure><Phone label={t.ease.captions[1]}><ReaderScreen s={t.screens} /></Phone><figcaption>{t.ease.captions[1]}</figcaption></figure>
-          <figure><Phone label={t.ease.captions[2]} dark><TodayScreen s={t.screens} dark /></Phone><figcaption>{t.ease.captions[2]}</figcaption></figure>
+          <figure><Phone label={t.ease.captions[0]}><ReaderScreen s={t.screens} /></Phone><figcaption>{t.ease.captions[0]}</figcaption></figure>
+          <figure><Phone label={t.ease.captions[1]} dark><TodayScreen s={t.screens} dark /></Phone><figcaption>{t.ease.captions[1]}</figcaption></figure>
         </div>
         <dl className="ease-points">{t.ease.points.map(([title, text]) => <div key={title}><dt>{title}</dt><dd>{text}</dd></div>)}</dl>
       </div>

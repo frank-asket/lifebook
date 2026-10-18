@@ -125,21 +125,6 @@ p { margin: 0; text-wrap: pretty; }
 .tile h3 { font-size: 21px; letter-spacing: -.025em; line-height: 1.25; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .tile > p { margin-top: 10px; font-size: 16px; line-height: 1.65; color: var(--muted); max-width: 32em; }
 .badge { font: 700 12px 'DM Sans', sans-serif; letter-spacing: 0; padding: 4px 10px; border-radius: 99px; background: var(--soft); color: var(--deep); }
-.mini-week { margin-top: auto; padding-top: 28px; }
-.mini-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
-.mini-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 320px; }
-.mini-days > span { display: grid; justify-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--muted); }
-.mini-days i { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid var(--line); color: var(--accent-ink); }
-.mini-days .done i { background: var(--accent); border-color: var(--accent); }
-.mini-days .today i { box-shadow: 0 0 0 3px var(--paper), 0 0 0 4.5px color-mix(in srgb, var(--accent) 45%, transparent); }
-.mini-scripture { margin: auto 0 0; padding-top: 28px; }
-.mini-scripture blockquote { margin: 0; padding: 18px 20px; border-radius: 16px; background: var(--tint); font-family: var(--serif); font-size: 19px; line-height: 1.6; }
-.mini-scripture sup { font: 700 11px 'DM Sans', sans-serif; color: var(--accent); margin-right: 4px; }
-.mini-scripture figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); }
-.mini-pill { align-self: flex-start; margin-top: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 99px; background: var(--soft); color: var(--deep); font-size: 13px; font-weight: 600; }
-.tile-prayer .mini-pill { margin-top: 28px; }
-.mini-marks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 28px; }
-.mini-marks .mini-pill { margin: 0; }
 .closing .button-quiet { background: var(--paper); box-shadow: none; }
 
 .promise-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; margin: 0; }
@@ -356,3 +341,23 @@ p { margin: 0; text-wrap: pretty; }
   .ease-points { grid-template-columns: 1fr; }
   .walk { margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
 }
+
+/* Feature cards: the real screen rises from the bottom edge of each card. */
+.tile { padding-bottom: 0; }
+.tile-phone { margin: auto auto 0; padding-top: 28px; box-sizing: content-box; height: 330px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; }
+.tile-phone .phone { --w: 250px; }
+@media (max-width: 560px) { .tile-phone { height: 300px; } .tile-phone .phone { --w: 236px; } }
+
+/* Extra phone-screen parts for the journal and Ask a pastor. */
+.ps-chip { display: inline-flex; align-items: center; gap: 1.2cqw; padding: 1.2cqw 2.6cqw; border-radius: 9cqw; background: var(--soft); color: var(--deep); font-size: 3.1cqw; font-weight: 600; }
+.ps-chip svg { width: 2.8cqw; height: 2.8cqw; }
+.ps-chip-start { align-self: flex-start; }
+.ps-row-center { align-items: center; justify-content: flex-start; gap: 3cqw; }
+.ps-field-quiet { min-height: 24cqw; color: var(--muted); border-color: var(--line); box-shadow: none; background: var(--bg); }
+.ps-list { padding: 0; gap: 0; overflow: hidden; }
+.ps-list-item { display: flex; flex-direction: column; gap: 1cqw; padding: 4cqw 4.6cqw; border-top: .26cqw solid var(--line); }
+.ps-list-item:first-child { border-top: 0; }
+.ps-list-item b { font-size: 4.1cqw; }
+.ps-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; }
+.ps-notes { gap: 2.4cqw; padding: 4.6cqw; }
+.ps-notes p { font-size: 3.6cqw; line-height: 1.5; color: var(--muted); }
