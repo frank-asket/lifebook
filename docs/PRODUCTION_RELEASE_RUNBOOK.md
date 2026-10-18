@@ -54,7 +54,8 @@ Tracked in **`docs/M3.8_LAUNCH_PLAN.md`**. Check progress with `node apps/api/sc
 | OpenAI data-retention terms for the account confirmed; zero data retention requested if available | Product owner | Open |
 | Guided meditation evaluation passes on the release candidate (`docs/M3.7_MEDITATION_EVAL.md`) | Engineering | **Done** (18 Oct) |
 | Pastoral care pilot: pastors registered with `pastor-admin.cjs`, safeguarding lead given MODERATOR, notification channel chosen | Product owner + engineering | Open |
-| Daily retention job scheduled (`care-purge.cjs --target production --apply --confirm-production <ref>`) | Engineering, after approval | Open |
+| Care retention switched on (`CARE_PURGE_SCHEDULE=on` on Render; see `M3.8_PRODUCTION_DATA_RUNS.md` §2) | Engineering, after approval | Open |
+| Legacy reflections encrypted (`M3.8_PRODUCTION_DATA_RUNS.md` §1) | Engineering, after approval | Open |
 | Privacy notice updated (prayers, care conversations, AI processing); data protection review for Ghana and France | Product owner + adviser | Open |
 | Real-device check: iOS and Android browsers, screen reader | Engineering | Open |
 
