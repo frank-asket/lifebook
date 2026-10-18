@@ -2082,3 +2082,61 @@ progress::-moz-progress-bar { background: var(--purple); }
 :root[data-theme='dark'] .home-week-days .done .home-week-dot { color: #1d1927; }
 .home-week-days .today { color: var(--ink); }
 .home-week-days .today .home-week-dot { box-shadow: 0 0 0 3px var(--paper), 0 0 0 4.5px color-mix(in srgb, var(--purple) 45%, transparent); }
+
+/* Announcements: the welcome tour and "What's new". A native modal dialog: a centred card on wide
+   screens, a bottom sheet on phones that leaves the way it came. */
+.announce { width: min(440px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: 24px; background: var(--paper); color: var(--ink); box-shadow: 0 30px 80px -20px rgba(20, 12, 50, .45); overflow: visible; }
+.announce::backdrop { background: rgba(20, 14, 36, .42); animation: announce-fade .24s ease-out; }
+.announce[open] { animation: announce-in .34s cubic-bezier(.2, .8, .2, 1); }
+.announce.leaving { animation: announce-out .2s cubic-bezier(.8, 0, .8, .2) forwards; }
+.announce.leaving::backdrop { animation: announce-fade-out .2s ease-in forwards; }
+@keyframes announce-in { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+@keyframes announce-out { to { opacity: 0; transform: translateY(16px) scale(.98); } }
+@keyframes announce-fade { from { opacity: 0; } }
+@keyframes announce-fade-out { to { opacity: 0; } }
+.announce-sheet { display: flex; flex-direction: column; padding: 18px 24px 22px; touch-action: pan-y; }
+.announce-grabber { display: none; }
+.announce-top { display: flex; align-items: center; justify-content: space-between; }
+.announce-label { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--purple); }
+.announce-close { width: 44px; height: 44px; margin-right: -12px; display: grid; place-items: center; border: 0; border-radius: 12px; background: transparent; color: var(--muted); }
+@media (hover: hover) and (pointer: fine) { .announce-close:hover { background: var(--soft); color: var(--ink); } }
+.announce-close:focus-visible, .announce-dots button:focus-visible, .announce-skip:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+.announce-slide { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 14px 4px 6px; animation: announce-slide-fwd .3s cubic-bezier(.2, .8, .2, 1); }
+.announce-slide[data-direction='back'] { animation-name: announce-slide-back; }
+@keyframes announce-slide-fwd { from { opacity: 0; transform: translateX(20px); } }
+@keyframes announce-slide-back { from { opacity: 0; transform: translateX(-20px); } }
+.announce-art { width: 96px; height: 96px; margin-bottom: 22px; border-radius: 28px; display: grid; place-items: center; background: var(--soft); color: var(--purple); }
+.announce-art-lock { background: var(--pink); }
+.announce-art-calendar { background: var(--teal); }
+.announce-slide h2 { margin: 0 0 10px; font-size: 23px; line-height: 1.25; letter-spacing: -.022em; }
+.announce-slide h2:focus { outline: none; }
+.announce-slide p { margin: 0; max-width: 34ch; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.announce-dots { display: flex; justify-content: center; list-style: none; margin: 18px 0 4px; padding: 0; }
+.announce-dots button { width: 26px; height: 32px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; border-radius: 8px; }
+.announce-dots button::before { content: ''; width: 7px; height: 7px; border-radius: 9px; background: var(--line); transition: width .3s cubic-bezier(.2, .8, .2, 1), background-color .3s; }
+.announce-dots button.current::before { width: 20px; background: var(--purple); }
+.announce-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.announce-actions .btn { min-width: 120px; }
+.announce-actions .btn-primary { margin-left: auto; }
+.announce-skip { min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--muted); font-weight: 700; font-size: 14px; }
+@media (hover: hover) and (pointer: fine) { .announce-skip:hover { color: var(--ink); } }
+.announce-later { align-self: center; margin-top: 4px; }
+.settings-links { display: grid; gap: 4px; }
+.settings-links .text-link { min-height: 44px; }
+
+@media (max-width: 640px) {
+  .announce { width: 100vw; max-height: 92dvh; margin: auto 0 0; border-radius: 24px 24px 0 0; }
+  .announce[open] { animation-name: announce-up; }
+  .announce.leaving { animation-name: announce-down; }
+  @keyframes announce-up { from { transform: translateY(100%); } }
+  @keyframes announce-down { to { transform: translateY(100%); } }
+  .announce-sheet { padding: 8px 20px calc(20px + env(safe-area-inset-bottom)); }
+  .announce-grabber { display: block; align-self: center; width: 36px; height: 5px; border-radius: 3px; background: var(--line); margin-bottom: 6px; }
+  .announce-actions .btn { flex: 1; min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .announce[open], .announce.leaving, .announce-slide, .announce-slide[data-direction='back'] { animation: announce-fade .2s ease-out; }
+  .announce.leaving { animation: announce-fade-out .2s ease-in forwards; }
+  .announce-dots button::before { transition: none; }
+}
+@media (prefers-contrast: more) { .announce { border: 1px solid var(--ink); } }
