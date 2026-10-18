@@ -18,7 +18,7 @@ export function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
     nav.current?.querySelector('a')?.focus();
     const dismiss = (event: KeyboardEvent) => { if (event.key === 'Escape') { setOpen(false); toggle.current?.focus(); } };
     const outside = (event: PointerEvent) => { if (!header.current?.contains(event.target as Node)) setOpen(false); };
-    const media = window.matchMedia('(min-width: 901px)');
+    const media = window.matchMedia('(min-width: 1181px)');
     const resize = () => { if (media.matches) setOpen(false); };
     document.addEventListener('keydown', dismiss); document.addEventListener('pointerdown', outside); media.addEventListener('change', resize);
     return () => { document.removeEventListener('keydown', dismiss); document.removeEventListener('pointerdown', outside); media.removeEventListener('change', resize); };
