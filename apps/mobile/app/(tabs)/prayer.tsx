@@ -16,6 +16,7 @@ export default function Prayer() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
+  const [signInError, setSignInError] = useState('');
   const date = (v: string) => new Date(v).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
 
   useFocusEffect(useCallback(() => {
@@ -40,7 +41,8 @@ export default function Prayer() {
       <Ionicons name="lock-closed-outline" size={28} color={c.accent} />
       <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{t.prayer.signedOutTitle}</Text>
       <Text style={{ color: c.muted, fontSize: 15, lineHeight: 22, textAlign: 'center' }}>{t.prayer.signedOutText}</Text>
-      <Button title={t.you.signIn} onPress={() => void session.signIn().catch(() => undefined)} style={{ alignSelf: 'stretch', marginTop: 6 }} />
+      <Button title={t.you.signIn} onPress={() => { setSignInError(''); session.signIn().catch(e => { console.warn('Sign-in incomplete:', e instanceof Error ? e.message : e); setSignInError(t.you.signInFailed); }); }} style={{ alignSelf: 'stretch', marginTop: 6 }} />
+      {signInError ? <Text accessibilityRole="alert" style={{ color: c.danger, textAlign: 'center' }}>{signInError}</Text> : null}
     </Card>
     <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} />
   </Screen>;
