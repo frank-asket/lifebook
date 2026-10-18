@@ -8,6 +8,7 @@ import { useDailyWord } from '../../components/daily-word-provider';
 import { useLanguage } from '../../components/language-provider';
 import { Shell } from '../../components/shell';
 import { Announcements } from '../../components/Announcement';
+import { reportScripture } from '../../lib/fums';
 import { api, type ProfileResponse, type LearningPath } from '../../lib/api';
 import { DAILY_WORD_STEPS } from '../../lib/daily-word-navigation';
 import { parseLength } from '../../lib/prayer-time';
@@ -55,6 +56,7 @@ export default function Dashboard() {
     return () => { active = false; };
   }, [getToken, isSignedIn, date]);
 
+  useEffect(() => { if (word) reportScripture(`word:${language}:${word.date}`, word.verse.fumsToken); }, [word, language]);
   const done = DAILY_WORD_STEPS.map(step => Boolean(today?.steps.some(s => s.step === step)));
   const doneCount = done.filter(Boolean).length;
   const completed = today?.status === 'COMPLETED';
