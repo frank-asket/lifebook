@@ -43,6 +43,8 @@ Run from the repo root on the operator machine. Production changes need the prod
 
 ## B. Before the public launch (one-time gates)
 
+Tracked in **`docs/M3.8_LAUNCH_PLAN.md`**. Check progress with `node apps/api/scripts/launch-check.cjs` (after `pnpm --filter @lifebook/api build`).
+
 | Gate | Owner | Status |
 | --- | --- | --- |
 | Clerk **production instance**: domain, production keys in Render (`CLERK_SECRET_KEY`, `CLERK_AUTHORIZED_PARTIES`) and Vercel (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`), allowed origins | Product owner | Open |
