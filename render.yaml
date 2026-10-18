@@ -34,6 +34,9 @@ services:
         sync: false
       - key: REFLECTION_ENCRYPTION_ACTIVE_KEY
         sync: false
+      # Guided meditation. Without it the feature reports that it is unavailable. Never set PRAYER_COMPANION_ALLOW_DRAFT here.
+      - key: OPENAI_API_KEY
+        sync: false
   - type: web
     name: lifebook-ai
     runtime: docker
