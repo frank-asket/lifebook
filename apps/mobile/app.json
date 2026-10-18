@@ -1,1 +1,1 @@
-{"expo":{"name":"LifeBook","slug":"lifebook","scheme":"lifebook","plugins":["expo-router"],"ios":{"supportsTablet":true},"android":{"package":"app.lifebook.mobile"}}}
+{"expo": {"name": "LifeBook", "slug": "lifebook", "scheme": "lifebook", "plugins": ["expo-router"], "ios": {"supportsTablet": true}, "android": {"package": "app.lifebook.mobile"}, "newArchEnabled": true, "userInterfaceStyle": "automatic"}}

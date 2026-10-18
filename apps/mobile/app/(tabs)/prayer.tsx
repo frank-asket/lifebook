@@ -1,0 +1,72 @@
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { api, useApp, useSession } from '../../lib/app';
+import { Button, Card, ErrorLine, Row, Screen, SectionLabel } from '../../components/ui';
+import { PRAYER_LIMITS, type PrayerSummary } from '../../../web/lib/prayer-api';
+
+export default function Prayer() {
+  const { c, t, lang } = useApp();
+  const session = useSession();
+  const [items, setItems] = useState<PrayerSummary[] | null>(null);
+  const [loadError, setLoadError] = useState('');
+  const [draft, setDraft] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [reload, setReload] = useState(0);
+  const date = (v: string) => new Date(v).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
+
+  useFocusEffect(useCallback(() => {
+    if (!session.isSignedIn) return;
+    let active = true; setLoadError('');
+    session.getToken().then(token => api<PrayerSummary[]>('/prayers', token)).then(rows => { if (active) setItems(rows); }).catch(() => { if (active) setLoadError(t.prayer.error); });
+    return () => { active = false; };
+  }, [session.isSignedIn, session.getToken, reload, t.prayer.error]));
+
+  async function save() {
+    if (!draft.trim()) return;
+    setBusy(true); setError(''); setMessage('');
+    try {
+      await api('/prayers', await session.getToken(), { method: 'POST', body: JSON.stringify({ body: draft }) });
+      setDraft(''); setMessage(t.prayer.saved); setReload(n => n + 1);
+    } catch (e) { setError(e instanceof Error ? e.message : t.prayer.error); }
+    finally { setBusy(false); }
+  }
+
+  if (!session.isSignedIn) return <Screen title={t.prayer.title}>
+    <Card style={{ alignItems: 'center', gap: 12, paddingVertical: 28 }}>
+      <Ionicons name="lock-closed-outline" size={28} color={c.accent} />
+      <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{t.prayer.signedOutTitle}</Text>
+      <Text style={{ color: c.muted, fontSize: 15, lineHeight: 22, textAlign: 'center' }}>{t.prayer.signedOutText}</Text>
+      <Button title={t.you.signIn} onPress={() => void session.signIn().catch(() => undefined)} style={{ alignSelf: 'stretch', marginTop: 6 }} />
+    </Card>
+    <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} />
+  </Screen>;
+
+  return <Screen title={t.prayer.title}>
+    <Card style={{ gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 17, fontWeight: '700' }}>{t.prayer.write}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: c.soft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99 }}><Ionicons name="lock-closed" size={11} color={c.deep} /><Text style={{ color: c.deep, fontSize: 12, fontWeight: '600' }}>{t.prayer.lock}</Text></View>
+      </View>
+      <TextInput accessibilityLabel={t.prayer.write} value={draft} onChangeText={v => { setDraft(v); setMessage(''); }} multiline maxLength={PRAYER_LIMITS.body} placeholder={t.prayer.placeholder} placeholderTextColor={c.muted}
+        style={{ minHeight: 130, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: c.line, backgroundColor: c.bg, color: c.ink, fontSize: 17, lineHeight: 26, textAlignVertical: 'top' }} />
+      {draft.length > PRAYER_LIMITS.body * 0.9 ? <Text style={{ color: c.muted, fontSize: 12 }}>{PRAYER_LIMITS.body - draft.length}</Text> : null}
+      <Button title={busy ? t.prayer.saving : t.prayer.save} onPress={() => void save()} disabled={busy || !draft.trim()} />
+      {message ? <Text accessibilityLiveRegion="polite" style={{ color: c.deep, textAlign: 'center' }}>{message}</Text> : null}
+      {error ? <Text accessibilityRole="alert" style={{ color: c.danger }}>{error}</Text> : null}
+    </Card>
+    <SectionLabel>{t.prayer.journal}</SectionLabel>
+    {loadError ? <ErrorLine message={loadError} onRetry={() => setReload(n => n + 1)} />
+      : !items ? <ActivityIndicator color={c.accent} />
+      : !items.length ? <Text style={{ color: c.muted, fontSize: 15, paddingHorizontal: 4 }}>{t.prayer.empty}</Text>
+      : <Card style={{ padding: 0, overflow: 'hidden' }}>{items.map((p, i) => <View key={p.id} style={{ padding: 16, gap: 4, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}><Text style={{ color: c.ink, fontSize: 16, fontWeight: '600', flex: 1 }} numberOfLines={1}>{p.title || t.prayer.untitled}</Text><Text style={{ color: c.muted, fontSize: 13 }}>{date(p.updatedAt)}</Text></View>
+          <Text style={{ color: c.muted, fontSize: 14, lineHeight: 20 }} numberOfLines={2}>{p.preview}</Text>
+          {p.answeredAt ? <Text style={{ alignSelf: 'flex-start', marginTop: 4, color: c.deep, backgroundColor: c.soft, fontSize: 12, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, overflow: 'hidden' }}>{t.prayer.answered}</Text> : null}
+        </View>)}</Card>}
+    <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} />
+  </Screen>;
+}
