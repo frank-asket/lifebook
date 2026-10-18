@@ -7,6 +7,8 @@ import { ContinueReading } from '../../components/bible/ContinueReading';
 import { useDailyWord } from '../../components/daily-word-provider';
 import { useLanguage } from '../../components/language-provider';
 import { Shell } from '../../components/shell';
+import { Announcements } from '../../components/Announcement';
+import { reportScripture } from '../../lib/fums';
 import { api, type ProfileResponse, type LearningPath } from '../../lib/api';
 import { DAILY_WORD_STEPS } from '../../lib/daily-word-navigation';
 import { parseLength } from '../../lib/prayer-time';
@@ -54,6 +56,7 @@ export default function Dashboard() {
     return () => { active = false; };
   }, [getToken, isSignedIn, date]);
 
+  useEffect(() => { if (word) reportScripture(`word:${language}:${word.date}`, word.verse.fumsToken); }, [word, language]);
   const done = DAILY_WORD_STEPS.map(step => Boolean(today?.steps.some(s => s.step === step)));
   const doneCount = done.filter(Boolean).length;
   const completed = today?.status === 'COMPLETED';
@@ -98,6 +101,7 @@ export default function Dashboard() {
       <div className="section-title"><h2 id="home-paths-title">{tr('Discipleship pathways', 'Parcours de disciple')}</h2><Link className="text-link" href="/discipleship">{tr('View all', 'Tout voir')} →</Link></div>
       <div className="home-path-list">{paths.slice(0, 3).map(p => <Link className="card home-link" key={p.id} href="/discipleship"><span className="home-link-icon"><GraduationCap size={20} aria-hidden="true" /></span><span><strong>{p.title}</strong><small>{p.description || tr('Explore this pathway', 'Découvrir ce parcours')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}</div>
     </section>}
+    <Announcements />
   </Shell>;
 }
 

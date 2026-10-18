@@ -29,7 +29,7 @@ export class DailyWordService implements OnModuleDestroy {
     const userId = await this.meditation.userId(auth);
     const day = this.date(timezone || 'UTC');
     const journeyDate = new Date(day + 'T00:00:00.000Z');
-    const passageKey = this.meditation.dailyWord('en', day).passageKey;
+    const passageKey = this.meditation.dailyPassage(day).passageKey;
     const session = await this.db.dailyWordSession.upsert({
       where: { userId_journeyDate: { userId, journeyDate } },
       create: { userId, journeyDate, passageKey },

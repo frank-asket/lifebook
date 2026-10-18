@@ -1,6 +1,6 @@
 export type DailyWord = {
   date: string; passageKey: string;
-  verse: { reference: string; text: string; translation: string };
+  verse: { reference: string; text: string; translation: string; copyright?: string | null; fumsToken?: string | null };
   explanation: string; meditation: string; reflectionQuestion: string;
   prayer: string; application: string;
 };

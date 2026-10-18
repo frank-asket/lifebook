@@ -4,17 +4,30 @@ import {
   Injectable,
   NotFoundException,
   OnModuleDestroy,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@clerk/backend';
+import { BibleContentService } from '../bible-content/bible-content.service';
+import { entryFor, validateDailyWordLibrary } from './daily-word-library';
 
 type SupportedLocale = 'en' | 'fr';
+
+const VERSE_CACHE_MS = 6 * 60 * 60 * 1000;
+
+// The Daily Word library (content/daily-word-library.json): dated, reviewed entries with a legacy fallback rotation.
+const DAILY_WORD_LIBRARY = validateDailyWordLibrary(JSON.parse(readFileSync(join(__dirname, '../../content/daily-word-library.json'), 'utf8')));
 
 @Injectable()
 export class MeditationService implements OnModuleDestroy {
   private readonly db = new PrismaClient();
+  private readonly verseCache = new Map<string, { expires: number; value: { reference: string; text: string; translation: string; copyright: string | null; provider: string; fumsToken: string | null } }>();
+
+  constructor(private readonly bible?: BibleContentService) {}
 
   /**
    * Disconnect Prisma when NestJS shuts down.
@@ -73,13 +86,6 @@ export class MeditationService implements OnModuleDestroy {
     }
   }
 
-
-  /**
-   * A small, editorially curated starter rotation. UTC day is shared by all users.
-   * Reference-only by design: do not redistribute unlicensed Bible translations.
-   * Published meditation is intentionally NOT required for this response.
-   * Replace the rotation with a reviewed editorial schedule in a later milestone.
-   */
 
   // ============================================================
   // AUTHENTICATION
@@ -165,71 +171,51 @@ export class MeditationService implements OnModuleDestroy {
     return user.id;
   }
 
-  /** Curated Scripture-first starter rotation; no database writes. */
-  dailyWord(locale = 'en', date?: string) {
+  /** Today's rotation entry; synchronous so callers can record the passage key without the network. */
+  dailyPassage(date?: string) {
     const selectedDate = date ?? this.getCurrentUtcDay().toISOString().slice(0, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedDate) || Number.isNaN(Date.parse(selectedDate + 'T00:00:00Z'))) {
       throw new BadRequestException('Invalid date');
     }
+    const item = entryFor(DAILY_WORD_LIBRARY, selectedDate, process.env.DAILY_WORD_ALLOW_DRAFT === 'true');
+    return { date: selectedDate, passageKey: item.key, passageId: item.passage, item };
+  }
+
+  /** Verse text, name and attribution come from the published translation; fails with 503 rather than inventing text. */
+  private async verse(locale: SupportedLocale, passageId: string) {
+    const key = `${locale}:${passageId}`;
+    const hit = this.verseCache.get(key);
+    if (hit && hit.expires > Date.now()) return hit.value;
+    if (!this.bible) throw new ServiceUnavailableException('Scripture provider is not configured');
+    const [passage, translation] = await Promise.all([
+      this.bible.passage(locale, passageId),
+      this.bible.translation(locale) as Promise<{ data?: { name?: string; nameLocal?: string } }>,
+    ]);
+    const name = translation.data?.nameLocal?.trim() || translation.data?.name?.trim();
+    const text = passage.text.replace(/\[\d+\]/g, ' ').replace(/¶/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!name || !text) throw new ServiceUnavailableException('Scripture text unavailable');
+    const value = { reference: passage.reference, text, translation: name, copyright: passage.copyright, provider: passage.provider, fumsToken: passage.fumsToken };
+    this.verseCache.set(key, { expires: Date.now() + VERSE_CACHE_MS, value });
+    return value;
+  }
+
+  /** Curated Scripture-first daily journey; no database writes. */
+  async dailyWord(locale = 'en', date?: string) {
+    const { date: selectedDate, passageKey, passageId, item } = this.dailyPassage(date);
     const language = this.normalizeLocale(locale);
-    const days = Math.floor(Date.parse(selectedDate + 'T00:00:00Z') / 86400000);
-    const passages = [
-      {
-        reference: 'Joshua 1:8', referenceFr: 'Josué 1:8',
-        en: 'This book of the law shall not depart out of thy mouth; but thou shalt meditate therein day and night, that thou mayest observe to do according to all that is written therein: for then thou shalt make thy way prosperous, and then thou shalt have good success.',
-        fr: 'Que ce livre de la loi ne s’éloigne pas de ta bouche. Médite-le jour et nuit, afin de veiller à agir selon tout ce qui y est écrit. Alors tu avanceras avec sagesse dans ta voie.',
-        explanationEn: 'God speaks to Joshua as he prepares to lead Israel. Meditation is linked to faithful action, not merely acquiring information.',
-        explanationFr: 'Dieu parle à Josué alors qu’il se prépare à conduire Israël. La méditation est liée à une mise en pratique fidèle, et pas seulement à la connaissance.',
-        questionEn: 'What part of God’s Word can guide one decision today?',
-        questionFr: 'Quelle parole de Dieu peut guider une décision aujourd’hui?',
-        prayerEn: 'Lord, teach me to listen to your Word and act on it today. Amen.',
-        prayerFr: 'Seigneur, apprends-moi à écouter ta Parole et à la mettre en pratique aujourd’hui. Amen.',
-        actionEn: 'Choose one concrete action shaped by today’s Scripture.',
-        actionFr: 'Choisissez une action concrète inspirée de la Parole du jour.',
-      },
-      {
-        reference: 'Psalm 119:105', referenceFr: 'Psaume 119:105',
-        en: 'Thy word is a lamp unto my feet, and a light unto my path.',
-        fr: 'Ta parole est une lampe pour mes pieds et une lumière sur mon chemin.',
-        explanationEn: 'The psalmist describes God’s Word as guidance for the next steps of life, not a promise that every future detail will be visible.',
-        explanationFr: 'Le psalmiste présente la Parole de Dieu comme une lumière pour les prochains pas, non comme la promesse de connaître chaque détail de l’avenir.',
-        questionEn: 'Where do I need guidance for my next step?',
-        questionFr: 'Dans quel domaine ai-je besoin de lumière pour mon prochain pas?',
-        prayerEn: 'God, guide my next step through your Word. Amen.',
-        prayerFr: 'Seigneur, guide mon prochain pas par ta Parole. Amen.',
-        actionEn: 'Take one thoughtful step guided by Scripture.',
-        actionFr: 'Faites un pas réfléchi à la lumière des Écritures.',
-      },
-      {
-        reference: 'James 1:22', referenceFr: 'Jacques 1:22',
-        en: 'But be ye doers of the word, and not hearers only, deceiving your own selves.',
-        fr: 'Mettez la parole en pratique, ne vous contentez pas de l’écouter en vous trompant vous-mêmes.',
-        explanationEn: 'James challenges believers to connect hearing with obedience. Genuine listening produces a response in daily life.',
-        explanationFr: 'Jacques invite les croyants à unir écoute et obéissance. Une écoute sincère se traduit par des actes au quotidien.',
-        questionEn: 'What have I heard in Scripture that I still need to practice?',
-        questionFr: 'Quelle parole entendue dois-je encore mettre en pratique?',
-        prayerEn: 'Lord, help me respond to your Word with action. Amen.',
-        prayerFr: 'Seigneur, aide-moi à répondre à ta Parole par des actes. Amen.',
-        actionEn: 'Put one biblical teaching into practice today.',
-        actionFr: 'Mettez un enseignement biblique en pratique aujourd’hui.',
-      },
-    ];
-    const item = passages[((days % passages.length) + passages.length) % passages.length];
     const french = language === 'fr';
+    const text = french ? item.fr : item.en;
     return {
       date: selectedDate,
-      passageKey: ['JOSHUA_1_8', 'PSALM_119_105', 'JAMES_1_22'][((days % passages.length) + passages.length) % passages.length],
+      passageKey,
+      passageId,
       locale: language,
-      verse: {
-        reference: french ? item.referenceFr : item.reference,
-        text: french ? item.fr : item.en,
-        translation: french ? 'Traduction française de travail — révision éditoriale requise' : 'King James Version (KJV)',
-      },
-      explanation: french ? item.explanationFr : item.explanationEn,
+      verse: await this.verse(language, french && item.passageFr ? item.passageFr : passageId),
+      explanation: text.explanation,
       meditation: french ? 'Relisez lentement ce passage. Observez les mots qui vous interpellent et considérez leur sens dans votre vie.' : 'Read the passage slowly again. Notice what stands out and consider how its meaning relates to your life.',
-      reflectionQuestion: french ? item.questionFr : item.questionEn,
-      prayer: french ? item.prayerFr : item.prayerEn,
-      application: french ? item.actionFr : item.actionEn,
+      reflectionQuestion: text.question,
+      prayer: text.prayer,
+      application: text.action,
     };
   }
 

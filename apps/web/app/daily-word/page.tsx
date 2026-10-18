@@ -12,6 +12,7 @@ import { DAILY_WORD_STEPS as steps, initialDailyWordStep } from '../../lib/daily
 import { PRAYER_LENGTHS, parseLength, type PrayerLength } from '../../lib/prayer-time';
 import { calendarDay } from '../../lib/scripture';
 import { errorMessage } from '../../lib/errors';
+import { reportScripture } from '../../lib/fums';
 
 type Session = {
   id: string; passageKey: string; status: 'IN_PROGRESS' | 'COMPLETED';
@@ -60,6 +61,7 @@ export default function DailyWordPage() {
     return () => { active = false; };
   }, [date, isLoaded, isSignedIn, userId, getToken, attempt]);
 
+  useEffect(() => { if (word) reportScripture(`word:${language}:${word.date}`, word.verse.fumsToken); }, [word, language]);
   const done = steps.map(s => Boolean(session?.steps.some(x => x.step === s)));
   const completed = session?.status === 'COMPLETED';
   const doneCount = done.filter(Boolean).length;
@@ -111,7 +113,7 @@ export default function DailyWordPage() {
       {!word ? (wordLoading || loading) && <div className="dw-verse card" aria-busy="true"><p role="status" className="sr-only">{tr('Preparing today’s Word…', 'Préparation de la Parole du jour…')}</p><span className="skeleton dw-skeleton" /><span className="skeleton dw-skeleton short" /></div> : <>
         <figure className="dw-verse card">
           <blockquote className="dw-verse-text">{word.verse.text}</blockquote>
-          <figcaption><cite>{word.verse.reference}</cite><span>{word.verse.translation}</span></figcaption>
+          <figcaption><cite>{word.verse.reference}</cite><span>{word.verse.translation}</span>{word.verse.copyright && <span>{word.verse.copyright}</span>}</figcaption>
         </figure>
 
         <section className="card dw-begin" aria-labelledby="dw-begin-title">

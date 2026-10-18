@@ -10,6 +10,7 @@ import { ReadingTracker } from './ReadingTracker';
 import { readingApi } from '../../lib/bible-reading-api';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { parseVerses } from '../../lib/scripture';
+import { reportScripture } from '../../lib/fums';
 import { DEFAULT_READER, READER_KEY, parseReaderSettings, type ReaderSettings } from '../../lib/reader-settings';
 import { ReaderSettingsPanel } from './ReaderSettingsPanel';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
@@ -102,6 +103,8 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
     return () => abort.abort();
   }, [chapterId, locale, retry]);
 
+  // Report the chapter to API.Bible's usage system once it is actually on screen.
+  useEffect(() => { if (content) reportScripture(`chapter:${locale}:${content.id}`, content.fumsToken); }, [content, locale]);
   const index = useMemo(() => chapters.findIndex(x => x.id === chapterId), [chapters, chapterId]);
   const previous = index > 0 ? chapters[index - 1] : undefined;
   const next = index >= 0 ? chapters[index + 1] : undefined;
