@@ -2,6 +2,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BibleAnnotationsModule } from './bible-annotations/bible-annotations.module';
 import { BibleReadingModule } from './bible-reading/bible-reading.module';
+import { SuggestionsModule } from './suggestions/suggestions.module';
 import {
   Module,
   Controller,
@@ -350,6 +351,7 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
   imports: [
     ThrottlerModule.forRoot([{ ttl: 60000, limit: requestLimit }]),
     BibleReadingModule,
+    SuggestionsModule,
     BibleContentModule,
     BibleAnnotationsModule,
     // Sprint 2 — Daily Bible Meditation
