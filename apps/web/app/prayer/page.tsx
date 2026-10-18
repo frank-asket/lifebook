@@ -34,7 +34,7 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
   const { getToken } = useAuth(); const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
   const [items, setItems] = useState<PrayerSummary[]>([]); const [loading, setLoading] = useState(true); const [loadError, setLoadError] = useState(''); const [reload, setReload] = useState(0);
   const [selected, setSelected] = useState<PrayerEntry | null>(null);
-  const [title, setTitle] = useState(''); const [body, setBody] = useState('');
+  const [title, setTitle] = useState(''); const [body, setBody] = useState(''); const [showTitle, setShowTitle] = useState(false);
   const [answerNote, setAnswerNote] = useState('');
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [error, setError] = useState('');
   const dirty = selected ? title !== (selected.title ?? '') || body !== selected.body : Boolean(title.trim() || body.trim());
@@ -53,7 +53,7 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
   }, [dirty]);
 
   const canLeave = () => !dirty || window.confirm(tr('Leave without saving your prayer?', 'Quitter sans enregistrer votre prière ?'));
-  const show = (prayer: PrayerEntry | null) => { setSelected(prayer); setTitle(prayer?.title ?? ''); setBody(prayer?.body ?? ''); setAnswerNote(prayer?.answerNote ?? ''); setError(''); };
+  const show = (prayer: PrayerEntry | null) => { setSelected(prayer); setShowTitle(false); setTitle(prayer?.title ?? ''); setBody(prayer?.body ?? ''); setAnswerNote(prayer?.answerNote ?? ''); setError(''); };
   const open = async (id: string) => { if (!canLeave()) return; setBusy(true); setMessage(''); try { show(await prayerApi.get(await token(), id)); } catch (e) { fail(e); } finally { setBusy(false); } };
   const startNew = () => { if (!canLeave()) return; show(null); setMessage(''); };
   const run = async (action: () => Promise<PrayerEntry | null>, done: string) => {
@@ -71,11 +71,12 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
     <form className="card" onSubmit={e => { e.preventDefault(); void save(); }}>
       <div className="split-title"><span className="pill"><LockKeyhole size={13}/> {tr('Encrypted & private', 'Chiffrée et privée')}</span>{selected && <button type="button" className="btn btn-soft btn-sm" onClick={startNew}><Plus size={14}/> {tr('New prayer', 'Nouvelle prière')}</button>}</div>
       <h2 style={{ fontSize: 23, margin: '22px 0 8px' }}>{selected ? tr('Your prayer', 'Votre prière') : tr('Write a prayer', 'Écrire une prière')}</h2>
-      <label className="form-field"><span style={{ fontSize: 12, fontWeight: 800 }}>{tr('Title (optional)', 'Titre (facultatif)')}</span>
-        <input className="input" value={title} maxLength={PRAYER_LIMITS.title} onChange={e => setTitle(e.target.value)} placeholder={tr('For my family', 'Pour ma famille')}/></label>
-      <label className="form-field"><span style={{ fontSize: 12, fontWeight: 800 }}>{tr('Your prayer', 'Votre prière')}</span>
-        <textarea className="textarea" style={{ minHeight: 220 }} value={body} maxLength={PRAYER_LIMITS.body} onChange={e => setBody(e.target.value)} placeholder={tr('Heavenly Father, today I want to bring before You…', 'Père céleste, aujourd’hui je souhaite te confier…')}/></label>
-      <p className="muted" style={{ fontSize: 11 }}>{body.length}/{PRAYER_LIMITS.body}</p>
+      <label className="sr-only" htmlFor="prayer-body">{tr('Your prayer', 'Votre prière')}</label>
+      <textarea id="prayer-body" className="textarea prayer-body" value={body} maxLength={PRAYER_LIMITS.body} onChange={e => setBody(e.target.value)} placeholder={tr('Heavenly Father, today I want to bring before You…', 'Père céleste, aujourd’hui je souhaite te confier…')}/>
+      {body.length > PRAYER_LIMITS.body * 0.9 && <p className="muted prayer-count" role="status">{tr(`${PRAYER_LIMITS.body - body.length} characters left`, `${PRAYER_LIMITS.body - body.length} caractères restants`)}</p>}
+      {showTitle || title ? <label className="form-field prayer-title"><span className="field-label">{tr('Title', 'Titre')}</span>
+        <input className="input" value={title} maxLength={PRAYER_LIMITS.title} onChange={e => setTitle(e.target.value)} placeholder={tr('For my family', 'Pour ma famille')} autoFocus={showTitle && !title}/></label>
+        : <button type="button" className="text-link prayer-add-title" onClick={() => setShowTitle(true)}><Plus size={13} aria-hidden="true"/> {tr('Add a title', 'Ajouter un titre')}</button>}
       <div className="icon-line" style={{ gap: 10, flexWrap: 'wrap' }}>
         <button className="btn btn-primary" disabled={busy || !body.trim() || !dirty}>{busy ? tr('Saving…', 'Enregistrement…') : tr('Save prayer', 'Enregistrer la prière')}</button>
         {selected && <button type="button" className="btn btn-outline" disabled={busy} onClick={() => void remove()}>{tr('Delete', 'Supprimer')}</button>}

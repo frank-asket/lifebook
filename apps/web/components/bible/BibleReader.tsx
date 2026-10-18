@@ -8,6 +8,7 @@ import { useLanguage } from '../language-provider';
 import { AnnotationPanel } from './AnnotationPanel';
 import { ReadingTracker } from './ReadingTracker';
 import { readingApi } from '../../lib/bible-reading-api';
+import { parseVerses } from '../../lib/scripture';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
 
 const labels = {
@@ -127,12 +128,14 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
         {busy ? <p role="status">{t.loading}</p> : content ? <>
           <ReadingTracker locale={locale} chapterId={content.id} />
           <h2 className="reader-reference">{content.reference}</h2>
-          <p className="scripture-text">{content.content}</p>
+          <div className="scripture-text">{parseVerses(content.content).map((paragraph, i) => <p key={i}>{paragraph.map((v, j) => <span key={j} className="verse">{v.number && <sup className="verse-number">{v.number}</sup>}{v.text} </span>)}</p>)}</div>
           <footer className="scripture-attribution">
-            <p>{translation?.name ?? translation?.abbreviation ?? 'API.Bible'}</p>
-            {translation?.copyright && <p className="attribution-line">{translation.copyright}</p>}
-            {content.copyright && <p className="attribution-line">{content.copyright}</p>}
-            <p className="attribution-line">{locale === 'fr' ? 'Texte biblique fourni par API.Bible.' : 'Scripture provided by API.Bible.'}</p>
+            <details>
+              <summary>{translation?.name ?? translation?.abbreviation ?? 'API.Bible'}</summary>
+              {translation?.copyright && <p className="attribution-line">{translation.copyright}</p>}
+              {content.copyright && <p className="attribution-line">{content.copyright}</p>}
+              <p className="attribution-line">{locale === 'fr' ? 'Texte biblique fourni par API.Bible.' : 'Scripture provided by API.Bible.'}</p>
+            </details>
           </footer>
         </> : <p>{t.empty}</p>}
       </article>
