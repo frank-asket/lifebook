@@ -40,6 +40,9 @@ test('verse markers become numbered verses without changing the words', () => {
   assert.equal(paragraphs[1][0].text, 'Il me fait reposer dans de verts pâturages,');
   const words = s => s.replace(/\[\d+\]/g, '').split(/\s+/).filter(Boolean).join(' ');
   assert.equal(paragraphs.flat().map(v => v.text).join(' '), words(content));
+  const kjv = parseVerses('[5] And the light shineth in darkness. [6] ¶ There was a man sent from God, whose name was John. [7] The same came for a witness.');
+  assert.deepEqual(kjv.map(p => p.map(v => v.number)), [['5'], ['6', '7']]);
+  assert.equal(kjv[1][0].text, 'There was a man sent from God, whose name was John.');
   assert.deepEqual(parseVerses('A heading without numbers'), [[{ number: '', text: 'A heading without numbers' }]]);
 });
 test('daily dates are shown as calendar days, never shifted by timezone', () => {
@@ -61,4 +64,28 @@ test('prayer time pacing stays gentle and accepts only known lengths', () => {
   for (const bad of [null, '', '3', '<b>', 'NaN']) assert.equal(parseLength(bad), 5);
   assert.equal(spokenDuration(90, 'fr'), 'une minute et demie');
   assert.equal(spokenDuration(240, 'en'), '4 minutes');
+});
+const { parseReaderSettings, stepSize } = load('../lib/reader-settings.ts');
+test('reading settings fall back to defaults for anything unknown', () => {
+  assert.deepEqual(plain(parseReaderSettings(null)), { size: 'm', spacing: 'normal', font: 'serif' });
+  assert.deepEqual(plain(parseReaderSettings('{"size":"xl","spacing":"relaxed","font":"sans"}')), { size: 'xl', spacing: 'relaxed', font: 'sans' });
+  for (const bad of ['not json', '"m"', '[]', '{"size":"huge","font":"comic"}', 'null']) assert.deepEqual(plain(parseReaderSettings(bad)), { size: 'm', spacing: 'normal', font: 'serif' });
+  assert.equal(stepSize('xl', 1), 'xl');
+  assert.equal(stepSize('s', -1), 's');
+  assert.equal(stepSize('m', 1), 'l');
+});
+const { lastSevenDays } = load('../lib/scripture.ts');
+test('the week view shows the last seven days without streaks', () => {
+  const days = plain(lastSevenDays('2026-10-18', 'en', [
+    { journeyDate: '2026-10-18T00:00:00.000Z', status: 'COMPLETED', steps: [1, 2, 3, 4, 5] },
+    { journeyDate: '2026-10-17T00:00:00.000Z', status: 'IN_PROGRESS', steps: [1] },
+    { journeyDate: '2026-10-15T00:00:00.000Z', status: 'IN_PROGRESS', steps: [] },
+    { journeyDate: '2026-10-01T00:00:00.000Z', status: 'COMPLETED', steps: [1] },
+  ]));
+  assert.deepEqual(days.map(d => d.date), ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18']);
+  assert.deepEqual(days.map(d => d.state), ['none', 'none', 'none', 'none', 'none', 'started', 'done']);
+  assert.deepEqual(days.map(d => d.today), [false, false, false, false, false, false, true]);
+  assert.equal(days[0].label, 'M');
+  assert.equal(plain(lastSevenDays('2026-03-01', 'fr', []))[0].date, '2026-02-23');
+  assert.deepEqual(plain(lastSevenDays('bad', 'en', [])), []);
 });
