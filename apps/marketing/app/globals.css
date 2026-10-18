@@ -58,13 +58,13 @@ p { margin: 0; text-wrap: pretty; }
 }
 @supports not (animation-timeline: scroll()) { .site-header { border-bottom-color: var(--line); } }
 @media (prefers-reduced-transparency: reduce) { .site-header { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom-color: var(--line); } }
-.header-inner { height: 68px; display: flex; align-items: center; gap: 28px; }
+.header-inner { height: 68px; display: flex; align-items: center; gap: 16px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font: 800 20px Manrope, sans-serif; letter-spacing: -.03em; }
 .nav { display: flex; gap: 4px; margin-right: auto; }
-.nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--muted); transition: color .15s, background-color .15s; }
+.nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; white-space: nowrap; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--muted); transition: color .15s, background-color .15s; }
 .nav .nav-mobile-only { display: none; }
 .header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-.lang-switch, .header-signin { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.lang-switch, .header-signin { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; white-space: nowrap; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--muted); }
 @media (hover: hover) and (pointer: fine) { .nav a:hover, .lang-switch:hover, .header-signin:hover { color: var(--ink); background: var(--soft); } }
 .nav a:active, .lang-switch:active, .header-signin:active { opacity: .65; }
 .menu-toggle { display: none; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 12px; background: transparent; }
@@ -186,7 +186,8 @@ p { margin: 0; text-wrap: pretty; }
   .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .steps li:last-child { grid-column: span 2; }
 }
-@media (max-width: 900px) {
+/* The full header row (five sections, language, sign in, get started) needs about 1180px (French is the widest); below that it becomes a menu. */
+@media (max-width: 1180px) {
   .nav { position: absolute; top: 68px; left: 0; right: 0; display: none; flex-direction: column; gap: 0; padding: 8px 20px 18px; background: var(--bg); border-bottom: 1px solid var(--line); }
   .nav.open { display: flex; }
   .nav a { min-height: 52px; font-size: 17px; color: var(--ink); }
@@ -194,6 +195,8 @@ p { margin: 0; text-wrap: pretty; }
   .nav .nav-start { margin-top: 8px; justify-content: center; background: var(--accent); color: var(--accent-ink); border-radius: 14px; font-weight: 700; }
   .header-signin { display: none; }
   .menu-toggle { display: grid; }
+}
+@media (max-width: 900px) {
   .hero-grid { grid-template-columns: 1fr; }
   .preview { min-height: 500px; }
   .faq, .promise-list { grid-template-columns: 1fr; gap: 0; }
@@ -202,7 +205,7 @@ p { margin: 0; text-wrap: pretty; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: span 2; }
 }
-@media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+@media (max-width: 1180px) and (prefers-reduced-motion: no-preference) {
   .nav.open { animation: nav-in .18s var(--ease); transform-origin: top; }
   @keyframes nav-in { from { opacity: 0; transform: translateY(-6px); } }
 }
