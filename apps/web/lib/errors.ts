@@ -28,6 +28,8 @@ const french: Record<string, string> = {
   'Say whether to share the conversation': 'Indiquez si la conversation doit être partagée.',
   'You have sent several reports today. If someone is in danger, call 112 now.': 'Vous avez déjà envoyé plusieurs signalements aujourd’hui. Si quelqu’un est en danger, appelez le 112 maintenant.',
   'Only the safeguarding lead can open this': 'Seul le référent protection peut ouvrir ceci.',
+  'Approved pastors need their pastor role closed by the LifeBook team before deleting their account': 'Les pasteurs approuvés doivent d’abord demander à l’équipe LifeBook de clôturer leur rôle de pasteur avant de supprimer leur compte.',
+  'Staff accounts are deleted by the LifeBook team': 'Les comptes de l’équipe sont supprimés par l’équipe LifeBook.',
   'Report not found': 'Signalement introuvable.',
   'Pastor not found': 'Pasteur introuvable.',
   'Describe how the report was resolved': 'Décrivez comment le signalement a été résolu.',

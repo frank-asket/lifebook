@@ -48,11 +48,11 @@ Your browser keeps preferences only: theme, language, reading settings, prayer-t
 
 ## How long we keep it
 - Pastoral care: 90 days after a request closes. Safety reports: 365 days after resolution.
-- Everything else: until you delete it, or delete your account **[gap: there is no "delete my account" yet; it is planned for M3.8]**.
+- Everything else: until you delete it, or delete your account (Settings → Delete my account), which removes it immediately. Safety reports already made about a conversation are kept until their own deletion date, for safeguarding.
 - Backups **[confirm the Supabase backup retention period]**.
 
 ## Your rights
-Access, correction, deletion, restriction, objection, portability, and withdrawing consent at any time, plus complaint to the regulator: the CNIL (France) or the Data Protection Commission (Ghana). Today you can delete prayers one by one or all at once, change your choices in Settings, and switch suggestions off. **[gap: account deletion and data export are not built yet]**
+Access, correction, deletion, restriction, objection, portability, and withdrawing consent at any time, plus complaint to the regulator: the CNIL (France) or the Data Protection Commission (Ghana). You can delete prayers one by one or all at once, delete your whole account and its data in Settings, change your choices, and switch suggestions off. **[gap: data export is not built yet; until it is, access requests are handled by email]**
 
 ## Children
 **[confirm the minimum age.]** LifeBook is not designed for children under **[13/15/16]**, and sign-up should say so.
