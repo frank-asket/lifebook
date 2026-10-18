@@ -33,6 +33,24 @@ export class OpenAiClient {
       .some(name => categories[name] === true);
   }
 
+  /**
+   * A focused second opinion on risk, separate from writing. It looks only for warning signs, so a calm or
+   * indirect farewell is not mistaken for an ordinary concern. Fails closed: errors surface, never a silent pass.
+   */
+  async assessRisk(text: string, model: string): Promise<'none' | 'possible' | 'likely'> {
+    const result = await this.structured<{ risk: 'none' | 'possible' | 'likely' }>({
+      model, maxTokens: 50, schemaName: 'risk_check',
+      system: `You screen private prayers for safety before a Christian app writes anything. Answer only about risk.
+"likely" or "possible": any sign the person may be thinking of suicide or self-harm, may harm someone, or is being abused, controlled or threatened.
+This includes indirect signs: saying goodbye, making peace with everyone, arranging care for pets or people "when I'm gone", finally being able to "rest" or have "peace" after a set time, putting affairs in order, a plan, feeling like a burden, wanting pain to stop for good, saving medication, being locked in, a child describing secret visits.
+"none": ordinary worries, grief for someone else, illness, money, doubt, anger at God, or idioms ("dying to see", "this is killing me").
+When unsure, choose "possible".`,
+      user: `Prayer:\n"""\n${text}\n"""`,
+      schema: { type: 'object', additionalProperties: false, required: ['risk'], properties: { risk: { type: 'string', enum: ['none', 'possible', 'likely'] } } },
+    });
+    return result.risk;
+  }
+
   /** One structured completion. The schema is enforced by the provider (strict mode). */
   async structured<T>(input: { model: string; system: string; user: string; schemaName: string; schema: object; maxTokens: number }): Promise<T> {
     const result = await this.post<{ choices: { message: { content: string | null; refusal?: string | null }; finish_reason: string }[] }>('/chat/completions', {

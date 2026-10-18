@@ -7,9 +7,11 @@ const url = process.env.LIFEBOOK_M36_TEST_DATABASE_URL;
 
 test('the crisis screen catches English and French risk wording without flagging ordinary prayers', () => {
   for (const text of ['I want to kill myself', 'I have been thinking about suicide', 'Sometimes I wish I was dead', 'I don’t want to live anymore', 'He hits me when he drinks',
-    'Je veux mourir', 'J’ai pensé à me suicider', 'Je n’ai plus envie de vivre', 'Il me frappe tous les soirs', 'Je veux en finir', 'I keep cutting myself']) assert.equal(crisisScreen(text), true, text);
+    'Je veux mourir', 'J’ai pensé à me suicider', 'Je n’ai plus envie de vivre', 'Il me frappe tous les soirs', 'Je veux en finir', 'I keep cutting myself',
+    'I have been writing goodbye letters to my children', 'My family would be better off without me', 'J’ai écrit des lettres d’adieu', 'Bientôt je ne serai plus un poids pour personne', 'I have been saving up my sleeping pills']) assert.equal(crisisScreen(text), true, text);
   for (const text of ['Please give me peace about my exams', 'Pray for my grandfather who died last week', 'I am tired and need rest',
-    'Seigneur, guide mes pas cette semaine', 'Help me forgive my brother', 'I am anxious about money']) assert.equal(crisisScreen(text), false, text);
+    'Seigneur, guide mes pas cette semaine', 'Help me forgive my brother', 'I am anxious about money',
+    'I keep my letters from my grandmother in a box', 'Help me plan a farewell party for my retiring colleague', 'I am giving my old clothes to the church charity']) assert.equal(crisisScreen(text), false, text);
 });
 
 test('the OpenAI client opts out of storage, enforces the schema and never leaks the key', async () => {
@@ -59,7 +61,8 @@ test('guided meditation needs consent, screens for crisis, uses only reviewed Sc
       prayers.db = tx; guided.db = tx;
       prayers.userId = async auth => auth === 'owner' ? owner.id : other.id;
       let flag = false; let draft; const generated = [];
-      guided.ai = { flagsRisk: async () => flag, structured: async input => { generated.push(input); return draft(); } };
+      let risk = 'none';
+      guided.ai = { flagsRisk: async () => flag, assessRisk: async () => risk, structured: async input => { generated.push(input); return draft(); } };
       const normal = () => ({ safety: 'none', passage_ids: ['PSA.56.3', 'NOT.1.1', 'ISA.41.10', 'PSA.56.3'], reflection: Array(200).fill('word').join(' ') + '.', questions: ['One?', 'Two?', 'Three?', 'Four?'], prayer: 'Lord, I bring you my fear. Amen.' });
       draft = normal;
 
@@ -94,13 +97,14 @@ test('guided meditation needs consent, screens for crisis, uses only reviewed Sc
       const quiet = await prayers.create('owner', { body: 'Synthetic: please help me this week.' });
       flag = true;
       assert.equal((await guided.generate('owner', quiet.id, { consent: true })).status, 'crisis');
-      flag = false; draft = () => ({ ...normal(), safety: 'crisis' });
+      flag = false; risk = 'possible';
+      assert.equal((await guided.generate('owner', quiet.id, { consent: true })).status, 'crisis', 'the focused risk check also stops generation');
+      risk = 'none'; draft = () => ({ ...normal(), safety: 'crisis' });
       assert.equal((await guided.generate('owner', quiet.id, { consent: true })).status, 'crisis');
       assert.equal((await tx.prayerEntry.findUnique({ where: { id: quiet.id } })).meditationCiphertext, null);
       draft = normal;
 
-      // Daily limit, counted without content: four requests so far, the fifth is allowed, the sixth refused.
-      assert.equal((await guided.generate('owner', quiet.id, { consent: true })).status, 'ok');
+      // Daily limit, counted without content: five requests so far, so the sixth is refused.
       await assert.rejects(guided.generate('owner', quiet.id, { consent: true }), /5 guided meditations a day/);
       const usage = await tx.aiUsage.findMany({ where: { userId: owner.id } });
       assert.equal(usage.length, 5);
