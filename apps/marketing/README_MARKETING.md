@@ -3,7 +3,7 @@
 Responsive marketing website for LifeBook, using the existing monorepo's `apps/marketing` workspace.
 
 ## Pages
-- `/` — complete landing page with hero, three pillars, scripture moment, steps, FAQ, CTA.
+- `/` (English) and `/fr` (French) — landing page: hero with a static rendering of the prayer-time screens, the five steps, what's inside, our promises, a verse, FAQ, closing call to action. All copy lives in `lib/content.ts`; keep every claim true to what the app does today and label pilots or upcoming features.
 - `/privacy` — clearly marked **pre-launch placeholder**, must be replaced by reviewed privacy policy before public accounts.
 - `/terms` — clearly marked **pre-launch placeholder**, must be replaced by reviewed terms before public accounts.
 - Custom 404.
@@ -34,6 +34,7 @@ Import the same GitHub repository as a **separate project** from `apps/web`:
 - Validate any app store / mobile availability statements before advertising downloads.
 - Connect live app URL and test sign-in navigation.
 - Replace the CSS/SVG placeholder book brand with the final approved LifeBook brand asset when ready.
+- Scripture on the site is quoted exactly from the app's translations (KJV, J.N. Darby) with attribution; check any new verse against the Bible API before adding it.
 - Check typography/network policies: Google Fonts are imported via CSS with system fallbacks.
 
 No backend is required to render this marketing site. No forms silently collect data. Features are described as product direction, not falsely represented as fully launched.

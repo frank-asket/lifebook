@@ -1,6 +1,16 @@
-import type {Metadata} from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import {SiteHeader} from '../components/site-header';
-import {SiteFooter} from '../components/site-footer';
-export const metadata:Metadata={title:{default:'LifeBook — Grow in the Word, every day',template:'%s | LifeBook'},description:'Make room for Scripture, prayer, and spiritual growth. Discover daily Bible meditation, a private prayer space, and meaningful Christian teaching with LifeBook.',openGraph:{title:'LifeBook — A little closer, every day',description:'A thoughtful home for Scripture, prayer, and spiritual growth.',type:'website'},robots:{index:true,follow:true}};
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><a className="skip-link" href="#main-content">Skip to content</a><SiteHeader/><div id="main-content" tabIndex={-1}>{children}</div><SiteFooter/></body></html>}
+import { content } from '../lib/content';
+
+export const metadata: Metadata = {
+  title: { default: content.en.meta.title, template: '%s | LifeBook' },
+  description: content.en.meta.description,
+  openGraph: { title: content.en.meta.title, description: content.en.meta.description, type: 'website' },
+  alternates: { languages: { en: '/', fr: '/fr' } },
+  robots: { index: true, follow: true },
+};
+export const viewport: Viewport = { themeColor: [{ media: '(prefers-color-scheme: light)', color: '#faf9fc' }, { media: '(prefers-color-scheme: dark)', color: '#121019' }] };
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return <html lang="en"><body>{children}</body></html>;
+}
