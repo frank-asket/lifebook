@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BookOpen, ArrowRight, Search, Library } from 'lucide-react';
 import { Shell } from '../../components/shell';
 import { api } from '../../lib/api';
+import { errorMessage } from '../../lib/errors';
 type Method = 'THEMATIC' | 'CHARACTER' | 'BOOK' | 'SYSTEMATIC';
 type Series = { id:string; title:string; description:string; method:Method; difficulty:string; _count:{lessons:number} };
 const categories: {method:Method;title:string;description:string;titleFr:string;descriptionFr:string}[] = [
@@ -15,7 +16,7 @@ const categories: {method:Method;title:string;description:string;titleFr:string;
 ];
 export default function BibleStudyPage(){ const {language}=useLanguage(); const tr=(en:string,fr:string)=>language==='fr'?fr:en;
  const [method,setMethod]=useState<Method|null>(null); const [search,setSearch]=useState(''); const [items,setItems]=useState<Series[]>([]); const [error,setError]=useState(''); const [loading,setLoading]=useState(true); const [retry,setRetry]=useState(0);
- useEffect(()=>{let live=true;setLoading(true);setError('');setItems([]);api<Series[]>(`/bible-studies?locale=${language}`).then(v=>{if(live)setItems(v)}).catch(e=>{if(live)setError(e instanceof Error?e.message:'Unable to load studies')}).finally(()=>{if(live)setLoading(false)});return()=>{live=false}},[language,retry]);
+ useEffect(()=>{let live=true;setLoading(true);setError('');setItems([]);api<Series[]>(`/bible-studies?locale=${language}`).then(v=>{if(live)setItems(v)}).catch(e=>{if(live)setError(errorMessage(e,language))}).finally(()=>{if(live)setLoading(false)});return()=>{live=false}},[language,retry]);
  const filtered=items.filter(s=>(!method||s.method===method)&&`${s.title} ${s.description}`.toLowerCase().includes(search.toLowerCase()));
  return <Shell title={tr('Bible Study','Étude biblique')}><nav aria-label={tr('Bible reading','Lecture biblique')} className="page-actions"><Link href={`/bible/read?locale=${language === 'fr' ? 'fr' : 'en'}`}>{tr('Read the Bible','Lire la Bible')}</Link><Link href="/bible/plans">{tr('Reading plans','Plans de lecture')}</Link><Link href="/bible/my-reading">{tr('My progress','Ma progression')}</Link><Link href="/bible/dashboard">{tr('Reading dashboard','Tableau de lecture')}</Link></nav><span className="eyebrow">{tr('EXPLORE · UNDERSTAND · APPLY','EXPLORER · COMPRENDRE · APPLIQUER')}</span><h1 className="page-heading">{tr('Explore the Bible','Explorer la Bible')}</h1><p className="subheading">{tr('Discover Scripture through guided, context-aware studies.','Découvrez les Écritures grâce à des études guidées et contextualisées.')}</p>
  <div className="study-categories">{categories.map(c=><button key={c.method} type="button" className={`card study-category ${method===c.method?'study-selected':''}`} onClick={()=>setMethod(method===c.method?null:c.method)} aria-pressed={method===c.method}><BookOpen size={25}/><h3>{tr(c.title,c.titleFr)}</h3><p className="muted">{tr(c.description,c.descriptionFr)}</p></button>)}</div>

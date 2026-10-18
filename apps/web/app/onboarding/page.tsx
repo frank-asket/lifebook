@@ -26,7 +26,7 @@ import {
     learningGoalLabel,
     formatLabel,
 } from '../../lib/api';
-import { careErrorMessage } from '../../lib/care-errors';
+import { errorMessage } from '../../lib/errors';
 import {
     ONBOARDING_STEPS,
     onboardingStepIndex,
@@ -314,7 +314,7 @@ export default function Onboarding() {
             router.push('/dashboard');
             router.refresh();
         } catch (err) {
-            setError(careErrorMessage(err, language));
+            setError(errorMessage(err, language));
         } finally {
             setSaving(false);
         }
@@ -409,7 +409,7 @@ export default function Onboarding() {
                         {load.status === 'failed' && (
                             <div className="alert" role="alert">
                                 <p>
-                                    {careErrorMessage(load.error, language)}{' '}
+                                    {errorMessage(load.error, language)}{' '}
                                     {tr(
                                         'Your saved choices have not been changed.',
                                         'Vos choix enregistrés n’ont pas été modifiés.'

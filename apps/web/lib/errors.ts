@@ -1,4 +1,5 @@
 // Shown in the member's language: the API and lib/api.ts only return English messages.
+// Messages a page throws itself are already in the member's language and pass through.
 type Ui = 'en' | 'fr';
 
 export const SIGN_IN_AGAIN = 'Please sign in again.';
@@ -36,15 +37,19 @@ const french: Record<string, string> = {
   'You cannot suspend yourself': 'Vous ne pouvez pas vous suspendre vous-même.',
 };
 const generic = { en: 'Something went wrong. Please try again.', fr: 'Une erreur est survenue. Veuillez réessayer.' };
+const translated = new Set(Object.values(french));
+const technical = /^LifeBook API returned HTTP \d+\.$/;
 
 /** Turns a thrown API or network error into text for the current UI language. */
-export function careErrorMessage(error: unknown, ui: Ui): string {
+export function errorMessage(error: unknown, ui: Ui): string {
   const raw = error && typeof error === 'object' && 'message' in error ? (error as { message: unknown }).message : null;
   const message = typeof raw === 'string' ? raw.trim() : '';
-  if (!message) return generic[ui];
+  if (!message || technical.test(message)) return generic[ui];
   if (ui === 'en') return message;
   if (french[message]) return french[message];
+  if (translated.has(message)) return message;
   const limit = /^You already have (\d+) open conversations, your limit$/.exec(message);
   if (limit) return `Vous avez déjà ${limit[1]} conversations ouvertes, votre limite.`;
-  return generic.fr;
+  // An unknown API message is English; anything else was written by the page in the UI language.
+  return (error as { name?: unknown }).name === 'ApiError' ? generic.fr : message;
 }

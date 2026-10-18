@@ -5,6 +5,7 @@ import { BookOpen, ArrowRight } from 'lucide-react';
 import { Shell } from '../../../components/shell';
 import { useLanguage } from '../../../components/language-provider';
 import { readingApi, type Plan } from '../../../lib/bible-reading-api';
+import { errorMessage } from '../../../lib/errors';
 export default function ReadingPlansPage() {
   const { language: locale } = useLanguage();
   const tr = (en: string, fr: string) => locale === 'fr' ? fr : en;
@@ -12,7 +13,7 @@ export default function ReadingPlansPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
-  useEffect(() => { let live = true; setLoading(true); setError(''); setPlans([]); readingApi.plans(locale).then(x => { if (live) setPlans(x); }).catch(e => { if (live) setError(e instanceof Error ? e.message : 'Unable to load plans'); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [locale, retry]);
+  useEffect(() => { let live = true; setLoading(true); setError(''); setPlans([]); readingApi.plans(locale).then(x => { if (live) setPlans(x); }).catch(e => { if (live) setError(errorMessage(e, locale)); }).finally(() => { if (live) setLoading(false); }); return () => { live = false; }; }, [locale, retry]);
   return <Shell title={tr('Reading Plans', 'Plans de lecture')}><span className="eyebrow">{tr('A RHYTHM THAT FITS YOUR LIFE', 'UN RYTHME À VOTRE MESURE')}</span><h1 className="page-heading">{tr('Make space for Scripture', 'Faites place à la Parole')}</h1><p className="subheading">{tr('Choose a guided path through the Bible. A few minutes, one chapter, one day at a time.', 'Choisissez un parcours biblique. Quelques minutes, un chapitre, un jour à la fois.')}</p><div className="page-actions"><Link className="btn btn-outline" href="/bible/my-reading">{tr('My progress', 'Ma progression')}</Link><Link className="text-link" href={`/bible/read?locale=${locale}`}>{tr('Read at my own pace', 'Lire à mon rythme')} →</Link></div>
     {loading && <p className="notice" role="status">{tr('Loading reading plans…', 'Chargement des plans…')}</p>}
     {error && <div className="alert reader-error" role="alert"><span>{error}</span><button className="btn btn-soft" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div>}

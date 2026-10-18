@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Shell } from '../../../components/shell';
 import { useLanguage } from '../../../components/language-provider';
 import { api } from '../../../lib/api';
+import { errorMessage } from '../../../lib/errors';
 type Entry = { id: string; completedAt: string; meditation: { id: string; title: string; scriptureReference: string } };
 export default function HistoryPage() {
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
@@ -21,7 +22,7 @@ export default function HistoryPage() {
     let active = true; setLoading(true);
     getToken().then(token => api<Entry[]>('/meditations/history', token))
       .then(data => { if (active) setItems(data); })
-      .catch(e => { if (active) setError(e instanceof Error ? e.message : 'Could not load history.'); })
+      .catch(e => { if (active) setError(errorMessage(e, language)); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [isLoaded, isSignedIn, userId, getToken, retry]);

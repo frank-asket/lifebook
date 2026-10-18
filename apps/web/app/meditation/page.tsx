@@ -7,6 +7,7 @@ import { BookOpen, RefreshCw, CalendarDays, Heart, ArrowRight, AlertCircle } fro
 import { Shell } from '../../components/shell';
 import { api, ApiError } from '../../lib/api';
 import { MeditationView, type Meditation } from '../../components/meditation-view';
+import { errorMessage } from '../../lib/errors';
 
 type PageState = { item: Meditation | null; loading: boolean; error: string };
 
@@ -40,7 +41,7 @@ export default function DailyMeditationPage() { const {language}=useLanguage(); 
         setState({ item: null, loading: false, error: '' });
         return;
       }
-      setState({ item: null, loading: false, error: error instanceof Error ? error.message : 'Unable to load today’s meditation.' });
+      setState({ item: null, loading: false, error: errorMessage(error, language) });
     }
   }, [locale]);
 

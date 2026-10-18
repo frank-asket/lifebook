@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Bookmark, Highlighter, NotebookPen, Trash2 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { errorMessage } from '../../lib/errors';
 type Annotation = { id: string; passageId: string; locale: string; bookmarked: boolean; highlight: string | null; note: string | null };
 const colors = ['yellow', 'green', 'blue', 'pink'] as const;
 export function AnnotationPanel({ chapterId, locale, initialVerse, onDirtyChange }: { onDirtyChange?: (dirty: boolean) => void; initialVerse?: string; chapterId: string; locale: 'en' | 'fr' }) {
@@ -41,7 +42,7 @@ function AnnotationEditor({ chapterId, locale, initialVerse, onDirtyChange }: { 
         const token = await getToken(); if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.'));
         const data = await api<Annotation[]>(`/bible-annotations?locale=${locale}&chapterId=${encodeURIComponent(chapterId)}`, token, { signal: controller.signal });
         if (!controller.signal.aborted) { setItems(data); const selected = data.find(item => item.passageId === passageId); setBookmark(selected?.bookmarked ?? false); setHighlight(selected?.highlight ?? ''); setNote(selected?.note ?? ''); }
-      } catch (e) { if (!controller.signal.aborted) { setLoadFailed(true); setError(e instanceof Error ? e.message : tr('Unable to load annotations.', 'Impossible de charger les annotations.')); } }
+      } catch (e) { if (!controller.signal.aborted) { setLoadFailed(true); setError(errorMessage(e, locale)); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
     })();
     return () => controller.abort();
@@ -78,7 +79,7 @@ function AnnotationEditor({ chapterId, locale, initialVerse, onDirtyChange }: { 
         if (mounted.current) { setItems(rows => [...rows.filter(item => item.passageId !== passageId), row]); }
       }
       if (mounted.current) setMessage(remove ? tr('Annotation deleted.', 'Annotation supprimée.') : tr('Annotation saved privately.', 'Annotation privée enregistrée.'));
-    } catch (e) { if (mounted.current) setError(e instanceof Error ? e.message : tr('Unable to save. Your draft is still here.', 'Échec de l’enregistrement. Votre brouillon est conservé.')); }
+    } catch (e) { if (mounted.current) setError(errorMessage(e, locale)); }
     finally { if (mounted.current) setBusy(false); }
   }
   return <section className="card annotation-panel" aria-labelledby="annotation-title">

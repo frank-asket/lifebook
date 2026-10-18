@@ -11,6 +11,7 @@ import { api } from '../../lib/api';
 import { DAILY_WORD_STEPS as steps, initialDailyWordStep } from '../../lib/daily-word-navigation';
 import { PRAYER_LENGTHS, parseLength, type PrayerLength } from '../../lib/prayer-time';
 import { calendarDay } from '../../lib/scripture';
+import { errorMessage } from '../../lib/errors';
 import { reportScripture } from '../../lib/fums';
 
 type Session = {
@@ -54,7 +55,7 @@ export default function DailyWordPage() {
         const requested = new URLSearchParams(window.location.search).get('step');
         setStep(initialDailyWordStep(requested, current?.steps.map(done => done.step)));
         if (requested !== null && /^[0-4]$/.test(requested)) setOpen(true);
-      } catch (e) { if (active) setError(e instanceof Error ? e.message : 'Unable to load Daily Word'); }
+      } catch (e) { if (active) setError(errorMessage(e, language)); }
       finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };

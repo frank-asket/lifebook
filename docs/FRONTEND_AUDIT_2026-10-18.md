@@ -43,7 +43,7 @@ None of its text goes through the language provider: headings, journeys, goals, 
 
 ## Suggested order
 
-Findings 1–4 are fixed on `fix/onboarding-safety-and-french`.
+Findings 1–4 are fixed (merged with #38). Findings 5 and 6 are fixed on `fix/web-errors-and-french`.
 
 
 1. Findings 1 and 2 together in one onboarding PR, with a regression test that save stays blocked after a failed load.

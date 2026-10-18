@@ -14,6 +14,7 @@ import { reportScripture } from '../../lib/fums';
 import { DEFAULT_READER, READER_KEY, parseReaderSettings, type ReaderSettings } from '../../lib/reader-settings';
 import { ReaderSettingsPanel } from './ReaderSettingsPanel';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
+import { errorMessage } from '../../lib/errors';
 
 const labels = {
   en: { title: 'Read the Bible', book: 'Book', chapter: 'Chapter', language: 'Bible language', prev: 'Previous', next: 'Next', study: 'Bible Study', loading: 'Loading Scripture…', retry: 'Try again', empty: 'Choose a book and chapter.' },
@@ -71,7 +72,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
         const requestedBook = target?.split('.')[0];
         setBookId(items.find(x => x.id === requestedBook)?.id ?? items.find(x => x.id === 'GEN')?.id ?? items[0]?.id ?? '');
       })
-      .catch(e => { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load books'); })
+      .catch(e => { if (!abort.signal.aborted) setError(errorMessage(e, language)); })
       .finally(() => { if (!abort.signal.aborted) setBooksBusy(false); });
     return () => abort.abort();
   }, [locale, retry, ready]);
@@ -86,7 +87,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
         const numbered = items.filter(x => /^\d+$/.test(x.number));
         setChapters(numbered); setChapterId(numbered.find(x => x.id === target)?.id ?? numbered[0]?.id ?? '');
       })
-      .catch(e => { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load chapters'); })
+      .catch(e => { if (!abort.signal.aborted) setError(errorMessage(e, language)); })
       .finally(() => { if (!abort.signal.aborted) setChaptersBusy(false); });
     return () => abort.abort();
   }, [bookId, locale, retry]);
@@ -97,7 +98,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
     setContentBusy(true); setError(''); setContent(null);
     bibleApi.chapter(chapterId, locale, abort.signal)
       .then(data => { if (!abort.signal.aborted) setContent(data); })
-      .catch(e => { if (!abort.signal.aborted) setError(e instanceof Error ? e.message : 'Unable to load chapter'); })
+      .catch(e => { if (!abort.signal.aborted) setError(errorMessage(e, language)); })
       .finally(() => { if (!abort.signal.aborted) setContentBusy(false); });
     return () => abort.abort();
   }, [chapterId, locale, retry]);

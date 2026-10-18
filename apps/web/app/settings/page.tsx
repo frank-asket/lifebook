@@ -8,6 +8,7 @@ import { ThemeToggle } from '../../components/theme-toggle';
 import { useLanguage, type Language } from '../../components/language-provider';
 import { DeleteAllPrayers } from '../../components/prayer/DeleteAllPrayers';
 import { api, type FaithProfile, type ProfileResponse, faithJourneyLabel, learningGoalLabel } from '../../lib/api';
+import { errorMessage } from '../../lib/errors';
 
 export default function Settings() {
   const { language, setLanguage } = useLanguage();
@@ -28,7 +29,7 @@ export default function Settings() {
     setData(null); setError(''); setSaveError(''); setSaved(false);
     (async () => {
       try { const token = await getToken(); const result = await api<ProfileResponse>('/me/profile', token); if (active) setData(result); }
-      catch (error) { if (active) setError(error instanceof Error ? error.message : 'Unable to load settings'); }
+      catch (error) { if (active) setError(errorMessage(error, language)); }
     })();
     return () => { active = false; };
   }, [getToken, userId, isLoaded, retry]);
@@ -41,7 +42,7 @@ export default function Settings() {
       const profile = await api<FaithProfile>('/me/profile', token, { method: 'PUT', body: JSON.stringify({ language: selected }) });
       setData(current => current ? { ...current, profile } : current);
       setLanguage(selected); setSaved(true);
-    } catch (error) { setSaveError(error instanceof Error ? error.message : 'Unable to save language'); }
+    } catch (error) { setSaveError(errorMessage(error, language)); }
     finally { setSaving(false); }
   }
   const p = data?.profile;

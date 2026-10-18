@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { BookOpen } from 'lucide-react';
 import { api } from '../../lib/api';
+import { errorMessage } from '../../lib/errors';
 
 type TopicSummary = { id: string; title: string; description: string };
 type Topic = { id: string; title: string; description: string; prompt: string; reviewed: boolean; unavailable: number; passages: { id: string; reference: string; text: string; copyright: string | null }[] };
@@ -27,7 +28,7 @@ export function ScriptureCompanion({ language }: { language: 'en' | 'fr' }) {
     const controller = new AbortController(); setLoading(true); setError('');
     api<Topic>(`/prayer-companion/topics/${encodeURIComponent(selected)}?locale=${language}`, null, { signal: controller.signal })
       .then(result => { if (!controller.signal.aborted) setTopic(result); })
-      .catch(e => { if (!controller.signal.aborted) { setTopic(null); setError(e instanceof Error ? e.message : 'Unavailable'); } })
+      .catch(e => { if (!controller.signal.aborted) { setTopic(null); setError(errorMessage(e, language)); } })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [selected, language]);
