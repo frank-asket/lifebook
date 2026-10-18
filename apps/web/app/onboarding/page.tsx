@@ -616,14 +616,17 @@ export default function Onboarding() {
                                         <span>
                                             <strong className="check-row-title">
                                                 {tr(
-                                                    'Personalize my recommendations',
-                                                    'Personnaliser mes recommandations'
-                                                )}
+                                                    'Personalized suggestions',
+                                                    'Suggestions personnalisées'
+                                                )}{' '}
+                                                <span className="pill">
+                                                    {tr('Coming soon', 'Bientôt')}
+                                                </span>
                                             </strong>
 
                                             {tr(
-                                                'Use my selected journey, goals and preferences to suggest relevant LifeBook content.',
-                                                'Utiliser mon parcours, mes objectifs et mes préférences pour me suggérer des contenus LifeBook adaptés.'
+                                                'When suggestions arrive, use my journey and goals to suggest reading plans and studies. Nothing is personalized yet, and today’s Word stays the same for everyone.',
+                                                'Quand les suggestions arriveront, utiliser mon parcours et mes objectifs pour me proposer des plans de lecture et des études. Rien n’est encore personnalisé, et la Parole du jour reste la même pour tous.'
                                             )}
                                         </span>
                                     </label>
