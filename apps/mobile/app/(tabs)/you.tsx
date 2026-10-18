@@ -17,7 +17,7 @@ export default function You() {
       <View accessibilityElementsHidden style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: c.soft, alignItems: 'center', justifyContent: 'center' }}>{session.firstName ? <Text style={{ color: c.deep, fontSize: 20, fontWeight: '800' }}>{session.firstName.slice(0, 1).toUpperCase()}</Text> : <Ionicons name="person" size={24} color={c.accent} />}</View>
       <View style={{ flex: 1 }}><Text style={{ color: c.ink, fontSize: 17, fontWeight: '600' }}>{name}</Text>{session.isSignedIn ? <Text style={{ color: c.muted, fontSize: 14 }}>{t.you.member}</Text> : null}</View>
     </Card>
-    {!session.isSignedIn ? <Button title={t.you.signIn} onPress={() => { setSignInError(''); session.signIn().catch(() => setSignInError(t.you.signInFailed)); }} /> : null}
+    {!session.isSignedIn ? <Button title={t.you.signIn} onPress={() => { setSignInError(''); session.signIn().catch(e => { console.warn('Sign-in incomplete:', e instanceof Error ? e.message : e); setSignInError(t.you.signInFailed); }); }} /> : null}
     {signInError ? <Text accessibilityRole="alert" style={{ color: c.danger }}>{signInError}</Text> : null}
 
     <SectionLabel>{t.you.appearance}</SectionLabel>

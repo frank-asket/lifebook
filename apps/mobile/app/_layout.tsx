@@ -16,7 +16,12 @@ function ClerkSession({ children }: { children: React.ReactNode }) {
   const { startSSOFlow } = useSSO();
   const value = useMemo<Session>(() => ({
     ready: isLoaded, isSignedIn: !!isSignedIn, firstName: user?.firstName ?? null, getToken: () => getToken(),
-    signIn: async () => { const { createdSessionId, setActive } = await startSSOFlow({ strategy: 'oauth_google' }); if (createdSessionId && setActive) await setActive({ session: createdSessionId }); },
+    signIn: async () => {
+      const { createdSessionId, setActive, signUp } = await startSSOFlow({ strategy: 'oauth_google' });
+      if (createdSessionId && setActive) { await setActive({ session: createdSessionId }); return; }
+      // No session: the browser was closed, or Clerk needs more sign-up details than Google gave.
+      throw new Error(signUp?.missingFields?.length ? `Missing: ${signUp.missingFields.join(', ')}` : 'Sign-in was not completed');
+    },
     signOut: async () => { await signOut(); },
   }), [isLoaded, isSignedIn, user?.firstName, getToken, signOut, startSSOFlow]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
