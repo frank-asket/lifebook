@@ -1,0 +1,95 @@
+// Interface text in English and French. Scripture never lives here: it always comes from the API.
+const en = {
+  tabs: { today: 'Today', bible: 'Bible', prayer: 'Prayer', you: 'You' },
+  greet: { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' },
+  today: {
+    word: 'Today’s Word', about: (n: number) => `About ${n} min`, done: 'Done today',
+    begin: 'Begin prayer time', cont: 'Continue prayer time', again: 'Pray again', stepsDone: (n: number) => `${n} of 5 steps done`,
+    week: 'Your week in the Word', fresh: 'Each day is a fresh start.', oneDay: 'One day with the Word this week.', days: (n: number) => `${n} days with the Word this week.`,
+    continueReading: 'Continue reading', readBible: 'Read the Bible', readBibleSub: 'Open any book, one chapter at a time.',
+    journal: 'Prayer journal', journalSub: 'Private and encrypted',
+    loading: 'Preparing today’s Word…', error: 'Today’s Word could not be loaded.', retry: 'Try again',
+  },
+  steps: ['Understand', 'Meditate', 'Reflect', 'Pray', 'Live the Word'],
+  pt: {
+    title: 'Prayer time', close: 'Close prayer time', stepOf: (n: number) => `Step ${n} of 5`, done: ', done',
+    stillTitle: 'Be still for a moment.', hint: 'Breathe slowly with the circle.', inhale: 'Breathe in', exhale: 'Breathe out', over: 'Take your time. Continue when you are ready.',
+    beginStill: (label: string) => `Begin ${label} of stillness`,
+    reflectLabel: 'Your private reflection', reflectPh: 'Write freely. Only you can read this.',
+    reflectHint: 'Saved privately when you continue. You can also skip this.', reflectSignedOut: 'Sign in to keep your reflections.',
+    prayTitle: 'Pray, in your own words or with these.', liveTitle: 'Carry it into today.',
+    back: 'Back', next: 'Continue', amen: 'Amen', finish: 'Finish', saving: 'Saving…',
+    closingTitle: 'You spent time in the Word today.', closingText: 'Today is marked complete. Come back tomorrow for a new passage.',
+    closingSignedOut: 'Sign in to keep track of your days in the Word.',
+    home: 'Back to Today', writeReflection: 'Write a private reflection', journal: 'Open my prayer journal',
+    saveFailed: 'Your progress could not be saved just now. You can carry on.', reflectionFailed: 'Your reflection could not be saved. Check your connection and try again.',
+  },
+  bible: {
+    nav: 'Bible navigation', prev: 'Previous chapter', next: 'Next chapter', book: 'Book', chapter: 'Chapter', settings: 'Reading settings',
+    loading: 'Loading Scripture…', error: 'Scripture could not be loaded.', books: 'Books', chapters: 'Chapters', cancel: 'Cancel',
+    placeNotSaved: 'Your place could not be saved. You can keep reading.',
+  },
+  reader: { title: 'Reading settings', done: 'Done', language: 'Bible language', size: 'Text size', smaller: 'Smaller text', larger: 'Larger text', sizeOf: (n: number) => `Size ${n} of 4`, spacing: 'Line spacing', standard: 'Standard', airy: 'Airy', typeface: 'Typeface', serif: 'Serif', sans: 'Sans' },
+  prayer: {
+    title: 'Prayer', write: 'Write a prayer', lock: 'Encrypted', placeholder: 'Heavenly Father, today I want to bring before You…', save: 'Save prayer', saving: 'Saving…', saved: 'Saved privately.',
+    journal: 'YOUR JOURNAL', empty: 'Prayers you save will appear here, newest first.', untitled: 'Untitled prayer', answered: 'Answered',
+    signedOutTitle: 'Your prayers belong to you', signedOutText: 'Sign in to keep a private, encrypted prayer journal.',
+    pastor: 'Ask a pastor', pilot: 'Pilot', pastorSub: 'A verified pastor can listen and pray with you, privately.', error: 'Your prayers could not be loaded.',
+  },
+  you: {
+    title: 'You', signedOut: 'Not signed in', member: 'LifeBook member', signIn: 'Continue with Google', signOut: 'Sign out', signInFailed: 'Sign-in did not complete. Please try again.',
+    appearance: 'Appearance', system: 'System', light: 'Light', dark: 'Dark', language: 'Language',
+    prayerTime: 'Prayer time', length: 'Length', reading: 'Reading', readingRow: 'Text size and spacing', profile: 'Learning profile',
+    privacy: 'Privacy', privacyNote: 'Your prayers and reflections are encrypted and never used to profile your faith. You can delete them at any time.',
+  },
+  retry: 'Try again',
+};
+export type Copy = typeof en;
+
+const fr: Copy = {
+  tabs: { today: 'Aujourd’hui', bible: 'Bible', prayer: 'Prière', you: 'Vous' },
+  greet: { morning: 'Bonjour', afternoon: 'Bonjour', evening: 'Bonsoir' },
+  today: {
+    word: 'Parole du jour', about: (n) => `Environ ${n} min`, done: 'Fait aujourd’hui',
+    begin: 'Commencer le temps de prière', cont: 'Reprendre le temps de prière', again: 'Prier à nouveau', stepsDone: (n) => `${n} étapes sur 5 terminées`,
+    week: 'Votre semaine dans la Parole', fresh: 'Chaque jour est un nouveau départ.', oneDay: 'Un jour avec la Parole cette semaine.', days: (n) => `${n} jours avec la Parole cette semaine.`,
+    continueReading: 'Reprendre la lecture', readBible: 'Lire la Bible', readBibleSub: 'Ouvrez un livre, un chapitre à la fois.',
+    journal: 'Journal de prière', journalSub: 'Privé et chiffré',
+    loading: 'Préparation de la Parole du jour…', error: 'Impossible de charger la Parole du jour.', retry: 'Réessayer',
+  },
+  steps: ['Comprendre', 'Méditer', 'Réfléchir', 'Prier', 'Vivre la Parole'],
+  pt: {
+    title: 'Temps de prière', close: 'Fermer le temps de prière', stepOf: (n) => `Étape ${n} sur 5`, done: ', terminée',
+    stillTitle: 'Faites silence un instant.', hint: 'Respirez lentement avec le cercle.', inhale: 'Inspirez', exhale: 'Expirez', over: 'Prenez votre temps. Continuez quand vous êtes prêt.',
+    beginStill: (label) => `Commencer ${label} de silence`,
+    reflectLabel: 'Votre réflexion privée', reflectPh: 'Écrivez librement. Vous seul pouvez lire ceci.',
+    reflectHint: 'Enregistrée en privé quand vous continuez. Vous pouvez aussi passer.', reflectSignedOut: 'Connectez-vous pour garder vos réflexions.',
+    prayTitle: 'Priez avec vos mots, ou avec ceux-ci.', liveTitle: 'Emportez-la dans votre journée.',
+    back: 'Retour', next: 'Continuer', amen: 'Amen', finish: 'Terminer', saving: 'Enregistrement…',
+    closingTitle: 'Vous avez pris du temps dans la Parole aujourd’hui.', closingText: 'Aujourd’hui est terminé. Revenez demain pour un nouveau passage.',
+    closingSignedOut: 'Connectez-vous pour garder la trace de vos jours dans la Parole.',
+    home: 'Retour à aujourd’hui', writeReflection: 'Écrire une réflexion privée', journal: 'Ouvrir mon journal de prière',
+    saveFailed: 'Votre progression n’a pas pu être enregistrée. Vous pouvez continuer.', reflectionFailed: 'Votre réflexion n’a pas pu être enregistrée. Vérifiez votre connexion et réessayez.',
+  },
+  bible: {
+    nav: 'Navigation biblique', prev: 'Chapitre précédent', next: 'Chapitre suivant', book: 'Livre', chapter: 'Chapitre', settings: 'Réglages de lecture',
+    loading: 'Chargement des Écritures…', error: 'Impossible de charger les Écritures.', books: 'Livres', chapters: 'Chapitres', cancel: 'Annuler',
+    placeNotSaved: 'Votre position n’a pas été enregistrée. Vous pouvez continuer à lire.',
+  },
+  reader: { title: 'Réglages de lecture', done: 'OK', language: 'Langue de la Bible', size: 'Taille du texte', smaller: 'Texte plus petit', larger: 'Texte plus grand', sizeOf: (n) => `Taille ${n} sur 4`, spacing: 'Interligne', standard: 'Standard', airy: 'Aéré', typeface: 'Police', serif: 'Avec empattement', sans: 'Sans empattement' },
+  prayer: {
+    title: 'Prière', write: 'Écrire une prière', lock: 'Chiffré', placeholder: 'Père céleste, aujourd’hui je souhaite te confier…', save: 'Enregistrer la prière', saving: 'Enregistrement…', saved: 'Enregistrée en privé.',
+    journal: 'VOTRE JOURNAL', empty: 'Les prières enregistrées apparaîtront ici, les plus récentes en premier.', untitled: 'Prière sans titre', answered: 'Exaucée',
+    signedOutTitle: 'Vos prières vous appartiennent', signedOutText: 'Connectez-vous pour tenir un journal de prière privé et chiffré.',
+    pastor: 'Demander un pasteur', pilot: 'Pilote', pastorSub: 'Un pasteur vérifié peut vous écouter et prier avec vous, en privé.', error: 'Impossible de charger vos prières.',
+  },
+  you: {
+    title: 'Vous', signedOut: 'Non connecté', member: 'Membre LifeBook', signIn: 'Continuer avec Google', signOut: 'Se déconnecter', signInFailed: 'La connexion n’a pas abouti. Veuillez réessayer.',
+    appearance: 'Apparence', system: 'Système', light: 'Clair', dark: 'Sombre', language: 'Langue',
+    prayerTime: 'Temps de prière', length: 'Durée', reading: 'Lecture', readingRow: 'Taille du texte et interligne', profile: 'Profil d’apprentissage',
+    privacy: 'Confidentialité', privacyNote: 'Vos prières et réflexions sont chiffrées et ne servent jamais à profiler votre foi. Vous pouvez les supprimer à tout moment.',
+  },
+  retry: 'Réessayer',
+};
+
+export const copy = { en, fr };
