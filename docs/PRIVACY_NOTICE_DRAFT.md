@@ -52,7 +52,7 @@ Your browser keeps preferences only: theme, language, reading settings, prayer-t
 - Backups **[confirm the Supabase backup retention period]**.
 
 ## Your rights
-Access, correction, deletion, restriction, objection, portability, and withdrawing consent at any time, plus complaint to the regulator: the CNIL (France) or the Data Protection Commission (Ghana). You can delete prayers one by one or all at once, delete your whole account and its data in Settings, change your choices, and switch suggestions off. **[gap: data export is not built yet; until it is, access requests are handled by email]**
+Access, correction, deletion, restriction, objection, portability, and withdrawing consent at any time, plus complaint to the regulator: the CNIL (France) or the Data Protection Commission (Ghana). In Settings you can download all your data (a file with everything LifeBook holds about you, decrypted for you), delete prayers one by one or all at once, delete your whole account and its data, change your choices, and switch suggestions off.
 
 ## Children
 **[confirm the minimum age.]** LifeBook is not designed for children under **[13/15/16]**, and sign-up should say so.

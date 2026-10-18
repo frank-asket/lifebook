@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { decryptNote, encryptNote } from './note-crypto';
 import { MeditationService } from '../meditation/meditation.service';
 
 type Locale = 'en' | 'fr';
@@ -16,23 +16,8 @@ export class BibleAnnotationsService implements OnModuleDestroy {
     const range = passageId.split('.')[2].split('-').map(Number);
     if (range.length === 2 && (range[1] < range[0] || range[1] - range[0] > 50)) throw new BadRequestException('Invalid verse range');
   }
-  private key(): Buffer {
-    const value = process.env.BIBLE_NOTES_ENCRYPTION_KEY;
-    if (!value || !/^[a-fA-F0-9]{64}$/.test(value)) throw new ServiceUnavailableException('Bible notes encryption is not configured');
-    return Buffer.from(value, 'hex');
-  }
-  private encrypt(value: string): string {
-    const iv = randomBytes(12); const cipher = createCipheriv('aes-256-gcm', this.key(), iv);
-    const ciphertext = Buffer.concat([cipher.update(value, 'utf8'), cipher.final()]);
-    return ['v1', iv.toString('base64'), cipher.getAuthTag().toString('base64'), ciphertext.toString('base64')].join(':');
-  }
-  private decrypt(value: string): string {
-    const [version, iv, tag, content] = value.split(':');
-    if (version !== 'v1' || !iv || !tag || !content) throw new ServiceUnavailableException('Cannot read encrypted note');
-    const decipher = createDecipheriv('aes-256-gcm', this.key(), Buffer.from(iv, 'base64'));
-    decipher.setAuthTag(Buffer.from(tag, 'base64'));
-    return Buffer.concat([decipher.update(Buffer.from(content, 'base64')), decipher.final()]).toString('utf8');
-  }
+  private encrypt(value: string): string { return encryptNote(value); }
+  private decrypt(value: string): string { return decryptNote(value); }
   async list(auth?: string, locale?: string, chapterId?: string) {
     const userId = await this.meditation.userId(auth);
     if ((locale || chapterId) && ((locale !== 'en' && locale !== 'fr') || !chapterId || !/^[A-Z0-9]{3}\.[1-9][0-9]{0,2}$/.test(chapterId))) throw new BadRequestException('Invalid chapter filter');
