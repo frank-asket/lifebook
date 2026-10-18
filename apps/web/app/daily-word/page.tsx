@@ -110,7 +110,7 @@ export default function DailyWordPage() {
       {!word ? (wordLoading || loading) && <div className="dw-verse card" aria-busy="true"><p role="status" className="sr-only">{tr('Preparing today’s Word…', 'Préparation de la Parole du jour…')}</p><span className="skeleton dw-skeleton" /><span className="skeleton dw-skeleton short" /></div> : <>
         <figure className="dw-verse card">
           <blockquote className="dw-verse-text">{word.verse.text}</blockquote>
-          <figcaption><cite>{word.verse.reference}</cite><span>{word.verse.translation}</span></figcaption>
+          <figcaption><cite>{word.verse.reference}</cite><span>{word.verse.translation}</span>{word.verse.copyright && <span>{word.verse.copyright}</span>}</figcaption>
         </figure>
 
         <section className="card dw-begin" aria-labelledby="dw-begin-title">
