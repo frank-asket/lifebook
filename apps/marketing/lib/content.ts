@@ -5,7 +5,7 @@ export type Locale = 'en' | 'fr';
 
 const en = {
   meta: { title: 'LifeBook — A quiet daily time with God', description: 'One Bible passage a day and five quiet steps to take it in: understand, be still, reflect, pray and live it. In English and French, with a private prayer journal and no streaks.' },
-  nav: { how: 'How it works', inside: 'What’s inside', promises: 'Our promises', faq: 'Questions', signIn: 'Sign in', start: 'Get started', menu: 'Menu', close: 'Close menu', other: 'Français', otherHref: '/fr', otherLang: 'fr' },
+  nav: { how: 'How it works', inside: 'What’s inside', ease: 'Easy to use', promises: 'Our promises', faq: 'Questions', signIn: 'Sign in', start: 'Get started', menu: 'Menu', close: 'Close menu', other: 'Français', otherHref: '/fr', otherLang: 'fr' },
   hero: {
     eyebrow: 'Daily Scripture and prayer',
     title: 'A quiet daily time with God.',
@@ -29,6 +29,34 @@ const en = {
       ['Pray', 'Pray in your own words, or with a short prayer to start you off.'],
       ['Live it', 'One small, practical way to carry the passage into your day.'],
     ] as [string, string][],
+  },
+  screens: {
+    note: 'Screens from LifeBook on a phone. It works in your phone’s browser today; the iPhone and Android apps are in development.',
+    date: 'Sunday 18 October', greet: 'Good morning', todayWord: 'Today’s Word', about: 'About 5 min', begin: 'Begin prayer time', week: 'Your week in the Word', days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], weekLine: '3 days with the Word this week.',
+    tabs: ['Today', 'Bible', 'Prayer', 'You'], steps: ['Understand', 'Meditate', 'Reflect', 'Pray', 'Live the Word'],
+    verse: 'But be ye doers of the word, and not hearers only, deceiving your own selves.', ref: 'James 1:22', translation: 'King James Version',
+    explanation: 'James challenges believers to connect hearing with obedience. Genuine listening produces a response in daily life.',
+    stillTitle: 'Be still for a moment.', breathe: 'Breathe in', clock: '1:12',
+    question: 'What have I heard in Scripture that I still need to practice?', reflection: 'To listen to my brother before I answer him.', reflectHint: 'Saved privately when you continue.',
+    prayTitle: 'Pray, in your own words or with these.', prayer: 'Lord, help me respond to your Word with action. Amen.',
+    liveTitle: 'Carry it into today.', application: 'Put one biblical teaching into practice today.',
+    back: 'Back', next: 'Continue', amen: 'Amen', finish: 'Finish',
+    bookTitle: 'John 1', book: 'John', bibleVerses: [['1', 'In the beginning was the Word, and the Word was with God, and the Word was God.'], ['2', 'The same was in the beginning with God.'], ['3', 'All things were made by him; and without him was not any thing made that was made.']] as [string, string][],
+    aa: 'Reading settings', done: 'Done', bibleLanguage: 'Bible language', textSize: 'Text size', spacing: 'Line spacing', standard: 'Standard', airy: 'Airy',
+    dark: { date: 'dimanche 18 octobre', greet: 'Bonjour', todayWord: 'Parole du jour', about: 'Environ 5 min', begin: 'Commencer le temps de prière', verse: 'Mais mettez la parole en pratique, et ne l’écoutez pas seulement, vous séduisant vous-mêmes.', ref: 'Jacques 1:22', translation: 'Bible J.N. Darby', tabs: ['Aujourd’hui', 'Bible', 'Prière', 'Vous'] },
+  },
+  ease: {
+    eyebrow: 'Made to be easy', title: 'Easy on the eyes. Easy to come back to.',
+    lead: 'LifeBook is built for a few honest minutes, not for keeping you scrolling.',
+    points: [
+      ['One thing per screen', 'No feed, no badges, nothing competing for your attention while you pray.'],
+      ['Text you can read', 'Four text sizes, airy spacing, serif or sans. Scripture always gets room to breathe.'],
+      ['Your language, your light', 'English or French, light or dark. It follows your phone, or your choice.'],
+      ['Pick up where you left off', 'The Bible opens at your last chapter, and today’s prayer time resumes at the step you reached.'],
+      ['Gentle on purpose', 'No streaks to protect. A missed day is simply an empty circle.'],
+      ['Made for everyone', 'Large tap targets, screen-reader labels, and calmer motion when your phone asks for it.'],
+    ] as [string, string][],
+    captions: ['Today: one passage, one button.', 'Reading settings, one tap away.', 'Dark mode, in French.'],
   },
   inside: {
     eyebrow: 'What’s inside', title: 'Everything here serves the time you spend with God.',
@@ -69,7 +97,7 @@ export type Content = typeof en;
 
 const fr: Content = {
   meta: { title: 'LifeBook — Un temps calme avec Dieu, chaque jour', description: 'Un passage biblique par jour et cinq étapes paisibles pour l’accueillir : comprendre, faire silence, réfléchir, prier et le vivre. En français et en anglais, avec un journal de prière privé et sans séries à tenir.' },
-  nav: { how: 'Comment ça marche', inside: 'Ce qu’on y trouve', promises: 'Nos engagements', faq: 'Questions', signIn: 'Se connecter', start: 'Commencer', menu: 'Menu', close: 'Fermer le menu', other: 'English', otherHref: '/', otherLang: 'en' },
+  nav: { how: 'Comment ça marche', inside: 'Ce qu’on y trouve', ease: 'Simple', promises: 'Nos engagements', faq: 'Questions', signIn: 'Se connecter', start: 'Commencer', menu: 'Menu', close: 'Fermer le menu', other: 'English', otherHref: '/', otherLang: 'en' },
   hero: {
     eyebrow: 'La Parole et la prière au quotidien',
     title: 'Un temps calme avec Dieu, chaque jour.',
@@ -93,6 +121,34 @@ const fr: Content = {
       ['Prier', 'Priez avec vos mots, ou avec une courte prière pour commencer.'],
       ['Le vivre', 'Un geste simple et concret pour emporter le passage dans votre journée.'],
     ],
+  },
+  screens: {
+    note: 'Écrans de LifeBook sur téléphone. Il fonctionne dès aujourd’hui dans le navigateur de votre téléphone ; les applications iPhone et Android sont en préparation.',
+    date: 'dimanche 18 octobre', greet: 'Bonjour', todayWord: 'Parole du jour', about: 'Environ 5 min', begin: 'Commencer le temps de prière', week: 'Votre semaine dans la Parole', days: ['L', 'M', 'M', 'J', 'V', 'S', 'D'], weekLine: '3 jours avec la Parole cette semaine.',
+    tabs: ['Aujourd’hui', 'Bible', 'Prière', 'Vous'], steps: ['Comprendre', 'Méditer', 'Réfléchir', 'Prier', 'Vivre la Parole'],
+    verse: 'Mais mettez la parole en pratique, et ne l’écoutez pas seulement, vous séduisant vous-mêmes.', ref: 'Jacques 1:22', translation: 'Bible J.N. Darby',
+    explanation: 'Jacques invite les croyants à unir écoute et obéissance. Une écoute sincère se traduit par des actes au quotidien.',
+    stillTitle: 'Faites silence un instant.', breathe: 'Inspirez', clock: '1:12',
+    question: 'Quelle parole entendue dois-je encore mettre en pratique ?', reflection: 'Écouter mon frère avant de lui répondre.', reflectHint: 'Enregistrée en privé quand vous continuez.',
+    prayTitle: 'Priez avec vos mots, ou avec ceux-ci.', prayer: 'Seigneur, aide-moi à répondre à ta Parole par des actes. Amen.',
+    liveTitle: 'Emportez-la dans votre journée.', application: 'Mettez un enseignement biblique en pratique aujourd’hui.',
+    back: 'Retour', next: 'Continuer', amen: 'Amen', finish: 'Terminer',
+    bookTitle: 'Jean 1', book: 'Jean', bibleVerses: [['1', 'Au commencement était la Parole\u202f; et la Parole était auprès de Dieu\u202f; et la Parole était Dieu.'], ['2', 'Elle était au commencement auprès de Dieu.'], ['3', 'Toutes choses furent faites par elle, et sans elle pas une seule chose ne fut faite de ce qui a été fait.']],
+    aa: 'Réglages de lecture', done: 'OK', bibleLanguage: 'Langue de la Bible', textSize: 'Taille du texte', spacing: 'Interligne', standard: 'Standard', airy: 'Aéré',
+    dark: { date: 'Sunday 18 October', greet: 'Good evening', todayWord: 'Today’s Word', about: 'About 5 min', begin: 'Begin prayer time', verse: 'But be ye doers of the word, and not hearers only, deceiving your own selves.', ref: 'James 1:22', translation: 'King James Version', tabs: ['Today', 'Bible', 'Prayer', 'You'] },
+  },
+  ease: {
+    eyebrow: 'Pensé pour être simple', title: 'Doux pour les yeux. Facile à retrouver.',
+    lead: 'LifeBook est fait pour quelques minutes sincères, pas pour vous faire défiler sans fin.',
+    points: [
+      ['Une chose par écran', 'Ni fil d’actualité, ni pastilles, rien ne vous distrait pendant que vous priez.'],
+      ['Un texte lisible', 'Quatre tailles, un interligne aéré, avec ou sans empattement. La Parole a toujours de la place.'],
+      ['Votre langue, votre lumière', 'Français ou anglais, clair ou sombre. Comme votre téléphone, ou selon votre choix.'],
+      ['Reprenez où vous en étiez', 'La Bible s’ouvre à votre dernier chapitre, et le temps de prière reprend à l’étape atteinte.'],
+      ['Doux à dessein', 'Aucune série à préserver. Un jour manqué n’est qu’un cercle vide.'],
+      ['Pour tout le monde', 'De grandes zones à toucher, des libellés pour lecteurs d’écran, et des animations apaisées quand votre téléphone le demande.'],
+    ],
+    captions: ['Aujourd’hui : un passage, un bouton.', 'Les réglages de lecture, à portée de doigt.', 'Le mode sombre, en anglais.'],
   },
   inside: {
     eyebrow: 'Ce qu’on y trouve', title: 'Tout ici sert le temps que vous passez avec Dieu.',

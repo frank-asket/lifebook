@@ -236,3 +236,123 @@ p { margin: 0; text-wrap: pretty; }
   .device-verse { font-size: 21px; }
   .faq-items details p { padding-right: 0; }
 }
+
+/* Phone screens: drawn at 390 × 844 and scaled, so they match the app point for point. */
+.phone { --w: 236px; position: relative; width: var(--w); aspect-ratio: 390 / 844; flex-shrink: 0; border-radius: calc(var(--w) * .15); padding: calc(var(--w) * .028); background: #19151f; box-shadow: 0 28px 50px -30px rgba(30, 18, 70, .45), 0 0 0 1px rgba(255, 255, 255, .06) inset; }
+.phone-screen {
+  --bg: #f6f5fa; --paper: #fff; --ink: #201b32; --muted: #5f5870; --line: #e7e3ef; --accent: #6c4fc4; --accent-ink: #fff; --deep: #47318a; --soft: #eee8fb; --chip: #fff;
+  position: absolute; inset: calc(var(--w) * .028); overflow: hidden; border-radius: calc(var(--w) * .125); background: var(--bg); color: var(--ink);
+  container-type: inline-size;
+}
+.phone-dark .phone-screen { --bg: #121019; --paper: #1c1826; --ink: #f1edf8; --muted: #b5aac6; --line: #332c43; --accent: #b49bef; --accent-ink: #1a1424; --deep: #d3c2fa; --soft: #2a2238; --chip: #4a3f60; }
+/* Inside the screen, 1cqw = 3.9 app points: sizes below are written in app points ÷ 3.9. */
+.phone-screen { font: 400 4.36cqw/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'DM Sans', system-ui, sans-serif; letter-spacing: -.01em; display: flex; flex-direction: column; }
+.phone-screen p { margin: 0; }
+.ps-body { flex: 1; padding: 13cqw 5.1cqw 0; display: flex; flex-direction: column; gap: 3.6cqw; min-height: 0; }
+.ps-eyebrow { color: var(--accent); font-size: 3.4cqw; font-weight: 600; }
+.ps-large { font-size: 8.7cqw; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; margin-top: -2cqw !important; }
+.ps-card { background: var(--paper); border: .26cqw solid var(--line); border-radius: 5.1cqw; padding: 5.6cqw; display: flex; flex-direction: column; gap: 3.3cqw; }
+.ps-row { display: flex; justify-content: space-between; align-items: baseline; gap: 2cqw; }
+.ps-caps { color: var(--accent); font-size: 3.1cqw; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.ps-muted { color: var(--muted); font-size: 3.4cqw; }
+.ps-center { text-align: center; }
+.ps-verse { font-family: Georgia, 'Times New Roman', serif; font-size: 6.2cqw; line-height: 1.5; letter-spacing: 0; }
+.ps-verse-xl { font-size: 7.9cqw; line-height: 1.42; }
+.ps-ref { color: var(--muted); font-size: 3.6cqw; }
+.ps-ref b { color: var(--deep); }
+.ps-button, .ps-btn { display: grid; place-items: center; min-height: 12.8cqw; border-radius: 3.6cqw; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 4.1cqw; }
+.ps-card-title { font-size: 3.9cqw; font-weight: 700; }
+.ps-week { display: flex; justify-content: space-between; }
+.ps-week span { display: grid; justify-items: center; gap: 1.5cqw; font-size: 2.8cqw; font-weight: 700; color: var(--muted); }
+.ps-week i { width: 7.7cqw; height: 7.7cqw; border-radius: 50%; border: .4cqw solid var(--line); display: grid; place-items: center; color: var(--accent-ink); }
+.ps-week i svg { width: 3.6cqw; height: 3.6cqw; }
+.ps-week .done i { background: var(--accent); border-color: var(--accent); }
+.ps-week .today { color: var(--ink); }
+.ps-week .today i { border-color: var(--accent); box-shadow: 0 0 0 .8cqw var(--paper), 0 0 0 1.2cqw var(--accent); }
+.ps-tabs { display: flex; justify-content: space-around; padding: 2cqw 2cqw 8cqw; background: var(--paper); border-top: .26cqw solid var(--line); }
+.ps-tabs span { display: grid; justify-items: center; gap: 1cqw; font-size: 2.6cqw; font-weight: 600; color: var(--muted); }
+.ps-tabs i { width: 6.2cqw; height: 6.2cqw; border-radius: 1.6cqw; border: .5cqw solid currentColor; }
+.ps-tabs .on { color: var(--accent); }
+.ps-tabs .on i { background: currentColor; }
+.ps-top { display: grid; grid-template-columns: 11cqw 1fr 11cqw; align-items: center; padding: 13cqw 3cqw 0; color: var(--muted); }
+.ps-top svg { width: 6cqw; height: 6cqw; justify-self: center; }
+.ps-dots { display: flex; justify-content: center; gap: 2.4cqw; }
+.ps-dots i { width: 1.8cqw; height: 1.8cqw; border-radius: 1cqw; background: var(--line); }
+.ps-dots i.done { background: var(--accent); opacity: .5; }
+.ps-dots i.current { width: 5.6cqw; background: var(--accent); }
+.ps-step { flex: 1; padding: 0 6.2cqw; display: flex; flex-direction: column; justify-content: center; gap: 3.6cqw; }
+.ps-title { font-size: 6.9cqw; font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
+.ps-text { font-size: 4.4cqw; line-height: 1.7; }
+.ps-text-lg { font-size: 4.6cqw; }
+.ps-prayer { font-family: Georgia, 'Times New Roman', serif; font-size: 5.6cqw; line-height: 1.7; letter-spacing: 0; }
+.ps-breath { align-self: center; width: 41cqw; height: 41cqw; margin-top: 4cqw; border-radius: 50%; border: .26cqw solid var(--line); display: grid; place-items: center; }
+.ps-breath span { width: 92%; height: 92%; border-radius: 50%; background: color-mix(in srgb, var(--accent) 24%, transparent); }
+.ps-cue { text-align: center; font-weight: 600; font-size: 4.1cqw; }
+.ps-field { min-height: 40cqw; padding: 4cqw; border-radius: 4.1cqw; border: .26cqw solid var(--accent); box-shadow: 0 0 0 .8cqw color-mix(in srgb, var(--accent) 20%, transparent); background: var(--paper); font-size: 4.4cqw; line-height: 1.55; }
+.ps-caret { display: inline-block; width: .5cqw; height: 5cqw; margin-left: .5cqw; vertical-align: -1cqw; background: var(--accent); }
+.ps-footer { display: flex; gap: 3cqw; padding: 3cqw 5.1cqw 8cqw; border-top: .26cqw solid var(--line); }
+.ps-footer > span { flex: 1; }
+.ps-btn-quiet { display: grid; place-items: center; min-height: 12.8cqw; border-radius: 3.6cqw; background: var(--paper); box-shadow: inset 0 0 0 .26cqw var(--line); font-weight: 700; font-size: 4.1cqw; }
+.ps-toolbar { display: flex; align-items: center; gap: 1.6cqw; padding: 13cqw 3cqw 2cqw; border-bottom: .26cqw solid var(--line); }
+.ps-chev { width: 11cqw; text-align: center; color: var(--muted); font-size: 6cqw; line-height: 1; }
+.ps-pick { display: flex; align-items: center; justify-content: space-between; gap: 2cqw; min-height: 10.3cqw; padding: 0 3.6cqw; border-radius: 3cqw; border: .26cqw solid var(--line); background: var(--paper); font-weight: 700; font-size: 3.9cqw; }
+.ps-pick-book { flex: 1; }
+.ps-pick i { width: 1.6cqw; height: 1.6cqw; border-right: .45cqw solid var(--muted); border-bottom: .45cqw solid var(--muted); transform: rotate(45deg) translateY(-.6cqw); }
+.ps-aa { width: 11cqw; text-align: center; color: var(--accent); font-family: Georgia, serif; font-weight: 700; font-size: 4.8cqw; }
+.ps-reader { padding-top: 6cqw; }
+.ps-chapter { text-align: center; font-size: 7.7cqw; font-weight: 800; letter-spacing: -.03em; }
+.ps-scripture { font-family: Georgia, 'Times New Roman', serif; font-size: 5.6cqw; line-height: 2.1; letter-spacing: 0; }
+.ps-scripture sup { font-family: -apple-system, 'DM Sans', sans-serif; font-size: 2.8cqw; font-weight: 700; color: var(--accent); margin-right: .8cqw; }
+.ps-scrim { position: absolute; inset: 0; background: rgba(20, 14, 36, .3); }
+.ps-sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 2cqw 5.1cqw 9cqw; border-radius: 5.6cqw 5.6cqw 0 0; background: var(--paper); display: flex; flex-direction: column; gap: 2.6cqw; }
+.ps-grabber { align-self: center; width: 9.2cqw; height: 1.3cqw; border-radius: 1cqw; background: var(--line); margin-bottom: 1.5cqw; }
+.ps-sheet-title { font-size: 4.6cqw; }
+.ps-link { color: var(--accent); font-weight: 700; font-size: 4.1cqw; }
+.ps-label { color: var(--muted); font-size: 3.3cqw; font-weight: 600; margin-top: 1.5cqw !important; }
+.ps-seg { display: flex; gap: .8cqw; padding: .8cqw; border-radius: 3cqw; background: var(--soft); }
+.ps-seg span { flex: 1; display: grid; place-items: center; min-height: 9.8cqw; border-radius: 2.3cqw; color: var(--muted); font-weight: 600; font-size: 3.6cqw; }
+.ps-seg .on { background: var(--chip); color: var(--ink); box-shadow: 0 .26cqw .5cqw rgba(20, 14, 36, .12); }
+.ps-size { display: flex; align-items: center; justify-content: space-between; }
+.ps-a { display: grid; place-items: center; width: 12.3cqw; height: 11.3cqw; border-radius: 3cqw; border: .26cqw solid var(--line); font-family: Georgia, serif; font-size: 5.6cqw; }
+.ps-a-small { font-size: 3.6cqw; }
+.ps-bars { display: flex; align-items: flex-end; gap: 2cqw; }
+.ps-bars i { width: 1.5cqw; border-radius: 1cqw; background: var(--line); }
+.ps-bars i:nth-child(1) { height: 2cqw; } .ps-bars i:nth-child(2) { height: 3cqw; } .ps-bars i:nth-child(3) { height: 4.1cqw; } .ps-bars i:nth-child(4) { height: 5.1cqw; }
+.ps-bars i.on { background: var(--accent); }
+
+/* How it works: five phones, one per step, each with its caption. */
+.walk { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; }
+.walk li { display: flex; flex-direction: column; gap: 20px; min-width: 0; container-type: inline-size; }
+.walk .phone { --w: 100cqw; }
+.walk-copy h3 { margin: 14px 0 6px; font-size: 18px; letter-spacing: -.02em; }
+.walk-copy p { font-size: 15px; line-height: 1.6; color: var(--muted); }
+.screens-note { margin-top: 28px; font-size: 13px; color: var(--muted); }
+
+/* Easy to use: three phones over six short points. */
+.ease-phones { display: flex; justify-content: center; align-items: flex-start; gap: clamp(20px, 4vw, 56px); margin-bottom: clamp(40px, 6vw, 64px); }
+.ease-phones figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.ease-phones figure:nth-child(2) { margin-top: 36px; }
+.ease-phones .phone { --w: 252px; }
+.ease-phones figcaption { font-size: 14px; color: var(--muted); text-align: center; max-width: 220px; }
+.ease-points { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.ease-points div { padding: 22px 24px; border-radius: var(--radius); background: var(--tint); }
+.ease-points dt { font: 700 18px/1.3 Manrope, sans-serif; letter-spacing: -.02em; }
+.ease-points dd { margin: 6px 0 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
+
+@media (max-width: 1040px) {
+  /* On smaller screens the steps become a swipeable rail that snaps to each phone. */
+  .walk { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; gap: 20px; margin: 0 -20px; padding: 4px 20px 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .walk::-webkit-scrollbar { display: none; }
+  .walk li { flex: 0 0 220px; scroll-snap-align: start; }
+  .walk .phone { --w: 220px; }
+  .ease-points { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ease-phones .phone { --w: 210px; }
+}
+@media (max-width: 640px) {
+  .ease-phones { overflow-x: auto; justify-content: flex-start; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; margin-inline: -16px; padding: 4px 16px 12px; scrollbar-width: none; }
+  .ease-phones::-webkit-scrollbar { display: none; }
+  .ease-phones figure { flex: 0 0 auto; scroll-snap-align: center; }
+  .ease-phones figure:nth-child(2) { margin-top: 0; }
+  .ease-points { grid-template-columns: 1fr; }
+  .walk { margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
+}

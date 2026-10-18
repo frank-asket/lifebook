@@ -1,6 +1,7 @@
 import { content, type Locale } from '../lib/content';
 import { appLinks } from '../lib/app-links';
 import { ProductPreview } from './product-preview';
+import { Phone, ReaderScreen, StepScreen, TodayScreen } from './phone-screens';
 import { ArrowIcon, BookIcon, ChatIcon, CheckIcon, LockIcon, SunIcon } from './icons';
 
 export function Home({ locale }: { locale: Locale }) {
@@ -30,7 +31,11 @@ export function Home({ locale }: { locale: Locale }) {
           <h2 id="how-title">{t.how.title}</h2>
           <p className="section-lead">{t.how.lead}</p>
         </header>
-        <ol className="steps">{t.how.steps.map(([title, text], i) => <li key={title}><span className="step-n">{i + 1}</span><h3>{title}</h3><p>{text}</p></li>)}</ol>
+        <ol className="walk">{t.how.steps.map(([title, text], i) => <li key={title}>
+          <Phone label={`${t.screens.steps[i]} · LifeBook`}><StepScreen s={t.screens} step={i} steps={t.screens.steps} /></Phone>
+          <div className="walk-copy"><span className="step-n">{i + 1}</span><h3>{title}</h3><p>{text}</p></div>
+        </li>)}</ol>
+        <p className="screens-note">{t.screens.note}</p>
       </div>
     </section>
 
@@ -64,6 +69,22 @@ export function Home({ locale }: { locale: Locale }) {
             <span className="mini-marks" aria-hidden="true">{c.pastor.marks.map(m => <span key={m} className="mini-pill"><CheckIcon size={12} /> {m}</span>)}</span>
           </article>
         </div>
+      </div>
+    </section>
+
+    <section className="section" id="ease" aria-labelledby="ease-title">
+      <div className="container">
+        <header className="section-head">
+          <p className="eyebrow">{t.ease.eyebrow}</p>
+          <h2 id="ease-title">{t.ease.title}</h2>
+          <p className="section-lead">{t.ease.lead}</p>
+        </header>
+        <div className="ease-phones">
+          <figure><Phone label={t.ease.captions[0]}><TodayScreen s={t.screens} /></Phone><figcaption>{t.ease.captions[0]}</figcaption></figure>
+          <figure><Phone label={t.ease.captions[1]}><ReaderScreen s={t.screens} /></Phone><figcaption>{t.ease.captions[1]}</figcaption></figure>
+          <figure><Phone label={t.ease.captions[2]} dark><TodayScreen s={t.screens} dark /></Phone><figcaption>{t.ease.captions[2]}</figcaption></figure>
+        </div>
+        <dl className="ease-points">{t.ease.points.map(([title, text]) => <div key={title}><dt>{title}</dt><dd>{text}</dd></div>)}</dl>
       </div>
     </section>
 
