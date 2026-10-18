@@ -1,20 +1,95 @@
 'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useUser, useAuth } from '@clerk/nextjs';
+import { ArrowRight, Check, GraduationCap, HeartHandshake } from 'lucide-react';
 import { ContinueReading } from '../../components/bible/ContinueReading';
 import { useDailyWord } from '../../components/daily-word-provider';
-import {useLanguage} from '../../components/language-provider';
-import Link from 'next/link';import {useUser,useAuth} from '@clerk/nextjs';import {useEffect,useState} from 'react';
-import {BookOpen,HeartHandshake,Headphones,GraduationCap,ArrowRight,Compass,RefreshCw} from 'lucide-react';
-import {Shell} from '../../components/shell';import {FeatureCard,SectionTitle} from '../../components/section';import {api,ProfileResponse,LearningPath,faithJourneyLabel,learningGoalLabel} from '../../lib/api';
-export default function Dashboard(){ const {language}=useLanguage(); const tr=(en:string,fr:string)=>language==='fr'?fr:en;const {user}=useUser();const {getToken}=useAuth();const [profile,setProfile]=useState<ProfileResponse|null>(null);const {word:dailyWord,loading:wordLoading,error:wordError,retry:retryWord}=useDailyWord();const [paths,setPaths]=useState<LearningPath[]>([]);const [error,setError]=useState('');const [retry,setRetry]=useState(0);
- useEffect(()=>{let active=true;setError('');setProfile(null);setPaths([]);(async()=>{try{const token=await getToken();const [p,paths]=await Promise.allSettled([api<ProfileResponse>('/me/profile',token),api<LearningPath[]>('/paths')]);if(!active)return;if(p.status==='fulfilled')setProfile(p.value);else setError(tr('We could not load your preferences. Please try again.','Impossible de charger vos préférences. Réessayez.'));if(paths.status==='fulfilled')setPaths(paths.value);}catch(e){if(active)setError(e instanceof Error?e.message:'Unable to connect')}})();return()=>{active=false}},[getToken,language,retry]);
- const journey=faithJourneyLabel(profile?.profile?.journey,language);
- return <Shell title={tr('Welcome to LifeBook','Bienvenue sur LifeBook')}><div style={{marginBottom:27}}><span className="eyebrow">{tr('YOUR DAILY SPACE','VOTRE ESPACE QUOTIDIEN')}</span><h1 className="page-heading" style={{marginTop:8}}>{tr("Good to see you","Heureux de vous retrouver")}{user?.firstName?', '+user.firstName:''} <span aria-hidden="true">✦</span></h1><p className="subheading">{tr("A fresh day to pause, reflect, and grow in God's Word.",'Un nouveau jour pour méditer, réfléchir et grandir dans la Parole de Dieu.')}</p></div>{error&&<div className="alert reader-error" role="alert" style={{marginBottom:20}}><span>{error}</span><button className="btn btn-soft" onClick={()=>setRetry(n=>n+1)}>{tr("Try again","Réessayer")}</button></div>}{profile&&!profile.profile&&<div className="notice" style={{marginBottom:22}}>{tr('Your journey is yours to shape.','Votre parcours vous appartient.')} <Link className="text-link" href="/onboarding">{tr('Personalize your LifeBook →','Personnaliser LifeBook →')}</Link></div>}
- <div className="card daily-scripture-card"><span className="eyebrow">{tr("TODAY'S WORD",'PAROLE DU JOUR')}</span><h2 style={{fontSize:30,margin:'14px 0 8px'}}>{dailyWord?.verse.reference || (wordLoading?tr('Preparing today’s Scripture','Préparation de la Parole du jour'):tr('A moment to pause','Un moment pour soi'))}</h2><p className="subheading">{dailyWord?.verse.text || (wordError?tr('Today’s Word could not be loaded.','Impossible de charger la Parole du jour.'):tr('Your daily passage will appear here.','Votre passage du jour apparaîtra ici.'))}</p><div style={{display:'flex',gap:12,flexWrap:'wrap',marginTop:18}}><Link className="btn btn-primary" href="/daily-word">{tr('Read the Word','Lire la Parole')} <ArrowRight size={16}/></Link><Link className="btn btn-light" href="/daily-word">{tr('Begin today’s journey','Commencer le parcours du jour')}</Link></div>{wordError&&<button className="btn btn-outline" onClick={retryWord}>{tr("Try again","Réessayer")}</button>}<p className="muted" style={{fontSize:12,marginTop:12}}>{dailyWord?.verse.translation || tr('A moment to read, reflect, and respond.','Un moment pour lire, méditer et répondre.')}</p></div><section className="card journey-card" aria-labelledby="journey-title"><div className="journey-intro"><div><span className="eyebrow">{tr('YOUR DAILY RHYTHM','VOTRE RYTHME QUOTIDIEN')}</span><h2 id="journey-title">{tr('Continue your spiritual journey','Poursuivez votre parcours spirituel')}</h2><p className="subheading">{tr('One passage. Five meaningful ways to carry it into your day.','Un passage. Cinq façons de le vivre au quotidien.')}</p></div><Link className="btn btn-primary" href="/daily-word">{tr('Continue today','Continuer aujourd’hui')} <ArrowRight size={16}/></Link></div><ol className="journey-stages">{[
- {title:tr('Understand','Comprendre'),description:tr('Discover the meaning','Découvrez le sens'),icon:BookOpen},
- {title:tr('Meditate','Méditer'),description:tr('Make space to listen','Prenez le temps d’écouter'),icon:Compass},
- {title:tr('Reflect','Réfléchir'),description:tr('Connect it to your life','Faites le lien avec votre vie'),icon:GraduationCap},
- {title:tr('Pray','Prier'),description:tr('Respond from the heart','Répondez avec le cœur'),icon:HeartHandshake},
- {title:tr('Live the Word','Vivre la Parole'),description:tr('Take one practical step','Faites un pas concret'),icon:ArrowRight}
-].map(({title,description,icon:Icon},i)=><li key={i}><Link href={`/daily-word?step=${i}`}><span className="journey-stage-top"><Icon size={21} aria-hidden="true"/><span className="journey-number">0{i+1}</span></span><strong>{title}</strong><span>{description}</span><ArrowRight className="journey-arrow" size={16} aria-hidden="true"/></Link></li>)}</ol></section><div className="card" style={{marginBottom:24}}><SectionTitle title={tr('Your reading journey','Votre parcours de lecture')} href="/bible/my-reading" action={tr('View progress','Voir ma progression')}/><p className="subheading">{tr('Pick up your reading plan, revisit recent chapters, and celebrate each small step.','Poursuivez votre plan, retrouvez vos chapitres récents et avancez un pas à la fois.')}</p><Link className="btn btn-soft" href="/bible/plans">{tr('Explore reading plans','Explorer les plans de lecture')} <ArrowRight size={16}/></Link></div>
- <ContinueReading locale={language === 'fr' ? 'fr' : 'en'}/><p style={{marginBottom:24}}><Link href="/bible/dashboard">{tr('My Bible reading journey →','Mon parcours de lecture biblique →')}</Link></p><div className="dashboard-grid"><div className="stack"><div><SectionTitle title={tr('Explore LifeBook','Explorer LifeBook')}/><div className="cols-2 grid"><FeatureCard action={tr('Explore','Explorer')} icon={BookOpen} title={tr('Daily Meditation','Méditation quotidienne')} description={tr('Read, reflect and build a gentle daily rhythm.','Lisez, méditez et cultivez un rythme quotidien.')} href="/meditation"/><FeatureCard action={tr('Explore','Explorer')} icon={HeartHandshake} title={tr('Prayer Sanctuary','Sanctuaire de prière')} description={tr("A private place to bring what's on your heart.",'Un espace privé pour confier ce qui vous tient à cœur.')} href="/prayer" tone="rose"/><FeatureCard action={tr('Explore','Explorer')} icon={Headphones} title="LivingWord" description={tr('Discover biblical teaching and messages.','Découvrez des enseignements et messages bibliques.')} href="/livingword" tone="mint"/><FeatureCard action={tr('Explore','Explorer')} icon={GraduationCap} title={tr('Bible Study','Étude biblique')} description={tr('Explore Scripture through guided studies.','Explorez les Écritures grâce à des études guidées.')} href="/bible" tone="gold"/></div></div><div className="card"><SectionTitle title={tr('Your learning journey','Votre parcours de foi')} href="/onboarding" action={tr('Edit preferences','Modifier les préférences')}/><div className="list-row"><span className="list-icon"><Compass size={21}/></span><div style={{flex:1}}><h4>{journey||tr('Choose your starting point','Choisissez votre point de départ')}</h4><p>{profile?.profile?.learningGoals?.map(goal=>learningGoalLabel(goal,language)).join(' · ')||tr('Set your own learning goals whenever you are ready.','Définissez vos objectifs lorsque vous le souhaitez.')}</p></div></div><div className="notice" style={{marginTop:14}}>{tr('Your faith journey is self-selected and editable. It is not a spiritual score or assessment.','Votre parcours de foi est personnel et modifiable. Il ne s’agit pas d’une évaluation spirituelle.')}</div></div></div>
- <div className="stack"><div className="card"><SectionTitle title={tr('Discipleship pathways','Parcours de disciple')} href="/discipleship" action={tr('View all','Tout voir')}/>{paths.length?paths.slice(0,3).map(p=><div className="list-row" key={p.id}><span className="list-icon"><GraduationCap size={20}/></span><div><h4>{p.title}</h4><p>{p.description||tr('Explore this pathway','Découvrir ce parcours')}</p></div></div>):<p className="subheading" style={{fontSize:12}}>{tr('Curated learning paths will appear here when published.','Les parcours d’apprentissage apparaîtront après publication.')}</p>}</div><div className="card" style={{background:'var(--soft)'}}><span className="eyebrow">{tr('GENTLE REMINDER','PETIT RAPPEL')}</span><h3 style={{marginTop:13}}>{tr("Growth isn't a race.",'Grandir n’est pas une course.')}</h3><p className="subheading">{tr('Take one meaningful step today. Small, steady moments matter.','Faites un pas aujourd’hui. Chaque petit progrès compte.')}</p></div></div></div></Shell>}
+import { useLanguage } from '../../components/language-provider';
+import { Shell } from '../../components/shell';
+import { api, type ProfileResponse, type LearningPath } from '../../lib/api';
+import { DAILY_WORD_STEPS } from '../../lib/daily-word-navigation';
+import { parseLength } from '../../lib/prayer-time';
+import { calendarDay, greeting } from '../../lib/scripture';
+
+type TodaySession = { status: 'IN_PROGRESS' | 'COMPLETED'; steps: { step: string }[] };
+
+export default function Dashboard() {
+  const { language } = useLanguage();
+  const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
+  const { user } = useUser();
+  const { getToken, isSignedIn } = useAuth();
+  const { word, loading: wordLoading, error: wordError, date, retry: retryWord } = useDailyWord();
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [paths, setPaths] = useState<LearningPath[]>([]);
+  const [today, setToday] = useState<TodaySession | null>(null);
+  const [minutes, setMinutes] = useState(5);
+  const [hour, setHour] = useState<number | null>(null);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
+  useEffect(() => { setHour(new Date().getHours()); try { setMinutes(parseLength(localStorage.getItem('lifebook.prayerLength'))); } catch { /* storage unavailable */ } }, []);
+  useEffect(() => {
+    let active = true; setError(''); setProfile(null); setPaths([]);
+    (async () => {
+      const token = await getToken();
+      const [p, published] = await Promise.allSettled([api<ProfileResponse>('/me/profile', token), api<LearningPath[]>('/paths')]);
+      if (!active) return;
+      if (p.status === 'fulfilled') setProfile(p.value); else setError(tr('We could not load your preferences. Please try again.', 'Impossible de charger vos préférences. Réessayez.'));
+      if (published.status === 'fulfilled') setPaths(published.value);
+    })();
+    return () => { active = false; };
+  }, [getToken, language, retry]);
+  useEffect(() => {
+    if (!isSignedIn || !date) return;
+    let active = true;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    getToken().then(token => token ? api<TodaySession>(`/daily-word/sessions/today?timezone=${encodeURIComponent(timezone)}`, token) : null)
+      .then(session => { if (active) setToday(session); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [getToken, isSignedIn, date]);
+
+  const done = DAILY_WORD_STEPS.map(step => Boolean(today?.steps.some(s => s.step === step)));
+  const doneCount = done.filter(Boolean).length;
+  const completed = today?.status === 'COMPLETED';
+  const name = user?.firstName ? `, ${user.firstName}` : '';
+  return <Shell title={tr('Home', 'Accueil')}>
+    <header className="home-head">
+      <span className="eyebrow">{date ? calendarDay(date, language) : ' '}</span>
+      <h1 className="page-heading">{hour === null ? tr('Welcome back', 'Bon retour') : greeting(hour, language)}{name}</h1>
+    </header>
+    {error && <div className="alert reader-error" role="alert"><span>{error}</span><button className="btn btn-soft" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div>}
+    {profile && !profile.profile && <p className="notice home-notice">{tr('Your journey is yours to shape.', 'Votre parcours vous appartient.')} <Link className="text-link" href="/onboarding">{tr('Personalize LifeBook', 'Personnaliser LifeBook')} →</Link></p>}
+
+    <div className="home-grid">
+      <section className="card home-today" aria-labelledby="home-today-title">
+        <div className="home-today-meta">
+          <h2 id="home-today-title" className="eyebrow">{tr('Today’s Word', 'Parole du jour')}</h2>
+          <span className="home-minutes">{completed ? <><Check size={14} aria-hidden="true" /> {tr('Done today', 'Fait aujourd’hui')}</> : tr(`About ${minutes} min`, `Environ ${minutes} min`)}</span>
+        </div>
+        {word ? <>
+          <blockquote className="home-verse">{word.verse.text}</blockquote>
+          <p className="home-reference">{word.verse.reference}<span> · {word.verse.translation}</span></p>
+        </> : wordError ? <div className="home-verse-missing"><p>{tr('Today’s Word could not be loaded.', 'Impossible de charger la Parole du jour.')}</p><button className="btn btn-soft btn-sm" onClick={retryWord}>{tr('Try again', 'Réessayer')}</button></div>
+          : <div aria-busy={wordLoading}><span className="skeleton home-skeleton" /><span className="skeleton home-skeleton short" /></div>}
+        <div className="home-today-foot">
+          <Link className="btn btn-primary" href="/daily-word">{completed ? tr('Pray again', 'Prier à nouveau') : doneCount ? tr('Continue prayer time', 'Reprendre le temps de prière') : tr('Begin prayer time', 'Commencer le temps de prière')} <ArrowRight size={16} aria-hidden="true" /></Link>
+          {today && <span className="home-steps" role="img" aria-label={tr(`${doneCount} of 5 steps done`, `${doneCount} étapes sur 5 terminées`)}>{done.map((d, i) => <span key={i} className={d ? 'done' : ''} />)}</span>}
+        </div>
+      </section>
+
+      <div className="home-side">
+        <ContinueReading locale={language} compact />
+        <Link className="card home-link" href="/prayer">
+          <span className="home-link-icon rose"><HeartHandshake size={20} aria-hidden="true" /></span>
+          <span><strong>{tr('Prayer journal', 'Journal de prière')}</strong><small>{tr('Bring what is on your heart. Private and encrypted.', 'Confiez ce qui vous tient à cœur. Privé et chiffré.')}</small></span>
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </div>
+    </div>
+
+    {paths.length > 0 && <section className="home-paths" aria-labelledby="home-paths-title">
+      <div className="section-title"><h2 id="home-paths-title">{tr('Discipleship pathways', 'Parcours de disciple')}</h2><Link className="text-link" href="/discipleship">{tr('View all', 'Tout voir')} →</Link></div>
+      <div className="home-path-list">{paths.slice(0, 3).map(p => <Link className="card home-link" key={p.id} href="/discipleship"><span className="home-link-icon"><GraduationCap size={20} aria-hidden="true" /></span><span><strong>{p.title}</strong><small>{p.description || tr('Explore this pathway', 'Découvrir ce parcours')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}</div>
+    </section>}
+  </Shell>;
+}

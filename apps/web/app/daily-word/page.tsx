@@ -2,16 +2,23 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
+import { ArrowRight, Check } from 'lucide-react';
 import { useLanguage } from '../../components/language-provider';
 import { useDailyWord } from '../../components/daily-word-provider';
 import { Shell } from '../../components/shell';
+import { PrayerTime } from '../../components/daily-word/PrayerTime';
 import { api } from '../../lib/api';
 import { DAILY_WORD_STEPS as steps, initialDailyWordStep } from '../../lib/daily-word-navigation';
+import { PRAYER_LENGTHS, parseLength, type PrayerLength } from '../../lib/prayer-time';
+import { calendarDay } from '../../lib/scripture';
 
 type Session = {
   id: string; passageKey: string; status: 'IN_PROGRESS' | 'COMPLETED';
   steps: { step: string }[]; reflection: { content: string } | null;
 };
+
+// Length and chime are conveniences remembered on this device only.
+const remember = (key: string, value?: string) => { try { if (value === undefined) return localStorage.getItem(key); localStorage.setItem(key, value); } catch { /* storage unavailable */ } return null; };
 
 export default function DailyWordPage() {
   const { language } = useLanguage();
@@ -20,18 +27,21 @@ export default function DailyWordPage() {
   const { word, loading: wordLoading, error: wordError, date, retry } = useDailyWord();
   const [session, setSession] = useState<Session | null>(null);
   const [step, setStep] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [length, setLength] = useState<PrayerLength>(5);
+  const [sound, setSound] = useState(false);
   const [reflection, setReflection] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
+  useEffect(() => { setLength(parseLength(remember('lifebook.prayerLength'))); setSound(remember('lifebook.prayerChime') === 'on'); }, []);
   useEffect(() => {
     if (!isLoaded || !date) return;
     let active = true;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     (async () => {
-      setLoading(true); setError(''); setSession(null); setReflection(''); setMessage('');
+      setLoading(true); setError(''); setSession(null); setReflection('');
       try {
         let current: Session | null = null;
         if (isSignedIn) {
@@ -40,68 +50,91 @@ export default function DailyWordPage() {
         }
         if (!active) return;
         setSession(current); setReflection(current?.reflection?.content || '');
-        setStep(initialDailyWordStep(new URLSearchParams(window.location.search).get('step'), current?.steps.map(done => done.step)));
+        const requested = new URLSearchParams(window.location.search).get('step');
+        setStep(initialDailyWordStep(requested, current?.steps.map(done => done.step)));
+        if (requested !== null && /^[0-4]$/.test(requested)) setOpen(true);
       } catch (e) { if (active) setError(e instanceof Error ? e.message : 'Unable to load Daily Word'); }
       finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
   }, [date, isLoaded, isSignedIn, userId, getToken, attempt]);
-  async function saveReflection() {
-    if (!session) return;
-    if (!reflection.trim()) { setError(tr('Write a reflection first.', 'Écrivez une réflexion.')); return; }
-    setBusy(true); setError('');
-    try {
-      const token = await getToken();
-      await api(`/daily-word/sessions/${session.id}/reflection`, token, { method: 'PUT', body: JSON.stringify({ content: reflection }) });
-      setMessage(tr('Reflection saved.', 'Réflexion enregistrée.'));
-    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to save'); }
-    finally { setBusy(false); }
-  }
+
+  const done = steps.map(s => Boolean(session?.steps.some(x => x.step === s)));
+  const completed = session?.status === 'COMPLETED';
+  const doneCount = done.filter(Boolean).length;
+  const savedReflection = session?.reflection?.content || '';
+  const reflectionDirty = Boolean(session) && reflection !== savedReflection;
+
+  // Moving on never waits for the network; only an unsaved reflection does, because it is the person's own words.
   async function continueJourney() {
-    if (!session) { setStep(n => Math.min(4, n + 1)); return; }
-    setBusy(true); setError(''); setMessage('');
+    const current = step;
+    setError('');
+    if (!session) { setStep(Math.min(5, current + 1)); return; }
+    if (current === 2 && reflectionDirty && reflection.trim()) {
+      setBusy(true);
+      try {
+        await api(`/daily-word/sessions/${session.id}/reflection`, await getToken(), { method: 'PUT', body: JSON.stringify({ content: reflection }) });
+        setSession(s => s && { ...s, reflection: { content: reflection } });
+      } catch { setError(tr('Your reflection could not be saved. Check your connection and try again.', 'Votre réflexion n’a pas pu être enregistrée. Vérifiez votre connexion et réessayez.')); return; }
+      finally { setBusy(false); }
+    }
+    setStep(current + 1);
+    if (done[current]) return;
     try {
-      const token = await getToken();
-      if (step === 2 && reflection.trim()) {
-        await api(`/daily-word/sessions/${session.id}/reflection`, token, { method: 'PUT', body: JSON.stringify({ content: reflection }) });
-      }
-      const updated = await api<Session>(`/daily-word/sessions/${session.id}/steps/${steps[step]}`, token, { method: 'PUT' });
-      setSession(updated);
-      if (step < 4) setStep(step + 1);
-      else setMessage(tr('Today’s journey completed!', 'Parcours du jour terminé !'));
-    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to save progress'); }
-    finally { setBusy(false); }
+      const updated = await api<Session>(`/daily-word/sessions/${session.id}/steps/${steps[current]}`, await getToken(), { method: 'PUT' });
+      // Saves can finish out of order: keep every step either response knows about.
+      setSession(s => s && { ...updated, reflection: s.reflection, status: s.status === 'COMPLETED' ? s.status : updated.status, steps: [...s.steps, ...updated.steps.filter(x => !s.steps.some(y => y.step === x.step))] });
+    } catch { setError(tr('Your progress could not be saved just now. You can carry on.', 'Votre progression n’a pas pu être enregistrée. Vous pouvez continuer.')); }
   }
-  const labels = [tr('Understand', 'Comprendre'), tr('Meditate', 'Méditer'), tr('Reflect', 'Réfléchir'), tr('Pray', 'Prier'), tr('Live the Word', 'Vivre la Parole')];
+  const begin = () => { setError(''); setStep(completed ? 0 : initialDailyWordStep(null, session?.steps.map(s => s.step))); setOpen(true); };
+  const chooseLength = (value: PrayerLength) => { setLength(value); remember('lifebook.prayerLength', String(value)); };
+  const chooseSound = (on: boolean) => { setSound(on); remember('lifebook.prayerChime', on ? 'on' : 'off'); };
+  const close = () => { setOpen(false); setError(''); if (session) setReflection(session.reflection?.content || ''); window.history.replaceState(null, '', '/daily-word'); };
+
+  if (open && word) return <PrayerTime word={word} language={language} length={length} step={step} done={done} busy={busy} error={error} signedIn={Boolean(isSignedIn)}
+    reflection={reflection} onReflection={setReflection} reflectionDirty={reflectionDirty} sound={sound} onSound={chooseSound}
+    onBack={() => setStep(n => Math.max(0, n - 1))} onContinue={() => void continueJourney()} onGoTo={n => { setError(''); setStep(n); }} onClose={close} />;
+
+  const ready = !loading && !wordLoading && word;
+  const sections = word ? [
+    [tr('Understand', 'Comprendre'), word.explanation], [tr('Meditate', 'Méditer'), word.meditation],
+    [tr('Reflect', 'Réfléchir'), word.reflectionQuestion], [tr('Pray', 'Prier'), word.prayer], [tr('Live the Word', 'Vivre la Parole'), word.application],
+  ] : [];
   return <Shell title={tr('Daily Word', 'Parole du jour')}>
-    <div style={{ maxWidth: 850, margin: '0 auto' }}>
-      <Link href="/dashboard" className="text-link">← {tr('Dashboard', 'Tableau de bord')}</Link>
-      <h1 className="page-heading" style={{ marginTop: 20 }}>{tr('Today’s Word', 'Parole du jour')}</h1>
-      {(loading || wordLoading) && <p role="status">{tr('Loading…', 'Chargement…')}</p>}
-      {(error || wordError) && <div className="alert reader-error" role="alert"><span>{error || wordError}</span>{(wordError || !session) && <button className="btn btn-soft" onClick={()=>{retry();setAttempt(n=>n+1)}}>{tr("Try again","Réessayer")}</button>}</div>}
-      {message && <p role="status">{message}</p>}
-      {word && <>
-        <div className="card" style={{ margin: '20px 0' }}>
-          <span className="eyebrow">{word.date}</span><h2>{word.verse.reference}</h2>
-          <blockquote>{word.verse.text}</blockquote><p className="muted">{word.verse.translation}</p>
-          {session?.status === 'COMPLETED' && <p>{tr('Completed today ✓', 'Terminé aujourd’hui ✓')}</p>}
-          {!isSignedIn && <p>{tr('Sign in to save your progress.', 'Connectez-vous pour enregistrer votre progression.')}</p>}
-        </div>
-        <nav aria-label={tr('Journey steps', 'Étapes')} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '20px 0' }}>
-          {labels.map((label, i) => <button key={i} type="button" disabled={busy} aria-current={step === i ? 'step' : undefined} onClick={() => { setStep(i); setMessage(''); }} className={step === i ? 'btn btn-primary' : 'btn btn-light'}>{session?.steps.some(s => s.step === steps[i]) ? '✓ ' : ''}{i + 1}. {label}</button>)}
-        </nav>
-        <section className="card" aria-live="polite">
-          <span className="eyebrow">{tr('STEP', 'ÉTAPE')} {step + 1} / 5</span><h2>{labels[step]}</h2>
-          {step === 0 && <p>{word.explanation}</p>}
-          {step === 1 && <p>{word.meditation}</p>}
-          {step === 2 && <><p>{word.reflectionQuestion}</p><label htmlFor="daily-reflection">{tr('Your private reflection', 'Votre réflexion privée')}</label><textarea className="textarea" disabled={busy} id="daily-reflection" value={reflection} onChange={e => setReflection(e.target.value)} maxLength={10000} rows={5} style={{ width: '100%', padding: 12, marginTop: 10 }} />{session && <button className="btn btn-light" type="button" disabled={busy || !reflection.trim()} onClick={saveReflection}>{tr('Save reflection', 'Enregistrer')}</button>}</>}
-          {step === 3 && <p>{word.prayer}</p>}
-          {step === 4 && <p>{word.application}</p>}
-          <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-            <button type="button" className="btn btn-light" disabled={busy || step === 0} onClick={() => setStep(n => Math.max(0, n - 1))}>{tr('Back', 'Retour')}</button>
-            <button type="button" className="btn btn-primary" disabled={busy || loading || (isSignedIn && !session) || (step === 4 && session?.status === 'COMPLETED')} onClick={continueJourney}>{busy ? tr('Saving…', 'Enregistrement…') : step === 4 ? tr('Complete', 'Terminer') : tr('Continue', 'Continuer')}</button>
+    <div className="dw-page">
+      <header className="dw-head">
+        <span className="eyebrow">{date ? calendarDay(date, language) : tr('Today', 'Aujourd’hui')}</span>
+        <h1 className="page-heading">{tr('Today’s Word', 'Parole du jour')}</h1>
+      </header>
+      {(error || wordError) && <div className="alert reader-error" role="alert"><span>{error || wordError}</span><button className="btn btn-soft" onClick={() => { retry(); setAttempt(n => n + 1); }}>{tr('Try again', 'Réessayer')}</button></div>}
+      {!word ? (wordLoading || loading) && <div className="dw-verse card" aria-busy="true"><p role="status" className="sr-only">{tr('Preparing today’s Word…', 'Préparation de la Parole du jour…')}</p><span className="skeleton dw-skeleton" /><span className="skeleton dw-skeleton short" /></div> : <>
+        <figure className="dw-verse card">
+          <blockquote className="dw-verse-text">{word.verse.text}</blockquote>
+          <figcaption><cite>{word.verse.reference}</cite><span>{word.verse.translation}</span></figcaption>
+        </figure>
+
+        <section className="card dw-begin" aria-labelledby="dw-begin-title">
+          <div className="dw-begin-copy">
+            <h2 id="dw-begin-title">{completed ? tr('You prayed with today’s Word', 'Vous avez prié avec la Parole du jour') : tr('Prayer time', 'Temps de prière')}</h2>
+            <p className="subheading">{completed ? tr('You can return to it as often as you like.', 'Vous pouvez y revenir aussi souvent que vous le souhaitez.') : tr('Five quiet steps, one at a time: understand, be still, reflect, pray and carry it into your day.', 'Cinq étapes paisibles, une à la fois : comprendre, faire silence, réfléchir, prier et l’emporter dans votre journée.')}</p>
+            {isSignedIn && session && <p className="dw-progress-line">{completed ? <><Check size={15} aria-hidden="true" /> {tr('Completed today', 'Terminé aujourd’hui')}</> : doneCount ? tr(`${doneCount} of 5 steps done`, `${doneCount} étapes sur 5 terminées`) : null}</p>}
           </div>
+          <fieldset className="segmented" disabled={!ready}>
+            <legend className="field-label">{tr('How long would you like?', 'Combien de temps ?')}</legend>
+            <div className="segmented-options">{PRAYER_LENGTHS.map(n => <label key={n} className={length === n ? 'selected' : ''}><input type="radio" name="prayer-length" value={n} checked={length === n} onChange={() => chooseLength(n)} /><span>{n} min</span></label>)}</div>
+          </fieldset>
+          <label className="check-row dw-chime"><input type="checkbox" checked={sound} onChange={e => chooseSound(e.target.checked)} /> {tr('A soft chime when the stillness ends', 'Un carillon discret à la fin du silence')}</label>
+          <button type="button" className="btn btn-primary dw-begin-button" disabled={!ready || (isSignedIn && !session)} onClick={begin}>
+            {completed ? tr('Pray again', 'Prier à nouveau') : doneCount ? tr('Continue prayer time', 'Reprendre le temps de prière') : tr('Begin prayer time', 'Commencer le temps de prière')} <ArrowRight size={16} aria-hidden="true" />
+          </button>
+          {isLoaded && !isSignedIn && <p className="dw-signin muted"><Link className="text-link" href="/sign-in">{tr('Sign in', 'Connectez-vous')}</Link> {tr('to keep your progress and reflections.', 'pour garder votre progression et vos réflexions.')}</p>}
         </section>
+
+        <details className="dw-all">
+          <summary>{tr('Read all five steps on one page', 'Lire les cinq étapes sur une seule page')}</summary>
+          <div className="dw-all-body">{sections.map(([title, text], i) => <section key={title}><h3><span>{i + 1}</span>{title}</h3><p>{text}</p></section>)}
+            {savedReflection && <section><h3><span aria-hidden="true">·</span>{tr('Your reflection', 'Votre réflexion')}</h3><p className="dw-own">{savedReflection}</p></section>}</div>
+        </details>
       </>}
     </div>
   </Shell>;
