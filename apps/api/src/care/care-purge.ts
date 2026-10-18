@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 export const UNCLAIMED_CLOSE_DAYS = 30;
 const RETENTION_DAYS = 90;
@@ -10,7 +10,7 @@ const DAY = 86400000;
  * - Closed requests past their deletion date are deleted with every message.
  * - Resolved reports past their deletion date are deleted.
  */
-export async function purgeCare(db: PrismaClient, { apply = false, now = new Date() } = {}) {
+export async function purgeCare(db: Prisma.TransactionClient, { apply = false, now = new Date() } = {}) {
   const unclaimedBefore = new Date(now.getTime() - UNCLAIMED_CLOSE_DAYS * DAY);
   const expired = { status: 'CLOSED' as const, deleteAfter: { lt: now } };
   const oldReports = { status: 'RESOLVED' as const, deleteAfter: { lt: now } };

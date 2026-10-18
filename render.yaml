@@ -34,6 +34,9 @@ services:
         sync: false
       - key: REFLECTION_ENCRYPTION_ACTIVE_KEY
         sync: false
+      # Pastoral care retention runs inside the API every 6 hours when set to "on". Off until approved (docs/M3.8_PRODUCTION_DATA_RUNS.md).
+      - key: CARE_PURGE_SCHEDULE
+        sync: false
       # Guided meditation. Without it the feature reports that it is unavailable. Never set PRAYER_COMPANION_ALLOW_DRAFT here.
       - key: OPENAI_API_KEY
         sync: false

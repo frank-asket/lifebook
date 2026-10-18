@@ -66,7 +66,7 @@ const manual = [
   ['Hosting plan decided (Vercel free plan: 100 deploys a day, non-commercial use)', 'Product owner'],
   ['"Delete my account" built and tested; data export or an accepted manual process', 'Engineering'],
   ['Legacy unencrypted reflections encrypted in production (approved run)', 'Engineering, after approval'],
-  ['Daily care-data purge scheduled in production', 'Engineering, after approval'],
+  ['Care-data purge switched on in production (CARE_PURGE_SCHEDULE=on)', 'Engineering, after approval'],
   ['Signed-in production smoke test passed (docs/M3.8_SMOKE_TEST.md)', 'Engineering'],
   ['Real devices: iPhone Safari, Android Chrome, VoiceOver and TalkBack', 'Engineering + tester'],
 ];
