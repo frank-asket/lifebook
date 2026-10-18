@@ -2158,3 +2158,12 @@ progress::-moz-progress-bar { background: var(--purple); }
 .suggest-why:focus-visible, .suggest-hide:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 .suggest-reason { margin: -2px 20px 16px 70px; font-size: 13px; line-height: 1.5; color: var(--deep); }
 @media (max-width: 760px) { .suggest-list { grid-template-columns: 1fr; } }
+
+/* Settings: Delete my account. The only red in the app, kept for the one irreversible action. */
+:root, :root[data-theme='light'] { --danger: #b3261e; --danger-ink: #fff; --danger-soft: #fceeee; }
+:root[data-theme='dark'] { --danger: #f2b8b5; --danger-ink: #3c0b08; --danger-soft: #3a1f22; }
+.btn-danger { background: var(--danger); color: var(--danger-ink); }
+.btn-danger:disabled { opacity: .45; }
+.danger-card { border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); }
+.danger-list { margin: 12px 0 16px; padding-left: 20px; display: grid; gap: 8px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+@media (prefers-contrast: more) { .danger-card { border-color: var(--danger); } }
