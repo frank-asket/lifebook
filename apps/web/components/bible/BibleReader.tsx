@@ -8,7 +8,10 @@ import { useLanguage } from '../language-provider';
 import { AnnotationPanel } from './AnnotationPanel';
 import { ReadingTracker } from './ReadingTracker';
 import { readingApi } from '../../lib/bible-reading-api';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { parseVerses } from '../../lib/scripture';
+import { DEFAULT_READER, READER_KEY, parseReaderSettings, type ReaderSettings } from '../../lib/reader-settings';
+import { ReaderSettingsPanel } from './ReaderSettingsPanel';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
 
 const labels = {
@@ -50,6 +53,9 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
   const [retry, setRetry] = useState(0);
   const t = labels[locale];
   const [annotationDirty, setAnnotationDirty] = useState(false);
+  const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_READER);
+  useEffect(() => { try { setSettings(parseReaderSettings(localStorage.getItem(READER_KEY))); } catch { /* storage unavailable */ } }, []);
+  const saveSettings = (next: ReaderSettings) => { setSettings(next); try { localStorage.setItem(READER_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ } };
   const canLeave = () => !annotationDirty || window.confirm(locale === 'fr' ? 'Quitter sans enregistrer votre note ?' : 'Leave without saving your note?');
 
   // Changing locale invalidates the book and chapter lists. Abort stale requests.
@@ -99,35 +105,34 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
   const previous = index > 0 ? chapters[index - 1] : undefined;
   const next = index >= 0 ? chapters[index + 1] : undefined;
 
+  const changeLocale = (next: BibleLocale) => { if (next !== locale && canLeave()) { setTarget(chapterId || target); setResumed(true); setLocale(next); } };
+  const go = (chapter?: BibleChapter) => { if (chapter && canLeave()) { setChapterId(chapter.id); window.scrollTo({ top: 0 }); } };
+  const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
+
   return (
     <Shell title={t.title}><div className="bible-reader" lang={locale}>
-      <Link href="/bible" className="text-link">← {t.study}</Link>
-      <h1 className="page-heading" style={{ marginTop: 20 }}>{t.title}</h1>
-      <nav className="page-actions" aria-label={locale === 'fr' ? 'Votre lecture' : 'Your reading'}><Link href="/bible/dashboard">{locale === 'fr' ? 'Mon parcours de lecture' : 'Reading journey'}</Link><Link href="/bible/annotations">{locale === 'fr' ? 'Versets enregistrés' : 'Saved verses'}</Link></nav>
-      <section className="reader-controls card" aria-label={locale === 'fr' ? 'Navigation biblique' : 'Bible navigation'}>
-        <label className="form-field">{t.language}
-          <select className="select" value={locale} onChange={e => { if (canLeave()) { setTarget(chapterId || target); setResumed(true); setLocale(e.target.value as BibleLocale); } }}>
-            <option value="en">English</option><option value="fr">Français</option>
-          </select>
-        </label>
-        <label className="form-field">{t.book}
-          <select className="select" value={bookId} disabled={!books.length} onChange={e => { if (canLeave()) setBookId(e.target.value); }}>
-            {!bookId && <option value="">—</option>}
+      <nav className="reader-toolbar" aria-label={t.title}>
+        <button type="button" className="icon-button" disabled={!previous || busy} onClick={() => go(previous)} aria-label={t.prev}><ChevronLeft size={18} aria-hidden="true" /></button>
+        <label className="reader-pick reader-pick-book"><span className="sr-only">{t.book}</span>
+          <select value={bookId} disabled={!books.length} onChange={e => { if (canLeave()) setBookId(e.target.value); }}>
+            {!bookId && <option value="">{t.book}</option>}
             {books.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
           </select>
         </label>
-        <label className="form-field">{t.chapter}
-          <select className="select" value={chapterId} disabled={!chapters.length} onChange={e => { if (canLeave()) setChapterId(e.target.value); }}>
+        <label className="reader-pick reader-pick-chapter"><span className="sr-only">{t.chapter}</span>
+          <select value={chapterId} disabled={!chapters.length} onChange={e => { if (canLeave()) setChapterId(e.target.value); }}>
             {!chapterId && <option value="">—</option>}
             {chapters.map(x => <option key={x.id} value={x.id}>{x.number}</option>)}
           </select>
         </label>
-      </section>
+        <button type="button" className="icon-button" disabled={!next || busy} onClick={() => go(next)} aria-label={t.next}><ChevronRight size={18} aria-hidden="true" /></button>
+        <ReaderSettingsPanel locale={locale} uiLanguage={language} settings={settings} onSettings={saveSettings} onLocale={changeLocale} />
+      </nav>
       {error && <div role="alert" className="alert reader-error">{error} <button className="btn btn-soft btn-sm" onClick={() => setRetry(x => x + 1)}>{t.retry}</button></div>}
-      <article className="reader-paper card" aria-busy={busy}>
+      <article className="reader-paper card" aria-busy={busy} data-size={settings.size} data-spacing={settings.spacing} data-font={settings.font}>
         {busy ? <p role="status">{t.loading}</p> : content ? <>
           <ReadingTracker locale={locale} chapterId={content.id} />
-          <h2 className="reader-reference">{content.reference}</h2>
+          <h1 className="reader-reference">{content.reference}</h1>
           <div className="scripture-text">{parseVerses(content.content).map((paragraph, i) => <p key={i}>{paragraph.map((v, j) => <span key={j} className="verse">{v.number && <sup className="verse-number">{v.number}</sup>}{v.text} </span>)}</p>)}</div>
           <footer className="scripture-attribution">
             <details>
@@ -139,11 +144,12 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
           </footer>
         </> : <p>{t.empty}</p>}
       </article>
-      {!busy && content && <AnnotationPanel chapterId={content.id} locale={locale} initialVerse={content.id === initialChapter ? initialVerse : undefined} onDirtyChange={setAnnotationDirty}/>}
       <nav className="reader-pagination" aria-label={locale === 'fr' ? 'Navigation des chapitres' : 'Chapter navigation'}>
-        <button className="btn btn-outline" disabled={!previous || busy} onClick={() => previous && canLeave() && setChapterId(previous.id)}>← {t.prev}</button>
-        <button className="btn btn-outline" disabled={!next || busy} onClick={() => next && canLeave() && setChapterId(next.id)}>{t.next} →</button>
+        <button className="btn btn-outline" disabled={!previous || busy} onClick={() => go(previous)}>← {previous ? `${t.chapter} ${previous.number}` : t.prev}</button>
+        <button className="btn btn-primary" disabled={!next || busy} onClick={() => go(next)}>{next ? `${t.chapter} ${next.number}` : t.next} →</button>
       </nav>
+      {!busy && content && <AnnotationPanel chapterId={content.id} locale={locale} initialVerse={content.id === initialChapter ? initialVerse : undefined} onDirtyChange={setAnnotationDirty}/>}
+      <nav className="reader-links" aria-label={tr('Your reading', 'Votre lecture')}><Link className="text-link" href="/bible/dashboard">{tr('Reading journey', 'Mon parcours de lecture')}</Link><Link className="text-link" href="/bible/annotations">{tr('Saved verses', 'Versets enregistrés')}</Link><Link className="text-link" href="/bible">{t.study}</Link></nav>
     </div></Shell>
   );
 }

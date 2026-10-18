@@ -44,9 +44,10 @@ export function passageLabel(id: string, locale: Locale, verse?: number | null):
 
 export type Verse = { number: string; text: string };
 
-/** Splits API.Bible text ("[1] In the beginning… [2] …", paragraphs on new lines) into paragraphs of numbered verses. */
+/** Splits API.Bible text ("[1] In the beginning… [2] …", paragraphs on new lines) into paragraphs of numbered verses.
+ *  A leading "¶" (the KJV paragraph mark) starts a new paragraph instead of being printed. */
 export function parseVerses(content: string): Verse[][] {
-  return content.split(/\n+/).map(paragraph => {
+  return content.split(/\n+/).flatMap(paragraph => {
     const verses: Verse[] = [];
     const pattern = /\[(\d+[a-z]?)\]\s*/g;
     let match: RegExpExecArray | null;
@@ -62,7 +63,12 @@ export function parseVerses(content: string): Verse[][] {
       index = pattern.lastIndex;
     }
     if (last) last.text = paragraph.slice(index).trim();
-    return verses.filter(v => v.text || v.number);
+    const split: Verse[][] = [[]];
+    for (const verse of verses.filter(v => v.text || v.number)) {
+      if (verse.text.startsWith('¶')) { verse.text = verse.text.slice(1).trim(); if (split[split.length - 1].length) split.push([]); }
+      split[split.length - 1].push(verse);
+    }
+    return split;
   }).filter(p => p.length);
 }
 
@@ -78,4 +84,23 @@ export function calendarDay(isoDate: string, locale: Locale): string {
 export function greeting(hour: number, locale: Locale): string {
   if (locale === 'fr') return hour >= 18 || hour < 4 ? 'Bonsoir' : 'Bonjour';
   return hour < 4 || hour >= 18 ? 'Good evening' : hour < 12 ? 'Good morning' : 'Good afternoon';
+}
+
+export type DayMark = { date: string; label: string; name: string; state: 'none' | 'started' | 'done'; today: boolean };
+
+/** The last seven calendar days ending today, marked by whether a Daily Word session was started or finished. No streaks: a missed day is simply empty. */
+export function lastSevenDays(todayIso: string, locale: Locale, sessions: { journeyDate: string; status: string; steps?: unknown[] }[]): DayMark[] {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(todayIso);
+  if (!match) return [];
+  const end = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const byDate = new Map(sessions.map(s => [s.journeyDate.slice(0, 10), s]));
+  const short = new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-GB', { weekday: 'narrow', timeZone: 'UTC' });
+  const long = new Intl.DateTimeFormat(locale === 'fr' ? 'fr-FR' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(end - (6 - i) * 86400000);
+    const date = day.toISOString().slice(0, 10);
+    const session = byDate.get(date);
+    const state = !session ? 'none' : session.status === 'COMPLETED' ? 'done' : session.steps?.length ? 'started' : 'none';
+    return { date, label: short.format(day), name: long.format(day), state, today: i === 6 };
+  });
 }
