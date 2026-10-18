@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { Brand } from '../../components/shell';
-import { useLanguage } from '../../components/language-provider';
+import { useLanguage, type Language } from '../../components/language-provider';
 
 import {
     api,
@@ -22,49 +22,55 @@ import {
     ProfileResponse,
     GOALS,
     FORMATS,
+    faithJourneyLabel,
+    learningGoalLabel,
+    formatLabel,
 } from '../../lib/api';
+import { careErrorMessage } from '../../lib/care-errors';
+import {
+    ONBOARDING_STEPS,
+    onboardingStepIndex,
+    loadOnboardingProfile,
+    canSaveOnboarding,
+    type ProfileLoad,
+} from '../../lib/onboarding';
 
 // ============================================================
 // FAITH JOURNEY OPTIONS
 // Values must match the NestJS / Prisma FaithJourney enum.
+// Labels come from faithJourneyLabel so Settings and onboarding agree.
 // ============================================================
 
 const JOURNEYS = [
     {
         value: 'EXPLORING',
-        label: 'Exploring Christianity',
-        description:
-            'Discover Christianity and explore the Christian faith.',
+        description: 'Discover Christianity and explore the Christian faith.',
+        descriptionFr: 'Découvrir le christianisme et explorer la foi chrétienne.',
     },
     {
         value: 'NEW_BELIEVER',
-        label: 'New Believer',
-        description:
-            'Build a strong foundation in your new faith.',
+        description: 'Build a strong foundation in your new faith.',
+        descriptionFr: 'Poser des fondations solides pour votre nouvelle foi.',
     },
     {
         value: 'GROWING_BELIEVER',
-        label: 'Growing Believer',
-        description:
-            'Deepen your understanding of Scripture and prayer.',
+        description: 'Deepen your understanding of Scripture and prayer.',
+        descriptionFr: 'Approfondir votre compréhension des Écritures et de la prière.',
     },
     {
         value: 'DISCIPLESHIP',
-        label: 'Structured Discipleship',
-        description:
-            'Follow a guided pathway for spiritual learning.',
+        description: 'Follow a guided pathway for spiritual learning.',
+        descriptionFr: 'Suivre un parcours guidé pour grandir spirituellement.',
     },
     {
         value: 'MINISTRY_PREPARATION',
-        label: 'Ministry Preparation',
-        description:
-            'Explore biblical teaching and preparation for service.',
+        description: 'Explore biblical teaching and preparation for service.',
+        descriptionFr: 'Explorer l’enseignement biblique et vous préparer au service.',
     },
     {
         value: 'SERVING_IN_MINISTRY',
-        label: 'Serving in Ministry',
-        description:
-            'Continue learning while actively serving others.',
+        description: 'Continue learning while actively serving others.',
+        descriptionFr: 'Continuer à apprendre tout en servant activement les autres.',
     },
 ] as const;
 
@@ -99,52 +105,81 @@ function normalizeJourney(
 }
 
 // ============================================================
-// ONBOARDING STEPS
+// STEP COPY
 // ============================================================
 
-const steps = [
-    'Language',
-    'Your journey',
-    'Your goals',
-    'Preferences & privacy',
-];
-
 const headings = [
-    'What language feels most comfortable?',
-    'Where would you like to begin?',
-    'What would you like to explore?',
-    'Make this space your own.',
-];
+    ['What language feels most comfortable?', 'Quelle langue vous convient le mieux ?'],
+    ['Where would you like to begin?', 'Par où aimeriez-vous commencer ?'],
+    ['What would you like to explore?', 'Qu’aimeriez-vous explorer ?'],
+    ['Make this space your own.', 'Faites de cet espace le vôtre.'],
+] as const;
 
 const descriptions = [
-    'Choose your preferred reading language.',
-    'This is your own description of your journey—not a judgment or ranking.',
-    'Choose as many as you like. You can change these later.',
-    'Choose your preferred format and how your information may be used.',
-];
+    ['Choose your preferred reading language.', 'Choisissez votre langue de lecture.'],
+    [
+        'This is your own description of your journey—not a judgment or ranking.',
+        'C’est votre propre description de votre parcours, ni un jugement ni un classement.',
+    ],
+    [
+        'Choose as many as you like. You can change these later.',
+        'Choisissez-en autant que vous voulez. Vous pourrez les modifier plus tard.',
+    ],
+    [
+        'Choose your preferred format and how your information may be used.',
+        'Choisissez votre format préféré et la façon dont vos informations peuvent être utilisées.',
+    ],
+] as const;
 
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
 
 export default function Onboarding() {
-    const { setLanguage } = useLanguage();
+    const { language, setLanguage } = useLanguage();
+    const tr = (en: string, fr: string) => (language === 'fr' ? fr : en);
     const router = useRouter();
     const { getToken } = useAuth();
 
     const [step, setStep] = useState(0);
+    const heading = useRef<HTMLHeadingElement>(null);
+    const firstRender = useRef(true);
 
     const [form, setForm] = useState<FaithProfile>({
-        language: 'en',
+        language,
         learningGoals: [],
         preferredFormats: [],
         personalizationConsent: false,
         aiProcessingConsent: false,
     });
 
+    const [load, setLoad] = useState<ProfileLoad>({ status: 'loading' });
+    const [attempt, setAttempt] = useState(0);
     const [saving, setSaving] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const canSave = canSaveOnboarding(load, saving);
+
+    // ==========================================================
+    // OPEN AT A LINKED STEP (/onboarding?step=privacy)
+    // ==========================================================
+
+    useEffect(() => {
+        setStep(
+            onboardingStepIndex(
+                new URLSearchParams(window.location.search).get('step')
+            )
+        );
+    }, []);
+
+    // Announce each new step by moving focus to its heading.
+    useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
+        heading.current?.focus();
+    }, [step]);
 
     // ==========================================================
     // LOAD EXISTING PROFILE
@@ -153,56 +188,39 @@ export default function Onboarding() {
     useEffect(() => {
         let mounted = true;
 
-        async function loadProfile() {
-            try {
-                const token = await getToken();
+        setLoad({ status: 'loading' });
 
-                if (!token) {
-                    throw new Error('Authentication required.');
-                }
+        loadOnboardingProfile(async () => {
+            const token = await getToken();
+            if (!token) throw new Error('Please sign in again.');
+            return api<ProfileResponse>('/me/profile', token);
+        }).then((result) => {
+            if (!mounted) return;
 
-                const response = await api<ProfileResponse>(
-                    '/me/profile',
-                    token
-                );
+            setLoad(result);
 
-                if (mounted && response.profile) {
-                    const profile = response.profile;
+            if (result.status === 'ready' && result.profile) {
+                const profile = result.profile;
 
-                    setForm((current) => ({
-                        ...current,
-                        ...profile,
-
-                        journey: normalizeJourney(profile.journey),
-
-                        learningGoals: profile.learningGoals ?? [],
-
-                        preferredFormats: profile.preferredFormats ?? [],
-
-                        personalizationConsent:
-                            profile.personalizationConsent ?? false,
-
-                        aiProcessingConsent:
-                            profile.aiProcessingConsent ?? false,
-                    }));
-                }
-            } catch (err) {
-                // New users may not have a profile yet.
-                // Authentication failures will also be handled on save.
-                console.error('Unable to load onboarding profile:', err);
-            } finally {
-                if (mounted) {
-                    setLoading(false);
-                }
+                setForm((current) => ({
+                    ...current,
+                    ...profile,
+                    language: profile.language || current.language,
+                    journey: normalizeJourney(profile.journey),
+                    learningGoals: profile.learningGoals ?? [],
+                    preferredFormats: profile.preferredFormats ?? [],
+                    personalizationConsent:
+                        profile.personalizationConsent ?? false,
+                    aiProcessingConsent:
+                        profile.aiProcessingConsent ?? false,
+                }));
             }
-        }
-
-        loadProfile();
+        });
 
         return () => {
             mounted = false;
         };
-    }, [getToken]);
+    }, [getToken, attempt]);
 
     // ==========================================================
     // UPDATE FORM
@@ -218,6 +236,12 @@ export default function Onboarding() {
         }));
 
         setError('');
+    }
+
+    // Show the rest of onboarding in the language just chosen.
+    function chooseLanguage(value: Language) {
+        updateForm('language', value);
+        setLanguage(value);
     }
 
     // ==========================================================
@@ -249,7 +273,7 @@ export default function Onboarding() {
     // ==========================================================
 
     async function save() {
-        if (saving || loading) return;
+        if (!canSave) return;
 
         setSaving(true);
         setError('');
@@ -258,9 +282,7 @@ export default function Onboarding() {
             const token = await getToken();
 
             if (!token) {
-                throw new Error(
-                    'Your session has expired. Please sign in again.'
-                );
+                throw new Error('Please sign in again.');
             }
 
             const normalizedJourney = normalizeJourney(form.journey);
@@ -292,13 +314,7 @@ export default function Onboarding() {
             router.push('/dashboard');
             router.refresh();
         } catch (err) {
-            console.error('Onboarding save failed:', err);
-
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : 'Unable to save your preferences. Please try again.'
-            );
+            setError(careErrorMessage(err, language));
         } finally {
             setSaving(false);
         }
@@ -309,7 +325,7 @@ export default function Onboarding() {
     // ==========================================================
 
     function nextStep() {
-        if (step < steps.length - 1) {
+        if (step < ONBOARDING_STEPS.length - 1) {
             setStep((current) => current + 1);
             setError('');
         }
@@ -343,8 +359,11 @@ export default function Onboarding() {
                     {/* STEP HEADER */}
 
                     <span className="eyebrow">
-                        MAKE LIFEBOOK YOURS · STEP {step + 1} OF{' '}
-                        {steps.length}
+                        {tr('MAKE LIFEBOOK YOURS', 'PERSONNALISEZ LIFEBOOK')} ·{' '}
+                        {tr(
+                            `STEP ${step + 1} OF ${ONBOARDING_STEPS.length}`,
+                            `ÉTAPE ${step + 1} SUR ${ONBOARDING_STEPS.length}`
+                        )}
                     </span>
 
                     {/* PROGRESS INDICATOR */}
@@ -352,8 +371,9 @@ export default function Onboarding() {
                     <div
                         className="stepper"
                         style={{ marginTop: 16 }}
+                        aria-hidden="true"
                     >
-                        {steps.map((item, index) => (
+                        {ONBOARDING_STEPS.map((item, index) => (
                             <span
                                 key={item}
                                 className={index <= step ? 'done' : ''}
@@ -363,22 +383,55 @@ export default function Onboarding() {
 
                     {/* HEADING */}
 
-                    <h1 className="page-heading">
-                        {headings[step]}
+                    <h1 className="page-heading" ref={heading} tabIndex={-1}>
+                        {tr(headings[step][0], headings[step][1])}
                     </h1>
 
                     <p className="subheading">
-                        {descriptions[step]}
+                        {tr(descriptions[step][0], descriptions[step][1])}
                     </p>
 
                     <div style={{ margin: '28px 0 32px' }}>
                         {/* ============================================= */}
+                        {/* LOADING AND LOAD FAILURE */}
+                        {/* Choices stay hidden until the saved profile is known. */}
+                        {/* ============================================= */}
+
+                        {load.status === 'loading' && (
+                            <div role="status">
+                                <div className="skeleton" style={{ height: 76 }} />
+                                <span className="sr-only">
+                                    {tr('Loading your choices…', 'Chargement de vos choix…')}
+                                </span>
+                            </div>
+                        )}
+
+                        {load.status === 'failed' && (
+                            <div className="alert" role="alert">
+                                <p>
+                                    {careErrorMessage(load.error, language)}{' '}
+                                    {tr(
+                                        'Your saved choices have not been changed.',
+                                        'Vos choix enregistrés n’ont pas été modifiés.'
+                                    )}
+                                </p>
+                                <button
+                                    type="button"
+                                    className="btn btn-outline btn-sm"
+                                    onClick={() => setAttempt((n) => n + 1)}
+                                >
+                                    {tr('Try again', 'Réessayer')}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* ============================================= */}
                         {/* STEP 1 — LANGUAGE */}
                         {/* ============================================= */}
 
-                        {step === 0 && (
+                        {load.status === 'ready' && step === 0 && (
                             <div className="choice-grid">
-                                {[
+                                {([
                                     {
                                         value: 'en',
                                         title: 'English',
@@ -389,11 +442,12 @@ export default function Onboarding() {
                                         title: 'Français',
                                         description: 'Continuer en français',
                                     },
-                                ].map((option) => (
+                                ] as const).map((option) => (
                                     <button
                                         key={option.value}
                                         aria-pressed={form.language === option.value}
                                         type="button"
+                                        lang={option.value}
                                         className={
                                             'choice ' +
                                             (form.language === option.value
@@ -401,12 +455,13 @@ export default function Onboarding() {
                                                 : '')
                                         }
                                         onClick={() =>
-                                            updateForm('language', option.value)
+                                            chooseLanguage(option.value)
                                         }
                                     >
                                         <Languages
                                             size={22}
                                             className="choice-icon"
+                                            aria-hidden="true"
                                         />
 
                                         <span>
@@ -422,7 +477,7 @@ export default function Onboarding() {
                         {/* STEP 2 — FAITH JOURNEY */}
                         {/* ============================================= */}
 
-                        {step === 1 && (
+                        {load.status === 'ready' && step === 1 && (
                             <div className="choice-grid">
                                 {JOURNEYS.map((journey) => (
                                     <button
@@ -445,12 +500,15 @@ export default function Onboarding() {
                                         <Compass
                                             size={20}
                                             className="choice-icon"
+                                            aria-hidden="true"
                                         />
 
                                         <span>
-                                            <strong>{journey.label}</strong>
+                                            <strong>
+                                                {faithJourneyLabel(journey.value, language)}
+                                            </strong>
                                             <small>
-                                                {journey.description}
+                                                {tr(journey.description, journey.descriptionFr)}
                                             </small>
                                         </span>
                                     </button>
@@ -462,7 +520,7 @@ export default function Onboarding() {
                         {/* STEP 3 — LEARNING GOALS */}
                         {/* ============================================= */}
 
-                        {step === 2 && (
+                        {load.status === 'ready' && step === 2 && (
                             <div className="tag-list">
                                 {GOALS.map((goal) => (
                                     <button
@@ -483,7 +541,7 @@ export default function Onboarding() {
                                             ? '✓ '
                                             : ''}
 
-                                        {goal}
+                                        {learningGoalLabel(goal, language)}
                                     </button>
                                 ))}
                             </div>
@@ -493,14 +551,21 @@ export default function Onboarding() {
                         {/* STEP 4 — PREFERENCES & PRIVACY */}
                         {/* ============================================= */}
 
-                        {step === 3 && (
+                        {load.status === 'ready' && step === 3 && (
                             <>
                                 <div className="form-field">
-                                    <label>
-                                        How do you prefer to learn?
-                                    </label>
+                                    <span id="formats-label" className="label">
+                                        {tr(
+                                            'How do you prefer to learn?',
+                                            'Comment préférez-vous apprendre ?'
+                                        )}
+                                    </span>
 
-                                    <div className="tag-list">
+                                    <div
+                                        className="tag-list"
+                                        role="group"
+                                        aria-labelledby="formats-label"
+                                    >
                                         {FORMATS.map((format) => (
                                             <button
                                                 key={format}
@@ -520,7 +585,7 @@ export default function Onboarding() {
                                                     ? '✓ '
                                                     : ''}
 
-                                                {format}
+                                                {formatLabel(format, language)}
                                             </button>
                                         ))}
                                     </div>
@@ -550,12 +615,16 @@ export default function Onboarding() {
 
                                         <span>
                                             <strong className="check-row-title">
-                                                Personalize my recommendations
+                                                {tr(
+                                                    'Personalize my recommendations',
+                                                    'Personnaliser mes recommandations'
+                                                )}
                                             </strong>
 
-                                            Use my selected journey, goals and
-                                            preferences to suggest relevant
-                                            LifeBook content.
+                                            {tr(
+                                                'Use my selected journey, goals and preferences to suggest relevant LifeBook content.',
+                                                'Utiliser mon parcours, mes objectifs et mes préférences pour me suggérer des contenus LifeBook adaptés.'
+                                            )}
                                         </span>
                                     </label>
 
@@ -577,13 +646,16 @@ export default function Onboarding() {
 
                                         <span>
                                             <strong className="check-row-title">
-                                                Allow optional AI processing
+                                                {tr(
+                                                    'Allow optional AI processing',
+                                                    'Autoriser le traitement IA facultatif'
+                                                )}
                                             </strong>
 
-                                            Allow AI features only when I choose
-                                            to use them. Prayer entries require
-                                            their own clear, contextual consent
-                                            before processing.
+                                            {tr(
+                                                'Allow AI features only when I choose to use them. Prayer entries require their own clear, contextual consent before processing.',
+                                                'Autoriser les fonctions d’IA uniquement lorsque je choisis de les utiliser. Chaque prière demande son propre consentement explicite avant tout traitement.'
+                                            )}
                                         </span>
                                     </label>
                                 </div>
@@ -596,22 +668,24 @@ export default function Onboarding() {
                                 >
                                     <ShieldCheck
                                         size={15}
+                                        aria-hidden="true"
                                         style={{
                                             verticalAlign: 'middle',
                                             marginRight: 7,
                                         }}
                                     />
 
-                                    You can change these choices later.
-                                    Your spiritual journey is private and
-                                    never automatically scored.
+                                    {tr(
+                                        'You can change these choices later. Your spiritual journey is private and never automatically scored.',
+                                        'Vous pourrez modifier ces choix plus tard. Votre parcours spirituel est privé et n’est jamais évalué automatiquement.'
+                                    )}
                                 </div>
                             </>
                         )}
                     </div>
 
                     {/* ============================================= */}
-                    {/* ERROR MESSAGE */}
+                    {/* SAVE ERROR */}
                     {/* ============================================= */}
 
                     {error && (
@@ -628,44 +702,44 @@ export default function Onboarding() {
                         <button
                             type="button"
                             className="btn btn-outline"
-                            disabled={
-                                step === 0 || saving || loading
-                            }
+                            disabled={step === 0 || !canSave}
                             onClick={previousStep}
                         >
-                            <ArrowLeft size={16} />
-                            Back
+                            <ArrowLeft size={16} aria-hidden="true" />
+                            {tr('Back', 'Retour')}
                         </button>
 
                         <div className="icon-line">
                             <button
                                 type="button"
                                 className="btn btn-soft"
-                                disabled={saving || loading}
+                                disabled={!canSave}
                                 onClick={save}
                             >
-                                Skip & save
+                                {tr('Skip & save', 'Passer et enregistrer')}
                             </button>
 
-                            {step < steps.length - 1 ? (
+                            {step < ONBOARDING_STEPS.length - 1 ? (
                                 <button
                                     type="button"
                                     className="btn btn-primary"
-                                    disabled={saving || loading}
+                                    disabled={!canSave}
                                     onClick={nextStep}
                                 >
-                                    Continue
-                                    <ArrowRight size={16} />
+                                    {tr('Continue', 'Continuer')}
+                                    <ArrowRight size={16} aria-hidden="true" />
                                 </button>
                             ) : (
                                 <button
                                     type="button"
                                     className="btn btn-primary"
-                                    disabled={saving || loading}
+                                    disabled={!canSave}
                                     onClick={save}
                                 >
-                                    {saving ? 'Saving…' : 'Finish'}
-                                    <Check size={16} />
+                                    {saving
+                                        ? tr('Saving…', 'Enregistrement…')
+                                        : tr('Finish', 'Terminer')}
+                                    <Check size={16} aria-hidden="true" />
                                 </button>
                             )}
                         </div>
@@ -678,8 +752,10 @@ export default function Onboarding() {
                     className="footer-note"
                     style={{ textAlign: 'center' }}
                 >
-                    LifeBook supports your choices; it does not
-                    determine your spiritual maturity.
+                    {tr(
+                        'LifeBook supports your choices; it does not determine your spiritual maturity.',
+                        'LifeBook respecte vos choix ; il ne mesure pas votre maturité spirituelle.'
+                    )}
                 </p>
             </div>
         </main>

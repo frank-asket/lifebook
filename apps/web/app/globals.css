@@ -528,7 +528,8 @@ select {
     margin-bottom: 17px
 }
 
-.form-field label {
+.form-field label,
+.form-field .label {
     font-size: 12px;
     font-weight: 800;
     color: #514c60
@@ -1281,7 +1282,8 @@ select {
    FORMS
    ============================================================ */
 
-.form-field label {
+.form-field label,
+.form-field .label {
     color: var(--ink);
 }
 
