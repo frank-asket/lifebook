@@ -8,6 +8,7 @@ import { ThemeToggle } from '../../components/theme-toggle';
 import { useLanguage, type Language } from '../../components/language-provider';
 import { DeleteAllPrayers } from '../../components/prayer/DeleteAllPrayers';
 import { DeleteAccount } from '../../components/DeleteAccount';
+import { DownloadData } from '../../components/DownloadData';
 import { api, type FaithProfile, type ProfileResponse, faithJourneyLabel, learningGoalLabel } from '../../lib/api';
 import { errorMessage } from '../../lib/errors';
 
@@ -69,6 +70,7 @@ export default function Settings() {
         <DeleteAllPrayers language={language}/>
         <section className="card settings-card"><div className="settings-card-heading"><span className="feature-icon lilac"><Sparkles aria-hidden="true"/></span><h2>{tr('Getting started', 'Pour commencer')}</h2></div><div className="settings-links"><Link className="text-link icon-line" href="/dashboard?tour=welcome">{tr('See the welcome tour again', 'Revoir la présentation')} <ArrowRight size={14}/></Link><Link className="text-link icon-line" href="/dashboard?tour=whats-new">{tr('What’s new in LifeBook', 'Les nouveautés de LifeBook')} <ArrowRight size={14}/></Link></div></section>
         <section className="card settings-card"><div className="settings-card-heading"><Settings2 size={20} aria-hidden="true"/><h2>{tr('Session', 'Session')}</h2></div><button className="btn btn-outline" onClick={() => signOut({ redirectUrl: '/' })}><LogOut size={16}/> {tr('Sign out', 'Se déconnecter')}</button></section>
+        <DownloadData language={language}/>
         <DeleteAccount language={language}/>
       </div>
     </div>

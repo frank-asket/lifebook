@@ -1,6 +1,7 @@
-import { BadRequestException, ConflictException, Injectable, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { createClerkClient, verifyToken } from '@clerk/backend';
+import { exportAccount } from './account-export';
 
 export const DELETE_CONFIRMATION = 'DELETE_MY_ACCOUNT';
 
@@ -31,6 +32,14 @@ export class AccountService implements OnModuleDestroy {
       if (!claims.sub) throw new Error('No subject');
       return claims.sub;
     } catch { throw new UnauthorizedException('Invalid session token'); }
+  }
+
+  /** "Download my data": everything about the signed-in member, decrypted for them. */
+  async exportData(auth: string | undefined) {
+    const subject = await this.subject(auth);
+    const user = await this.db.user.findUnique({ where: { oidcSubject: subject }, select: { id: true } });
+    if (!user) throw new NotFoundException('No LifeBook data for this account');
+    return exportAccount(this.db, user.id);
   }
 
   async deleteAccount(auth: string | undefined, confirm: unknown) {
