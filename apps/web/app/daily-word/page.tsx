@@ -11,6 +11,7 @@ import { api } from '../../lib/api';
 import { DAILY_WORD_STEPS as steps, initialDailyWordStep } from '../../lib/daily-word-navigation';
 import { PRAYER_LENGTHS, parseLength, type PrayerLength } from '../../lib/prayer-time';
 import { calendarDay } from '../../lib/scripture';
+import { reportScripture } from '../../lib/fums';
 
 type Session = {
   id: string; passageKey: string; status: 'IN_PROGRESS' | 'COMPLETED';
@@ -59,6 +60,7 @@ export default function DailyWordPage() {
     return () => { active = false; };
   }, [date, isLoaded, isSignedIn, userId, getToken, attempt]);
 
+  useEffect(() => { if (word) reportScripture(`word:${language}:${word.date}`, word.verse.fumsToken); }, [word, language]);
   const done = steps.map(s => Boolean(session?.steps.some(x => x.step === s)));
   const completed = session?.status === 'COMPLETED';
   const doneCount = done.filter(Boolean).length;

@@ -2,7 +2,7 @@ import { api } from './api';
 export type BibleLocale = 'en' | 'fr';
 export type BibleBook = { id: string; name: string; abbreviation?: string };
 export type BibleChapter = { id: string; number: string; reference?: string };
-export type BibleChapterContent = { id: string; reference: string; content: string; copyright?: string; bibleId?: string };
+export type BibleChapterContent = { id: string; reference: string; content: string; copyright?: string; bibleId?: string; fumsToken?: string | null };
 export type BibleTranslation = { id: string; name: string; abbreviation?: string; language?: { id?: string; name?: string }; copyright?: string; info?: string };
 export type BiblePassage = { reference: string; text: string; translation: string; copyright: string | null; provider: string };
 type Wrapped<T> = { data: T };
