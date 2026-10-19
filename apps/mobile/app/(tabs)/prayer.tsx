@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, TextInput, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api, useApp, useSession } from '../../lib/app';
 import { Button, Card, ErrorLine, Row, Screen, SectionLabel } from '../../components/ui';
@@ -13,6 +13,7 @@ import { PRAYER_LIMITS, type PrayerSummary } from '../../../web/lib/prayer-api';
 export default function Prayer() {
   const { c, t, lang } = useApp();
   const session = useSession();
+  const router = useRouter();
   const [items, setItems] = useState<PrayerSummary[] | null>(null);
   const [loadError, setLoadError] = useState('');
   const [draft, setDraft] = useState('');
@@ -58,6 +59,7 @@ export default function Prayer() {
   </Screen>;
 
   return <Screen title={t.prayer.title}>
+    <Row icon="book-outline" title={lang === 'fr' ? 'Méditations' : 'Meditations'} subtitle={lang === 'fr' ? 'Un moment de calme, vos enregistrements et votre historique' : 'A quiet moment, your saved meditations and history'} onPress={() => router.push('/meditations')} />
     <Card style={{ gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 17, fontWeight: '700' }}>{t.prayer.write}</Text>

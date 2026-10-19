@@ -39,6 +39,7 @@ function Navigation() {
       <Stack.Screen name="books" options={{ presentation: 'modal' }} />
       <Stack.Screen name="reading-plans" />
       <Stack.Screen name="saved-verses" />
+      <Stack.Screen name="meditations" />
       <Stack.Screen name="onboarding" options={{ presentation: 'modal', gestureEnabled: false }} />
     </Stack>
   </>;
