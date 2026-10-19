@@ -1,5 +1,6 @@
 // Every claim here describes what LifeBook does today, or is labelled as a pilot or as coming.
 // Scripture is quoted exactly from the translations the app uses, with attribution.
+// In section titles, *words* are set in the italic Scripture serif (see components/accent.tsx).
 
 export type Locale = 'en' | 'fr';
 
@@ -8,7 +9,7 @@ const en = {
   nav: { how: 'How it works', inside: 'What’s inside', ease: 'Easy to use', promises: 'Our promises', faq: 'Questions', signIn: 'Sign in', start: 'Get started', menu: 'Menu', close: 'Close menu', other: 'Français', otherHref: '/fr', otherLang: 'fr' },
   hero: {
     eyebrow: 'Daily Scripture and prayer',
-    title: 'A quiet daily time with God.',
+    title: 'A quiet *daily time* with God.',
     lead: 'Each day LifeBook gives you one passage and walks you through it, one screen at a time: understand it, be still with it, write what it stirs, pray, and carry it into your day.',
     primary: 'Begin today', secondary: 'See how it works',
     note: 'English and French · Works in any browser',
@@ -20,7 +21,7 @@ const en = {
     stillStep: 'Meditate', stillTitle: 'Be still for a moment.', breathe: 'Breathe out', time: '1:12',
   },
   how: {
-    eyebrow: 'How it works', title: 'One passage. Five quiet steps.',
+    eyebrow: 'How it works', title: 'One passage. *Five quiet steps.*',
     lead: 'Choose two, five or ten minutes. LifeBook shows one step at a time so nothing else competes for your attention.',
     steps: [
       ['Understand', 'Read the passage in large, unhurried type with a short note on what it means.'],
@@ -49,7 +50,7 @@ const en = {
     dark: { date: 'dimanche 18 octobre', greet: 'Bonjour', todayWord: 'Parole du jour', about: 'Environ 5 min', begin: 'Commencer le temps de prière', verse: 'Mais mettez la parole en pratique, et ne l’écoutez pas seulement, vous séduisant vous-mêmes.', ref: 'Jacques 1:22', translation: 'Bible J.N. Darby', tabs: ['Aujourd’hui', 'Bible', 'Prière', 'Vous'] },
   },
   ease: {
-    eyebrow: 'Made to be easy', title: 'Easy on the eyes. Easy to come back to.',
+    eyebrow: 'Made to be easy', title: 'Easy on the eyes. *Easy to come back to.*',
     lead: 'LifeBook is built for a few honest minutes, not for keeping you scrolling.',
     points: [
       ['One thing per screen', 'No feed, no badges, nothing competing for your attention while you pray.'],
@@ -62,7 +63,7 @@ const en = {
     captions: ['Reading settings, one tap away.', 'Dark mode, in French.'],
   },
   inside: {
-    eyebrow: 'What’s inside', title: 'Everything here serves the time you spend with God.',
+    eyebrow: 'What’s inside', title: 'Everything here serves the *time you spend with God.*',
     cards: {
       daily: { title: 'Daily Word', text: 'A new passage every day, and a gentle look back at your week. A missed day is simply an empty circle.' },
       bible: { title: 'The Bible, in English and French', text: 'Read any book at your own pace, pick up where you left off, follow a reading plan, and keep private notes. Set the text size and spacing that suit your eyes.' },
@@ -71,7 +72,7 @@ const en = {
     },
   },
   promises: {
-    eyebrow: 'Our promises', title: 'Built to be gentle.',
+    eyebrow: 'Our promises', title: 'Built to be *gentle.*',
     items: [
       ['No streaks, no scores.', 'Faith is not a performance. LifeBook never counts days against you or rates your spiritual life.'],
       ['Scripture, untouched.', 'Every verse is quoted from a named translation and never paraphrased, shortened or written by AI.'],
@@ -91,7 +92,7 @@ const en = {
       ['Does it replace my church?', 'No. LifeBook is a companion for personal time with God, not a substitute for a church community, pastoral care or professional help.'],
     ] as [string, string][],
   },
-  cta: { title: 'Make room for the Word today.', text: 'One passage, a few quiet minutes, and space to respond.', button: 'Begin today', open: 'Open LifeBook' },
+  cta: { title: 'Make room for *the Word* today.', text: 'One passage, a few quiet minutes, and space to respond.', button: 'Begin today', open: 'Open LifeBook' },
   footer: { tagline: 'A quiet daily time with God, in Scripture and prayer.', explore: 'Explore', about: 'LifeBook', privacy: 'Privacy', terms: 'Terms', contact: 'Contact', rights: 'All rights reserved.', scripture: 'Scripture quotations: King James Version and J.N. Darby (public domain).' },
   skip: 'Skip to content',
 };
@@ -103,7 +104,7 @@ const fr: Content = {
   nav: { how: 'Comment ça marche', inside: 'Ce qu’on y trouve', ease: 'Simple', promises: 'Nos engagements', faq: 'Questions', signIn: 'Se connecter', start: 'Commencer', menu: 'Menu', close: 'Fermer le menu', other: 'English', otherHref: '/', otherLang: 'en' },
   hero: {
     eyebrow: 'La Parole et la prière au quotidien',
-    title: 'Un temps calme avec Dieu, chaque jour.',
+    title: 'Un temps *calme* avec Dieu, chaque jour.',
     lead: 'Chaque jour, LifeBook vous propose un passage et vous accompagne, un écran à la fois : le comprendre, faire silence, écrire ce qu’il éveille en vous, prier, puis l’emporter dans votre journée.',
     primary: 'Commencer aujourd’hui', secondary: 'Voir comment ça marche',
     note: 'Français et anglais · Dans tout navigateur',
@@ -115,7 +116,7 @@ const fr: Content = {
     stillStep: 'Méditer', stillTitle: 'Faites silence un instant.', breathe: 'Expirez', time: '1:12',
   },
   how: {
-    eyebrow: 'Comment ça marche', title: 'Un passage. Cinq étapes paisibles.',
+    eyebrow: 'Comment ça marche', title: 'Un passage. *Cinq étapes paisibles.*',
     lead: 'Choisissez deux, cinq ou dix minutes. LifeBook affiche une étape à la fois, pour que rien d’autre ne vous distraie.',
     steps: [
       ['Comprendre', 'Lisez le passage en grands caractères, avec une courte note sur son sens.'],
@@ -144,7 +145,7 @@ const fr: Content = {
     dark: { date: 'Sunday 18 October', greet: 'Good evening', todayWord: 'Today’s Word', about: 'About 5 min', begin: 'Begin prayer time', verse: 'But be ye doers of the word, and not hearers only, deceiving your own selves.', ref: 'James 1:22', translation: 'King James Version', tabs: ['Today', 'Bible', 'Prayer', 'You'] },
   },
   ease: {
-    eyebrow: 'Pensé pour être simple', title: 'Doux pour les yeux. Facile à retrouver.',
+    eyebrow: 'Pensé pour être simple', title: 'Doux pour les yeux. *Facile à retrouver.*',
     lead: 'LifeBook est fait pour quelques minutes sincères, pas pour vous faire défiler sans fin.',
     points: [
       ['Une chose par écran', 'Ni fil d’actualité, ni pastilles, rien ne vous distrait pendant que vous priez.'],
@@ -157,7 +158,7 @@ const fr: Content = {
     captions: ['Les réglages de lecture, à portée de doigt.', 'Le mode sombre, en anglais.'],
   },
   inside: {
-    eyebrow: 'Ce qu’on y trouve', title: 'Tout ici sert le temps que vous passez avec Dieu.',
+    eyebrow: 'Ce qu’on y trouve', title: 'Tout ici sert le *temps que vous passez avec Dieu.*',
     cards: {
       daily: { title: 'La Parole du jour', text: 'Un nouveau passage chaque jour, et un regard doux sur votre semaine. Un jour manqué n’est qu’un cercle vide.' },
       bible: { title: 'La Bible, en français et en anglais', text: 'Lisez à votre rythme, reprenez là où vous en étiez, suivez un plan de lecture et gardez des notes privées. Choisissez la taille du texte et l’interligne qui vous conviennent.' },
@@ -166,7 +167,7 @@ const fr: Content = {
     },
   },
   promises: {
-    eyebrow: 'Nos engagements', title: 'Pensé pour être doux.',
+    eyebrow: 'Nos engagements', title: 'Pensé pour être *doux.*',
     items: [
       ['Ni séries, ni scores.', 'La foi n’est pas une performance. LifeBook ne compte jamais vos jours contre vous et n’évalue pas votre vie spirituelle.'],
       ['La Parole, intacte.', 'Chaque verset est cité d’une traduction nommée, jamais paraphrasé, raccourci ou écrit par une IA.'],
@@ -186,7 +187,7 @@ const fr: Content = {
       ['Est-ce que cela remplace mon Église ?', 'Non. LifeBook accompagne votre temps personnel avec Dieu ; il ne remplace ni une communauté d’Église, ni un accompagnement pastoral, ni une aide professionnelle.'],
     ],
   },
-  cta: { title: 'Faites de la place à la Parole aujourd’hui.', text: 'Un passage, quelques minutes de calme, et un espace pour répondre.', button: 'Commencer aujourd’hui', open: 'Ouvrir LifeBook' },
+  cta: { title: 'Faites de la place à *la Parole* aujourd’hui.', text: 'Un passage, quelques minutes de calme, et un espace pour répondre.', button: 'Commencer aujourd’hui', open: 'Ouvrir LifeBook' },
   footer: { tagline: 'Un temps calme avec Dieu, chaque jour, dans la Parole et la prière.', explore: 'Découvrir', about: 'LifeBook', privacy: 'Confidentialité', terms: 'Conditions', contact: 'Contact', rights: 'Tous droits réservés.', scripture: 'Citations bibliques : King James Version et Bible J.N. Darby (domaine public).' },
   skip: 'Aller au contenu',
 };

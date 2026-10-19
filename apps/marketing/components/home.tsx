@@ -3,6 +3,8 @@ import { appLinks } from '../lib/app-links';
 import { ProductPreview } from './product-preview';
 import { JournalScreen, PastorScreen, Phone, ReaderScreen, StepScreen, TodayScreen } from './phone-screens';
 import { ArrowIcon, BookIcon, ChatIcon, LockIcon, SunIcon } from './icons';
+import { Accent } from './accent';
+import { InsideShowcase } from './inside-showcase';
 
 export function Home({ locale }: { locale: Locale }) {
   const t = content[locale];
@@ -12,7 +14,7 @@ export function Home({ locale }: { locale: Locale }) {
       <div className="container hero-grid">
         <div className="hero-copy">
           <p className="eyebrow">{t.hero.eyebrow}</p>
-          <h1>{t.hero.title}</h1>
+          <h1><Accent text={t.hero.title} /></h1>
           <p className="lead">{t.hero.lead}</p>
           <div className="actions">
             <a className="button" href={appLinks.signUp}>{t.hero.primary} <ArrowIcon /></a>
@@ -28,7 +30,7 @@ export function Home({ locale }: { locale: Locale }) {
       <div className="container">
         <header className="section-head">
           <p className="eyebrow">{t.how.eyebrow}</p>
-          <h2 id="how-title">{t.how.title}</h2>
+          <h2 id="how-title"><Accent text={t.how.title} /></h2>
           <p className="section-lead">{t.how.lead}</p>
         </header>
         <ol className="walk" tabIndex={0} aria-labelledby="how-title">{t.how.steps.map(([title, text], i) => <li key={title}>
@@ -43,30 +45,14 @@ export function Home({ locale }: { locale: Locale }) {
       <div className="container">
         <header className="section-head">
           <p className="eyebrow">{t.inside.eyebrow}</p>
-          <h2 id="inside-title">{t.inside.title}</h2>
+          <h2 id="inside-title"><Accent text={t.inside.title} /></h2>
         </header>
-        <div className="bento">
-          <article className="tile tile-daily">
-            <span className="tile-icon"><SunIcon /></span>
-            <h3>{c.daily.title}</h3><p>{c.daily.text}</p>
-            <div className="tile-phone"><Phone label={c.daily.title}><TodayScreen s={t.screens} /></Phone></div>
-          </article>
-          <article className="tile tile-bible">
-            <span className="tile-icon"><BookIcon /></span>
-            <h3>{c.bible.title}</h3><p>{c.bible.text}</p>
-            <div className="tile-phone"><Phone label={c.bible.title}><ReaderScreen s={t.screens} sheet={false} /></Phone></div>
-          </article>
-          <article className="tile tile-prayer">
-            <span className="tile-icon rose"><LockIcon /></span>
-            <h3>{c.prayer.title}</h3><p>{c.prayer.text}</p>
-            <div className="tile-phone"><Phone label={c.prayer.title}><JournalScreen s={t.screens} /></Phone></div>
-          </article>
-          <article className="tile tile-pastor">
-            <span className="tile-icon"><ChatIcon /></span>
-            <h3>{c.pastor.title} <span className="badge">{c.pastor.badge}</span></h3><p>{c.pastor.text}</p>
-            <div className="tile-phone"><Phone label={c.pastor.title}><PastorScreen s={t.screens} /></Phone></div>
-          </article>
-        </div>
+        <InsideShowcase label={t.inside.eyebrow} items={[
+          { id: 'daily', title: c.daily.title, text: c.daily.text, icon: <SunIcon />, phone: <Phone label={c.daily.title}><TodayScreen s={t.screens} /></Phone> },
+          { id: 'bible', title: c.bible.title, text: c.bible.text, icon: <BookIcon />, phone: <Phone label={c.bible.title}><ReaderScreen s={t.screens} sheet={false} /></Phone> },
+          { id: 'prayer', title: c.prayer.title, text: c.prayer.text, icon: <LockIcon />, iconClass: 'rose', phone: <Phone label={c.prayer.title}><JournalScreen s={t.screens} /></Phone> },
+          { id: 'pastor', title: c.pastor.title, text: c.pastor.text, badge: c.pastor.badge, icon: <ChatIcon />, phone: <Phone label={c.pastor.title}><PastorScreen s={t.screens} /></Phone> },
+        ]} />
       </div>
     </section>
 
@@ -74,7 +60,7 @@ export function Home({ locale }: { locale: Locale }) {
       <div className="container">
         <header className="section-head">
           <p className="eyebrow">{t.ease.eyebrow}</p>
-          <h2 id="ease-title">{t.ease.title}</h2>
+          <h2 id="ease-title"><Accent text={t.ease.title} /></h2>
           <p className="section-lead">{t.ease.lead}</p>
         </header>
         <div className="ease-phones" tabIndex={0} role="region" aria-labelledby="ease-title">
@@ -89,7 +75,7 @@ export function Home({ locale }: { locale: Locale }) {
       <div className="container promises">
         <header className="section-head">
           <p className="eyebrow">{t.promises.eyebrow}</p>
-          <h2 id="promises-title">{t.promises.title}</h2>
+          <h2 id="promises-title"><Accent text={t.promises.title} /></h2>
         </header>
         <dl className="promise-list">{t.promises.items.map(([title, text]) => <div key={title}><dt>{title}</dt><dd>{text}</dd></div>)}</dl>
       </div>
@@ -114,7 +100,7 @@ export function Home({ locale }: { locale: Locale }) {
 
     <section className="closing" aria-labelledby="closing-title">
       <div className="container closing-inner">
-        <h2 id="closing-title">{t.cta.title}</h2>
+        <h2 id="closing-title"><Accent text={t.cta.title} /></h2>
         <p>{t.cta.text}</p>
         <div className="actions">
           <a className="button" href={appLinks.signUp}>{t.cta.button} <ArrowIcon /></a>
