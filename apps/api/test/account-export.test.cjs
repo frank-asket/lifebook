@@ -21,6 +21,13 @@ test('the data export decrypts everything for the member, and only for them', { 
     const member = await db.user.create({ data: { oidcSubject: `${prefix}-member` } });
     const other = await db.user.create({ data: { oidcSubject: `${prefix}-other` } });
     const id = member.id;
+    await db.ministryVerification.create({ data: { userId: id, status: 'PENDING', churchName: 'Fixture church', ministryRole: 'Pastor', country: 'Ghana', reviewerNotes: 'Confidential-review-fixture', referenceName: 'Private referee', referenceContactCiphertext: 'Private referee contact' } });
+    await db.pastorProfile.create({ data: { userId: id, slug: prefix, displayName: 'Fixture pastor', bio: 'Fixture biography', languages: ['en'] } });
+    await db.ministryVerification.create({ data: { userId: other.id, churchName: 'Other church' } });
+    await db.pastorProfile.create({ data: { userId: other.id, slug: `${prefix}-other`, displayName: 'Other pastor', bio: 'Other biography', languages: ['fr'] } });
+    const path = await db.learningPath.create({ data: { slug: prefix, title: 'Fixture path', description: 'Fixture path' } });
+    await db.enrollment.create({ data: { userId: id, pathId: path.id } });
+    await db.enrollment.create({ data: { userId: other.id, pathId: path.id } });
     await db.faithProfile.create({ data: { userId: id, journey: 'EXPLORING', learningGoals: ['Learn about Jesus'], preferredFormats: [], personalizationConsent: true } });
     const p1 = await db.prayerEntry.create({ data: { userId: id, ciphertext: 'pending' } });
     await db.prayerEntry.update({ where: { id: p1.id }, data: { ciphertext: encryptReflection('Keep my family safe.', `prayer:body:${id}:${p1.id}`), titleCiphertext: encryptReflection('Family', `prayer:title:${id}:${p1.id}`) } });
@@ -39,6 +46,11 @@ test('the data export decrypts everything for the member, and only for them', { 
     const out = await exportAccount(db, id);
     assert.equal(out.format, EXPORT_FORMAT);
     assert.equal(out.profile.journey, 'EXPLORING');
+    assert.equal(out.ministryVerification.churchName, 'Fixture church');
+    assert.equal(out.ministryVerification.status, 'PENDING');
+    assert.equal(out.pastorProfile.displayName, 'Fixture pastor');
+    assert.deepEqual(out.learningPaths.map(p => p.pathId), [path.id]);
+    for (const privateValue of ['Confidential-review-fixture', 'Private referee', 'Other church', 'Other pastor', 'Other biography']) assert.ok(!JSON.stringify(out).includes(privateValue), `Export must omit ${privateValue}`);
     const good = out.prayers.find(p => p.title === 'Family');
     assert.equal(good.body, 'Keep my family safe.');
     // A value bound to another record cannot be opened: it is marked, and the export still completes.
@@ -53,6 +65,7 @@ test('the data export decrypts everything for the member, and only for them', { 
     assert.equal(await exportAccount(db, 'no-such-user'), null);
   } finally {
     await db.user.deleteMany({ where: { oidcSubject: { startsWith: prefix } } });
+    await db.learningPath.deleteMany({ where: { slug: prefix } });
     await db.$disconnect();
   }
 });

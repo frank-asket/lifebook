@@ -5,6 +5,7 @@ import { BibleAnnotationsService } from './bible-annotations.service';
 export class BibleAnnotationsController {
   constructor(private readonly service: BibleAnnotationsService) {}
   @Get() list(@Headers('authorization') auth?: string, @Query('locale') locale?: string, @Query('chapterId') chapterId?: string) { return this.service.list(auth, locale, chapterId); }
+  @Get('passage') async one(@Headers('authorization') auth?: string, @Query('locale') locale?: string, @Query('passageId') passageId?: string) { return { annotation: await this.service.one(auth, locale, passageId) }; }
   @Put() save(@Headers('authorization') auth: string | undefined, @Body() body: Record<string, unknown>) {
     if (!body || typeof body.passageId !== 'string' || (body.locale !== 'en' && body.locale !== 'fr') ||
       (body.bookmark !== undefined && typeof body.bookmark !== 'boolean') ||

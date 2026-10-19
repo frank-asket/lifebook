@@ -7,6 +7,34 @@ const { PrismaClient } = require('@prisma/client');
 const url = process.env.LIFEBOOK_M36_TEST_DATABASE_URL;
 const script = path.resolve(__dirname, '../scripts/reflection-backfill.cjs');
 
+test('backfill exits unsuccessfully when its final scan finds new plaintext', async () => {
+  const vm = require('node:vm');
+  const fs = require('node:fs');
+  let reads = 0;
+  let report;
+  const fakeProcess = { argv: [], env: { REFLECTION_ENCRYPTION_KEYS: '{"test":"fixture"}' } };
+  const db = {
+    meditationReflection: { findMany: async () => ++reads === 2 ? [{ id: 'late', text: 'New legacy row' }] : [] },
+    dailyWordReflection: { findMany: async () => [] },
+    $disconnect: async () => {},
+  };
+  const crypto = { encryptReflection: value => value, decryptReflection: value => value };
+  await vm.runInNewContext(fs.readFileSync(script, 'utf8'), {
+    process: fakeProcess,
+    console: { error() {}, log(value) { report = JSON.parse(value); } },
+    require(name) {
+      if (name === './lib/target.cjs') return { apiRoot: '/fixture', parseOptions: () => ({ target: 'local', apply: true }), configureTarget: () => ({ url: 'fixture', label: 'local' }) };
+      if (name === '@prisma/client') return { PrismaClient: function () { return db; } };
+      if (name.endsWith('reflection-crypto')) return crypto;
+      return require(name);
+    },
+  });
+  assert.equal(report.meditations.legacyAfter, 1);
+  assert.equal(report.meditations.conflicts, 0);
+  assert.equal(report.meditations.unreadableAfter, 0);
+  assert.equal(fakeProcess.exitCode, 1);
+});
+
 test('reflection backfill: dry run first, refuses wrong keys, verifies every row and is idempotent', { skip: !url }, async () => {
   const target = new URL(url); assert.equal(target.hostname, '127.0.0.1'); assert.equal(target.pathname, '/lifebook_restore');
   const ring = { test: randomBytes(32).toString('hex') };
