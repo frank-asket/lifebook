@@ -46,9 +46,18 @@ export function AnnouncementSheet({ item, onClose }: { item: Item; onClose: () =
   const last = index === item.slides.length - 1;
   const Icon = ICONS[slide.icon];
 
+  // Where focus goes back to on close: what was focused before, or the page content when the sheet opened by itself.
+  const opener = useRef<Element | null>(null);
   useEffect(() => {
     const el = dialog.current;
+    if (!dialog.current?.contains(document.activeElement)) opener.current = document.activeElement;
     if (el && !el.open) el.showModal();
+  }, []);
+  const restoreFocus = useCallback(() => {
+    const back = opener.current;
+    const usable = back instanceof HTMLElement && back !== document.body && back.isConnected && !dialog.current?.contains(back);
+    const target = usable ? back : document.getElementById('main-content');
+    target?.focus({ preventScroll: true });
   }, []);
   // Move focus to the new title so screen readers announce each card.
   useEffect(() => { heading.current?.focus(); }, [index]);
@@ -57,8 +66,8 @@ export function AnnouncementSheet({ item, onClose }: { item: Item; onClose: () =
   const finish = useCallback(() => {
     if (leaving) return;
     setLeaving(true);
-    window.setTimeout(() => { dialog.current?.close(); onClose(); }, 200);
-  }, [leaving, onClose]);
+    window.setTimeout(() => { dialog.current?.close(); onClose(); restoreFocus(); }, 200);
+  }, [leaving, onClose, restoreFocus]);
   const go = useCallback((next: number) => {
     if (next < 0 || next >= item.slides.length) return;
     setDirection(next > index ? 'forward' : 'back');

@@ -403,7 +403,7 @@ select {
 .text-link {
     font-size: 12px;
     font-weight: 800;
-    color: #7654c4
+    color: var(--purple)
 }
 
 .stat-card {
@@ -1602,7 +1602,7 @@ select:focus-visible {
 .study-category:hover{transform:translateY(-2px);border-color:var(--purple)}
 .study-category.study-selected{outline:2px solid var(--purple);background:var(--soft)}
 .study-category svg{color:var(--purple);margin-bottom:15px}
-.study-category h3{margin-bottom:8px}.study-category p{margin-bottom:0;line-height:1.5}
+.study-category-title{display:block;margin-bottom:8px;font-family:Manrope,sans-serif;font-size:1.17em;font-weight:700;letter-spacing:-.035em}.study-category p{margin-bottom:0;line-height:1.5}
 .study-section-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px}
 .study-section-heading h2{margin:0}.study-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .study-item{display:block;transition:border-color .2s}.study-item:hover{border-color:var(--purple)}.study-item h3{margin:12px 0 8px}

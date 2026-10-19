@@ -15,6 +15,7 @@ import {
 
 import { Brand } from '../../components/shell';
 import { useLanguage, type Language } from '../../components/language-provider';
+import { pageTitle } from '../../lib/page-title';
 
 import {
     api,
@@ -344,6 +345,7 @@ export default function Onboarding() {
 
     return (
         <main id="main-content">
+            <title>{pageTitle(tr('Set up your space', 'Préparez votre espace'))}</title>
             <div
                 style={{
                     maxWidth: 840,
