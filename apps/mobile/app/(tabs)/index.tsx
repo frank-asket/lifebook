@@ -3,6 +3,7 @@ import { ActivityIndicator, Text, View, useWindowDimensions } from 'react-native
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api, timezone, useApp, useDailyWord, useSession, type TodaySession } from '../../lib/app';
+import { reportScripture } from '../../lib/scripture-usage';
 import { fonts } from '../../lib/theme';
 import { Button, Card, ErrorLine, Row, Screen } from '../../components/ui';
 import { calendarDay, lastSevenDays, passageLabel } from '../../../web/lib/scripture';
@@ -47,7 +48,8 @@ export default function Today() {
   const greet = hour < 4 || hour >= 18 ? t.greet.evening : hour < 12 ? t.greet.morning : t.greet.afternoon;
   const days = recent ? lastSevenDays(date, lang, recent.map(s => s.journeyDate.slice(0, 10) === date && today ? today : s)) : null;
   const count = days?.filter(d => d.state !== 'none').length ?? 0;
-  const openReading = () => { if (reading) setPrefs({ bibleLocale: reading.locale, chapterId: reading.chapterId }); router.navigate('/bible'); };
+  useFocusEffect(useCallback(() => { if (word) reportScripture(`daily:${lang}:${date}`, word.verse.fumsToken); }, [word, lang, date]));
+  const openReading = () => { if (reading) setPrefs({ bibleLocale: reading.locale, chapterId: reading.chapterId, verse: reading.verse }); router.navigate('/bible'); };
 
   return <Screen eyebrow={calendarDay(date, lang)} title={`${greet}${session.firstName ? `, ${session.firstName}` : ''}`}>
     <Card style={{ padding: 22, gap: 14 }}>
@@ -58,6 +60,7 @@ export default function Today() {
       {word ? <>
         <Text style={{ color: c.ink, fontFamily: fonts.serif, fontSize: 24, lineHeight: 36 }}>{word.verse.text}</Text>
         <Text style={{ color: c.muted, fontSize: 14 }}><Text style={{ color: c.deep, fontWeight: '700' }}>{word.verse.reference}</Text> · {word.verse.translation}</Text>
+        {word.verse.copyright ? <Text style={{ color: c.muted, fontSize: 12 }}>{word.verse.copyright}</Text> : null}
       </> : error ? <ErrorLine message={t.today.error} onRetry={retry} /> : <View accessible accessibilityLabel={t.today.loading} style={{ paddingVertical: 24 }}><ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /></View>}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 6 }}>
         <Button title={completed ? t.today.again : doneCount ? t.today.cont : t.today.begin} onPress={() => router.push('/prayer-time')} disabled={!word} style={{ flex: 1 }} />

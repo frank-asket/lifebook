@@ -26,7 +26,9 @@ test('the data export decrypts everything for the member, and only for them', { 
     await db.ministryVerification.create({ data: { userId: other.id, churchName: 'Other church' } });
     await db.pastorProfile.create({ data: { userId: other.id, slug: `${prefix}-other`, displayName: 'Other pastor', bio: 'Other biography', languages: ['fr'] } });
     const path = await db.learningPath.create({ data: { slug: prefix, title: 'Fixture path', description: 'Fixture path' } });
-    await db.enrollment.create({ data: { userId: id, pathId: path.id } });
+    const learning = await db.enrollment.create({ data: { userId: id, pathId: path.id } });
+    const lesson = await db.lesson.create({ data: { pathId: path.id, position: 1, title: 'Fixture lesson', content: 'Fixture' } });
+    await db.learningLessonCompletion.create({ data: { enrollmentId: learning.id, lessonId: lesson.id } });
     await db.enrollment.create({ data: { userId: other.id, pathId: path.id } });
     await db.faithProfile.create({ data: { userId: id, journey: 'EXPLORING', learningGoals: ['Learn about Jesus'], preferredFormats: [], personalizationConsent: true } });
     const p1 = await db.prayerEntry.create({ data: { userId: id, ciphertext: 'pending' } });
@@ -50,6 +52,7 @@ test('the data export decrypts everything for the member, and only for them', { 
     assert.equal(out.ministryVerification.status, 'PENDING');
     assert.equal(out.pastorProfile.displayName, 'Fixture pastor');
     assert.deepEqual(out.learningPaths.map(p => p.pathId), [path.id]);
+    assert.deepEqual(out.learningPaths[0].completions.map(c => c.lessonId), [lesson.id]);
     for (const privateValue of ['Confidential-review-fixture', 'Private referee', 'Other church', 'Other pastor', 'Other biography']) assert.ok(!JSON.stringify(out).includes(privateValue), `Export must omit ${privateValue}`);
     const good = out.prayers.find(p => p.title === 'Family');
     assert.equal(good.body, 'Keep my family safe.');

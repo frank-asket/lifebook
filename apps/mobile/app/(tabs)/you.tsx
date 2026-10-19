@@ -81,6 +81,8 @@ export default function You() {
       <Segmented label={t.you.length} value={prefs.length} onChange={v => setPrefs({ length: v })} options={PRAYER_LENGTHS.map(n => ({ label: `${n} min`, value: n }))} />
     </Card>
 
+    <Row icon="headset-outline" title="LivingWord" subtitle={lang === 'fr' ? 'Enseignements audio et vidéo' : 'Audio and video teachings'} onPress={() => router.push('/livingword')} />
+    <Row icon="compass-outline" title={lang === 'fr' ? 'Mon parcours' : 'My Journey'} subtitle={lang === 'fr' ? 'Parcours et leçons à votre rythme' : 'Pathways and lessons at your own pace'} onPress={() => router.push('/discipleship')} />
     <SectionLabel>{t.you.reading}</SectionLabel>
     <Row icon="text-outline" title={t.you.readingRow} onPress={() => router.push('/reader-settings')} />
     {session.isSignedIn ? <Row icon="compass-outline" title={t.you.profile} onPress={() => router.push('/onboarding')} /> : null}
@@ -90,6 +92,7 @@ export default function You() {
 
     <SectionLabel>{t.you.privacy}</SectionLabel>
     <Card><Text style={{ color: c.muted, fontSize: 14, lineHeight: 21 }}>{t.you.privacyNote}</Text></Card>
+    <Row icon="shield-checkmark-outline" title={lang === 'fr' ? 'Compte et confidentialité' : 'Account and privacy'} subtitle={lang === 'fr' ? 'Consentements, export et suppression' : 'Consent, export and deletion'} onPress={() => router.push('/account-privacy')} />
     {session.isSignedIn ? <Button kind="quiet" title={t.you.signOut} disabled={authBusy} onPress={() => void authenticate(true)} style={{ marginTop: 10 }} /> : null}
   </Screen>;
 }

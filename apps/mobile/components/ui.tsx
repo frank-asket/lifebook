@@ -55,7 +55,7 @@ export function Row({ icon, tone = 'soft', title, subtitle, onPress, badge }: { 
 export function Segmented<T extends string | number>({ label, options, value, onChange, disabled = false }: { label: string; options: { label: string; value: T; textStyle?: TextStyle }[]; value: T; onChange: (v: T) => void; disabled?: boolean }) {
   const { c } = useApp();
   const { width, fontScale } = useWindowDimensions();
-  const stacked = fontScale > 1.3 || (options.length > 3 && width < 380);
+  const stacked = fontScale > 1.3 || options.length > 4 || (options.length > 3 && width < 380);
   return <View accessibilityRole="radiogroup" accessibilityLabel={label} style={{ flexDirection: stacked ? 'column' : 'row', gap: 3, padding: 3, borderRadius: 12, backgroundColor: c.soft }}>
     {options.map(o => {
       const on = o.value === value;

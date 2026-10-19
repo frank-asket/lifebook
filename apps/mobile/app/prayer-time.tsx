@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api, timezone, useApp, useDailyWord, useSession, type TodaySession } from '../lib/app';
+import { reportScripture } from '../lib/scripture-usage';
 import { fonts } from '../lib/theme';
 import { Button, ErrorLine, Screen } from '../components/ui';
 import { requireToken } from '../lib/api';
@@ -18,6 +19,7 @@ export default function PrayerTime() {
   // Keep the passage and session paired if the calendar day changes while this screen is open.
   const [reading, setReading] = useState<{ word: DailyWord; date: string } | null>(() => live.word ? { word: live.word, date: live.date } : null);
   const word = reading?.word ?? null;
+  useFocusEffect(useCallback(() => { if (word && reading) reportScripture(`daily:${lang}:${reading.date}`, word.verse.fumsToken); }, [word, reading, lang]));
   const session = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -130,6 +132,7 @@ export default function PrayerTime() {
         {step === 0 && <>
           <Text accessibilityRole="header" style={{ color: c.ink, fontFamily: fonts.serif, fontSize: 31, lineHeight: 44 }}>{word.verse.text}</Text>
           <Text style={{ color: c.muted, fontSize: 14, marginTop: 16 }}><Text style={{ color: c.deep, fontWeight: '700' }}>{word.verse.reference}</Text> · {word.verse.translation}</Text>
+          {word.verse.copyright ? <Text style={{ color: c.muted, fontSize: 12, marginTop: 10 }}>{word.verse.copyright}</Text> : null}
           <Text style={{ color: c.ink, fontSize: 17, lineHeight: 29, marginTop: 26 }}>{word.explanation}</Text>
         </>}
         {step === 1 && <>

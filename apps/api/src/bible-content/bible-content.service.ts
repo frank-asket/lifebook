@@ -56,6 +56,22 @@ export class BibleContentService {
     } finally { clearTimeout(timer); }
   }
 
+  async search(locale: Locale, query: string, offsetInput = '0') {
+    if (typeof query !== 'string' || !query.trim() || query.length > 120 || typeof offsetInput !== 'string' || !/^(0|[1-9][0-9]{0,4})$/.test(offsetInput)) throw new BadRequestException('Invalid Scripture search');
+    const bibleId = this.bibleId(locale);
+    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+    const offset = Number(offsetInput); const limit = 20;
+    const params = new URLSearchParams({ query: query.trim(), limit: String(limit), offset: String(offset), sort: 'canonical', 'fums-version': '3' });
+    const result = await this.request<{ data?: { total?: number; verses?: { id: string; reference: string }[]; passages?: { id: string; reference: string }[] } }>(`/bibles/${encodeURIComponent(bibleId)}/search?${params}`);
+    if (!result.data) throw new ServiceUnavailableException('Scripture search unavailable');
+    // Reference-only results avoid publishing provider markup or uncredited snippets.
+    const items = [...(result.data.verses ?? []), ...(result.data.passages ?? [])].slice(0, limit).flatMap(item => {
+      const match = /^([A-Z0-9]{3}\.[1-9][0-9]{0,2})(?:\.([1-9][0-9]{0,2}))?/.exec(item.id);
+      return match && typeof item.reference === 'string' ? [{ id: item.id, reference: item.reference, chapterId: match[1], verse: match[2] ? Number(match[2]) : null }] : [];
+    });
+    return { items, offset, limit, total: typeof result.data.total === 'number' ? result.data.total : items.length };
+  }
+
   async passage(locale: Locale, passageId: string) {
     if (!/^[A-Z0-9]{3}(?:\.[0-9]+(?:\.[0-9]+(?:-[0-9]+)?)?)?$/.test(passageId)) {
       throw new BadRequestException('Invalid passage identifier');

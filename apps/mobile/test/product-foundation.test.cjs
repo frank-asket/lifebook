@@ -89,6 +89,7 @@ test('prayer detail edits, answers, protects unsaved changes and confirms deleti
     },
     '../../web/lib/prayer-api': { PRAYER_LIMITS: { title: 120, body: 5000, answerNote: 1000 } },
     '../../web/lib/errors': { errorMessage },
+    './guided-prayer': { GuidedPrayer: 'GuidedPrayer' },
     './ui': Object.fromEntries(['Button', 'Card', 'ErrorLine', 'Screen'].map(name => [name, name])),
   });
   let renderer;

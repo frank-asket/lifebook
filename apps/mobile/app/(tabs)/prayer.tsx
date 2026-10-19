@@ -70,7 +70,7 @@ export default function Prayer() {
       <Button title={t.you.signIn} disabled={authBusy} onPress={() => void signIn()} style={{ alignSelf: 'stretch', marginTop: 6 }} />
       {signInError ? <Text accessibilityRole="alert" style={{ color: c.danger, textAlign: 'center' }}>{signInError}</Text> : null}
     </Card>
-    <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} />
+    <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} onPress={() => router.push('/pastoral-care')} />
   </Screen>;
 
   return <Screen title={t.prayer.title}>
@@ -97,6 +97,6 @@ export default function Prayer() {
           {p.answeredAt ? <Text style={{ alignSelf: 'flex-start', marginTop: 4, color: c.deep, backgroundColor: c.soft, fontSize: 12, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, overflow: 'hidden' }}>{t.prayer.answered}</Text> : null}
         </Press>)}</Card>}
     {selected ? <PrayerDetail key={selected} id={selected} onClose={() => setSelected(null)} onChanged={() => setReload(n => n + 1)} /> : null}
-    <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} />
+    <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} onPress={() => router.push('/pastoral-care')} />
   </Screen>;
 }

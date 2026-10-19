@@ -42,7 +42,7 @@ export async function exportAccount(db: PrismaClient, userId: string) {
       slug: true, displayName: true, bio: true, languages: true, acceptingRequests: true,
       maxOpenRequests: true, createdAt: true, updatedAt: true,
     } }),
-    db.enrollment.findMany({ where: { userId }, orderBy: { startedAt: 'asc' }, select: { pathId: true, startedAt: true } }),
+    db.enrollment.findMany({ where: { userId }, orderBy: { startedAt: 'asc' }, select: { pathId: true, startedAt: true, completions: { select: { lessonId: true, completedAt: true }, orderBy: { completedAt: 'asc' } } } }),
   ]);
   const prayerOpen = (field: string, p: { id: string }, v: string | null) => open(v, x => decryptReflection(x, `prayer:${field}:${userId}:${p.id}`));
   return {

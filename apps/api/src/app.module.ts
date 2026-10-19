@@ -1,3 +1,5 @@
+import { LivingWordModule } from './livingword/livingword.module';
+import { PathsModule } from './paths/paths.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BibleAnnotationsModule } from './bible-annotations/bible-annotations.module';
@@ -228,36 +230,6 @@ class DevotionalsController {
 }
 
 // ============================================================
-// DISCIPLESHIP CONTROLLER
-// ============================================================
-
-@ApiTags('discipleship')
-@Controller('paths')
-class PathsController {
-  constructor(
-    private readonly db: Database,
-  ) {}
-
-  /**
-   * GET /api/v1/paths
-   */
-  @Get()
-  list() {
-    return this.db.learningPath.findMany({
-      where: {
-        isPublished: true,
-      },
-      select: {
-        id: true,
-        slug: true,
-        title: true,
-        description: true,
-      },
-    });
-  }
-}
-
-// ============================================================
 // USER PROFILE CONTROLLER
 // ============================================================
 
@@ -352,6 +324,8 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
   imports: [
     ThrottlerModule.forRoot([{ ttl: 60000, limit: requestLimit }]),
     BibleReadingModule,
+    PathsModule,
+    LivingWordModule,
     SuggestionsModule,
     AccountModule,
     BibleContentModule,
@@ -377,7 +351,6 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
   controllers: [
     HealthController,
     DevotionalsController,
-    PathsController,
     ProfileController,
   ],
 

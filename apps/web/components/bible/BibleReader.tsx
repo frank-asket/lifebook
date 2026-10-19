@@ -39,7 +39,14 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
       if (!active || !item) return;
       setResumed(true); setLocale(item.locale); setTarget(item.chapterId);
     }).catch(() => undefined).finally(() => { if (active) setReady(true); });
-    return () => { active = false; };
+    useEffect(() => {
+    if (!content || content.id !== initialChapter || !initialVerse || !/^[1-9][0-9]{0,2}(?:-[1-9][0-9]{0,2})?$/.test(initialVerse)) return;
+    const element = document.getElementById(`scripture-verse-${initialVerse.split('-')[0]}`);
+    element?.scrollIntoView({ block: 'center', behavior: 'auto' });
+    element?.focus({ preventScroll: true });
+  }, [content, initialChapter, initialVerse]);
+
+  return () => { active = false; };
   }, [ready, isLoaded, isSignedIn, getToken]);
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [bookId, setBookId] = useState('');
@@ -137,7 +144,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
         {busy ? <p role="status">{t.loading}</p> : content ? <>
           <ReadingTracker locale={locale} chapterId={content.id} />
           <h1 className="reader-reference">{content.reference}</h1>
-          <div className="scripture-text">{parseVerses(content.content).map((paragraph, i) => <p key={i}>{paragraph.map((v, j) => <span key={j} className="verse">{v.number && <sup className="verse-number">{v.number}</sup>}{v.text} </span>)}</p>)}</div>
+          <div className="scripture-text">{parseVerses(content.content).map((paragraph, i) => <p key={i}>{paragraph.map((v, j) => <span key={j} id={v.number ? `scripture-verse-${v.number}` : undefined} tabIndex={-1} className="verse">{v.number && <sup className="verse-number">{v.number}</sup>}{v.text} </span>)}</p>)}</div>
           <footer className="scripture-attribution">
             <details>
               <summary>{translation?.name ?? translation?.abbreviation ?? 'API.Bible'}</summary>
@@ -153,7 +160,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
         <button className="btn btn-primary" disabled={!next || busy} onClick={() => go(next)}>{next ? `${t.chapter} ${next.number}` : t.next} →</button>
       </nav>
       {!busy && content && <AnnotationPanel chapterId={content.id} locale={locale} initialVerse={content.id === initialChapter ? initialVerse : undefined} onDirtyChange={setAnnotationDirty}/>}
-      <nav className="reader-links" aria-label={tr('Your reading', 'Votre lecture')}><Link className="text-link" href="/bible/dashboard">{tr('Reading journey', 'Mon parcours de lecture')}</Link><Link className="text-link" href="/bible/annotations">{tr('Saved verses', 'Versets enregistrés')}</Link><Link className="text-link" href="/bible">{t.study}</Link></nav>
+      <nav className="reader-links" aria-label={tr('Your reading', 'Votre lecture')}><Link className="text-link" href={`/bible/search?locale=${locale}`}>{tr('Search Scripture', 'Rechercher dans la Bible')}</Link><Link className="text-link" href="/bible/dashboard">{tr('Reading journey', 'Mon parcours de lecture')}</Link><Link className="text-link" href="/bible/annotations">{tr('Saved verses', 'Versets enregistrés')}</Link><Link className="text-link" href="/bible">{t.study}</Link></nav>
     </div></Shell>
   );
 }

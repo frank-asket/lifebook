@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api, useApp, useSession } from '../../lib/app';
+import { reportScripture } from '../../lib/scripture-usage';
 import { fonts } from '../../lib/theme';
 import { Button, ErrorLine } from '../../components/ui';
 import { AnnotationEditor } from '../../components/annotation-editor';
@@ -12,7 +13,7 @@ import { requireToken } from '../../lib/api';
 import { bookName, parseVerses } from '../../../web/lib/scripture';
 
 type Chapter = { id: string; number: string };
-type Content = { id: string; reference: string; content: string; copyright?: string };
+type Content = { id: string; reference: string; content: string; copyright?: string; fumsToken?: string | null };
 type Translation = { name?: string; nameLocal?: string; abbreviation?: string };
 
 const SIZES = { s: 17, m: 19, l: 22, xl: 25 } as const;
@@ -26,6 +27,8 @@ export default function Bible() {
   const { width, fontScale } = useWindowDimensions();
   const compact = width < 400 || fontScale > 1.3;
   const scroller = useRef<ScrollView>(null);
+  const positions = useRef<Record<number, { top?: number; lines?: { text: string; y: number }[] }>>({});
+  const positioned = useRef<string | null>(null);
   const chapterId = prefs.chapterId ?? 'JHN.1';
   const bookId = chapterId.split('.')[0];
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -83,13 +86,30 @@ export default function Bible() {
     api<{ data: Content }>(`/bible-content/chapters/${encodeURIComponent(chapterId)}?locale=${bibleLocale}`)
       .then(r => {
         if (!active) return;
-        setContent(r.data);
+        positions.current = {}; positioned.current = null; setContent(r.data);
         scroller.current?.scrollTo({ y: 0, animated: false });
-        if (session.isSignedIn) requireToken(session.getToken).then(token => active ? api('/bible-reading/history', token, { method: 'PUT', body: JSON.stringify({ locale: bibleLocale, chapterId }) }) : null).catch(() => { if (active) setPlaceFailed(true); });
+        if (session.isSignedIn) requireToken(session.getToken).then(token => active ? api('/bible-reading/history', token, { method: 'PUT', body: JSON.stringify({ locale: bibleLocale, chapterId, ...(prefs.verse ? { verse: prefs.verse } : {}) }) }) : null).catch(() => { if (active) setPlaceFailed(true); });
       })
       .catch(() => { if (active) setError(t.bible.error); });
     return () => { active = false; };
   }, [chapterId, bibleLocale, attempt, session.isSignedIn, session.getToken, t.bible.error]);
+
+  const scrollToTarget = useCallback(() => {
+    if (!content || content.id !== chapterId || !prefs.verse) return;
+    const key = `${bibleLocale}:${content.id}:${prefs.verse}`;
+    if (positioned.current === key) return;
+    for (const paragraph of Object.values(positions.current)) {
+      const line = paragraph.lines?.find(value => new RegExp(`(^|\\D)${prefs.verse} `).test(value.text));
+      if (line && paragraph.top !== undefined) {
+        scroller.current?.scrollTo({ y: Math.max(0, paragraph.top + line.y - 24), animated: false });
+        positioned.current = key; return;
+      }
+    }
+  }, [content, prefs.verse, bibleLocale, chapterId]);
+  useFocusEffect(useCallback(() => {
+    positioned.current = null; scrollToTarget();
+    if (content) reportScripture(`chapter:${bibleLocale}:${content.id}`, content.fumsToken);
+  }, [content, bibleLocale, scrollToTarget]));
 
   const index = chapters.findIndex(x => x.id === chapterId);
   const previous = index > 0 ? chapters[index - 1] : undefined;
@@ -124,6 +144,7 @@ export default function Bible() {
     </View> : null}
     <ScrollView ref={scroller} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 40, width: '100%', maxWidth: 760, alignSelf: 'center' }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 }}>
+        <Button kind="quiet" title={tr('Search Scripture', 'Rechercher dans la Bible')} onPress={() => router.push('/bible-search')} style={{ flexGrow: 1 }} />
         <Button kind="quiet" title={tr('Reading plans', 'Plans de lecture')} onPress={() => router.push('/reading-plans')} style={{ flexGrow: 1 }} />
         <Button kind="quiet" title={tr('Saved verses', 'Versets enregistrés')} onPress={() => router.push('/saved-verses')} style={{ flexGrow: 1 }} />
       </View>
@@ -145,7 +166,7 @@ export default function Bible() {
             {verseError ? <ErrorLine message={verseError} /> : null}
           </View>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 30, fontWeight: '800', letterSpacing: -0.6, textAlign: 'center', marginBottom: 22 }}>{content.reference}</Text>
-          {paragraphs.map((p, i) => <Text key={i} style={{ color: c.ink, fontFamily: family, fontSize: size, lineHeight: Math.round(size * leading), marginBottom: size }}>
+          {paragraphs.map((p, i) => <Text key={i} onLayout={event => { positions.current[i] = { ...positions.current[i], top: event.nativeEvent.layout.y }; scrollToTarget(); }} onTextLayout={event => { positions.current[i] = { ...positions.current[i], lines: event.nativeEvent.lines }; scrollToTarget(); }} style={{ color: c.ink, fontFamily: family, fontSize: size, lineHeight: Math.round(size * leading), marginBottom: size }}>
             {p.map((v, j) => {
               const annotation = annotationAt(savedVerses, chapterId, v.number);
               const colors = highlightColors[dark ? 'dark' : 'light'];

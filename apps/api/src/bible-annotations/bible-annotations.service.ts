@@ -33,6 +33,12 @@ export class BibleAnnotationsService implements OnModuleDestroy {
     const rows = await this.db.bibleAnnotation.findMany({ where: { userId, ...(chapterId ? { locale, passageId: { startsWith: chapterId + '.' } } : {}) }, orderBy: { updatedAt: 'desc' }, take: 200 });
     return rows.map(({ noteCiphertext, ...row }) => ({ ...row, note: noteCiphertext ? this.decrypt(noteCiphertext) : null }));
   }
+  async page(auth?: string, cursor?: string) {
+    const userId = await this.meditation.userId(auth);
+    if (cursor && (typeof cursor !== 'string' || cursor.length > 100 || !await this.db.bibleAnnotation.findFirst({ where: { id: cursor, userId }, select: { id: true } }))) throw new NotFoundException('Annotation page not found');
+    const rows = await this.db.bibleAnnotation.findMany({ where: { userId, OR: [{ bookmarked: true }, { highlight: { not: null } }, { noteCiphertext: { not: null } }] }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 51, ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}) });
+    return { items: rows.slice(0, 50).map(({ noteCiphertext, ...row }) => ({ ...row, note: noteCiphertext ? this.decrypt(noteCiphertext) : null })), nextCursor: rows.length > 50 ? rows[49].id : null };
+  }
   async save(auth: string | undefined, input: { passageId: string; locale: Locale; bookmark?: boolean; highlight?: string | null; note?: string | null }) {
     const userId = await this.meditation.userId(auth);
     this.validate(input.passageId, input.locale);

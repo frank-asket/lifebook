@@ -34,8 +34,13 @@ function Navigation() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="prayer-time" options={{ presentation: 'fullScreenModal', animation: reduceMotion ? 'fade' : 'slide_from_bottom', gestureEnabled: false }} />
       <Stack.Screen name="reader-settings" options={{ presentation: 'formSheet', sheetAllowedDetents: [0.62], sheetGrabberVisible: true, sheetCornerRadius: 22, contentStyle: { backgroundColor: c.paper } }} />
+      <Stack.Screen name="bible-search" />
       <Stack.Screen name="books" options={{ presentation: 'modal' }} />
       <Stack.Screen name="reading-plans" />
+      <Stack.Screen name="discipleship" />
+      <Stack.Screen name="livingword" />
+      <Stack.Screen name="pastoral-care" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="account-privacy" options={{ gestureEnabled: false }} />
       <Stack.Screen name="saved-verses" />
       <Stack.Screen name="meditations" />
       <Stack.Screen name="daily-word-history" />

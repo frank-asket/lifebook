@@ -1,10 +1,11 @@
-import { BadRequestException, Body, Controller, Delete, Get, Headers, Param, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Header, Headers, Param, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BibleAnnotationsService } from './bible-annotations.service';
 @ApiTags('bible-annotations') @ApiBearerAuth() @Controller('bible-annotations')
 export class BibleAnnotationsController {
   constructor(private readonly service: BibleAnnotationsService) {}
   @Get() list(@Headers('authorization') auth?: string, @Query('locale') locale?: string, @Query('chapterId') chapterId?: string) { return this.service.list(auth, locale, chapterId); }
+  @Get('page') @Header('Cache-Control', 'no-store') page(@Headers('authorization') auth?: string, @Query('cursor') cursor?: string) { return this.service.page(auth, cursor); }
   @Get('passage') async one(@Headers('authorization') auth?: string, @Query('locale') locale?: string, @Query('passageId') passageId?: string) { return { annotation: await this.service.one(auth, locale, passageId) }; }
   @Put() save(@Headers('authorization') auth: string | undefined, @Body() body: Record<string, unknown>) {
     if (!body || typeof body.passageId !== 'string' || (body.locale !== 'en' && body.locale !== 'fr') ||
