@@ -1,6 +1,6 @@
 # LifeBook — System Architecture & Engineering README
 
-**Product completion work (19 October 2026):** Development now follows the [milestone-aligned product completion checklist](docs/PRODUCT_COMPLETION_PLAN.md), covering web/marketing, backend, security and Expo before deployment. The dated architecture and release notes below describe earlier snapshots; use the checklist for current gaps and verification status.
+**Product completion work (19 October 2026):** Development now follows the [milestone-aligned product completion checklist](docs/PRODUCT_COMPLETION_PLAN.md), covering web/marketing, backend, security and Expo before deployment. The dated architecture and release notes below describe earlier snapshots; use the checklist for current gaps and verification status. See [reflection history and deletion acceptance](docs/REFLECTION_HISTORY_ACCEPTANCE.md) for the new Expo journeys, API endpoints and pending device checks.
 
 > **Architecture baseline:** 12 October 2026 · **Repository:** `lifebook` pnpm monorepo · **Status:** Phase 1 / Sprint 2 under integration testing.
 >
@@ -186,6 +186,7 @@ Base path: `/api/v1`.
 | `GET` | `/meditations/:id` | Public | Published meditation by ID |
 | `GET` | `/meditations/:id/state` | Bearer token | Member's personal state |
 | `PUT` | `/meditations/:id/reflection` | Bearer token | Save reflection |
+| `DELETE` | `/meditations/:id/reflection` | Bearer token | Delete own reflection; preserve completion and bookmark |
 | `POST` | `/meditations/:id/complete` | Bearer token | Mark completed |
 | `PUT` | `/meditations/:id/bookmark` | Bearer token | Add/remove bookmark |
 | `GET` | `/meditations/history` | Bearer token | Completion history |
