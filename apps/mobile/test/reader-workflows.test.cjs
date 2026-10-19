@@ -148,7 +148,7 @@ function dailyHarness({ failInit = false, failStep = true, initialReflection = n
   const controls = { failInit, failStep, failLive: false };
   const word = { verse: { text: 'Synthetic verse fixture', reference: 'JHN.1.1', translation: 'Fixture' }, explanation: 'Fixture', meditation: 'Fixture', reflectionQuestion: 'Reflect?', prayer: 'Pray', application: 'Live' };
   let live = { word, date: '2026-10-19', retry() {} };
-  class Value { setValue() {} interpolate() { return 0; } }
+  class Value { setValue() {} stopAnimation() {} interpolate() { return 0; } }
   const { default: PrayerTime } = load('../app/prayer-time.tsx', {
     'react-native': {
       ...native, Platform: { OS: 'ios' }, AccessibilityInfo: { isReduceMotionEnabled: async () => false },

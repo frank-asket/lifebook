@@ -22,13 +22,21 @@ export default function Prayer() {
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
   const [signInError, setSignInError] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const date = (v: string) => new Date(v).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
 
   useFocusEffect(useCallback(() => {
-    if (!session.isSignedIn) return;
+    async function signIn() {
+    if (authBusy) return;
+    setAuthBusy(true); setSignInError('');
+    try { await session.signIn(); }
+    catch { if (mounted.current) setSignInError(t.you.signInFailed); }
+    finally { if (mounted.current) setAuthBusy(false); }
+  }
+  if (!session.isSignedIn) return;
     let active = true; setLoadError('');
     requireToken(session.getToken).then(token => active ? api<PrayerSummary[]>('/prayers', token) : null).then(rows => { if (active && rows) setItems(rows); }).catch(() => { if (active) setLoadError(t.prayer.error); });
     return () => { active = false; };
@@ -47,12 +55,19 @@ export default function Prayer() {
     finally { if (mounted.current) setBusy(false); }
   }
 
+  async function signIn() {
+    if (authBusy) return;
+    setAuthBusy(true); setSignInError('');
+    try { await session.signIn(); }
+    catch { if (mounted.current) setSignInError(t.you.signInFailed); }
+    finally { if (mounted.current) setAuthBusy(false); }
+  }
   if (!session.isSignedIn) return <Screen title={t.prayer.title}>
     <Card style={{ alignItems: 'center', gap: 12, paddingVertical: 28 }}>
       <Ionicons name="lock-closed-outline" size={28} color={c.accent} />
       <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 20, fontWeight: '700', textAlign: 'center' }}>{t.prayer.signedOutTitle}</Text>
       <Text style={{ color: c.muted, fontSize: 15, lineHeight: 22, textAlign: 'center' }}>{t.prayer.signedOutText}</Text>
-      <Button title={t.you.signIn} onPress={() => { setSignInError(''); session.signIn().catch(e => { console.warn('Sign-in incomplete:', e instanceof Error ? e.message : e); setSignInError(t.you.signInFailed); }); }} style={{ alignSelf: 'stretch', marginTop: 6 }} />
+      <Button title={t.you.signIn} disabled={authBusy} onPress={() => void signIn()} style={{ alignSelf: 'stretch', marginTop: 6 }} />
       {signInError ? <Text accessibilityRole="alert" style={{ color: c.danger, textAlign: 'center' }}>{signInError}</Text> : null}
     </Card>
     <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} />
@@ -61,7 +76,7 @@ export default function Prayer() {
   return <Screen title={t.prayer.title}>
     <Row icon="book-outline" title={lang === 'fr' ? 'Méditations' : 'Meditations'} subtitle={lang === 'fr' ? 'Vos enregistrements et votre historique' : 'Your saved meditations and history'} onPress={() => router.push('/meditations')} />
     <Card style={{ gap: 12 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
         <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 17, fontWeight: '700' }}>{t.prayer.write}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: c.soft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99 }}><Ionicons name="lock-closed" size={11} color={c.deep} /><Text style={{ color: c.deep, fontSize: 12, fontWeight: '600' }}>{t.prayer.lock}</Text></View>
       </View>
@@ -74,7 +89,7 @@ export default function Prayer() {
     </Card>
     <SectionLabel>{t.prayer.journal}</SectionLabel>
     {loadError ? <ErrorLine message={loadError} onRetry={() => setReload(n => n + 1)} />
-      : !items ? <ActivityIndicator color={c.accent} />
+      : !items ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} />
       : !items.length ? <Text style={{ color: c.muted, fontSize: 15, paddingHorizontal: 4 }}>{t.prayer.empty}</Text>
       : <Card style={{ padding: 0, overflow: 'hidden' }}>{items.map((p, i) => <Press key={p.id} accessibilityRole="button" accessibilityLabel={`${t.prayer.open}: ${p.title || t.prayer.untitled}`} onPress={() => setSelected(p.id)} style={{ padding: 16, gap: 4, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}><Text style={{ color: c.ink, fontSize: 16, fontWeight: '600', flex: 1 }} numberOfLines={1}>{p.title || t.prayer.untitled}</Text><Text style={{ color: c.muted, fontSize: 13 }}>{date(p.updatedAt)}</Text></View>

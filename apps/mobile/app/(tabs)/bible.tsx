@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +23,8 @@ export default function Bible() {
   const session = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 400 || fontScale > 1.3;
   const scroller = useRef<ScrollView>(null);
   const chapterId = prefs.chapterId ?? 'JHN.1';
   const bookId = chapterId.split('.')[0];
@@ -97,39 +99,43 @@ export default function Bible() {
   const leading = prefs.reader.spacing === 'relaxed' ? 2.2 : 1.8;
   const family = prefs.reader.font === 'sans' ? undefined : fonts.serif;
   const iconButton = (name: keyof typeof Ionicons.glyphMap, label: string, onPress: (() => void) | undefined) =>
-    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: !onPress }} disabled={!onPress} onPress={onPress} style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12, opacity: onPress ? 1 : 0.35, backgroundColor: pressed ? c.soft : 'transparent' })}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: !onPress }} disabled={!onPress} onPress={onPress} style={({ pressed }) => ({ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, opacity: onPress ? 1 : 0.35, backgroundColor: pressed ? c.soft : 'transparent' })}>
       <Ionicons name={name} size={20} color={c.muted} />
     </Pressable>;
   const picker = (label: string, value: string, a11y: string, flex: boolean) =>
-    <Pressable accessibilityRole="button" accessibilityLabel={`${a11y}: ${value}`} onPress={() => router.push('/books')} style={({ pressed }) => ({ flex: flex ? 1 : undefined, minWidth: flex ? undefined : 64, minHeight: 40, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: c.line, backgroundColor: c.paper, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${a11y}: ${value}`} onPress={() => router.push('/books')} style={({ pressed }) => ({ flex: flex ? 1 : undefined, minWidth: flex ? 0 : 56, minHeight: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: c.line, backgroundColor: c.paper, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, opacity: pressed ? 0.72 : 1 })}>
       <Text numberOfLines={1} style={{ color: c.ink, fontSize: 15, fontWeight: '700' }}>{label}</Text>
       <Ionicons name="chevron-down" size={14} color={c.muted} />
     </Pressable>;
 
   return <View style={{ flex: 1, backgroundColor: c.bg }}>
-    <View accessibilityLabel={t.bible.nav} style={{ paddingTop: insets.top + 4, paddingHorizontal: 12, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6, borderBottomWidth: 1, borderBottomColor: c.line, backgroundColor: c.bg }}>
-      {iconButton('chevron-back', t.bible.prev, previous ? () => setPrefs({ chapterId: previous.id }) : undefined)}
+    <View accessibilityLabel={t.bible.nav} style={{ paddingTop: insets.top + 4, paddingLeft: Math.max(12, insets.left), paddingRight: Math.max(12, insets.right), paddingBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6, borderBottomWidth: 1, borderBottomColor: c.line, backgroundColor: c.bg }}>
+      {!compact ? iconButton('chevron-back', t.bible.prev, previous ? () => setPrefs({ chapterId: previous.id }) : undefined) : null}
       {picker(bookName(bookId, bibleLocale), bookName(bookId, bibleLocale), t.bible.book, true)}
       {picker(chapterId.split('.')[1], chapterId.split('.')[1], t.bible.chapter, false)}
-      {iconButton('chevron-forward', t.bible.next, next ? () => setPrefs({ chapterId: next.id }) : undefined)}
-      <Pressable accessibilityRole="button" accessibilityLabel={t.bible.settings} onPress={() => router.push('/reader-settings')} style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
+      {!compact ? iconButton('chevron-forward', t.bible.next, next ? () => setPrefs({ chapterId: next.id }) : undefined) : null}
+      <Pressable accessibilityRole="button" accessibilityLabel={t.bible.settings} onPress={() => router.push('/reader-settings')} style={({ pressed }) => ({ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
         <Text style={{ color: c.accent, fontFamily: fonts.serif, fontSize: 18, fontWeight: '700' }}>Aa</Text>
       </Pressable>
     </View>
-    <ScrollView ref={scroller} contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+    {compact ? <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingVertical: 8 }}>
+      <Button kind="quiet" title={t.bible.prev} disabled={!previous} onPress={() => previous && setPrefs({ chapterId: previous.id })} style={{ flex: 1 }} />
+      <Button kind="quiet" title={t.bible.next} disabled={!next} onPress={() => next && setPrefs({ chapterId: next.id })} style={{ flex: 1 }} />
+    </View> : null}
+    <ScrollView ref={scroller} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 40, width: '100%', maxWidth: 760, alignSelf: 'center' }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 }}>
         <Button kind="quiet" title={tr('Reading plans', 'Plans de lecture')} onPress={() => router.push('/reading-plans')} style={{ flexGrow: 1 }} />
         <Button kind="quiet" title={tr('Saved verses', 'Versets enregistrés')} onPress={() => router.push('/saved-verses')} style={{ flexGrow: 1 }} />
       </View>
       {error ? <ErrorLine message={error} onRetry={() => setAttempt(n => n + 1)} />
-        : !content ? <View accessible accessibilityLabel={t.bible.loading} style={{ paddingVertical: 60 }}><ActivityIndicator color={c.accent} /></View>
+        : !content ? <View accessible accessibilityLabel={t.bible.loading} style={{ paddingVertical: 60 }}><ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /></View>
         : <>
           {placeFailed ? <Text accessibilityRole="alert" style={{ color: c.muted, fontSize: 13, marginBottom: 12 }}>{t.bible.placeNotSaved}</Text> : null}
           {metadataError ? <ErrorLine message={metadataError} onRetry={() => setAttempt(n => n + 1)} /> : null}
           {annotations.key === annotationKey && annotations.error ? <ErrorLine message={annotations.error} onRetry={() => setAnnotationAttempt(n => n + 1)} /> : null}
           <View style={{ gap: 10, marginBottom: 18 }}>
             <Text style={{ color: c.muted }}>{tr('Choose a verse or range to bookmark, highlight or add a private note.', 'Choisissez un verset ou une plage pour ajouter un marque-page, un surlignage ou une note privée.')}</Text>
-            <TextInput accessibilityLabel={tr('Verse or range, for example 1 or 1-3', 'Verset ou plage, par exemple 1 ou 1-3')} value={verseTarget} onChangeText={value => { setVerseTarget(value); setVerseError(''); }} maxLength={7} autoCapitalize="none" style={{ minHeight: 44, borderWidth: 1, borderColor: c.line, borderRadius: 12, padding: 12, color: c.ink, backgroundColor: c.paper, fontSize: 17 }} />
+            <TextInput accessibilityLabel={tr('Verse or range, for example 1 or 1-3', 'Verset ou plage, par exemple 1 ou 1-3')} value={verseTarget} onChangeText={value => { setVerseTarget(value); setVerseError(''); }} maxLength={7} autoCapitalize="none" style={{ minHeight: 48, borderWidth: 1, borderColor: c.line, borderRadius: 12, padding: 12, color: c.ink, backgroundColor: c.paper, fontSize: 17 }} />
             <Button kind="soft" title={tr('Save a verse', 'Enregistrer un verset')} onPress={() => {
               const [start, end = start] = verseTarget.split('-');
               const numbers = new Set(paragraphs.flat().map(v => v.number));

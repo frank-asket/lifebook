@@ -27,12 +27,12 @@ function ClerkSession({ children }: { children: React.ReactNode }) {
 }
 
 function Navigation() {
-  const { c, dark } = useApp();
+  const { c, dark, reduceMotion } = useApp();
   return <>
     <StatusBar style={dark ? 'light' : 'dark'} />
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.bg } }}>
+    <Stack screenOptions={{ headerShown: false, animation: reduceMotion ? 'fade' : 'default', contentStyle: { backgroundColor: c.bg } }}>
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="prayer-time" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }} />
+      <Stack.Screen name="prayer-time" options={{ presentation: 'fullScreenModal', animation: reduceMotion ? 'fade' : 'slide_from_bottom', gestureEnabled: false }} />
       <Stack.Screen name="reader-settings" options={{ presentation: 'formSheet', sheetAllowedDetents: [0.62], sheetGrabberVisible: true, sheetCornerRadius: 22, contentStyle: { backgroundColor: c.paper } }} />
       <Stack.Screen name="books" options={{ presentation: 'modal' }} />
       <Stack.Screen name="reading-plans" />

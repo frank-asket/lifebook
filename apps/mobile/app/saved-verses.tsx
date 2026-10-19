@@ -37,7 +37,7 @@ export default function SavedVerses() {
     <Button kind="quiet" title={tr('Back to the Bible', 'Retour à la Bible')} onPress={() => router.navigate('/bible')} />
     {!session.isSignedIn ? <Card><Text style={{ color: c.muted }}>{tr('Sign in from You to keep bookmarks, highlights and encrypted notes.', 'Connectez-vous depuis Vous pour garder vos marque-pages, surlignages et notes chiffrées.')}</Text></Card>
       : error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} />
-      : items === null ? <ActivityIndicator color={c.accent} />
+      : items === null ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} />
       : !visible?.length ? <Card><Text style={{ color: c.muted, lineHeight: 23 }}>{tr('Use “Save a verse” in the Bible reader to add a bookmark, highlight or private note.', 'Utilisez « Enregistrer un verset » dans la Bible pour ajouter un marque-page, un surlignage ou une note privée.')}</Text></Card>
       : visible.map(item => <Card key={item.id} style={{ gap: 12 }}>
         <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 21, fontWeight: '700' }}>{passageLabel(item.passageId, item.locale)}</Text>

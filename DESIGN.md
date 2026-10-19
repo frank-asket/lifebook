@@ -84,3 +84,16 @@ Adapted from the `apple-design` skill (Apple's *Designing Fluid Interfaces*) to 
 ## Performance
 
 Context values in `components/*-provider.tsx` are memoised because every `<L>` string and theme consumer subscribes to them. Keep new provider values in `useMemo` and callbacks in `useCallback`. Use React Scan (see [docs/FRONTEND_TOOLING.md](docs/FRONTEND_TOOLING.md)) to check a new screen does not re-render on every keystroke or timer tick.
+
+## Native mobile application
+
+Expo/React Native uses the same calm character and single accent, with system UI fonts and platform serif Scripture (`Georgia` on iOS, `serif` on Android). Web CSS rules above do not require CSS classes inside native components.
+
+- Shared touch targets are at least 48 units; labels may wrap and controls grow with text.
+- At enlarged font sizes, segmented choices become vertical. Chapter grids adapt their column count.
+- Reading content has a comfortable maximum width on tablets and respects safe areas. Sheets with settings must scroll.
+- Decorative icons stay outside accessible names. Spoken labels include purpose and meaningful progress/selection state.
+- Press feedback is immediate and stationary. Reduced Motion changes apply while the app runs, including navigation and editor transitions.
+- Preserve draft/failed-write feedback and confirm destructive actions. Language preferences live in Settings.
+
+See [mobile screen review](docs/MOBILE_DESIGN_REVIEW_2026-10-19.md) for coverage, evidence and open device/store acceptance.

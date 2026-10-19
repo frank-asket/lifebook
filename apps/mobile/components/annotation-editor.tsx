@@ -8,7 +8,7 @@ import { passageLabel } from '../../web/lib/scripture';
 import { Button, Card, ErrorLine, Screen, Segmented } from './ui';
 
 export function AnnotationEditor({ chapterId, locale, verse, onClose, onChanged }: { chapterId: string; locale: 'en' | 'fr'; verse: string; onClose: () => void; onChanged: () => void }) {
-  const { c, lang, t } = useApp();
+  const { c, lang, t, reduceMotion } = useApp();
   const session = useSession();
   const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const passageId = `${chapterId}.${verse}`;
@@ -64,12 +64,12 @@ export function AnnotationEditor({ chapterId, locale, verse, onClose, onChanged 
     finally { if (mounted.current) setBusy(false); }
   }
   const names = lang === 'fr' ? ['Jaune', 'Vert', 'Bleu', 'Rose'] : ['Yellow', 'Green', 'Blue', 'Pink'];
-  return <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={close}>
+  return <Modal visible animationType={reduceMotion ? 'fade' : 'slide'} presentationStyle="fullScreen" onRequestClose={close}>
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
-      <Screen title={tr('Your saved verse', 'Votre verset enregistré')}>
+      <Screen keyboardInsets={false} title={tr('Your saved verse', 'Votre verset enregistré')}>
         <Button kind="quiet" title={tr('Close', 'Fermer')} disabled={busy} onPress={close} />
         <Text accessibilityRole="header" style={{ color: c.deep, fontSize: 21, fontWeight: '700' }}>{passageLabel(passageId, locale)} · {locale.toUpperCase()}</Text>
-        {!ready ? error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} /> : <ActivityIndicator color={c.accent} /> : <Card style={{ gap: 16 }}>
+        {!ready ? error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} /> : <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /> : <Card style={{ gap: 16 }}>
           <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}><Text style={{ flex: 1, color: c.ink, fontSize: 17 }}>{tr('Bookmark this passage', 'Marquer ce passage')}</Text><Switch accessibilityLabel={tr('Bookmark', 'Marque-page')} disabled={busy} value={bookmark} onValueChange={setBookmark} /></View>
           <Text style={{ color: c.ink, fontWeight: '600' }}>{tr('Highlight', 'Surlignage')}</Text>
           <Segmented label={tr('Highlight colour', 'Couleur de surlignage')} value={highlight} onChange={setHighlight} disabled={busy} options={HIGHLIGHTS.map((value, i) => ({ value, label: names[i] }))} />

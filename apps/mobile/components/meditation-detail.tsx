@@ -12,7 +12,7 @@ export type Meditation = {
 type PersonalState = { reflection: string; bookmarked: boolean; completedAt: string | null };
 
 export function MeditationDetail({ id, onClose, onChanged }: { id: string; onClose: () => void; onChanged: () => void }) {
-  const { c, lang, t } = useApp();
+  const { c, lang, t, reduceMotion } = useApp();
   const session = useSession();
   const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const [item, setItem] = useState<Meditation | null>(null);
@@ -75,11 +75,11 @@ export function MeditationDetail({ id, onClose, onChanged }: { id: string; onClo
     } catch (e) { if (mounted.current) setError(errorMessage(e, lang)); }
     finally { saving.current = false; if (mounted.current) setBusy(false); }
   }
-  return <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={close}>
+  return <Modal visible animationType={reduceMotion ? 'fade' : 'slide'} presentationStyle="fullScreen" onRequestClose={close}>
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
-      <Screen title={tr('A quiet moment', 'Un moment de calme')}>
+      <Screen keyboardInsets={false} title={tr('A quiet moment', 'Un moment de calme')}>
         <Button kind="quiet" title={tr('Close', 'Fermer')} onPress={close} disabled={busy} />
-        {loadError ? <ErrorLine message={loadError} onRetry={() => setRetry(n => n + 1)} /> : !item ? <ActivityIndicator color={c.accent} /> : <>
+        {loadError ? <ErrorLine message={loadError} onRetry={() => setRetry(n => n + 1)} /> : !item ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /> : <>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 27, lineHeight: 35, fontWeight: '700' }}>{item.title}</Text>
           <Text style={{ color: c.deep }}>{item.locale === 'fr' ? 'Français' : 'English'} · {item.scriptureReference}</Text>
           {item.scriptureText ? <Card style={{ gap: 12 }}><Text style={{ color: c.ink, fontSize: 20, lineHeight: 31 }}>{item.scriptureText}</Text>{item.translation ? <Text style={{ color: c.muted }}>{item.translation}</Text> : null}</Card> : null}
@@ -89,7 +89,7 @@ export function MeditationDetail({ id, onClose, onChanged }: { id: string; onClo
           <Card><Text style={{ color: c.ink, fontSize: 17, lineHeight: 28 }}>{item.guidedPrayer}</Text></Card>
           {!session.isSignedIn ? <Text style={{ color: c.muted }}>{tr('Sign in from You to save a private reflection and track completion.', 'Connectez-vous depuis Vous pour enregistrer une réflexion privée et suivre votre progression.')}</Text>
             : stateError ? <ErrorLine message={stateError} onRetry={() => setRetry(n => n + 1)} />
-            : !personal ? <ActivityIndicator color={c.accent} /> : <Card style={{ gap: 14 }}>
+            : !personal ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /> : <Card style={{ gap: 14 }}>
               <SectionLabel>{tr('Your private reflection', 'Votre réflexion privée')}</SectionLabel>
               <TextInput accessibilityLabel={tr('Private reflection', 'Réflexion privée')} value={draft} onChangeText={setDraft} multiline maxLength={10000} editable={!busy} placeholder={tr('What will you carry into your day?', 'Que garderez-vous pour votre journée ?')} placeholderTextColor={c.muted} style={{ minHeight: 160, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: c.line, color: c.ink, backgroundColor: c.bg, fontSize: 17, lineHeight: 27, textAlignVertical: 'top' }} />
               <Text style={{ color: c.muted, lineHeight: 22 }}>{tr('Reflections are encrypted in your account. Unsent drafts are lost if you leave this screen or the app closes.', 'Les réflexions sont chiffrées dans votre compte. Les brouillons non envoyés sont perdus si vous quittez cet écran ou si l’application se ferme.')}</Text>

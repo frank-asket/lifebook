@@ -107,3 +107,7 @@ Verification: **32 mobile/cross-client tests, 37 web tests and 55 API tests pass
 - [ ] Accept corrected installable build results and complete signed-in native/device/accessibility testing; see [Native build readiness](NATIVE_BUILD_READINESS.md).
 
 This SDK migration is isolated on `codex/native-readiness`; it is not a production rollout. Earlier SDK 52 verification notes above describe the historical source batches. The standalone iOS build compiled, installed and loaded Today’s Word and the Bible; dark appearance and French settings were exercised. Google SSO reached its credential form. Android remains queued, and authenticated flows and screen-reader acceptance remain pending.
+
+## Native screen design pass — 19 October 2026
+
+Reviewed all 12 mobile routes and editor implementations. Improved shared touch targets, large-text adaptation, tablet reading widths, safe-area/keyboard handling, screen-reader labels, motion preferences, chapter retry and authentication error states. See [screen review and remaining release gates](MOBILE_DESIGN_REVIEW_2026-10-19.md). Source and bundle checks do not complete native visual, authenticated or screen-reader acceptance. This work is isolated on `codex/mobile-design-quality`.

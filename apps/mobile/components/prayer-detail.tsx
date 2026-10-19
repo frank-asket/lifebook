@@ -7,7 +7,7 @@ import { errorMessage } from '../../web/lib/errors';
 import { Button, Card, ErrorLine, Screen } from './ui';
 
 export function PrayerDetail({ id, onClose, onChanged }: { id: string; onClose: () => void; onChanged: () => void }) {
-  const { c, t, lang } = useApp();
+  const { c, t, lang, reduceMotion } = useApp();
   const session = useSession();
   const [entry, setEntry] = useState<Prayer | null>(null);
   const [title, setTitle] = useState('');
@@ -71,9 +71,9 @@ export function PrayerDetail({ id, onClose, onChanged }: { id: string; onClose: 
   }
 
   const input = { color: c.ink, backgroundColor: c.bg, borderColor: c.line, borderWidth: 1, borderRadius: 12, padding: 14, fontSize: 17 };
-  return <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={close}>
+  return <Modal visible animationType={reduceMotion ? 'fade' : 'slide'} presentationStyle="fullScreen" onRequestClose={close}>
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen title={t.prayer.detail}>
+      <Screen keyboardInsets={false} title={t.prayer.detail}>
         <Button kind="quiet" title={t.prayer.close} onPress={close} disabled={busy} />
         {!entry ? error ? <ErrorLine message={error} onRetry={() => setAttempt(n => n + 1)} /> : <ActivityIndicator accessibilityLabel={t.prayer.detail} color={c.accent} /> : <>
           <Card style={{ gap: 12 }}>

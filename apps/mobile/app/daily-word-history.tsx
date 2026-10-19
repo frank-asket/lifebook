@@ -35,7 +35,7 @@ export default function DailyWordHistory() {
     <Text style={{ color: c.muted, fontSize: 16, lineHeight: 24 }}>{tr('Revisit your steps and private reflections. Opening a past day does not change its progress.', 'Retrouvez vos étapes et vos réflexions privées. Ouvrir une journée passée ne modifie pas sa progression.')}</Text>
     {!session.isSignedIn ? <Card><Text style={{ color: c.muted }}>{tr('Sign in from You to see your private history.', 'Connectez-vous depuis Vous pour retrouver votre historique privé.')}</Text></Card>
       : error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} />
-      : items === null ? <ActivityIndicator color={c.accent} />
+      : items === null ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} />
       : items.length === 0 ? <Card><Text style={{ color: c.muted, lineHeight: 23 }}>{tr('Your Daily Word sessions will appear here when you begin a moment of peace from Today.', 'Vos séances de la Parole du jour apparaîtront ici lorsque vous commencerez un moment de paix depuis Aujourd’hui.')}</Text></Card>
       : items.map(item => {
         const count = dailySteps.filter(step => item.steps.some(value => value.step === step)).length;
