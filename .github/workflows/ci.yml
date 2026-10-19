@@ -40,7 +40,8 @@ jobs:
       - name: Replay migrations only into the disposable CI database
         run: pnpm --filter @lifebook/api exec prisma migrate deploy
       - run: pnpm --filter @lifebook/api build
-      - run: node --test apps/api/test/*.test.cjs
+      # One file at a time: the database tests share one database (e.g. the backfill scans every reflection).
+      - run: node --test --test-concurrency=1 apps/api/test/*.test.cjs
       - run: node --test apps/web/test/*.test.cjs
       - run: pnpm --filter @lifebook/marketing build
       - run: pnpm --filter @lifebook/web build
