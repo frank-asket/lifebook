@@ -88,6 +88,8 @@ export async function api<T>(
         throw new ApiError(message, response.status);
     }
 
+    // NestJS sends a handler's `null` as 200 with an empty body (e.g. no reading history yet).
+    if (raw === '') return null as T;
     if (parsed === undefined) {
         throw new ApiError(
             'We could not load this content. Please try again shortly.',

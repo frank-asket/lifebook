@@ -23,8 +23,11 @@ export async function api<T>(path: string, token?: string | null, init: RequestI
   try {
     const res = await fetch(`${base}/api/v1${path}`, { ...init, headers, cache: 'no-store', signal: controller.signal });
     if (res.status === 204) return undefined as T;
+    const raw = await res.text();
+    // NestJS sends a handler's `null` as 200 with an empty body (e.g. no reading history yet).
+    if (res.ok && raw === '') return null as T;
     let body: unknown;
-    try { body = JSON.parse(await res.text()); } catch { /* invalid JSON gets a safe message */ }
+    try { body = JSON.parse(raw); } catch { /* invalid JSON gets a safe message */ }
     if (!res.ok) {
       const message = body && typeof body === 'object' && 'message' in body ? body.message : null;
       throw new ApiError(res.status === 429 ? 'Too many requests. Please wait a moment and try again.' : typeof message === 'string' ? message : 'We could not load this content. Please try again shortly.', res.status);

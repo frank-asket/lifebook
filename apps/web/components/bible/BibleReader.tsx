@@ -39,20 +39,20 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
       if (!active || !item) return;
       setResumed(true); setLocale(item.locale); setTarget(item.chapterId);
     }).catch(() => undefined).finally(() => { if (active) setReady(true); });
-    useEffect(() => {
-    if (!content || content.id !== initialChapter || !initialVerse || !/^[1-9][0-9]{0,2}(?:-[1-9][0-9]{0,2})?$/.test(initialVerse)) return;
-    const element = document.getElementById(`scripture-verse-${initialVerse.split('-')[0]}`);
-    element?.scrollIntoView({ block: 'center', behavior: 'auto' });
-    element?.focus({ preventScroll: true });
-  }, [content, initialChapter, initialVerse]);
-
-  return () => { active = false; };
+    return () => { active = false; };
   }, [ready, isLoaded, isSignedIn, getToken]);
   const [books, setBooks] = useState<BibleBook[]>([]);
   const [bookId, setBookId] = useState('');
   const [chapters, setChapters] = useState<BibleChapter[]>([]);
   const [chapterId, setChapterId] = useState('');
   const [content, setContent] = useState<BibleChapterContent | null>(null);
+  // A search result or saved-verse link opens on its verse: scroll it into view and focus it once the chapter loads.
+  useEffect(() => {
+    if (!content || content.id !== initialChapter || !initialVerse || !/^[1-9][0-9]{0,2}(?:-[1-9][0-9]{0,2})?$/.test(initialVerse)) return;
+    const element = document.getElementById(`scripture-verse-${initialVerse.split('-')[0]}`);
+    element?.scrollIntoView({ block: 'center', behavior: 'auto' });
+    element?.focus({ preventScroll: true });
+  }, [content, initialChapter, initialVerse]);
   const [translation, setTranslation] = useState<BibleTranslation | null>(null);
   const [booksBusy, setBooksBusy] = useState(true);
   const [chaptersBusy, setChaptersBusy] = useState(false);
