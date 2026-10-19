@@ -41,7 +41,7 @@ type Feedback = {
   text: string;
 };
 
-type ActionType = 'reflection' | 'complete' | 'bookmark';
+type ActionType = 'reflection' | 'delete' | 'complete' | 'bookmark';
 
 const EMPTY_STATE: MeditationState = {
   reflection: '',
@@ -188,7 +188,7 @@ export function MeditationView({
   async function action(
     type: ActionType,
     path: string,
-    method: 'PUT' | 'POST',
+    method: 'PUT' | 'POST' | 'DELETE',
     body?: object,
   ) {
     if (
@@ -232,6 +232,13 @@ export function MeditationView({
         return;
       }
 
+      if (type === 'delete') {
+        setState(previous => ({ ...previous, reflection: '' }));
+        setDraft('');
+        setFeedback({ type: 'success', text: tr('Reflection deleted. Your completion and bookmark are unchanged.', 'Réflexion supprimée. Votre progression et votre favori sont conservés.') });
+        return;
+      }
+
       const next = await api<MeditationState>(
         `/meditations/${meditation.id}/state`,
         token,
@@ -252,6 +259,7 @@ export function MeditationView({
 
       const messages: Record<ActionType, string> = {
         reflection: 'Your reflection has been saved.',
+        delete: 'Your reflection has been deleted.',
         complete: 'Meditation marked as complete.',
         bookmark: next.bookmarked
           ? 'Meditation saved for later.'
@@ -570,6 +578,10 @@ export function MeditationView({
                       : tr("Save reflection","Enregistrer la réflexion")}
                   </button>
 
+                  {state.reflection && <button type="button" className="btn btn-outline" disabled={busy} onClick={() => {
+                    if (window.confirm(tr('Permanently delete this reflection and discard any unsaved draft? Your completion and bookmark will remain.', 'Supprimer définitivement cette réflexion et abandonner le brouillon ? Votre progression et votre favori seront conservés.'))) void action('delete', 'reflection', 'DELETE');
+                  }}>{busyAction === 'delete' ? tr('Deleting…', 'Suppression…') : tr('Delete reflection', 'Supprimer la réflexion')}</button>}
+
                   {hasUnsavedChanges && (
                     <span
                       style={{
@@ -588,10 +600,7 @@ export function MeditationView({
                     marginTop: 16,
                   }}
                 >
-                  Your reflection is associated with your
-                  account. Avoid entering sensitive personal
-                  information until additional privacy
-                  protections are implemented.
+                  {tr('Your saved reflection is encrypted in your account. You can delete it without changing your completed meditation or bookmark.', 'Votre réflexion enregistrée est chiffrée dans votre compte. Vous pouvez la supprimer sans modifier la méditation terminée ni le favori.')}
                 </p>
               </>
             )}

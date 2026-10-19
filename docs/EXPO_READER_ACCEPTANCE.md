@@ -35,4 +35,6 @@ Run the matrix in English/French and light/dark themes on iOS and Android. Inclu
 | Bookmark or complete with an unsaved meditation draft | Draft remains intact and still prompts before closing; those actions do not implicitly save it |
 | Switch accounts or leave while a meditation request is pending | Old private content and responses do not appear in the new account's navigation tree |
 
-Limits to retain in the product checklist: saved-verse list pagination, exact-verse scrolling, meditation reflection deletion, encrypted offline drafts, native session restart checks and broader consent/account parity. Meditation completion history currently shows at most 100 records. Unsent drafts currently live in memory only and are not recoverable after leaving the editor or after the operating system terminates the app.
+Limits to retain in the product checklist: saved-verse list pagination, exact-verse scrolling, encrypted offline drafts, native session restart checks and broader consent/account parity. Unsent drafts currently live in memory only and are not recoverable after the operating system terminates the app.
+
+Daily Word history and meditation collections/reflection deletion now have source implementations; run the additional [reflection history acceptance matrix](REFLECTION_HISTORY_ACCEPTANCE.md).

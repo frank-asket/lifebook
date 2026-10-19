@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.1.1] - 2026-10-19
+
+### Fixed
+- Keep hydrated sign-in and sign-up panels within small phone viewports, including the embedded authentication card, without hiding overflow or removing content.
+
+## [0.1.1.0] - 2026-10-19
+
+### Added
+- Revisit Daily Word sessions, saved reflections and individual step progress in Expo without changing completion.
+- Browse published, saved and completed meditations and manage bookmarks and private reflections on mobile.
+- Delete a meditation reflection from Expo or web after confirmation while preserving completion and bookmarks.
+
+### Security and validation
+- Make mobile marketing preview scroll areas keyboard-focusable with accessible section names.
+- Scope exact session reads and reflection deletion to the authenticated member. Preserve drafts on failed writes and discard late mobile callbacks after account changes.
+- Cover cross-member isolation, repeated deletion, encrypted persistence, English/French controls and failed-save recovery. Native accessibility acceptance remains separate from component tests and JavaScript bundle exports.
+
 ## [0.1.0.0] - 2026-10-19
 
 ### Added

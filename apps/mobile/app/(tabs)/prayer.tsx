@@ -59,7 +59,7 @@ export default function Prayer() {
   </Screen>;
 
   return <Screen title={t.prayer.title}>
-    <Row icon="book-outline" title={lang === 'fr' ? 'Méditations' : 'Meditations'} subtitle={lang === 'fr' ? 'Un moment de calme, vos enregistrements et votre historique' : 'A quiet moment, your saved meditations and history'} onPress={() => router.push('/meditations')} />
+    <Row icon="book-outline" title={lang === 'fr' ? 'Méditations' : 'Meditations'} subtitle={lang === 'fr' ? 'Vos enregistrements et votre historique' : 'Your saved meditations and history'} onPress={() => router.push('/meditations')} />
     <Card style={{ gap: 12 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 17, fontWeight: '700' }}>{t.prayer.write}</Text>

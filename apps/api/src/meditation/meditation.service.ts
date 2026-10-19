@@ -483,6 +483,14 @@ export class MeditationService implements OnModuleDestroy {
     });
   }
 
+  async removeReflection(id: string, auth?: string) {
+    this.validateMeditationId(id);
+    const userId = await this.userId(auth);
+    // Let members erase their own reflection even if its meditation was unpublished.
+    const result = await this.db.meditationReflection.deleteMany({ where: { userId, meditationId: id } });
+    return { deleted: result.count };
+  }
+
   // ============================================================
   // COMPLETE MEDITATION
   // ============================================================

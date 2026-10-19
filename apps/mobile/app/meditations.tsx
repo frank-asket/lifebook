@@ -6,18 +6,17 @@ import { api, requireToken } from '../lib/api';
 import { ApiError } from '../../web/lib/api';
 import { errorMessage } from '../../web/lib/errors';
 import { Button, Card, ErrorLine, Row, Screen, Segmented } from '../components/ui';
-import { MeditationDetail, type Meditation } from '../components/meditation-detail';
+import { ReflectionDetail, type Meditation } from '../components/reflection-detail';
 
 type Collection = 'today' | 'saved' | 'history';
-type Record = { meditation: Meditation; completedAt?: string; createdAt?: string };
-
+type Entry = { meditation: Meditation; completedAt?: string };
 export default function Meditations() {
   const { c, lang } = useApp();
   const session = useSession();
   const router = useRouter();
   const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const [collection, setCollection] = useState<Collection>('today');
-  const [items, setItems] = useState<Record[] | null>(null);
+  const [items, setItems] = useState<Entry[] | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -31,7 +30,7 @@ export default function Meditations() {
         if (controller.signal.aborted) return;
         const rows = collection === 'today'
           ? [{ meditation: await api<Meditation>(`/meditations/today?locale=${lang}`, undefined, { signal: controller.signal }) }]
-          : await api<Record[]>(`/meditations/${collection}`, token, { signal: controller.signal });
+          : await api<Entry[]>(`/meditations/${collection}`, token, { signal: controller.signal });
         if (!controller.signal.aborted) setItems(rows);
       } catch (e) {
         if (controller.signal.aborted) return;
@@ -47,17 +46,17 @@ export default function Meditations() {
     <Segmented label={tr('Meditation collection', 'Collection de méditations')} value={collection} onChange={setCollection} options={[
       { value: 'today', label: tr('Today', 'Aujourd’hui') }, { value: 'saved', label: tr('Saved', 'Enregistrées') }, { value: 'history', label: tr('Completed', 'Terminées') },
     ]} />
-    {collection !== 'today' && !session.isSignedIn ? <Card><Text style={{ color: c.muted, lineHeight: 23 }}>{tr('Sign in from You to see your saved meditations and completion history.', 'Connectez-vous depuis Vous pour retrouver vos méditations enregistrées et terminées.')}</Text></Card>
+    {collection !== 'today' && !session.isSignedIn ? <Card><Text style={{ color: c.muted }}>{tr('Sign in from You to see your saved meditations and completion history.', 'Connectez-vous depuis Vous pour retrouver vos méditations enregistrées et terminées.')}</Text></Card>
       : error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} />
       : items === null ? <ActivityIndicator color={c.accent} />
       : items.length === 0 ? <Card><Text style={{ color: c.muted, lineHeight: 23 }}>{collection === 'today'
-        ? tr('No meditation has been published in your language yet. Your Daily Word remains available from Today.', 'Aucune méditation n’a encore été publiée dans votre langue. La Parole du jour reste disponible depuis Aujourd’hui.')
+        ? tr('No meditation has been published in your language yet. Daily Word remains available from Today.', 'Aucune méditation n’a encore été publiée dans votre langue. La Parole du jour reste disponible depuis Aujourd’hui.')
         : collection === 'saved' ? tr('Meditations you save will appear here.', 'Les méditations que vous enregistrez apparaîtront ici.')
           : tr('Meditations you mark complete will appear here. Reading alone does not mark one complete.', 'Les méditations que vous marquez comme terminées apparaîtront ici. La lecture seule ne les termine pas.')}</Text></Card>
       : items.map(row => <Row key={row.meditation.id} icon={collection === 'history' ? 'checkmark-circle-outline' : 'book-outline'} title={row.meditation.title}
-        subtitle={[row.meditation.scriptureReference, row.meditation.locale === 'fr' ? 'Français' : 'English', row.completedAt ? new Date(row.completedAt).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB') : ''].filter(Boolean).join(' · ')}
+        subtitle={`${row.meditation.scriptureReference} · ${row.meditation.locale === 'fr' ? 'Français' : 'English'}${row.completedAt ? ` · ${new Date(row.completedAt).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB')}` : ''}`}
         onPress={() => setSelected(row.meditation.id)} />)}
     {collection === 'history' && items && items.length >= 100 ? <Text style={{ color: c.muted }}>{tr('Showing your 100 most recent completions.', 'Vos 100 méditations terminées les plus récentes sont affichées.')}</Text> : null}
-    {selected ? <MeditationDetail key={selected} id={selected} onClose={() => setSelected(null)} onChanged={() => setRetry(n => n + 1)} /> : null}
+    {selected ? <ReflectionDetail key={selected} kind="meditation" id={selected} onClose={() => setSelected(null)} onChanged={() => setRetry(n => n + 1)} /> : null}
   </Screen>;
 }

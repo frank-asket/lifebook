@@ -77,7 +77,8 @@ export default function You() {
     <Row icon="text-outline" title={t.you.readingRow} onPress={() => router.push('/reader-settings')} />
     {session.isSignedIn ? <Row icon="compass-outline" title={t.you.profile} onPress={() => router.push('/onboarding')} /> : null}
 
-    <Row icon="book-outline" title={lang === 'fr' ? 'Mes méditations' : 'My meditations'} subtitle={lang === 'fr' ? 'Retrouver mes enregistrements et mon historique' : 'Return to saved meditations and completion history'} onPress={() => router.push('/meditations')} />
+    <Row icon="book-outline" title={lang === 'fr' ? 'Mes méditations' : 'My meditations'} onPress={() => router.push('/meditations')} />
+    <Row icon="time-outline" title={lang === 'fr' ? 'Historique de la Parole du jour' : 'Daily Word history'} onPress={() => router.push('/daily-word-history')} />
 
     <SectionLabel>{t.you.privacy}</SectionLabel>
     <Card><Text style={{ color: c.muted, fontSize: 14, lineHeight: 21 }}>{t.you.privacyNote}</Text></Card>

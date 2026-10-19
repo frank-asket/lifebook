@@ -16,7 +16,7 @@ test('HTTP API denies unauthenticated private access, rejects invalid input and 
   await app.listen(0, '127.0.0.1');
   try {
     const base = await app.getUrl();
-    for (const path of ['me/profile','bible-reading/history','bible-annotations','bible-annotations/passage?locale=fr&passageId=LUK.1.1','daily-word/sessions','meditations/history','prayers','care/requests','care/pastor/queue','safeguarding/overview']) {
+    for (const path of ['me/profile','bible-reading/history','bible-annotations','bible-annotations/passage?locale=fr&passageId=LUK.1.1','daily-word/sessions','daily-word/sessions/fixture','meditations/history','prayers','care/requests','care/pastor/queue','safeguarding/overview']) {
       const response = await fetch(`${base}/api/v1/${path}`);
       assert.equal(response.status, 401, path);
     }
@@ -24,6 +24,8 @@ test('HTTP API denies unauthenticated private access, rejects invalid input and 
     assert.equal(invalid.status, 400);
     const eraseReflection = await fetch(`${base}/api/v1/daily-word/sessions/fixture/reflection`, { method: 'DELETE' });
     assert.equal(eraseReflection.status, 401);
+    const eraseMeditation = await fetch(`${base}/api/v1/meditations/fixture/reflection`, { method: 'DELETE' });
+    assert.equal(eraseMeditation.status, 401);
     for (let i = 0; i < 4; i++) {
       const response = await fetch(`${base}/api/v1/bible-reading/plans`, { headers: { 'X-Forwarded-For': `203.0.113.${i+1}` } });
       assert.equal(response.status, i < 3 ? 200 : 429);
