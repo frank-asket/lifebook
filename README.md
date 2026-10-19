@@ -285,7 +285,7 @@ Do not commit `.env`, `.env.local`, database URLs, Clerk secrets or other creden
 
 ## 9. Local setup and commands
 
-Requirements: Node.js 22, pnpm 9.15.4, Python 3.11+; Docker optional. Web/marketing use Next.js 15 / React 19; the API uses NestJS 11. Mobile remains Expo 52 / React 18.
+Requirements: Node.js 22, pnpm 9.15.4, Python 3.11+; Docker optional. Web/marketing use Next.js 15 / React 19; the API uses NestJS 11. Mobile uses Expo 57 / React 19.2 with `@clerk/expo` 4; installable test builds and release safeguards are documented in [Native build readiness](docs/NATIVE_BUILD_READINESS.md).
 
 ```bash
 corepack enable

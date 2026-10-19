@@ -1,13 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as SecureStore from 'expo-secure-store';
-import * as WebBrowser from 'expo-web-browser';
-import { ClerkProvider, ClerkLoaded, useAuth, useSSO, useUser } from '@clerk/clerk-expo';
+import { makeRedirectUri } from 'expo-auth-session';
+import { tokenCache } from '@clerk/expo/token-cache';
+import { ClerkProvider, ClerkLoaded, useAuth, useSSO, useUser } from '@clerk/expo';
 import { AppProvider, DailyWordProvider, SessionContext, useApp, useSession, type Session } from '../lib/app';
 
-WebBrowser.maybeCompleteAuthSession();
-const tokenCache = { async getToken(key: string) { try { return await SecureStore.getItemAsync(key); } catch { return null; } }, async saveToken(key: string, value: string) { try { await SecureStore.setItemAsync(key, value); } catch { /* not persisted */ } } };
 const clerkKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 function ClerkSession({ children }: { children: React.ReactNode }) {
@@ -18,7 +16,7 @@ function ClerkSession({ children }: { children: React.ReactNode }) {
   const value = useMemo<Session>(() => ({
     ready: isLoaded, isSignedIn: !!isSignedIn, userId: userId ?? null, firstName: user?.firstName ?? null, getToken: readToken,
     signIn: async () => {
-      const { createdSessionId, setActive, signUp } = await startSSOFlow({ strategy: 'oauth_google' });
+      const { createdSessionId, setActive, signUp } = await startSSOFlow({ strategy: 'oauth_google', redirectUrl: makeRedirectUri({ scheme: 'lifebook' }) });
       if (createdSessionId && setActive) { await setActive({ session: createdSessionId }); return; }
       // No session: the browser was closed, or Clerk needs more sign-up details than Google gave.
       throw new Error(signUp?.missingFields?.length ? `Missing: ${signUp.missingFields.join(', ')}` : 'Sign-in was not completed');

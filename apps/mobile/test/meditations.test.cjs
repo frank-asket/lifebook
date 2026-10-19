@@ -95,7 +95,7 @@ function collectionHarness({ signedIn = true, missing = false, unavailable = fal
       if (path.includes('/today?')) { if (missing) throw new web.ApiError('Not found', 404); return item; }
       return [{ meditation: item, completedAt: '2026-10-19T10:00:00.000Z' }];
     } }, '../../web/lib/api': { ApiError: web.ApiError }, '../../web/lib/errors': { errorMessage },
-    '../components/ui': ui, '../components/meditation-detail': { MeditationDetail: 'MeditationDetail' },
+    '../components/ui': ui, '../components/reflection-detail': { ReflectionDetail: 'ReflectionDetail' },
   });
   return { Meditations, requests };
 }
@@ -108,8 +108,8 @@ test('meditation collections load saved/history and open the selected real medit
   await act(async () => renderer.root.findByType('Segmented').props.onChange('saved'));
   assert.equal(h.requests.at(-1), '/meditations/saved');
   await act(async () => renderer.root.findByType('Row').props.onPress());
-  assert.equal(renderer.root.findByType('MeditationDetail').props.id, item.id);
-  await act(async () => renderer.root.findByType('MeditationDetail').props.onClose());
+  assert.equal(renderer.root.findByType('ReflectionDetail').props.id, item.id);
+  await act(async () => renderer.root.findByType('ReflectionDetail').props.onClose());
   await act(async () => renderer.root.findByType('Segmented').props.onChange('history'));
   assert.equal(h.requests.at(-1), '/meditations/history');
   assert.match(renderer.root.findByType('Row').props.subtitle, /Français/);

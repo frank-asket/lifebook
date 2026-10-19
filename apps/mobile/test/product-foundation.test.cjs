@@ -47,7 +47,7 @@ test('switching mobile accounts discards mounted private screen state', async ()
   Stack.Screen = () => null;
   const { SessionNavigation } = load('../app/_layout.tsx', {
     'expo-router': { Stack }, 'expo-status-bar': { StatusBar: () => null }, 'expo-secure-store': {},
-    'expo-web-browser': { maybeCompleteAuthSession() {} }, '@clerk/clerk-expo': {},
+    'expo-auth-session': { makeRedirectUri() { return 'lifebook://'; } }, '@clerk/expo': {}, '@clerk/expo/token-cache': {},
     '../lib/app': { useSession: () => React.useContext(Context), useApp: () => ({ c: { bg: 'fixture' }, dark: false }) },
   });
   let renderer;

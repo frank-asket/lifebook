@@ -20,7 +20,7 @@ A feature is complete only when its real UI, API, persistence, ownership checks,
 | Discipleship / My Journey | Learning paths, lessons and enrollment models; published paths list; separate functional Bible Study progress | Actual path details, enrollment and persisted lesson progress; web/Expo journey screens; keep progress separate from faith/ministry authority | High |
 | LivingWord | Web placeholder; sermon model | Approved-content API and editorial permissions, searchable library, detail/player UI, media validation, playback states and Expo parity; licensed media is required for final acceptance | Medium |
 | Security and API quality | Clerk verification, ownership filters, encryption, throttling, safeguarding tests | Private client-state isolation, pagination/resource limits, consent auditing, full HTTP ownership matrix, redacted logs, migration/backup safeguards | High |
-| Expo foundation | SDK 52, React 18, Router, Clerk SSO/SecureStore, four tabs, theme, reading controls | Complete feature navigation and account settings; validate session restart, offline/error recovery, accessibility, dynamic text and device builds | High |
+| Expo foundation | SDK 57, React 19.2, current Clerk SDK/token cache, EAS test profiles, four tabs, theme, reading controls | Complete feature navigation and account settings; validate session restart, offline/error recovery, accessibility, dynamic text and device builds | High |
 
 ## Implementation sequence
 
@@ -96,3 +96,14 @@ Verification: **20 mobile/cross-client component tests passed**, **37 web tests 
 The history screens show at most 100 sessions/completions; pagination remains open. Drafts remain in memory only. Published meditation content must already exist; no production content is seeded. Use the matching API source version for the new exact session and meditation-reflection deletion endpoints. Source implementation did not access production. The user subsequently authorized a reviewed production release; no production schema migration, backfill or retention activation is needed.
 
 Verification: **32 mobile/cross-client tests, 37 web tests and 55 API tests passed**, with one optional live-provider API test skipped. Prisma validation, NestJS build, mobile TypeScript, Next.js web build and iOS/Android Hermes JavaScript exports passed. API fixtures ran only against a disposable local PostgreSQL 17 database with existing migrations replayed; it was removed afterwards. Native installation, visual and accessibility acceptance remain open.
+
+
+## Native build readiness — 19 October 2026
+
+- [x] Upgrade to Expo 57 / React Native 0.86.3 / React 19.2.3 using Expo compatibility metadata; migrate deprecated `@clerk/clerk-expo` to `@clerk/expo` 4.13 with official secure token cache.
+- [x] Preserve existing Clerk identity and API settings; verify the existing native environment and Google strategy.
+- [x] Configure linked EAS project, internal Android APK and iOS simulator profiles, managed signing, scoped preview/development public configuration, build archive exclusions and fail-closed store release configuration.
+- [x] Pass 21 Expo Doctor checks, 41 mobile component/build-config/auth tests after integrating the latest main, mobile TypeScript, 37 web tests, Prisma validation and API/web/marketing builds.
+- [ ] Accept corrected installable build results and complete signed-in native/device/accessibility testing; see [Native build readiness](NATIVE_BUILD_READINESS.md).
+
+This SDK migration is isolated on `codex/native-readiness`; it is not a production rollout. Earlier SDK 52 verification notes above describe the historical source batches. The standalone iOS build compiled, installed and loaded Today’s Word and the Bible; dark appearance and French settings were exercised. Google SSO reached its credential form. Android remains queued, and authenticated flows and screen-reader acceptance remain pending.

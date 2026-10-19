@@ -3,11 +3,29 @@
     "name": "LifeBook",
     "slug": "lifebook",
     "scheme": "lifebook",
-    "plugins": ["expo-router"],
-    "ios": { "supportsTablet": true },
-    "android": { "package": "app.lifebook.mobile" },
-    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "@clerk/expo"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.lifebook.mobile"
+    },
+    "android": {
+      "package": "app.lifebook.mobile"
+    },
     "userInterfaceStyle": "automatic",
-    "experiments": { "tsconfigPaths": false }
+    "experiments": {
+      "tsconfigPaths": false
+    },
+    "version": "0.1.1",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "77a4b9cb-cae6-411c-ad2a-1a2bf87e4d42"
+      }
+    },
+    "owner": "asketfranckolivieralex"
   }
 }
