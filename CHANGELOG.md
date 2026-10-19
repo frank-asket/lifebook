@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.1.1] - 2026-10-19
+
+### Fixed
+- Keep hydrated sign-in and sign-up panels within small phone viewports, including the embedded authentication card, without hiding overflow or removing content.
+
 ## [0.1.1.0] - 2026-10-19
 
 ### Added

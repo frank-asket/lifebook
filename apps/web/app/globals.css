@@ -799,12 +799,20 @@ select {
 
 .auth-panel {
     display: grid;
+    min-width: 0;
     place-items: center;
     padding: 30px
 }
 
 .auth-panel-inner {
-    width: min(440px, 100%)
+    width: min(440px, 100%);
+    min-width: 0;
+    max-width: 100%
+}
+
+.auth-panel .cl-rootBox,
+.auth-panel .cl-cardBox {
+    max-width: 100%
 }
 
 .mobile-top {
