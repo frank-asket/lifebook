@@ -8,6 +8,7 @@
 - Delete a meditation reflection from Expo or web after confirmation while preserving completion and bookmarks.
 
 ### Security and validation
+- Make mobile marketing preview scroll areas keyboard-focusable with accessible section names.
 - Scope exact session reads and reflection deletion to the authenticated member. Preserve drafts on failed writes and discard late mobile callbacks after account changes.
 - Cover cross-member isolation, repeated deletion, encrypted persistence, English/French controls and failed-save recovery. Native accessibility acceptance remains separate from component tests and JavaScript bundle exports.
 
