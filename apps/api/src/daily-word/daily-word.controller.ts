@@ -14,5 +14,6 @@ export class DailyWordController {
   @Put('sessions/:id/reflection') reflection(@Headers('authorization') auth: string, @Param('id') id: string, @Body(validate) dto: ReflectionDto) { return this.service.saveReflection(auth, id, dto.content); }
   @Delete('sessions/:id/reflection') removeReflection(@Headers('authorization') auth: string, @Param('id') id: string) { return this.service.removeReflection(auth, id); }
   @Get('sessions') history(@Headers('authorization') auth: string, @Query('limit') limit?: string) { return this.service.history(auth, limit); }
+  @Get('sessions/:id') one(@Headers('authorization') auth: string, @Param('id') id: string) { return this.service.one(auth, id); }
   @Get('stats') stats(@Headers('authorization') auth: string) { return this.service.stats(auth); }
 }
