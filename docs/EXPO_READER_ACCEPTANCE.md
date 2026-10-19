@@ -1,6 +1,6 @@
 # Expo reader and Daily Word acceptance
 
-Status: **not yet run on devices**. Use this source version of the API with a separate local/staging database and dedicated test accounts. Do not use production data, real private content or database reset commands. Automated component tests use synthetic data and mocked native primitives; successful Hermes exports do not establish native usability.
+Status: **full device acceptance pending**. Public iOS simulator smoke checks are recorded in [native build readiness](NATIVE_BUILD_READINESS.md); signed-in journeys and the matrix below remain unverified. Use this source version of the API with a separate local/staging database and dedicated test accounts. Do not use production data, real private content or database reset commands. Automated component tests use synthetic data and mocked native primitives; successful Hermes exports do not establish native usability.
 
 Run the matrix in English/French and light/dark themes on iOS and Android. Include a small phone, enlarged text and VoiceOver/TalkBack. Record the commit, device, OS, tester and outcome; do not include note/reflection text in the report.
 

@@ -268,7 +268,7 @@ flowchart TB
 
 **Render:** `render.yaml` defines `lifebook-api` and `lifebook-ai`. API health path is `/api/v1/health`. Supply server-side database and Clerk configuration. AI service has `/health` but no configured generation provider.
 
-**Mobile:** Expo app is in the monorepo; configure `EXPO_PUBLIC_API_URL` and Clerk public settings. App store releases and EAS pipelines are not established by the reviewed files.
+**Mobile:** Expo app is in the monorepo; configure `EXPO_PUBLIC_API_URL` and Clerk public settings. Internal EAS build profiles and release guards are configured; app-store distribution and signed-in device acceptance remain pending. See [Native build readiness](docs/NATIVE_BUILD_READINESS.md).
 
 **Local development:** `docker-compose.yml` offers PostgreSQL with pgvector and Redis. This does **not** mean Redis is integrated into the production API request path.
 
