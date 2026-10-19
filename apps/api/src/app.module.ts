@@ -17,7 +17,10 @@ import {
   Body,
   OnModuleDestroy,
   OnModuleInit,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
+import { SchemaGuard } from './health/schema-guard';
 
 import { PrismaClient, FaithJourney } from '@prisma/client';
 import { verifyToken } from '@clerk/backend';
@@ -188,11 +191,20 @@ class ProfileDto {
 @ApiTags('system')
 @Controller('health')
 class HealthController {
+  private readonly schema: SchemaGuard;
+  constructor(db: Database) { this.schema = new SchemaGuard(db); }
+
   /**
    * GET /api/v1/health
+   * 503 while the database lacks a migration this build needs, so Render keeps the previous deploy.
    */
   @Get()
-  health() {
+  async health(@Res({ passthrough: true }) res: Response) {
+    const schema = await this.schema.state();
+    if (schema.state === 'behind') {
+      res.status(503);
+      return { status: 'schema-behind', service: 'lifebook-api', pendingMigrations: schema.pending };
+    }
     return {
       status: 'ok',
       service: 'lifebook-api',

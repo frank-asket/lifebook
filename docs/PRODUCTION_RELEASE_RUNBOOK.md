@@ -19,6 +19,8 @@ How LifeBook reaches production safely. Written 18 October 2026, after the M3.7 
 
 Option 1 is the default.
 
+**Safety net (since 19 October):** the API's `/api/v1/health` compares the migrations shipped in its build with those applied to the database. If any are missing, it returns **503** `{"status":"schema-behind","pendingMigrations":N}` and logs which ones, so Render never promotes that deploy and the previous version keeps serving. Once the migrations are applied, redeploy (or wait for the next deploy) and health returns 200. A database error doesn't trip it. `SCHEMA_GUARD=off` on Render disables it in an emergency. This catches the mistake of 19 October, when PR #58 merged before its migrations; it doesn't replace section A.
+
 ## A. Database change (any new migration)
 
 Run from the repo root on the operator machine. Production changes need the product owner's explicit approval at step 5.
