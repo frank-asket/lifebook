@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.2.0] - 2026-10-19
+
+### Changed
+- Update the mobile runtime to Expo 57 and the current Clerk SDK while preserving existing account identities and private state isolation.
+- Support internal Android APK and iOS simulator builds with encrypted session storage and explicit sign-in redirects.
+
+### Fixed
+- Block store builds with development authentication keys or unsafe API URLs.
+- Align native dependencies and repair meditation collection test mocks after the latest main merge.
+
 ## [0.1.1.1] - 2026-10-19
 
 ### Fixed

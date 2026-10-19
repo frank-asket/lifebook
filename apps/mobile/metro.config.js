@@ -1,6 +1,5 @@
-// The monorepo has two Reacts (web: 19, mobile: 18). pnpm lets some packages (expo-router, vector icons)
-// resolve the web copy, which breaks rendering, and Clerk's auto-installed peers target a newer Expo SDK,
-// so every import of these resolves from this app instead.
+// Keep native imports on the app's own React and Expo dependencies in this monorepo.
+// The web apps may use different React versions from the native SDK.
 const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
