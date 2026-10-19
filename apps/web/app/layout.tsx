@@ -7,10 +7,8 @@ import { DailyWordProvider } from '../components/daily-word-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: {
-        default: 'LifeBook — Grow in the Word',
-        template: '%s | LifeBook',
-    },
+    // No title here: signed-in pages render their own localized <title> through the Shell (React hoists it),
+    // and a layout title would be listed first and win. Pages outside the Shell set theirs.
     description:
         'Daily scripture, prayer, discipleship and teaching in one thoughtful space.',
 };

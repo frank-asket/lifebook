@@ -6,6 +6,7 @@ import { useRef } from 'react';
 import { BookOpen, LayoutDashboard, HeartHandshake, Headphones, GraduationCap, BookMarked, Settings, Search, UserRound, Menu, Sun } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { useLanguage } from './language-provider';
+import { pageTitle } from '../lib/page-title';
 
 const links = [
   { href: '/dashboard', en: 'Home', fr: 'Accueil', icon: LayoutDashboard },
@@ -34,6 +35,7 @@ export function Shell({ children, title = 'Your space to grow' }: { children: Re
   const navigation = links.map(({ href, en, fr, icon: Icon }) => <Link key={href} href={href} className={`nav-link ${active(href) ? 'active' : ''}`} aria-current={active(href) ? 'page' : undefined} onClick={() => { if (more.current) more.current.open = false; }}><Icon size={19} aria-hidden="true" />{tr(en, fr)}</Link>);
 
   return <div className="app-shell">
+    <title>{pageTitle(title)}</title>
     <a className="skip-link" href="#main-content">{tr('Skip to content', 'Aller au contenu')}</a>
     <aside className="sidebar">
       <Brand />
