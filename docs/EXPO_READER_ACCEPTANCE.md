@@ -27,6 +27,13 @@ Run the matrix in English/French and light/dark themes on iOS and Android. Inclu
 | Close a dirty reflection / use Android back | Cancel keeps it; confirm discards it. Saving disables close/step controls |
 | Keep prayer time open across midnight | Opened passage remains paired with its original session. Closing and reopening starts the new day |
 | Fail chapter metadata, then retry | Chapter controls and translation metadata recover; another translation's stale name is never retained |
+| Prayer / You → Meditations | Today, Saved and Completed collections open; language and theme match Settings; saved content retains its own language label |
+| No published meditation / unavailable API | A 404 shows an honest empty state; other failures offer retry instead of claiming no content exists |
+| Open a meditation and reopen saved/history | Reading does not complete it; explicit completion and bookmark changes persist through the existing API |
+| Fail the personal meditation-state read | Public content may remain readable; no blank reflection editor or private write controls appear |
+| Edit a meditation reflection, fail save, close and cancel | Failed save and cancelled close preserve the draft; retry saves it without changing completion |
+| Bookmark or complete with an unsaved meditation draft | Draft remains intact and still prompts before closing; those actions do not implicitly save it |
+| Switch accounts or leave while a meditation request is pending | Old private content and responses do not appear in the new account's navigation tree |
 
 Limits to retain in the product checklist: saved-verse list pagination, exact-verse scrolling, encrypted offline drafts, native session restart checks and broader consent/account parity. Unsent drafts currently live in memory only and are not recoverable after the operating system terminates the app.
 

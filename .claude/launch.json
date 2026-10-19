@@ -1,0 +1,51 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "staging-api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/staging-local.cjs",
+        "api"
+      ],
+      "port": 4100
+    },
+    {
+      "name": "staging-web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/staging-local.cjs",
+        "web"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "marketing",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@lifebook/marketing",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "accept-api-4101",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-franckasket-Documents-GitHub-LifeBook/f784d9ad-2135-462f-ae74-5dba1f182446/scratchpad/accept-local.cjs",
+        "api"
+      ],
+      "port": 4101
+    },
+    {
+      "name": "accept-web-3003",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-franckasket-Documents-GitHub-LifeBook/f784d9ad-2135-462f-ae74-5dba1f182446/scratchpad/accept-local.cjs",
+        "web"
+      ],
+      "port": 3003
+    }
+  ]
+}
