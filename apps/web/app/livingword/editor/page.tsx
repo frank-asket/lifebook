@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import { Shell } from '../../../components/shell';
 import { useLanguage } from '../../../components/language-provider';
-import { api } from '../../../lib/api';
+import { api, ApiError } from '../../../lib/api';
 import { errorMessage } from '../../../lib/errors';
 import type { TeachingDraft } from '../../../lib/livingword';
 const empty = { title: '', description: '', speaker: '', locale: 'en', kind: 'audio', mediaUrl: '', attribution: '', rightsReference: '', transcript: '', publish: false };
@@ -14,13 +14,15 @@ function Editor() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const [rows, setRows] = useState<TeachingDraft[] | null>(null); const [form, setForm] = useState(empty); const [id, setId] = useState<string | null>(null);
   const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false); const [retry, setRetry] = useState(0); const [dirty, setDirty] = useState(false); const [rights, setRights] = useState(false);
+  // A member without editorial rights gets a plain explanation; retrying cannot change the answer.
+  const [forbidden, setForbidden] = useState(false);
   const mounted = useRef(true); const saving = useRef(false);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => { if (!dirty) return; const guard = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; }; window.addEventListener('beforeunload', guard); return () => window.removeEventListener('beforeunload', guard); }, [dirty]);
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    const controller = new AbortController(); setRows(null); setError('');
-    (async () => { try { const token = await getToken(); if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.')); const value = await api<TeachingDraft[]>('/livingword/editor', token, { signal: controller.signal }); if (!controller.signal.aborted) setRows(value); } catch (e) { if (!controller.signal.aborted) setError(errorMessage(e, language)); } })();
+    const controller = new AbortController(); setRows(null); setError(''); setForbidden(false);
+    (async () => { try { const token = await getToken(); if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.')); const value = await api<TeachingDraft[]>('/livingword/editor', token, { signal: controller.signal }); if (!controller.signal.aborted) setRows(value); } catch (e) { if (controller.signal.aborted) return; if (e instanceof ApiError && e.status === 403) setForbidden(true); else setError(errorMessage(e, language)); } })();
     return () => controller.abort();
   }, [isLoaded, isSignedIn, getToken, retry, language]);
   function choose(row?: TeachingDraft) {
@@ -43,9 +45,10 @@ function Editor() {
   }
   return <Shell title={tr('LivingWord editorial', 'Édition LivingWord')}><Link className="text-link" href="/livingword" onClick={e => { if (dirty && !window.confirm(tr('Discard unsaved changes?', 'Abandonner les modifications ?'))) e.preventDefault(); }}>← LivingWord</Link><h1 className="page-heading">{tr('Editorial review', 'Révision éditoriale')}</h1>
     {!isLoaded ? <p role="status">{tr('Loading…', 'Chargement…')}</p> : !isSignedIn ? <p className="notice"><Link href="/sign-in">{tr('Sign in', 'Se connecter')}</Link></p> : <>
+      {forbidden ? <p className="notice" role="status">{tr('Editorial review is for LifeBook moderators and administrators. Approved teachings are in the LivingWord library.', 'La révision éditoriale est réservée aux modérateurs et administrateurs LifeBook. Les enseignements approuvés se trouvent dans la bibliothèque LivingWord.')}</p> : null}
       {error ? <div className="alert reader-error" role="alert"><span>{error}</span><button className="btn btn-soft" disabled={busy} onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div> : null}
       {message ? <p role="status" className="notice">{message}</p> : null}
-      {!rows ? !error ? <p role="status">{tr('Checking editorial access…', 'Vérification de l’accès éditorial…')}</p> : null : <>
+      {!rows ? !error && !forbidden ? <p role="status">{tr('Checking editorial access…', 'Vérification de l’accès éditorial…')}</p> : null : <>
         <p className="notice">{tr('Only LifeBook moderators and administrators can publish. Verify rights, credit and transcript before publishing. Media must use a configured approved HTTPS host, with no embedded credentials or query tokens.', 'Seuls les modérateurs et administrateurs LifeBook peuvent publier. Vérifiez les droits, les crédits et la transcription. Le média doit utiliser un hôte HTTPS approuvé, sans identifiants ni jetons dans l’URL.')}</p>
         <button className="btn btn-outline" disabled={busy} onClick={() => choose()}>{tr('New teaching', 'Nouvel enseignement')}</button>
         <form className="card learning-progress" onSubmit={e => { e.preventDefault(); void write(); }}>

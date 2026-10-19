@@ -2190,3 +2190,8 @@ progress::-moz-progress-bar { background: var(--purple); }
 .livingword-player { display: block; width: 100%; max-height: 70vh; margin: 24px 0; border-radius: 12px; }
 
 .verse:focus { outline: 2px solid var(--purple); outline-offset: 4px; border-radius: 4px; }
+
+/* Standalone links are tap targets: at least 44px tall. Links inside running text keep the line's height. */
+a.text-link, .tap-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+p a.text-link, li a.text-link { display: inline; min-height: 0; }
+.meditation-bottom-actions a { min-height: 44px; }

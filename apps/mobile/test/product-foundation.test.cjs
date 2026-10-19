@@ -26,6 +26,9 @@ test('release API rejects insecure configuration and private writes require a to
 
 test('API handles empty/non-JSON responses, localizes rate limits, and aborts stalled requests', async () => {
   assert.equal(await apiModule(async () => new Response(null, { status: 204 })).api('/prayers/x'), undefined);
+  // A handler's null arrives as 200 with an empty body, e.g. no reading history for a new member.
+  assert.equal(await apiModule(async () => new Response('', { status: 200 })).api('/bible-reading/continue'), null);
+  await assert.rejects(apiModule(async () => new Response('', { status: 500 })).api('/bible-reading/continue'), /could not load/);
   await assert.rejects(apiModule(async () => new Response('<html>Error</html>')).api('/prayers'), /could not load/);
   await assert.rejects(apiModule(async () => new Response('{}', { status: 429 })).api('/prayers'), error => {
     assert.match(errorMessage(error, 'fr'), /Trop de demandes/); return true;

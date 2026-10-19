@@ -360,6 +360,7 @@ export function MeditationView({
 
       <Link
         href="/meditation"
+        className="tap-link"
         style={{
           color: 'var(--accent)',
           fontWeight: 600,
@@ -755,6 +756,7 @@ export function MeditationView({
       {authenticated && (
         <Link
           href="/meditation/history"
+          className="tap-link"
           style={{
             color: 'var(--accent)',
             fontWeight: 600,
