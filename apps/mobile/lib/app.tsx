@@ -8,18 +8,8 @@ import { parseLength, type PrayerLength } from '../../web/lib/prayer-time';
 import { dailyWordDate, type DailyWord } from '../../web/lib/daily-word';
 
 export type Lang = 'en' | 'fr';
-const API = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4100').replace(/\/+$/, '');
-
-/** JSON request to the LifeBook API. Errors carry the server message when there is one. */
-export async function api<T>(path: string, token?: string | null, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API}/api/v1${path}`, { ...init, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(init.headers || {}) } });
-  if (!res.ok) {
-    let message = `Request failed (${res.status})`;
-    try { const body = await res.json(); if (typeof body?.message === 'string') message = body.message; } catch { /* keep the status */ }
-    throw new Error(message);
-  }
-  return res.json() as Promise<T>;
-}
+import { api } from './api';
+export { api } from './api';
 
 // ---- Preferences (this device only) ----
 type Appearance = 'system' | 'light' | 'dark';
@@ -72,8 +62,8 @@ export function useApp() {
 }
 
 // ---- Sign-in: Clerk when configured, otherwise a signed-out stand-in ----
-export type Session = { ready: boolean; isSignedIn: boolean; firstName: string | null; getToken: () => Promise<string | null>; signIn: () => Promise<void>; signOut: () => Promise<void> };
-export const SessionContext = createContext<Session>({ ready: true, isSignedIn: false, firstName: null, getToken: async () => null, signIn: async () => undefined, signOut: async () => undefined });
+export type Session = { ready: boolean; isSignedIn: boolean; userId: string | null; firstName: string | null; getToken: () => Promise<string | null>; signIn: () => Promise<void>; signOut: () => Promise<void> };
+export const SessionContext = createContext<Session>({ ready: true, isSignedIn: false, userId: null, firstName: null, getToken: async () => null, signIn: async () => { throw new Error('Sign-in is not configured'); }, signOut: async () => undefined });
 export const useSession = () => useContext(SessionContext);
 
 // ---- Today's Word, shared by Today and the prayer time ----

@@ -1,9 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api, useApp, useSession } from '../../lib/app';
 import { Button, Card, ErrorLine, Row, Screen, SectionLabel } from '../../components/ui';
+import { PrayerDetail } from '../../components/prayer-detail';
+import { Press } from '../../components/ui';
+import { requireToken } from '../../lib/api';
+import { errorMessage } from '../../../web/lib/errors';
 import { PRAYER_LIMITS, type PrayerSummary } from '../../../web/lib/prayer-api';
 
 export default function Prayer() {
@@ -17,12 +21,15 @@ export default function Prayer() {
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
   const [signInError, setSignInError] = useState('');
+  const [selected, setSelected] = useState<string | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const date = (v: string) => new Date(v).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
 
   useFocusEffect(useCallback(() => {
     if (!session.isSignedIn) return;
     let active = true; setLoadError('');
-    session.getToken().then(token => api<PrayerSummary[]>('/prayers', token)).then(rows => { if (active) setItems(rows); }).catch(() => { if (active) setLoadError(t.prayer.error); });
+    requireToken(session.getToken).then(token => active ? api<PrayerSummary[]>('/prayers', token) : null).then(rows => { if (active && rows) setItems(rows); }).catch(() => { if (active) setLoadError(t.prayer.error); });
     return () => { active = false; };
   }, [session.isSignedIn, session.getToken, reload, t.prayer.error]));
 
@@ -30,10 +37,13 @@ export default function Prayer() {
     if (!draft.trim()) return;
     setBusy(true); setError(''); setMessage('');
     try {
-      await api('/prayers', await session.getToken(), { method: 'POST', body: JSON.stringify({ body: draft }) });
+      const token = await requireToken(session.getToken);
+      if (!mounted.current) return;
+      await api('/prayers', token, { method: 'POST', body: JSON.stringify({ body: draft }) });
+      if (!mounted.current) return;
       setDraft(''); setMessage(t.prayer.saved); setReload(n => n + 1);
-    } catch (e) { setError(e instanceof Error ? e.message : t.prayer.error); }
-    finally { setBusy(false); }
+    } catch (e) { if (mounted.current) setError(errorMessage(e, lang)); }
+    finally { if (mounted.current) setBusy(false); }
   }
 
   if (!session.isSignedIn) return <Screen title={t.prayer.title}>
@@ -64,11 +74,12 @@ export default function Prayer() {
     {loadError ? <ErrorLine message={loadError} onRetry={() => setReload(n => n + 1)} />
       : !items ? <ActivityIndicator color={c.accent} />
       : !items.length ? <Text style={{ color: c.muted, fontSize: 15, paddingHorizontal: 4 }}>{t.prayer.empty}</Text>
-      : <Card style={{ padding: 0, overflow: 'hidden' }}>{items.map((p, i) => <View key={p.id} style={{ padding: 16, gap: 4, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
+      : <Card style={{ padding: 0, overflow: 'hidden' }}>{items.map((p, i) => <Press key={p.id} accessibilityRole="button" accessibilityLabel={`${t.prayer.open}: ${p.title || t.prayer.untitled}`} onPress={() => setSelected(p.id)} style={{ padding: 16, gap: 4, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}><Text style={{ color: c.ink, fontSize: 16, fontWeight: '600', flex: 1 }} numberOfLines={1}>{p.title || t.prayer.untitled}</Text><Text style={{ color: c.muted, fontSize: 13 }}>{date(p.updatedAt)}</Text></View>
           <Text style={{ color: c.muted, fontSize: 14, lineHeight: 20 }} numberOfLines={2}>{p.preview}</Text>
           {p.answeredAt ? <Text style={{ alignSelf: 'flex-start', marginTop: 4, color: c.deep, backgroundColor: c.soft, fontSize: 12, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, overflow: 'hidden' }}>{t.prayer.answered}</Text> : null}
-        </View>)}</Card>}
+        </Press>)}</Card>}
+    {selected ? <PrayerDetail key={selected} id={selected} onClose={() => setSelected(null)} onChanged={() => setReload(n => n + 1)} /> : null}
     <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} />
   </Screen>;
 }

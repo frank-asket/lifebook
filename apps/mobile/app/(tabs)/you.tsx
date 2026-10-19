@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp, useSession } from '../../lib/app';
-import { Button, Card, Row, Screen, SectionLabel, Segmented } from '../../components/ui';
+import { Button, Card, ErrorLine, Row, Screen, SectionLabel, Segmented } from '../../components/ui';
+import { api, requireToken } from '../../lib/api';
+import { errorMessage } from '../../../web/lib/errors';
+import type { ProfileResponse } from '../../../web/lib/api';
 import { PRAYER_LENGTHS } from '../../../web/lib/prayer-time';
 
 export default function You() {
@@ -11,6 +14,42 @@ export default function You() {
   const session = useSession();
   const router = useRouter();
   const [signInError, setSignInError] = useState('');
+  const [languageError, setLanguageError] = useState('');
+  const [languageReady, setLanguageReady] = useState(false);
+  const [languageBusy, setLanguageBusy] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useFocusEffect(useCallback(() => {
+    if (!session.isSignedIn) return;
+    const controller = new AbortController();
+    setLanguageReady(false); setLanguageError('');
+    (async () => {
+      try {
+        const token = await requireToken(session.getToken);
+        if (controller.signal.aborted) return;
+        const result = await api<ProfileResponse>('/me/profile', token, { signal: controller.signal });
+        if (controller.signal.aborted) return;
+        const language = result.profile?.language;
+        if (language === 'en' || language === 'fr') setPrefs({ lang: language });
+        setLanguageReady(true);
+      } catch (e) { if (!controller.signal.aborted) setLanguageError(errorMessage(e, lang)); }
+    })();
+    return () => controller.abort();
+  }, [session.isSignedIn, session.getToken, setPrefs, attempt]));
+
+  async function changeLanguage(language: 'en' | 'fr') {
+    if (!session.isSignedIn) { setPrefs({ lang: language }); return; }
+    if (!languageReady || languageBusy) return;
+    setLanguageBusy(true); setLanguageError('');
+    try {
+      const token = await requireToken(session.getToken);
+      if (!mounted.current) return;
+      await api('/me/profile', token, { method: 'PUT', body: JSON.stringify({ language }) });
+      if (mounted.current) setPrefs({ lang: language });
+    } catch (e) { if (mounted.current) setLanguageError(errorMessage(e, lang)); }
+    finally { if (mounted.current) setLanguageBusy(false); }
+  }
   const name = session.firstName || (session.isSignedIn ? t.you.member : t.you.signedOut);
   return <Screen title={t.you.title}>
     <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -23,7 +62,9 @@ export default function You() {
     <SectionLabel>{t.you.appearance}</SectionLabel>
     <Card style={{ gap: 14 }}>
       <Segmented label={t.you.appearance} value={prefs.appearance} onChange={v => setPrefs({ appearance: v })} options={[{ label: t.you.system, value: 'system' }, { label: t.you.light, value: 'light' }, { label: t.you.dark, value: 'dark' }]} />
-      <View style={{ gap: 8 }}><Text style={{ color: c.ink, fontSize: 14, fontWeight: '600' }}>{t.you.language}</Text><Segmented label={t.you.language} value={lang} onChange={v => setPrefs({ lang: v })} options={[{ label: 'English', value: 'en' }, { label: 'Français', value: 'fr' }]} /></View>
+      <View style={{ gap: 8 }}><Text style={{ color: c.ink, fontSize: 14, fontWeight: '600' }}>{t.you.language}</Text><Segmented label={t.you.language} value={lang} disabled={session.isSignedIn && (!languageReady || languageBusy)} onChange={v => void changeLanguage(v)} options={[{ label: 'English', value: 'en' }, { label: 'Français', value: 'fr' }]} /></View>
+      {languageBusy ? <Text accessibilityLiveRegion="polite" style={{ color: c.muted }}>{t.prayer.saving}</Text> : null}
+      {languageError ? <ErrorLine message={languageError} onRetry={() => setAttempt(n => n + 1)} /> : null}
     </Card>
 
     <SectionLabel>{t.you.prayerTime}</SectionLabel>

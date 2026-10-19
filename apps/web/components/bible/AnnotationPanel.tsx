@@ -28,6 +28,7 @@ function AnnotationEditor({ chapterId, locale, initialVerse, onDirtyChange }: { 
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [retry, setRetry] = useState(0);
+  const [older, setOlder] = useState<Annotation | null>(null);
   const mounted = useRef(false);
   const passageId = `${chapterId}.${verse}`;
   const current = items.find(item => item.passageId === passageId);
@@ -62,7 +63,7 @@ function AnnotationEditor({ chapterId, locale, initialVerse, onDirtyChange }: { 
   }, [dirty, locale]);
   function selectVerse(value: string) {
     if (dirty && !window.confirm(tr('Discard unsaved changes?', 'Abandonner les modifications ?'))) return;
-    setVerse(value); setError(''); setMessage('');
+    setVerse(value); setOlder(null); setError(''); setMessage('');
   }
   async function save(remove = false) {
     if (busy) return;
@@ -71,6 +72,15 @@ function AnnotationEditor({ chapterId, locale, initialVerse, onDirtyChange }: { 
     setBusy(true); setError(''); setMessage('');
     try {
       const token = await getToken(); if (!token) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.'));
+      if (!remove && !current) {
+        const { annotation: existing } = await api<{ annotation: Annotation | null }>(`/bible-annotations/passage?locale=${locale}&passageId=${encodeURIComponent(passageId)}`, token);
+        if (!mounted.current) return;
+        if (existing) {
+          setOlder(existing);
+          setError(tr('An older saved verse was found outside this list. Your draft has not been saved. Load the saved version before replacing it.', 'Un ancien verset enregistré a été trouvé hors de cette liste. Votre texte n’a pas été enregistré. Chargez la version enregistrée avant de la remplacer.'));
+          return;
+        }
+      }
       if (remove && current) {
         await api(`/bible-annotations/${encodeURIComponent(current.id)}`, token, { method: 'DELETE' });
         if (mounted.current) { setItems(rows => rows.filter(row => row.id !== current.id)); setBookmark(false); setHighlight(''); setNote(''); }
@@ -87,6 +97,10 @@ function AnnotationEditor({ chapterId, locale, initialVerse, onDirtyChange }: { 
     <p className="muted">{tr('Choose a verse in this chapter. Save a bookmark, a colored verse mark, or a private note.', 'Choisissez un verset de ce chapitre. Ajoutez un favori, une marque colorée ou une note privée.')}</p>
     {loading && <p role="status">{tr('Loading…', 'Chargement…')}</p>}
     {error && <div className="alert reader-error" role="alert"><span>{error}</span>{!dirty && <button className="btn btn-soft" disabled={busy} onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button>}</div>}
+    {older && <button type="button" className="btn btn-soft" disabled={busy} onClick={() => {
+      if (dirty && !window.confirm(tr('Discard unsaved changes?', 'Abandonner les modifications ?'))) return;
+      setItems(rows => [...rows.filter(item => item.passageId !== passageId), older]); setOlder(null); setError('');
+    }}>{tr('Load saved version', 'Charger la version enregistrée')}</button>}
     {!loading && !loadFailed && <form onSubmit={event => { event.preventDefault(); void save(); }}>
       <fieldset disabled={busy}><legend className="sr-only">{tr('Verse annotation', 'Annotation du verset')}</legend>
         <div className="annotation-toolbar"><label className="form-field" htmlFor="annotation-verse">{tr('Verse or range', 'Verset ou plage')}<input className="input" id="annotation-verse" type="text" inputMode="numeric" placeholder={tr("1 or 1-3","1 ou 1-3")} value={verse} onChange={event => selectVerse(event.target.value)}/></label>

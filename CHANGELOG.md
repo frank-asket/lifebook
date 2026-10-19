@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.0.0] - 2026-10-19
+
+### Added
+- Browse reading plans, enroll, explicitly complete plan days, and edit saved verses in Expo.
+- Edit prayers, record answers, and delete entries through the mobile prayer journal.
+- Add owner-scoped exact annotation lookup and Daily Word reflection removal without changing the database schema.
+
+### Fixed
+- Preserve private drafts on failed saves, isolate mobile screens when accounts change, and keep Daily Word sessions paired with the passage opened.
+- Save account language and existing profile preferences safely from mobile settings and onboarding.
+- Protect older verse notes outside the capped list, and return valid JSON for passages with no saved annotation.
+- Include member-facing ministry and learning-path data in account exports while excluding internal reviewer and referee details.
+- Fail reflection-backfill checks when plaintext remains, and enable account persistence tests in CI.
+- Align Expo native dependencies and isolate React 18 mobile declarations from React 19 web builds.
+
+### Validation status
+- Source and automated checks are covered; iOS/Android device, visual, and accessibility acceptance remain open. This PR does not deploy or change the production database.
+
 ## [0.0.3.1] - 2026-10-16
 
 ### Fixed

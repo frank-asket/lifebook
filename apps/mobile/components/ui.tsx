@@ -31,19 +31,19 @@ export function Button({ title, onPress, kind = 'primary', disabled, style, acce
   const bg = kind === 'primary' ? c.accent : kind === 'soft' ? c.soft : kind === 'danger' ? c.danger : c.paper;
   const fg = kind === 'primary' || kind === 'danger' ? c.accentInk : kind === 'soft' ? c.deep : c.ink;
   return <Press accessibilityRole="button" accessibilityState={{ disabled: !!disabled }} accessibilityHint={accessibilityHint} disabled={disabled} onPress={onPress}
-    style={[{ minHeight: 50, borderRadius: 14, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: bg, opacity: disabled ? 0.45 : 1 }, kind === 'quiet' && { borderWidth: 1, borderColor: c.line }, style]}>
-    <Text style={{ color: fg, fontSize: 16, fontWeight: '700' }}>{title}</Text>
+    style={[{ minHeight: 50, borderRadius: 14, paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: bg, opacity: disabled ? 0.45 : 1 }, kind === 'quiet' && { borderWidth: 1, borderColor: c.line }, style]}>
+    <Text style={{ color: fg, fontSize: 16, fontWeight: '700', textAlign: 'center' }}>{title}</Text>
   </Press>;
 }
 
 /** A tappable list row with an icon, title, subtitle and chevron. */
 export function Row({ icon, tone = 'soft', title, subtitle, onPress, badge }: { icon: keyof typeof Ionicons.glyphMap; tone?: 'soft' | 'rose'; title: string; subtitle?: string; onPress?: () => void; badge?: string }) {
   const { c } = useApp();
-  return <Press accessibilityRole="button" onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, backgroundColor: c.paper, borderRadius: 20, borderWidth: 1, borderColor: c.line }}>
+  return <Press accessibilityRole={onPress ? 'button' : undefined} disabled={!onPress} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, backgroundColor: c.paper, borderRadius: 20, borderWidth: 1, borderColor: c.line }}>
     <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: tone === 'rose' ? c.rose : c.soft }}><Ionicons name={icon} size={20} color={c.accent} /></View>
     <View style={{ flex: 1, gap: 2 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Text style={{ color: c.ink, fontSize: 16, fontWeight: '600' }}>{title}</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+        <Text style={{ color: c.ink, fontSize: 16, fontWeight: '600', flexShrink: 1 }}>{title}</Text>
         {badge ? <Text style={{ color: c.deep, backgroundColor: c.soft, fontSize: 11, fontWeight: '700', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99, overflow: 'hidden' }}>{badge}</Text> : null}
       </View>
       {subtitle ? <Text style={{ color: c.muted, fontSize: 14 }}>{subtitle}</Text> : null}
@@ -52,13 +52,13 @@ export function Row({ icon, tone = 'soft', title, subtitle, onPress, badge }: { 
   </Press>;
 }
 
-export function Segmented<T extends string | number>({ label, options, value, onChange }: { label: string; options: { label: string; value: T; textStyle?: TextStyle }[]; value: T; onChange: (v: T) => void }) {
+export function Segmented<T extends string | number>({ label, options, value, onChange, disabled = false }: { label: string; options: { label: string; value: T; textStyle?: TextStyle }[]; value: T; onChange: (v: T) => void; disabled?: boolean }) {
   const { c } = useApp();
   return <View accessibilityRole="radiogroup" accessibilityLabel={label} style={{ flexDirection: 'row', gap: 3, padding: 3, borderRadius: 12, backgroundColor: c.soft }}>
     {options.map(o => {
       const on = o.value === value;
-      return <Pressable key={String(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onChange(o.value)}
-        style={{ flex: 1, minHeight: 40, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.chip : 'transparent', shadowColor: '#140e24', shadowOpacity: on ? 0.12 : 0, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}>
+      return <Pressable key={String(o.value)} accessibilityRole="radio" accessibilityState={{ checked: on, disabled }} disabled={disabled} onPress={() => onChange(o.value)}
+        style={{ flex: 1, minHeight: 44, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.chip : 'transparent', shadowColor: '#140e24', shadowOpacity: on ? 0.12 : 0, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }}>
         <Text style={[{ color: on ? c.ink : c.muted, fontSize: 14, fontWeight: '600' }, o.textStyle]}>{o.label}</Text>
       </Pressable>;
     })}
