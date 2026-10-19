@@ -13,12 +13,12 @@ const open = (value: string | null | undefined, decrypt: (v: string) => string):
 
 /**
  * Everything LifeBook holds about one member, decrypted for that member only (access and portability).
- * Not included: sign-in details held by Clerk, safety-report transcripts, and other people's records.
+ * Not included: sign-in details held by Clerk, internal reviewer notes, referee details, safety-report transcripts, and other people's records.
  */
 export async function exportAccount(db: PrismaClient, userId: string) {
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return null;
-  const [profile, prayers, sessions, medReflections, medCompletions, medBookmarks, annotations, history, plans, studies, lessons, care, reports, ai] = await Promise.all([
+  const [profile, prayers, sessions, medReflections, medCompletions, medBookmarks, annotations, history, plans, studies, lessons, care, reports, ai, verification, pastorProfile, learningPaths] = await Promise.all([
     db.faithProfile.findUnique({ where: { userId } }),
     db.prayerEntry.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
     db.dailyWordSession.findMany({ where: { userId }, orderBy: { journeyDate: 'asc' }, include: { steps: true, reflection: true } }),
@@ -33,13 +33,26 @@ export async function exportAccount(db: PrismaClient, userId: string) {
     db.careRequest.findMany({ where: { memberId: userId }, orderBy: { createdAt: 'asc' }, include: { messages: { orderBy: { createdAt: 'asc' } } } }),
     db.careReport.findMany({ where: { reporterId: userId }, orderBy: { createdAt: 'asc' } }),
     db.aiUsage.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
+    db.ministryVerification.findUnique({ where: { userId }, select: {
+      status: true, reviewedAt: true, churchName: true, ministryRole: true, country: true,
+      trainingCourse: true, trainingCompletedAt: true, codeOfConductSignedAt: true,
+      suspendedAt: true, createdAt: true, updatedAt: true,
+    } }),
+    db.pastorProfile.findUnique({ where: { userId }, select: {
+      slug: true, displayName: true, bio: true, languages: true, acceptingRequests: true,
+      maxOpenRequests: true, createdAt: true, updatedAt: true,
+    } }),
+    db.enrollment.findMany({ where: { userId }, orderBy: { startedAt: 'asc' }, select: { pathId: true, startedAt: true } }),
   ]);
   const prayerOpen = (field: string, p: { id: string }, v: string | null) => open(v, x => decryptReflection(x, `prayer:${field}:${userId}:${p.id}`));
   return {
     format: EXPORT_FORMAT,
     exportedAt: new Date().toISOString(),
-    notes: 'Your sign-in details (name, email) are held by Clerk and can be seen in your account menu. Safety reports list only what you wrote.',
+    notes: 'Your sign-in details (name, email) are held by Clerk and can be seen in your account menu. Safety reports list only what you wrote. Internal reviewer notes and referee details are excluded.',
     account: { id: user.id, role: user.role, createdAt: user.createdAt },
+    ministryVerification: verification,
+    pastorProfile,
+    learningPaths,
     profile: profile && { journey: profile.journey, language: profile.language, learningGoals: profile.learningGoals, preferredFormats: profile.preferredFormats, personalizationConsent: profile.personalizationConsent, aiProcessingConsent: profile.aiProcessingConsent, updatedAt: profile.updatedAt },
     prayers: prayers.map(p => ({
       title: prayerOpen('title', p, p.titleCiphertext), body: prayerOpen('body', p, p.ciphertext),

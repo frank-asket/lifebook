@@ -62,6 +62,16 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
       assert.deepEqual(await annotations.list('first','en','LUK.1'),[]);
       await assert.rejects(annotations.list('first','fr','bad'), /Invalid chapter filter/);
       await assert.rejects(annotations.remove('second', note.id), /not found/);
+      assert.equal((await annotations.one('first', 'fr', 'LUK.1.1')).note, 'Synthetic private note');
+      assert.equal(await annotations.one('second', 'fr', 'LUK.1.1'), null);
+      assert.equal(await annotations.one('first', 'en', 'LUK.1.1'), null);
+      await assert.rejects(annotations.one('first', 'fr', 'bad'), /Invalid verse/);
+      await tx.bibleAnnotation.createMany({ data: Array.from({ length: 201 }, (_, i) => {
+        const start = Math.floor(i / 3) + 1;
+        return { userId: first.id, locale: 'fr', passageId: `LUK.1.${start}-${start + i % 3 + 1}`, bookmarked: true, updatedAt: new Date(Date.now() + 1000) };
+      }) });
+      assert.ok(!(await annotations.list('first', 'fr', 'LUK.1')).some(item => item.id === note.id));
+      assert.equal((await annotations.one('first', 'fr', 'LUK.1.1')).note, 'Synthetic private note', 'an editor must read an older note even beyond the list limit');
       const session = await daily.today('first', 'Africa/Accra');
       assert.equal((await daily.today('first', 'Africa/Accra')).id, session.id);
       await daily.saveReflection('first', session.id, 'Synthetic daily reflection');
@@ -73,6 +83,11 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
       assert.equal((await daily.stats('first')).completedSessions, 1);
       assert.equal((await daily.history('first'))[0].reflection.content, 'Synthetic daily reflection');
       assert.deepEqual(await daily.history('second'), []);
+      await assert.rejects(daily.removeReflection('second', session.id), /not found/);
+      assert.equal((await daily.removeReflection('first', session.id)).deleted, 1);
+      assert.equal((await daily.today('first', 'Africa/Accra')).reflection, null);
+      assert.equal((await daily.removeReflection('first', session.id)).deleted, 0);
+      assert.equal((await daily.stats('first')).completedSessions, 1, 'clearing a reflection does not undo completed steps');
       const item = await tx.meditation.create({ data: { slug: prefix, title: 'Fixture meditation', scriptureReference: 'LUK.1', explanation: 'Fixture', questions: [], guidedPrayer: 'Fixture', isPublished: true } });
       await meditation.reflect(item.id, 'Synthetic meditation reflection', 'first');
       assert.ok((await tx.meditationReflection.findUnique({where:{userId_meditationId:{userId:first.id,meditationId:item.id}}})).text.startsWith('lbenc:v1:test:'));

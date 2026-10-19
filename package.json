@@ -16,13 +16,18 @@
   "dependencies": {
     "dotenv": "^18.0.7"
   },
-  "version": "0.0.3.1",
+  "version": "0.1.0.0",
   "pnpm": {
     "overrides": {
       "next>postcss": "8.5.23",
       "@nestjs/swagger>js-yaml": "5.4.1"
     },
     "packageExtensions": {
+      "next@15": {
+        "peerDependencies": {
+          "@types/react": "^19.3.0"
+        }
+      },
       "expo-router@4": {
         "dependencies": {
           "query-string": "^7.1.3",

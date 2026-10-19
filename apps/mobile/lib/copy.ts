@@ -22,7 +22,8 @@ const en = {
     closingTitle: 'You spent time in the Word today.', closingText: 'Today is marked complete. Come back tomorrow for a new passage.',
     closingSignedOut: 'Sign in to keep track of your days in the Word.',
     home: 'Back to Today', writeReflection: 'Write a private reflection', journal: 'Open my prayer journal',
-    saveFailed: 'Your progress could not be saved just now. You can carry on.', reflectionFailed: 'Your reflection could not be saved. Check your connection and try again.',
+    saveFailed: 'This step could not be saved. Your draft is still here. Continue to try again.', reflectionFailed: 'Your reflection could not be saved. Check your connection and try again.',
+    sessionFailed: 'Your prayer time could not be loaded. Try again before continuing.', dayChanged: 'A new day has started. Close this prayer time and begin again with today’s passage.', closingInProgress: 'Your completed steps are saved. Continue with the remaining steps whenever you are ready.',
   },
   bible: {
     nav: 'Bible navigation', prev: 'Previous chapter', next: 'Next chapter', book: 'Book', chapter: 'Chapter', settings: 'Reading settings',
@@ -35,6 +36,10 @@ const en = {
     journal: 'YOUR JOURNAL', empty: 'Prayers you save will appear here, newest first.', untitled: 'Untitled prayer', answered: 'Answered',
     signedOutTitle: 'Your prayers belong to you', signedOutText: 'Sign in to keep a private, encrypted prayer journal.',
     pastor: 'Ask a pastor', pilot: 'Pilot', pastorSub: 'A verified pastor can listen and pray with you, privately.', error: 'Your prayers could not be loaded.',
+    detail: 'Your private prayer', titleLabel: 'Title (optional)', bodyLabel: 'Prayer', open: 'Open prayer', close: 'Back to journal',
+    saveChanges: 'Save changes', updated: 'Changes saved.', answerNote: 'Answered note (optional)', markAnswered: 'Mark as answered', saveAnswer: 'Save answered note', markUnanswered: 'Mark as unanswered',
+    delete: 'Delete prayer', deleteTitle: 'Delete this prayer?', deleteMessage: 'This permanently removes this prayer and its answered note. This cannot be undone.',
+    cancel: 'Cancel', discardTitle: 'Discard unsaved changes?', discardMessage: 'Your changes have not been saved.', keepEditing: 'Keep editing', discard: 'Discard', actionFailed: 'This action could not be completed. Please try again.',
   },
   you: {
     title: 'You', signedOut: 'Not signed in', member: 'LifeBook member', signIn: 'Continue with Google', signOut: 'Sign out', signInFailed: 'Sign-in did not complete. Please try again.',
@@ -69,7 +74,8 @@ const fr: Copy = {
     closingTitle: 'Vous avez pris du temps dans la Parole aujourd’hui.', closingText: 'Aujourd’hui est terminé. Revenez demain pour un nouveau passage.',
     closingSignedOut: 'Connectez-vous pour garder la trace de vos jours dans la Parole.',
     home: 'Retour à aujourd’hui', writeReflection: 'Écrire une réflexion privée', journal: 'Ouvrir mon journal de prière',
-    saveFailed: 'Votre progression n’a pas pu être enregistrée. Vous pouvez continuer.', reflectionFailed: 'Votre réflexion n’a pas pu être enregistrée. Vérifiez votre connexion et réessayez.',
+    saveFailed: 'Cette étape n’a pas pu être enregistrée. Votre texte est conservé ici. Continuez pour réessayer.', reflectionFailed: 'Votre réflexion n’a pas pu être enregistrée. Vérifiez votre connexion et réessayez.',
+    sessionFailed: 'Votre temps de prière n’a pas pu être chargé. Réessayez avant de continuer.', dayChanged: 'Un nouveau jour a commencé. Fermez ce temps de prière et recommencez avec le passage du jour.', closingInProgress: 'Les étapes terminées sont enregistrées. Reprenez les étapes restantes quand vous serez prêt.',
   },
   bible: {
     nav: 'Navigation biblique', prev: 'Chapitre précédent', next: 'Chapitre suivant', book: 'Livre', chapter: 'Chapitre', settings: 'Réglages de lecture',
@@ -82,6 +88,10 @@ const fr: Copy = {
     journal: 'VOTRE JOURNAL', empty: 'Les prières enregistrées apparaîtront ici, les plus récentes en premier.', untitled: 'Prière sans titre', answered: 'Exaucée',
     signedOutTitle: 'Vos prières vous appartiennent', signedOutText: 'Connectez-vous pour tenir un journal de prière privé et chiffré.',
     pastor: 'Demander un pasteur', pilot: 'Pilote', pastorSub: 'Un pasteur vérifié peut vous écouter et prier avec vous, en privé.', error: 'Impossible de charger vos prières.',
+    detail: 'Votre prière privée', titleLabel: 'Titre (facultatif)', bodyLabel: 'Prière', open: 'Ouvrir la prière', close: 'Retour au journal',
+    saveChanges: 'Enregistrer les modifications', updated: 'Modifications enregistrées.', answerNote: 'Note d’exaucement (facultative)', markAnswered: 'Marquer comme exaucée', saveAnswer: 'Enregistrer la note d’exaucement', markUnanswered: 'Marquer comme non exaucée',
+    delete: 'Supprimer la prière', deleteTitle: 'Supprimer cette prière ?', deleteMessage: 'Cela supprime définitivement cette prière et sa note d’exaucement. Cette action est irréversible.',
+    cancel: 'Annuler', discardTitle: 'Abandonner les modifications ?', discardMessage: 'Vos modifications n’ont pas été enregistrées.', keepEditing: 'Continuer à écrire', discard: 'Abandonner', actionFailed: 'Cette action n’a pas pu aboutir. Veuillez réessayer.',
   },
   you: {
     title: 'Vous', signedOut: 'Non connecté', member: 'Membre LifeBook', signIn: 'Continuer avec Google', signOut: 'Se déconnecter', signInFailed: 'La connexion n’a pas abouti. Veuillez réessayer.',

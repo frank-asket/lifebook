@@ -61,6 +61,11 @@ export class DailyWordService implements OnModuleDestroy {
     const sessions = await this.db.dailyWordSession.findMany({ where: { userId }, orderBy: { journeyDate: 'desc' }, take: limit, include: this.include });
     return sessions.map(session => this.view(session));
   }
+  async removeReflection(auth: string, id: string) {
+    const session = await this.owner(auth, id);
+    const result = await this.db.dailyWordReflection.deleteMany({ where: { sessionId: session.id } });
+    return { deleted: result.count };
+  }
   async stats(auth: string) {
     const userId = await this.meditation.userId(auth);
     const [totalSessions, completedSessions] = await Promise.all([

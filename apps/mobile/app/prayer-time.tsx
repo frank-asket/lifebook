@@ -1,18 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, ActivityIndicator, Alert, Animated, BackHandler, Easing, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api, timezone, useApp, useDailyWord, useSession, type TodaySession } from '../lib/app';
 import { fonts } from '../lib/theme';
-import { Button } from '../components/ui';
+import { Button, ErrorLine, Screen } from '../components/ui';
+import { requireToken } from '../lib/api';
+import type { DailyWord } from '../../web/lib/daily-word';
 import { DAILY_WORD_STEPS as STEPS, initialDailyWordStep } from '../../web/lib/daily-word-navigation';
 import { BREATH, breathPhase, clock, spokenDuration, stillnessSeconds } from '../../web/lib/prayer-time';
 
 /** Full-screen prayer time: one step per screen, a clear way out, nothing else competing for attention. */
 export default function PrayerTime() {
   const { c, t, lang, prefs } = useApp();
-  const { word } = useDailyWord();
+  const live = useDailyWord();
+  // Keep the passage and session paired if the calendar day changes while this screen is open.
+  const [reading, setReading] = useState<{ word: DailyWord; date: string } | null>(() => live.word ? { word: live.word, date: live.date } : null);
+  const word = reading?.word ?? null;
   const session = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -22,18 +27,34 @@ export default function PrayerTime() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [initializing, setInitializing] = useState(false);
+  const [sessionError, setSessionError] = useState('');
+  const [retrySession, setRetrySession] = useState(0);
+  const mounted = useRef(true);
+  const saving = useRef(false);
   const enter = useRef(new Animated.Value(1)).current;
   const direction = useRef(1);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => { if (!reading && live.word) setReading({ word: live.word, date: live.date }); }, [reading, live.word, live.date]);
 
   useEffect(() => { AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => undefined); }, []);
   useEffect(() => {
-    if (!session.isSignedIn) return;
-    let active = true;
-    session.getToken().then(token => token ? api<TodaySession>('/daily-word/sessions/today', token, { method: 'POST', body: JSON.stringify({ timezone: timezone() }) }) : null)
-      .then(s => { if (!active || !s) return; setToday(s); setReflection(s.reflection?.content ?? ''); setStep(s.status === 'COMPLETED' ? 0 : initialDailyWordStep(null, s.steps.map(x => x.step))); })
-      .catch(() => undefined);
-    return () => { active = false; };
-  }, [session.isSignedIn, session.getToken]);
+    if (!session.isSignedIn || !reading) return;
+    const controller = new AbortController();
+    setInitializing(true); setSessionError('');
+    (async () => {
+      try {
+        const token = await requireToken(session.getToken);
+        if (controller.signal.aborted) return;
+        const value = await api<TodaySession>('/daily-word/sessions/today', token, { method: 'POST', body: JSON.stringify({ timezone: timezone() }), signal: controller.signal });
+        if (controller.signal.aborted) return;
+        if (value.journeyDate.slice(0, 10) !== reading.date) { setSessionError(t.pt.dayChanged); return; }
+        setToday(value); setReflection(value.reflection?.content ?? ''); setStep(value.status === 'COMPLETED' ? 0 : initialDailyWordStep(null, value.steps.map(x => x.step)));
+      } catch { if (!controller.signal.aborted) setSessionError(t.pt.sessionFailed); }
+      finally { if (!controller.signal.aborted) setInitializing(false); }
+    })();
+    return () => controller.abort();
+  }, [session.isSignedIn, session.getToken, reading, retrySession]);
 
   // Each step slides in from the side it came from; with Reduce Motion it only fades.
   useEffect(() => {
@@ -43,43 +64,65 @@ export default function PrayerTime() {
 
   const done = STEPS.map(s => Boolean(today?.steps.some(x => x.step === s)));
   const saved = today?.reflection?.content ?? '';
+  const dirty = reflection !== saved;
+  const close = useCallback(() => {
+    if (saving.current) return;
+    if (!dirty) { router.back(); return; }
+    Alert.alert(t.prayer.discardTitle, t.prayer.discardMessage, [{ text: t.prayer.keepEditing, style: 'cancel' }, { text: t.prayer.discard, style: 'destructive', onPress: () => router.back() }]);
+  }, [dirty, router, t]);
+  useFocusEffect(useCallback(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => { close(); return true; });
+    return () => subscription.remove();
+  }, [close]));
   const go = (n: number) => { direction.current = n < step ? -1 : 1; setError(''); setStep(n); };
 
   async function next() {
+    if (saving.current || step >= 5) return;
     const current = step;
     setError('');
-    if (!today) { go(Math.min(5, current + 1)); return; }
-    if (current === 2 && reflection.trim() && reflection !== saved) {
-      setBusy(true);
-      try {
-        await api(`/daily-word/sessions/${today.id}/reflection`, await session.getToken(), { method: 'PUT', body: JSON.stringify({ content: reflection }) });
-        setToday(s => s && { ...s, reflection: { content: reflection } });
-      } catch { setError(t.pt.reflectionFailed); setBusy(false); return; }
-      setBusy(false);
-    }
-    go(current + 1);
-    if (done[current]) return;
+    if (!session.isSignedIn) { go(current + 1); return; }
+    if (!today) return;
+    saving.current = true; setBusy(true);
+    let savingReflection = false;
     try {
-      const updated = await api<TodaySession>(`/daily-word/sessions/${today.id}/steps/${STEPS[current]}`, await session.getToken(), { method: 'PUT' });
-      setToday(s => s && { ...updated, reflection: s.reflection, steps: [...s.steps, ...updated.steps.filter(x => !s.steps.some(y => y.step === x.step))] });
-    } catch { setError(t.pt.saveFailed); }
+      const token = await requireToken(session.getToken);
+      if (!mounted.current) return;
+      if (current === 2 && dirty) {
+        savingReflection = true;
+        await api(`/daily-word/sessions/${encodeURIComponent(today.id)}/reflection`, token, reflection.trim() ? { method: 'PUT', body: JSON.stringify({ content: reflection }) } : { method: 'DELETE' });
+        if (!mounted.current) return;
+        setToday(s => s && { ...s, reflection: reflection.trim() ? { content: reflection } : null });
+        if (!reflection.trim()) setReflection('');
+        savingReflection = false;
+      }
+      if (!done[current]) {
+        const updated = await api<TodaySession>(`/daily-word/sessions/${encodeURIComponent(today.id)}/steps/${STEPS[current]}`, token, { method: 'PUT' });
+        if (!mounted.current) return;
+        setToday(updated);
+      }
+      if (mounted.current) go(current + 1);
+    } catch { if (mounted.current) setError(savingReflection ? t.pt.reflectionFailed : t.pt.saveFailed); }
+    finally { saving.current = false; if (mounted.current) setBusy(false); }
   }
 
-  if (!word) return null;
+  if (!word || (session.isSignedIn && (!today || initializing || sessionError))) return <Screen title={t.pt.title}>
+    <Button kind="quiet" title={t.pt.close} onPress={close} />
+    {sessionError ? <ErrorLine message={sessionError} onRetry={() => setRetrySession(n => n + 1)} /> : !word && live.error ? <ErrorLine message={t.today.error} onRetry={live.retry} /> : <ActivityIndicator color={c.accent} />}
+  </Screen>;
   const translateX = enter.interpolate({ inputRange: [0, 1], outputRange: [reduceMotion ? 0 : 22 * direction.current, 0] });
-  const label = step === 3 ? t.pt.amen : step === 4 ? t.pt.finish : busy ? t.pt.saving : t.pt.next;
+  const label = busy ? t.pt.saving : step === 3 ? t.pt.amen : step === 4 ? t.pt.finish : t.pt.next;
 
   return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
     <View style={{ paddingTop: insets.top + 4, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center' }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={t.pt.close} onPress={() => router.back()} hitSlop={8} style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
+      <Pressable accessibilityRole="button" accessibilityLabel={t.pt.close} disabled={busy} onPress={close} hitSlop={8} style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
         <Ionicons name="close" size={24} color={c.muted} />
       </Pressable>
       <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center' }} accessibilityLabel={step < 5 ? t.pt.stepOf(step + 1) : undefined}>
-        {step < 5 ? t.steps.map((name, i) => <Pressable key={name} accessibilityRole="button" accessibilityLabel={`${i + 1}. ${name}${done[i] ? t.pt.done : ''}`} accessibilityState={{ selected: i === step }} onPress={() => go(i)} style={{ width: 30, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        {step < 5 ? t.steps.map((name, i) => <Pressable key={name} accessibilityRole="button" accessibilityLabel={`${i + 1}. ${name}${done[i] ? t.pt.done : ''}`} accessibilityState={{ selected: i === step, disabled: busy }} disabled={busy} onPress={() => go(i)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <View style={{ height: 7, width: i === step ? 22 : 7, borderRadius: 4, backgroundColor: i === step ? c.accent : done[i] ? c.accent : c.line, opacity: i !== step && done[i] ? 0.5 : 1 }} />
         </Pressable>) : null}
       </View>
-      <View style={{ width: 44 }} />
+      <View />
     </View>
 
     <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }} keyboardShouldPersistTaps="handled">
@@ -100,6 +143,7 @@ export default function PrayerTime() {
           <TextInput accessibilityLabel={t.pt.reflectLabel} value={reflection} onChangeText={setReflection} editable={!busy} multiline maxLength={10000} placeholder={t.pt.reflectPh} placeholderTextColor={c.muted}
             style={{ marginTop: 22, minHeight: 170, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: c.line, backgroundColor: c.paper, color: c.ink, fontSize: 17, lineHeight: 26, textAlignVertical: 'top' }} />
           <Text style={{ color: c.muted, fontSize: 13, marginTop: 10 }}>{session.isSignedIn ? t.pt.reflectHint : t.pt.reflectSignedOut}</Text>
+          {saved ? <Text style={{ color: c.muted, fontSize: 13, marginTop: 8 }}>{lang === 'fr' ? 'Effacer ce texte puis continuer supprime la réflexion enregistrée.' : 'Clearing this text and continuing removes the saved reflection.'}</Text> : null}
         </>}
         {step === 3 && <>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 27, fontWeight: '700', letterSpacing: -0.5, lineHeight: 34 }}>{t.pt.prayTitle}</Text>
@@ -110,14 +154,15 @@ export default function PrayerTime() {
           <Text style={{ color: c.ink, fontSize: 18, lineHeight: 30, marginTop: 22 }}>{word.application}</Text>
         </>}
         {step === 5 && <View style={{ alignItems: 'center', gap: 14 }}>
-          <View style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: c.soft }}><Ionicons name="checkmark" size={30} color={c.accent} /></View>
+          <View style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: c.soft }}><Ionicons name={session.isSignedIn && today?.status !== 'COMPLETED' ? 'time-outline' : 'checkmark'} size={30} color={c.accent} /></View>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 26, fontWeight: '700', textAlign: 'center', letterSpacing: -0.5 }}>{t.pt.closingTitle}</Text>
           {error ? <Text accessibilityRole="alert" style={{ color: c.danger, textAlign: 'center' }}>{error}</Text>
-            : <Text style={{ color: c.muted, fontSize: 16, lineHeight: 24, textAlign: 'center' }}>{session.isSignedIn ? t.pt.closingText : t.pt.closingSignedOut}</Text>}
+            : <Text style={{ color: c.muted, fontSize: 16, lineHeight: 24, textAlign: 'center' }}>{session.isSignedIn ? today?.status === 'COMPLETED' ? t.pt.closingText : t.pt.closingInProgress : t.pt.closingSignedOut}</Text>}
           <View style={{ alignSelf: 'stretch', gap: 10, marginTop: 10 }}>
-            <Button title={t.pt.home} onPress={() => router.back()} />
-            {session.isSignedIn && !reflection.trim() ? <Button kind="quiet" title={t.pt.writeReflection} onPress={() => go(2)} /> : null}
-            <Button kind="quiet" title={t.pt.journal} onPress={() => { router.back(); router.navigate('/prayer'); }} />
+            {session.isSignedIn && today?.status !== 'COMPLETED' ? <Button title={t.today.cont} onPress={() => go(initialDailyWordStep(null, today?.steps.map(x => x.step) ?? []))} /> : null}
+            <Button title={t.pt.home} onPress={close} />
+            {session.isSignedIn && (dirty || !reflection.trim()) ? <Button kind="quiet" title={t.pt.writeReflection} onPress={() => go(2)} /> : null}
+            <Button kind="quiet" title={t.pt.journal} disabled={dirty} onPress={() => { router.back(); router.navigate('/prayer'); }} />
           </View>
         </View>}
       </Animated.View>

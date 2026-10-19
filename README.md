@@ -1,5 +1,7 @@
 # LifeBook — System Architecture & Engineering README
 
+**Product completion work (19 October 2026):** Development now follows the [milestone-aligned product completion checklist](docs/PRODUCT_COMPLETION_PLAN.md), covering web/marketing, backend, security and Expo before deployment. The dated architecture and release notes below describe earlier snapshots; use the checklist for current gaps and verification status.
+
 > **Architecture baseline:** 12 October 2026 · **Repository:** `lifebook` pnpm monorepo · **Status:** Phase 1 / Sprint 2 under integration testing.
 >
 > This document describes the **code and configuration present in the supplied LifeBook source**. Solid arrows indicate implemented or configured integrations; dashed arrows indicate planned integrations. Deployment and operational readiness are **not** implied by a box appearing in a diagram.

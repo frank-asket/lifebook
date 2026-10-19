@@ -112,7 +112,7 @@ async function main() {
       }
     }
     console.log(JSON.stringify(report, null, 2));
-    const leftovers = SOURCES.some(s => report[s.name].conflicts || report[s.name].unreadableAfter);
+    const leftovers = SOURCES.some(s => report[s.name].conflicts || report[s.name].legacyAfter || report[s.name].unreadableAfter);
     if (unreadable || leftovers) process.exitCode = 1;
   } finally { await db.$disconnect(); }
 }

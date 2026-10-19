@@ -18,6 +18,15 @@ export class BibleAnnotationsService implements OnModuleDestroy {
   }
   private encrypt(value: string): string { return encryptNote(value); }
   private decrypt(value: string): string { return decryptNote(value); }
+  async one(auth?: string, locale?: string, passageId?: string) {
+    const userId = await this.meditation.userId(auth);
+    if (!passageId || !locale) throw new BadRequestException('A passage and locale are required');
+    this.validate(passageId, locale);
+    const row = await this.db.bibleAnnotation.findUnique({ where: { userId_locale_passageId: { userId, locale, passageId } } });
+    if (!row) return null;
+    const { noteCiphertext, ...item } = row;
+    return { ...item, note: noteCiphertext ? this.decrypt(noteCiphertext) : null };
+  }
   async list(auth?: string, locale?: string, chapterId?: string) {
     const userId = await this.meditation.userId(auth);
     if ((locale || chapterId) && ((locale !== 'en' && locale !== 'fr') || !chapterId || !/^[A-Z0-9]{3}\.[1-9][0-9]{0,2}$/.test(chapterId))) throw new BadRequestException('Invalid chapter filter');

@@ -38,7 +38,8 @@ export function passageLabel(id: string, locale: Locale, verse?: number | null):
   const v = firstVerse ?? (verse ? String(verse) : undefined);
   if (v) label += `:${v}`;
   const tail = end && /\.(\d+)\.(\d+)$/.exec(end);
-  if (tail) label += tail[1] === chapter ? `–${tail[2]}` : `–${tail[1]}:${tail[2]}`;
+  if (end && /^\d+$/.test(end) && v) label += `–${end}`;
+  else if (tail) label += tail[1] === chapter ? `–${tail[2]}` : `–${tail[1]}:${tail[2]}`;
   return label;
 }
 

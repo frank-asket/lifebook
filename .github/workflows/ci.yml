@@ -24,6 +24,7 @@ jobs:
       DIRECT_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
       LIFEBOOK_STUDY_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
       LIFEBOOK_M36_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
+      LIFEBOOK_ACCOUNT_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
@@ -46,3 +47,4 @@ jobs:
         env:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       - run: pnpm --filter @lifebook/mobile exec tsc --noEmit
+      - run: node --test apps/mobile/test/*.test.cjs
