@@ -148,7 +148,7 @@ function dailyHarness({ failInit = false, failStep = true, initialReflection = n
   const controls = { failInit, failStep, failLive: false };
   const word = { verse: { text: 'Synthetic verse fixture', reference: 'JHN.1.1', translation: 'Fixture' }, explanation: 'Fixture', meditation: 'Fixture', reflectionQuestion: 'Reflect?', prayer: 'Pray', application: 'Live' };
   let live = { word, date: '2026-10-19', retry() {} };
-  class Value { setValue() {} interpolate() { return 0; } }
+  class Value { setValue() {} stopAnimation() {} interpolate() { return 0; } }
   const { default: PrayerTime } = load('../app/prayer-time.tsx', {
     'react-native': {
       ...native, Platform: { OS: 'ios' }, AccessibilityInfo: { isReduceMotionEnabled: async () => false },
@@ -170,7 +170,7 @@ function dailyHarness({ failInit = false, failStep = true, initialReflection = n
         return value;
       },
     },
-    '../lib/api': { requireToken: async read => read() }, '../lib/theme': { fonts: {} }, '../components/ui': ui,
+    '../lib/api': { requireToken: async read => read() }, '../lib/scripture-usage': { reportScripture() {} }, '../lib/theme': { fonts: {} }, '../components/ui': ui,
     '../../web/lib/daily-word-navigation': load('../../web/lib/daily-word-navigation.ts'), '../../web/lib/prayer-time': load('../../web/lib/prayer-time.ts'),
   });
   return { PrayerTime, calls, controls, get closed() { return closed; }, get confirmation() { return confirmation; }, advanceDate() { live = { ...live, word: { ...word, verse: { ...word.verse, text: 'New day fixture' } }, date: '2026-10-20' }; } };
@@ -240,7 +240,7 @@ test('saved verses open the matching chapter/language and can reopen the range e
     'react-native': native,
     'expo-router': { useFocusEffect: focus, useRouter: () => ({ navigate: value => { location = value; } }) },
     '../lib/app': { useApp: () => ({ c: {}, lang: 'en', setPrefs: value => { preferences = value; } }), useSession: () => session },
-    '../lib/api': { api: async () => [record], requireToken: async read => read() },
+    '../lib/api': { api: async () => ({ items: [record], nextCursor: null }), requireToken: async read => read() },
     '../components/annotation-editor': { AnnotationEditor: 'AnnotationEditor' }, '../components/ui': ui,
     '../../web/lib/scripture': scripture, '../../web/lib/errors': { errorMessage },
   });

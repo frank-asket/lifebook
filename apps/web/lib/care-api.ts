@@ -16,24 +16,25 @@ export const REPORT_CATEGORIES = ['safety', 'conduct', 'money', 'pressure', 'oth
 export type ReportCategory = typeof REPORT_CATEGORIES[number];
 export type ReportInput = { category: ReportCategory; details: string; shareConversation: boolean };
 const json = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body) });
-export const careApi = {
-  create: (token: string, input: { topic: CareTopic; language: string; contactPreference: 'messages' | 'callback'; name?: string; phone?: string; message: string; consent: true }) => api<CareThread>('/care/requests', token, json(input)),
-  mine: (token: string, signal?: AbortSignal) => api<CareSummary[]>('/care/requests', token, { signal }),
-  get: (token: string, id: string, signal?: AbortSignal) => api<CareThread>(`/care/requests/${encodeURIComponent(id)}`, token, { signal }),
-  reply: (token: string, id: string, text: string) => api<CareThread>(`/care/requests/${encodeURIComponent(id)}/messages`, token, json({ text })),
-  close: (token: string, id: string) => api<CareThread>(`/care/requests/${encodeURIComponent(id)}/close`, token, { method: 'POST' }),
-  remove: (token: string, id: string) => api<{ deleted: boolean }>(`/care/requests/${encodeURIComponent(id)}`, token, { method: 'DELETE' }),
-  pastorStatus: (token: string, signal?: AbortSignal) => api<PastorStatus>('/care/pastor/status', token, { signal }),
-  setAvailability: (token: string, accepting: boolean) => api<PastorStatus>('/care/pastor/availability', token, { method: 'PUT', body: JSON.stringify({ accepting }) }),
-  queue: (token: string, signal?: AbortSignal) => api<QueueItem[]>('/care/pastor/queue', token, { signal }),
-  claim: (token: string, id: string) => api<CareThread>(`/care/pastor/queue/${encodeURIComponent(id)}/claim`, token, { method: 'POST' }),
-  cases: (token: string, signal?: AbortSignal) => api<CareSummary[]>('/care/pastor/cases', token, { signal }),
-  case: (token: string, id: string, signal?: AbortSignal) => api<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}`, token, { signal }),
-  pastorReply: (token: string, id: string, text: string) => api<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}/messages`, token, json({ text })),
-  report: (token: string, id: string, input: ReportInput) => api<{ reported: boolean; sharedConversation: boolean }>(`/care/requests/${encodeURIComponent(id)}/report`, token, json(input)),
-  pastorReport: (token: string, id: string, input: ReportInput) => api<{ reported: boolean; sharedConversation: boolean }>(`/care/pastor/cases/${encodeURIComponent(id)}/report`, token, json(input)),
-  pastorClose: (token: string, id: string) => api<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}/close`, token, { method: 'POST' }),
-};
+export function createCareApi(request: typeof api) { return {
+  create: (token: string, input: { topic: CareTopic; language: string; contactPreference: 'messages' | 'callback'; name?: string; phone?: string; message: string; consent: true }) => request<CareThread>('/care/requests', token, json(input)),
+  mine: (token: string, signal?: AbortSignal) => request<CareSummary[]>('/care/requests', token, { signal }),
+  get: (token: string, id: string, signal?: AbortSignal) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}`, token, { signal }),
+  reply: (token: string, id: string, text: string) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}/messages`, token, json({ text })),
+  close: (token: string, id: string) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}/close`, token, { method: 'POST' }),
+  remove: (token: string, id: string) => request<{ deleted: boolean }>(`/care/requests/${encodeURIComponent(id)}`, token, { method: 'DELETE' }),
+  pastorStatus: (token: string, signal?: AbortSignal) => request<PastorStatus>('/care/pastor/status', token, { signal }),
+  setAvailability: (token: string, accepting: boolean) => request<PastorStatus>('/care/pastor/availability', token, { method: 'PUT', body: JSON.stringify({ accepting }) }),
+  queue: (token: string, signal?: AbortSignal) => request<QueueItem[]>('/care/pastor/queue', token, { signal }),
+  claim: (token: string, id: string) => request<CareThread>(`/care/pastor/queue/${encodeURIComponent(id)}/claim`, token, { method: 'POST' }),
+  cases: (token: string, signal?: AbortSignal) => request<CareSummary[]>('/care/pastor/cases', token, { signal }),
+  case: (token: string, id: string, signal?: AbortSignal) => request<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}`, token, { signal }),
+  pastorReply: (token: string, id: string, text: string) => request<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}/messages`, token, json({ text })),
+  report: (token: string, id: string, input: ReportInput) => request<{ reported: boolean; sharedConversation: boolean }>(`/care/requests/${encodeURIComponent(id)}/report`, token, json(input)),
+  pastorReport: (token: string, id: string, input: ReportInput) => request<{ reported: boolean; sharedConversation: boolean }>(`/care/pastor/cases/${encodeURIComponent(id)}/report`, token, json(input)),
+  pastorClose: (token: string, id: string) => request<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}/close`, token, { method: 'POST' }),
+}; }
+export const careApi = createCareApi(api);
 
 const topicNames: Record<CareTopic, [string, string]> = {
   prayer: ['Prayer', 'Prière'], grief: ['Grief & loss', 'Deuil et perte'], family: ['Family', 'Famille'], faith: ['Faith questions', 'Questions de foi'],

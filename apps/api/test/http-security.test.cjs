@@ -16,8 +16,12 @@ test('HTTP API denies unauthenticated private access, rejects invalid input and 
   await app.listen(0, '127.0.0.1');
   try {
     const base = await app.getUrl();
-    for (const path of ['me/profile','bible-reading/history','bible-annotations','bible-annotations/passage?locale=fr&passageId=LUK.1.1','daily-word/sessions','daily-word/sessions/fixture','meditations/history','prayers','care/requests','care/pastor/queue','safeguarding/overview']) {
+    for (const path of ['me/profile','paths/fixture/state','livingword/editor','bible-reading/history','bible-annotations','bible-annotations/passage?locale=fr&passageId=LUK.1.1','daily-word/sessions','daily-word/sessions/fixture','meditations/history','prayers','care/requests','care/pastor/queue','safeguarding/overview']) {
       const response = await fetch(`${base}/api/v1/${path}`);
+      assert.equal(response.status, 401, path);
+    }
+    for (const [path, method] of [['paths/fixture/enroll', 'POST'], ['paths/fixture/lessons/fixture/complete', 'PUT']]) {
+      const response = await fetch(`${base}/api/v1/${path}`, { method });
       assert.equal(response.status, 401, path);
     }
     const invalid = await fetch(`${base}/api/v1/bible-reading/history`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locale: 'invalid', chapterId: '../secret', userId: 'other-user' }) });

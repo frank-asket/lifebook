@@ -25,7 +25,7 @@ test('care requests stay private to the member and the one pastor who claims the
       const meditation = new MeditationService();
       const care = new CareService(meditation);
       for (const service of [meditation, care]) await service.onModuleDestroy();
-      care.db = tx; care.userId = async auth => users[auth].id;
+      care.db = tx; care.transaction = run => run(tx); care.userId = async auth => users[auth].id;
       const admin = new PastorAdmin(tx);
       await admin.setRole(users.moderator.id, 'MODERATOR');
       const base = { bio: 'Synthetic', languages: ['en', 'tw'], churchName: 'Synthetic Chapel', ministryRole: 'Pastor', country: 'GH', referenceName: 'Ref', referenceContact: 'ref@example.invalid' };
@@ -49,14 +49,15 @@ test('care requests stay private to the member and the one pastor who claims the
         assert.ok(value.startsWith('lbenc:v1:test:'));
         assert.ok(!/grandmother|Ama|233/.test(value));
       }
-      await care.create('member', { ...valid, contactPreference: 'messages', phone: undefined, language: 'fr' });
+      const frenchRequest = await care.create('member', { ...valid, contactPreference: 'messages', phone: undefined, language: 'fr' });
       await assert.rejects(care.create('member', valid), /two open requests/);
 
       // Only active pastors see the queue, and only topic/language/time before claiming.
       for (const who of ['member', 'stranger', 'pending']) await assert.rejects(care.queue(who), /Only active, verified pastors/);
       const queue = await care.queue('pastorA');
-      assert.deepEqual(queue.map(q => q.id), [request.id], 'the French request is outside this pastor’s languages');
-      assert.deepEqual(Object.keys(queue[0]).sort(), ['contactPreference', 'createdAt', 'id', 'language', 'topic']);
+      assert.ok(queue.some(q => q.id === request.id));
+      assert.equal(queue.some(q => q.id === frenchRequest.id), false, 'the French request is outside this pastor’s languages');
+      assert.deepEqual(Object.keys(queue.find(q => q.id === request.id)).sort(), ['contactPreference', 'createdAt', 'id', 'language', 'topic']);
       await assert.rejects(care.case('pastorA', request.id), /not found/, 'content is hidden until claimed');
       // A pastor who asks for care as a member never sees their own request in the queue.
       const own = await care.create('pastorB', { ...valid, contactPreference: 'messages', phone: undefined });

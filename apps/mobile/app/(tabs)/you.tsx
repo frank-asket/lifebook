@@ -14,6 +14,7 @@ export default function You() {
   const session = useSession();
   const router = useRouter();
   const [signInError, setSignInError] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
   const [languageError, setLanguageError] = useState('');
   const [languageReady, setLanguageReady] = useState(false);
   const [languageBusy, setLanguageBusy] = useState(false);
@@ -50,13 +51,20 @@ export default function You() {
     } catch (e) { if (mounted.current) setLanguageError(errorMessage(e, lang)); }
     finally { if (mounted.current) setLanguageBusy(false); }
   }
+  async function authenticate(signOut = false) {
+    if (authBusy) return;
+    setAuthBusy(true); setSignInError('');
+    try { await (signOut ? session.signOut() : session.signIn()); }
+    catch { if (mounted.current) setSignInError(signOut ? (lang === 'fr' ? 'La déconnexion a échoué. Veuillez réessayer.' : 'Sign-out failed. Please try again.') : t.you.signInFailed); }
+    finally { if (mounted.current) setAuthBusy(false); }
+  }
   const name = session.firstName || (session.isSignedIn ? t.you.member : t.you.signedOut);
   return <Screen title={t.you.title}>
     <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
       <View accessibilityElementsHidden style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: c.soft, alignItems: 'center', justifyContent: 'center' }}>{session.firstName ? <Text style={{ color: c.deep, fontSize: 20, fontWeight: '800' }}>{session.firstName.slice(0, 1).toUpperCase()}</Text> : <Ionicons name="person" size={24} color={c.accent} />}</View>
       <View style={{ flex: 1 }}><Text style={{ color: c.ink, fontSize: 17, fontWeight: '600' }}>{name}</Text>{session.isSignedIn ? <Text style={{ color: c.muted, fontSize: 14 }}>{t.you.member}</Text> : null}</View>
     </Card>
-    {!session.isSignedIn ? <Button title={t.you.signIn} onPress={() => { setSignInError(''); session.signIn().catch(e => { console.warn('Sign-in incomplete:', e instanceof Error ? e.message : e); setSignInError(t.you.signInFailed); }); }} /> : null}
+    {!session.isSignedIn ? <Button title={t.you.signIn} disabled={authBusy} onPress={() => void authenticate()} /> : null}
     {signInError ? <Text accessibilityRole="alert" style={{ color: c.danger }}>{signInError}</Text> : null}
 
     <SectionLabel>{t.you.appearance}</SectionLabel>
@@ -73,6 +81,8 @@ export default function You() {
       <Segmented label={t.you.length} value={prefs.length} onChange={v => setPrefs({ length: v })} options={PRAYER_LENGTHS.map(n => ({ label: `${n} min`, value: n }))} />
     </Card>
 
+    <Row icon="headset-outline" title="LivingWord" subtitle={lang === 'fr' ? 'Enseignements audio et vidéo' : 'Audio and video teachings'} onPress={() => router.push('/livingword')} />
+    <Row icon="compass-outline" title={lang === 'fr' ? 'Mon parcours' : 'My Journey'} subtitle={lang === 'fr' ? 'Parcours et leçons à votre rythme' : 'Pathways and lessons at your own pace'} onPress={() => router.push('/discipleship')} />
     <SectionLabel>{t.you.reading}</SectionLabel>
     <Row icon="text-outline" title={t.you.readingRow} onPress={() => router.push('/reader-settings')} />
     {session.isSignedIn ? <Row icon="compass-outline" title={t.you.profile} onPress={() => router.push('/onboarding')} /> : null}
@@ -82,6 +92,7 @@ export default function You() {
 
     <SectionLabel>{t.you.privacy}</SectionLabel>
     <Card><Text style={{ color: c.muted, fontSize: 14, lineHeight: 21 }}>{t.you.privacyNote}</Text></Card>
-    {session.isSignedIn ? <Button kind="quiet" title={t.you.signOut} onPress={() => void session.signOut()} style={{ marginTop: 10 }} /> : null}
+    <Row icon="shield-checkmark-outline" title={lang === 'fr' ? 'Compte et confidentialité' : 'Account and privacy'} subtitle={lang === 'fr' ? 'Consentements, export et suppression' : 'Consent, export and deletion'} onPress={() => router.push('/account-privacy')} />
+    {session.isSignedIn ? <Button kind="quiet" title={t.you.signOut} disabled={authBusy} onPress={() => void authenticate(true)} style={{ marginTop: 10 }} /> : null}
   </Screen>;
 }

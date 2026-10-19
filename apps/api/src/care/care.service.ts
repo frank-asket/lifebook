@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { MeditationService } from '../meditation/meditation.service';
 import { isActivePastor } from '../pastors/pastor-admin';
@@ -19,6 +19,10 @@ export class CareService implements OnModuleDestroy {
   constructor(private readonly meditation: MeditationService) {}
   async onModuleDestroy() { await this.db.$disconnect(); }
   userId(auth?: string) { return this.meditation.userId(auth); }
+
+  private transaction<T>(run: (tx: Prisma.TransactionClient) => Promise<T>) {
+    return this.db.$transaction(run);
+  }
 
   // Bound to the request (and message) so ciphertext cannot be moved between requests.
   private seal(field: Field, request: { id: string; memberId: string }, text: string, messageId = '') { return encryptReflection(text, `care:${field}:${request.memberId}:${request.id}:${messageId}`); }
@@ -77,13 +81,17 @@ export class CareService implements OnModuleDestroy {
       phone = this.text(input.phone, 24, 'Phone number').replace(/[\s().-]/g, '');
       if (!/^\+?[0-9]{7,15}$/.test(phone)) throw new BadRequestException('Enter a phone number with country code, e.g. +233 20 000 0000');
     } else if (input.phone !== undefined && input.phone !== '') throw new BadRequestException('A phone number is only used for a callback');
-    const open = await this.db.careRequest.count({ where: { memberId, status: { in: ['OPEN', 'CLAIMED'] } } });
-    if (open >= CARE_LIMITS.openPerMember) throw new ConflictException('You already have two open requests. Close one before asking again.');
     const ref = { id: randomUUID(), memberId };
-    await this.db.careRequest.create({ data: {
-      ...ref, topic: input.topic, language: input.language, contactPreference: input.contactPreference, consentAt: new Date(),
-      messageCiphertext: this.seal('request', ref, message), nameCiphertext: name ? this.seal('name', ref, name) : null, phoneCiphertext: phone ? this.seal('phone', ref, phone) : null,
-    } });
+    await this.transaction(async tx => {
+      // Serialize quota decisions for this member; the existing User row is the lock key.
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${memberId} FOR UPDATE`;
+      const open = await tx.careRequest.count({ where: { memberId, status: { in: ['OPEN', 'CLAIMED'] } } });
+      if (open >= CARE_LIMITS.openPerMember) throw new ConflictException('You already have two open requests. Close one before asking again.');
+      await tx.careRequest.create({ data: {
+        ...ref, topic: input.topic as string, language: input.language as string, contactPreference: input.contactPreference as string, consentAt: new Date(),
+        messageCiphertext: this.seal('request', ref, message), nameCiphertext: name ? this.seal('name', ref, name) : null, phoneCiphertext: phone ? this.seal('phone', ref, phone) : null,
+      } });
+    });
     return this.mine(auth, ref.id);
   }
 
@@ -143,18 +151,23 @@ export class CareService implements OnModuleDestroy {
     return rows;
   }
   async claim(auth: string | undefined, id: string) {
-    const { userId, profile } = await this.activePastor(auth);
+    const { userId } = await this.activePastor(auth);
     this.checkId(id);
-    if (!profile.acceptingRequests) throw new ConflictException('Turn on “accepting requests” before claiming');
-    const open = await this.db.careRequest.count({ where: { pastorId: userId, status: 'CLAIMED' } });
-    if (open >= profile.maxOpenRequests) throw new ConflictException(`You already have ${open} open conversations, your limit`);
-    const request = await this.db.careRequest.findUnique({ where: { id } });
-    if (!request) throw new NotFoundException('Request not found');
-    if (request.memberId === userId) throw new ForbiddenException('You cannot take your own request');
-    if (!profile.languages.includes(request.language)) throw new ForbiddenException('This request is in a language you have not listed');
-    // Atomic: only one pastor can move a request from OPEN to CLAIMED.
-    const claimed = await this.db.careRequest.updateMany({ where: { id, status: 'OPEN' }, data: { status: 'CLAIMED', pastorId: userId, claimedAt: new Date() } });
-    if (!claimed.count) throw new ConflictException('Another pastor has already taken this request');
+    await this.transaction(async tx => {
+      // Different requests still share the same pastor capacity limit.
+      await tx.$queryRaw`SELECT "userId" FROM "PastorProfile" WHERE "userId" = ${userId} FOR UPDATE`;
+      const [verification, profile] = await Promise.all([tx.ministryVerification.findUnique({ where: { userId } }), tx.pastorProfile.findUnique({ where: { userId } })]);
+      if (!profile || !isActivePastor(verification)) throw new ForbiddenException('Only active, verified pastors can do this');
+      if (!profile.acceptingRequests) throw new ConflictException('Turn on “accepting requests” before claiming');
+      const open = await tx.careRequest.count({ where: { pastorId: userId, status: 'CLAIMED' } });
+      if (open >= profile.maxOpenRequests) throw new ConflictException(`You already have ${open} open conversations, your limit`);
+      const request = await tx.careRequest.findUnique({ where: { id } });
+      if (!request) throw new NotFoundException('Request not found');
+      if (request.memberId === userId) throw new ForbiddenException('You cannot take your own request');
+      if (!profile.languages.includes(request.language)) throw new ForbiddenException('This request is in a language you have not listed');
+      const claimed = await tx.careRequest.updateMany({ where: { id, status: 'OPEN' }, data: { status: 'CLAIMED', pastorId: userId, claimedAt: new Date() } });
+      if (!claimed.count) throw new ConflictException('Another pastor has already taken this request');
+    });
     return this.case(auth, id);
   }
   async cases(auth?: string) {
@@ -197,21 +210,26 @@ export class CareService implements OnModuleDestroy {
     if (typeof input.category !== 'string' || !(REPORT_CATEGORIES as readonly string[]).includes(input.category)) throw new BadRequestException('Choose what the concern is about');
     if (typeof input.shareConversation !== 'boolean') throw new BadRequestException('Say whether to share the conversation');
     const details = this.text(input.details, REPORT_LIMITS.details, 'Details');
+    const category = input.category;
     const since = new Date(Date.now() - 86400000);
-    if (await this.db.careReport.count({ where: { reporterId, createdAt: { gte: since } } }) >= REPORT_LIMITS.perDay) throw new ConflictException('You have sent several reports today. If someone is in danger, call 112 now.');
-    const id = randomUUID();
-    let transcriptCiphertext: string | null = null;
-    if (input.shareConversation) {
-      const messages = await this.db.careMessage.findMany({ where: { requestId: request.id }, orderBy: { createdAt: 'asc' } });
-      const transcript = [{ from: 'member', at: request.createdAt, text: this.open('request', request, request.messageCiphertext) },
-        ...messages.map(m => ({ from: m.senderRole, at: m.createdAt, text: this.open('message', request, m.ciphertext, m.id) }))];
-      transcriptCiphertext = encryptReflection(JSON.stringify(transcript), `care-report:transcript:${id}`);
-    }
-    await this.db.careReport.create({ data: {
-      id, requestId: request.id, reporterId, reporterRole: role, subjectPastorId: role === 'member' ? request.pastorId : null, category: input.category,
-      detailsCiphertext: encryptReflection(details, `care-report:details:${id}`), transcriptCiphertext,
-    } });
-    return { reported: true, sharedConversation: !!transcriptCiphertext };
+    const sharedConversation = await this.transaction(async tx => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${reporterId} FOR UPDATE`;
+      if (await tx.careReport.count({ where: { reporterId, createdAt: { gte: since } } }) >= REPORT_LIMITS.perDay) throw new ConflictException('You have sent several reports today. If someone is in danger, call 112 now.');
+      const id = randomUUID();
+      let transcriptCiphertext: string | null = null;
+      if (input.shareConversation) {
+        const messages = await tx.careMessage.findMany({ where: { requestId: request.id }, orderBy: { createdAt: 'asc' } });
+        const transcript = [{ from: 'member', at: request.createdAt, text: this.open('request', request, request.messageCiphertext) },
+          ...messages.map(m => ({ from: m.senderRole, at: m.createdAt, text: this.open('message', request, m.ciphertext, m.id) }))];
+        transcriptCiphertext = encryptReflection(JSON.stringify(transcript), `care-report:transcript:${id}`);
+      }
+      await tx.careReport.create({ data: {
+        id, requestId: request.id, reporterId, reporterRole: role, subjectPastorId: role === 'member' ? request.pastorId : null, category,
+        detailsCiphertext: encryptReflection(details, `care-report:details:${id}`), transcriptCiphertext,
+      } });
+      return !!transcriptCiphertext;
+    });
+    return { reported: true, sharedConversation };
   }
 
   // ---------- Shared ----------
@@ -219,12 +237,17 @@ export class CareService implements OnModuleDestroy {
   private async addMessage(request: Request, role: Role, text: unknown) {
     const body = this.text(text, CARE_LIMITS.message, 'Message');
     const id = randomUUID();
-    await this.db.careMessage.create({ data: { id, requestId: request.id, senderRole: role, ciphertext: this.seal('message', request, body, id) } });
-    await this.db.careRequest.update({ where: { id: request.id }, data: role === 'member' ? { memberReadAt: new Date() } : { pastorReadAt: new Date() } });
+    await this.transaction(async tx => {
+      await tx.$queryRaw`SELECT "id" FROM "CareRequest" WHERE "id" = ${request.id} FOR UPDATE`;
+      const fresh = await tx.careRequest.findUnique({ where: { id: request.id } });
+      if (!fresh || fresh.status === 'CLOSED' || (role === 'pastor' && fresh.status !== 'CLAIMED')) throw new ConflictException('This conversation is closed');
+      await tx.careMessage.create({ data: { id, requestId: request.id, senderRole: role, ciphertext: this.seal('message', request, body, id) } });
+      await tx.careRequest.update({ where: { id: request.id }, data: role === 'member' ? { memberReadAt: new Date() } : { pastorReadAt: new Date() } });
+    });
   }
   private async close(request: Request, by: Role) {
     if (request.status === 'CLOSED') return;
     const now = new Date();
-    await this.db.careRequest.update({ where: { id: request.id }, data: { status: 'CLOSED', closedAt: now, closedBy: by, deleteAfter: new Date(now.getTime() + CARE_LIMITS.retentionDays * 86400000) } });
+    await this.db.careRequest.updateMany({ where: { id: request.id, status: { not: 'CLOSED' } }, data: { status: 'CLOSED', closedAt: now, closedBy: by, deleteAfter: new Date(now.getTime() + CARE_LIMITS.retentionDays * 86400000) } });
   }
 }

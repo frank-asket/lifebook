@@ -82,8 +82,8 @@ export default function ReadingPlans() {
         {mine.map(e => <Row key={e.id} icon="book-outline" title={e.plan.title} subtitle={tr(`${e.completedDays} of ${e.plan.duration} days completed`, `${e.completedDays} jours sur ${e.plan.duration} terminés`)} onPress={() => setId(e.planId)} />)}
       </> : null}
       <SectionLabel>{tr('EXPLORE', 'EXPLORER')}</SectionLabel>
-      {error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} /> : plans === null ? <ActivityIndicator color={c.accent} /> : !plans.length ? <Card><Text style={{ color: c.muted }}>{tr('New reading plans are being prepared.', 'De nouveaux plans de lecture se préparent.')}</Text></Card> : plans.map(p => <Row key={p.id} icon="library-outline" title={p.title} subtitle={`${p.duration} ${tr('days', 'jours')} · ${p.description}`} onPress={() => setId(p.id)} />)}
-    </> : !plan ? detailError ? <ErrorLine message={detailError} onRetry={() => setRetry(n => n + 1)} /> : <ActivityIndicator color={c.accent} /> : <>
+      {error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} /> : plans === null ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /> : !plans.length ? <Card><Text style={{ color: c.muted }}>{tr('New reading plans are being prepared.', 'De nouveaux plans de lecture se préparent.')}</Text></Card> : plans.map(p => <Row key={p.id} icon="library-outline" title={p.title} subtitle={`${p.duration} ${tr('days', 'jours')} · ${p.description}`} onPress={() => setId(p.id)} />)}
+    </> : !plan ? detailError ? <ErrorLine message={detailError} onRetry={() => setRetry(n => n + 1)} /> : <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /> : <>
       <Card style={{ gap: 12 }}>
         <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 25, fontWeight: '700' }}>{plan.title}</Text>
         <Text style={{ color: c.muted, lineHeight: 23 }}>{plan.description}</Text>

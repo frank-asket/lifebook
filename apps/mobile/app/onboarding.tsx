@@ -88,20 +88,20 @@ export default function Onboarding() {
         </Card>
         <Card style={{ gap: 10 }}>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 19, fontWeight: '700' }}>{tr('Your journey (optional)', 'Votre parcours (facultatif)')}</Text>
-          {JOURNEYS.map(j => <Press key={j.value} accessibilityRole="radio" accessibilityState={{ checked: form.journey === j.value }} disabled={saving} onPress={() => setForm(p => ({ ...p, journey: p.journey === j.value ? null : j.value }))} style={{ padding: 14, borderRadius: 12, backgroundColor: form.journey === j.value ? c.soft : c.bg }}>
-            <Text style={{ color: form.journey === j.value ? c.deep : c.ink, fontSize: 16 }}>{faithJourneyLabel(j.value, lang)}</Text>
+          {JOURNEYS.map(j => <Press key={j.value} accessibilityRole="radio" accessibilityLabel={faithJourneyLabel(j.value, lang)} accessibilityState={{ checked: form.journey === j.value }} disabled={saving} onPress={() => setForm(p => ({ ...p, journey: p.journey === j.value ? null : j.value }))} style={{ padding: 14, borderRadius: 12, backgroundColor: form.journey === j.value ? c.soft : c.bg }}>
+            <Text style={{ color: form.journey === j.value ? c.deep : c.ink, fontSize: 16 }}>{form.journey === j.value ? '✓ ' : ''}{faithJourneyLabel(j.value, lang)}</Text>
           </Press>)}
         </Card>
         <Card style={{ gap: 10 }}>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 19, fontWeight: '700' }}>{tr('Learning goals (optional)', 'Objectifs d’apprentissage (facultatifs)')}</Text>
-          {[...new Set([...GOALS, ...(form.learningGoals ?? [])])].map(goal => <Press key={goal} accessibilityRole="checkbox" accessibilityState={{ checked: form.learningGoals?.includes(goal) }} disabled={saving} onPress={() => toggle('learningGoals', goal)} style={{ padding: 14, borderRadius: 12, backgroundColor: form.learningGoals?.includes(goal) ? c.soft : c.bg }}>
-            <Text style={{ color: form.learningGoals?.includes(goal) ? c.deep : c.ink, fontSize: 16 }}>{learningGoalLabel(goal, lang)}</Text>
+          {[...new Set([...GOALS, ...(form.learningGoals ?? [])])].map(goal => <Press key={goal} accessibilityLabel={learningGoalLabel(goal, lang)} accessibilityRole="checkbox" accessibilityState={{ checked: form.learningGoals?.includes(goal) }} disabled={saving} onPress={() => toggle('learningGoals', goal)} style={{ padding: 14, borderRadius: 12, backgroundColor: form.learningGoals?.includes(goal) ? c.soft : c.bg }}>
+            <Text style={{ color: form.learningGoals?.includes(goal) ? c.deep : c.ink, fontSize: 16 }}>{form.learningGoals?.includes(goal) ? '✓ ' : ''}{learningGoalLabel(goal, lang)}</Text>
           </Press>)}
         </Card>
         <Card style={{ gap: 10 }}>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 19, fontWeight: '700' }}>{tr('Preferred formats', 'Formats préférés')}</Text>
-          {[...new Set([...FORMATS, ...(form.preferredFormats ?? [])])].map(format => <Press key={format} accessibilityRole="checkbox" accessibilityState={{ checked: form.preferredFormats?.includes(format) }} disabled={saving} onPress={() => toggle('preferredFormats', format)} style={{ padding: 14, borderRadius: 12, backgroundColor: form.preferredFormats?.includes(format) ? c.soft : c.bg }}>
-            <Text style={{ color: form.preferredFormats?.includes(format) ? c.deep : c.ink, fontSize: 16 }}>{formatLabel(format, lang)}</Text>
+          {[...new Set([...FORMATS, ...(form.preferredFormats ?? [])])].map(format => <Press key={format} accessibilityLabel={formatLabel(format, lang)} accessibilityRole="checkbox" accessibilityState={{ checked: form.preferredFormats?.includes(format) }} disabled={saving} onPress={() => toggle('preferredFormats', format)} style={{ padding: 14, borderRadius: 12, backgroundColor: form.preferredFormats?.includes(format) ? c.soft : c.bg }}>
+            <Text style={{ color: form.preferredFormats?.includes(format) ? c.deep : c.ink, fontSize: 16 }}>{form.preferredFormats?.includes(format) ? '✓ ' : ''}{formatLabel(format, lang)}</Text>
           </Press>)}
         </Card>
         <Card style={{ gap: 12 }}>

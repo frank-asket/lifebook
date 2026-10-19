@@ -14,7 +14,7 @@ export function dayLabel(value: string, lang: 'en' | 'fr') {
 type Personal = { reflection: string; bookmarked: boolean; completedAt: string | null };
 
 export function ReflectionDetail({ kind, id, onClose, onChanged }: { kind: 'daily' | 'meditation'; id: string; onClose: () => void; onChanged: () => void }) {
-  const { c, lang, t } = useApp();
+  const { c, lang, t, reduceMotion } = useApp();
   const session = useSession();
   const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const [meditation, setMeditation] = useState<Meditation | null>(null);
@@ -99,9 +99,9 @@ export function ReflectionDetail({ kind, id, onClose, onChanged }: { kind: 'dail
     ]);
   }
   const names = lang === 'fr' ? ['Comprendre', 'Méditer', 'Réfléchir', 'Prier', 'Vivre'] : ['Understand', 'Meditate', 'Reflect', 'Pray', 'Live'];
-  return <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={close}>
+  return <Modal visible animationType={reduceMotion ? 'fade' : 'slide'} presentationStyle="fullScreen" onRequestClose={close}>
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
-      <Screen title={kind === 'daily' ? tr('Daily Word reflection', 'Réflexion sur la Parole du jour') : tr('A quiet moment', 'Un moment de calme')}>
+      <Screen keyboardInsets={false} title={kind === 'daily' ? tr('Daily Word reflection', 'Réflexion sur la Parole du jour') : tr('A quiet moment', 'Un moment de calme')}>
         <Button kind="quiet" title={tr('Close', 'Fermer')} onPress={close} disabled={busy} />
         {meditation ? <>
           <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 27, lineHeight: 35, fontWeight: '700' }}>{meditation.title}</Text>
@@ -116,7 +116,7 @@ export function ReflectionDetail({ kind, id, onClose, onChanged }: { kind: 'dail
           <Text style={{ color: c.deep }}>{daily.status === 'COMPLETED' ? tr('Completed', 'Terminée') : tr('In progress', 'En cours')}</Text>
           {dailySteps.map((step, i) => <Text key={step} style={{ color: c.ink }}>{daily.steps.some(value => value.step === step) ? '✓' : '○'} {names[i]} · {daily.steps.some(value => value.step === step) ? tr('Complete', 'Terminée') : tr('Not completed', 'Non terminée')}</Text>)}
         </Card> : null}
-        {loadError ? <ErrorLine message={loadError} onRetry={() => setRetry(n => n + 1)} /> : !ready ? <ActivityIndicator color={c.accent} /> : personal ? <Card style={{ gap: 14 }}>
+        {loadError ? <ErrorLine message={loadError} onRetry={() => setRetry(n => n + 1)} /> : !ready ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} /> : personal ? <Card style={{ gap: 14 }}>
           <SectionLabel>{tr('Your private reflection', 'Votre réflexion privée')}</SectionLabel>
           <TextInput accessibilityLabel={tr('Private reflection', 'Réflexion privée')} value={draft} onChangeText={setDraft} multiline maxLength={10000} editable={!busy} placeholder={tr('What will you carry into your day?', 'Que garderez-vous pour votre journée ?')} placeholderTextColor={c.muted} style={{ minHeight: 160, padding: 14, borderRadius: 12, borderWidth: 1, borderColor: c.line, color: c.ink, backgroundColor: c.bg, fontSize: 17, lineHeight: 27, textAlignVertical: 'top' }} />
           <Text style={{ color: c.muted, lineHeight: 22 }}>{tr('Reflections are encrypted in your account. Unsent drafts are lost if you leave this screen or the app closes.', 'Les réflexions sont chiffrées dans votre compte. Les brouillons sont perdus si vous quittez cet écran ou si l’application se ferme.')}</Text>

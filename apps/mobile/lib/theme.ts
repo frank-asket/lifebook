@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 // Same palette as the web app (DESIGN.md): one violet accent, quiet neutrals, a true dark theme.
 export const palettes = {
   light: { bg: '#f6f5fa', paper: '#ffffff', ink: '#201b32', muted: '#5f5870', line: '#e7e3ef', accent: '#6c4fc4', accentInk: '#ffffff', deep: '#47318a', soft: '#eee8fb', rose: '#f8e7f1', chip: '#ffffff', danger: '#b3261e', scrim: 'rgba(20,14,36,0.32)' },
@@ -6,6 +8,6 @@ export const palettes = {
 export type Palette = typeof palettes.light;
 
 // System font for interface text (San Francisco on iOS, with its own optical sizing); Georgia for Scripture.
-export const fonts = { serif: 'Georgia' };
+export const fonts = { serif: Platform.OS === 'android' ? 'serif' : 'Georgia' };
 
 export const space = { gutter: 20, card: 18, radius: 20 };

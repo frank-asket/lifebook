@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Alert, Animated, BackHandler, Easing, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, BackHandler, Easing, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api, timezone, useApp, useDailyWord, useSession, type TodaySession } from '../lib/app';
+import { reportScripture } from '../lib/scripture-usage';
 import { fonts } from '../lib/theme';
 import { Button, ErrorLine, Screen } from '../components/ui';
 import { requireToken } from '../lib/api';
@@ -13,11 +14,12 @@ import { BREATH, breathPhase, clock, spokenDuration, stillnessSeconds } from '..
 
 /** Full-screen prayer time: one step per screen, a clear way out, nothing else competing for attention. */
 export default function PrayerTime() {
-  const { c, t, lang, prefs } = useApp();
+  const { c, t, lang, prefs, reduceMotion } = useApp();
   const live = useDailyWord();
   // Keep the passage and session paired if the calendar day changes while this screen is open.
   const [reading, setReading] = useState<{ word: DailyWord; date: string } | null>(() => live.word ? { word: live.word, date: live.date } : null);
   const word = reading?.word ?? null;
+  useFocusEffect(useCallback(() => { if (word && reading) reportScripture(`daily:${lang}:${reading.date}`, word.verse.fumsToken); }, [word, reading, lang]));
   const session = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -26,7 +28,6 @@ export default function PrayerTime() {
   const [reflection, setReflection] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [reduceMotion, setReduceMotion] = useState(false);
   const [initializing, setInitializing] = useState(false);
   const [sessionError, setSessionError] = useState('');
   const [retrySession, setRetrySession] = useState(0);
@@ -37,7 +38,6 @@ export default function PrayerTime() {
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => { if (!reading && live.word) setReading({ word: live.word, date: live.date }); }, [reading, live.word, live.date]);
 
-  useEffect(() => { AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => undefined); }, []);
   useEffect(() => {
     if (!session.isSignedIn || !reading) return;
     const controller = new AbortController();
@@ -60,6 +60,7 @@ export default function PrayerTime() {
   useEffect(() => {
     enter.setValue(0);
     Animated.timing(enter, { toValue: 1, duration: 320, easing: Easing.bezier(0.2, 0.8, 0.2, 1), useNativeDriver: true }).start();
+    return () => enter.stopAnimation();
   }, [step, enter]);
 
   const done = STEPS.map(s => Boolean(today?.steps.some(x => x.step === s)));
@@ -107,18 +108,18 @@ export default function PrayerTime() {
 
   if (!word || (session.isSignedIn && (!today || initializing || sessionError))) return <Screen title={t.pt.title}>
     <Button kind="quiet" title={t.pt.close} onPress={close} />
-    {sessionError ? <ErrorLine message={sessionError} onRetry={() => setRetrySession(n => n + 1)} /> : !word && live.error ? <ErrorLine message={t.today.error} onRetry={live.retry} /> : <ActivityIndicator color={c.accent} />}
+    {sessionError ? <ErrorLine message={sessionError} onRetry={() => setRetrySession(n => n + 1)} /> : !word && live.error ? <ErrorLine message={t.today.error} onRetry={live.retry} /> : <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} />}
   </Screen>;
   const translateX = enter.interpolate({ inputRange: [0, 1], outputRange: [reduceMotion ? 0 : 22 * direction.current, 0] });
   const label = busy ? t.pt.saving : step === 3 ? t.pt.amen : step === 4 ? t.pt.finish : t.pt.next;
 
   return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
     <View style={{ paddingTop: insets.top + 4, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center' }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={t.pt.close} disabled={busy} onPress={close} hitSlop={8} style={({ pressed }) => ({ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
+      <Pressable accessibilityRole="button" accessibilityLabel={t.pt.close} disabled={busy} onPress={close} hitSlop={8} style={({ pressed }) => ({ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
         <Ionicons name="close" size={24} color={c.muted} />
       </Pressable>
       <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center' }} accessibilityLabel={step < 5 ? t.pt.stepOf(step + 1) : undefined}>
-        {step < 5 ? t.steps.map((name, i) => <Pressable key={name} accessibilityRole="button" accessibilityLabel={`${i + 1}. ${name}${done[i] ? t.pt.done : ''}`} accessibilityState={{ selected: i === step, disabled: busy }} disabled={busy} onPress={() => go(i)} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        {step < 5 ? t.steps.map((name, i) => <Pressable key={name} accessibilityRole="button" accessibilityLabel={`${i + 1}. ${name}${done[i] ? t.pt.done : ''}`} accessibilityState={{ selected: i === step, disabled: busy }} disabled={busy} onPress={() => go(i)} style={{ width: 48, height: 48, alignItems: 'center', justifyContent: 'center' }}>
           <View style={{ height: 7, width: i === step ? 22 : 7, borderRadius: 4, backgroundColor: i === step ? c.accent : done[i] ? c.accent : c.line, opacity: i !== step && done[i] ? 0.5 : 1 }} />
         </Pressable>) : null}
       </View>
@@ -131,6 +132,7 @@ export default function PrayerTime() {
         {step === 0 && <>
           <Text accessibilityRole="header" style={{ color: c.ink, fontFamily: fonts.serif, fontSize: 31, lineHeight: 44 }}>{word.verse.text}</Text>
           <Text style={{ color: c.muted, fontSize: 14, marginTop: 16 }}><Text style={{ color: c.deep, fontWeight: '700' }}>{word.verse.reference}</Text> · {word.verse.translation}</Text>
+          {word.verse.copyright ? <Text style={{ color: c.muted, fontSize: 12, marginTop: 10 }}>{word.verse.copyright}</Text> : null}
           <Text style={{ color: c.ink, fontSize: 17, lineHeight: 29, marginTop: 26 }}>{word.explanation}</Text>
         </>}
         {step === 1 && <>
@@ -205,7 +207,7 @@ function Stillness({ seconds, reduceMotion }: { seconds: number; reduceMotion: b
     <Text accessibilityLiveRegion="polite" style={{ color: c.ink, fontSize: 16, fontWeight: '600', textAlign: 'center', minHeight: 22 }}>{running ? (phase === 'in' ? t.pt.inhale : t.pt.exhale) : over ? t.pt.over : t.pt.hint}</Text>
     <View style={{ minHeight: 48, justifyContent: 'center' }}>
       {running ? <Text style={{ color: c.muted, fontSize: 13, fontVariant: ['tabular-nums'] }}>{clock(seconds - (elapsed ?? 0))}</Text>
-        : !over ? <Button kind="soft" title={t.pt.beginStill(spokenDuration(seconds, lang))} onPress={() => setElapsed(0)} style={{ minHeight: 44 }} /> : null}
+        : !over ? <Button kind="soft" title={t.pt.beginStill(spokenDuration(seconds, lang))} onPress={() => setElapsed(0)} style={{ minHeight: 48 }} /> : null}
     </View>
   </View>;
 }

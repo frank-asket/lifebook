@@ -48,7 +48,7 @@ export default function Meditations() {
     ]} />
     {collection !== 'today' && !session.isSignedIn ? <Card><Text style={{ color: c.muted }}>{tr('Sign in from You to see your saved meditations and completion history.', 'Connectez-vous depuis Vous pour retrouver vos méditations enregistrées et terminées.')}</Text></Card>
       : error ? <ErrorLine message={error} onRetry={() => setRetry(n => n + 1)} />
-      : items === null ? <ActivityIndicator color={c.accent} />
+      : items === null ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} />
       : items.length === 0 ? <Card><Text style={{ color: c.muted, lineHeight: 23 }}>{collection === 'today'
         ? tr('No meditation has been published in your language yet. Daily Word remains available from Today.', 'Aucune méditation n’a encore été publiée dans votre langue. La Parole du jour reste disponible depuis Aujourd’hui.')
         : collection === 'saved' ? tr('Meditations you save will appear here.', 'Les méditations que vous enregistrez apparaîtront ici.')

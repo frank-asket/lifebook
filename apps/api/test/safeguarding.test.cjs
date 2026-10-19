@@ -29,7 +29,7 @@ test('reports reach only the safeguarding lead, conversations only when shared, 
       const identity = async auth => users[auth].id;
       const meditation = new MeditationService(); const care = new CareService(meditation); const sg = new SafeguardingService(meditation);
       for (const service of [meditation, care, sg]) await service.onModuleDestroy();
-      care.db = tx; care.userId = identity; sg.db = tx; sg.userId = identity;
+      care.db = tx; care.transaction = run => run(tx); care.userId = identity; sg.db = tx; sg.userId = identity;
       const admin = new PastorAdmin(tx);
       await admin.setRole(users.lead.id, 'MODERATOR');
       for (const [name, slug] of [['pastor', 'sg-test-pastor'], ['otherPastor', 'sg-test-other']]) {

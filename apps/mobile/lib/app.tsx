@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { AccessibilityInfo, useColorScheme } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { copy, type Copy } from './copy';
 import { palettes, type Palette } from './theme';
@@ -13,19 +13,26 @@ export { api } from './api';
 
 // ---- Preferences (this device only) ----
 type Appearance = 'system' | 'light' | 'dark';
-type Prefs = { appearance: Appearance; lang: Lang | null; length: PrayerLength; reader: ReaderSettings; bibleLocale: Lang | null; chapterId: string | null };
+type Prefs = { appearance: Appearance; lang: Lang | null; length: PrayerLength; reader: ReaderSettings; bibleLocale: Lang | null; chapterId: string | null; verse: number | null };
 const PREFS_KEY = 'lifebook.prefs';
-const DEFAULT_PREFS: Prefs = { appearance: 'system', lang: null, length: 5, reader: DEFAULT_READER, bibleLocale: null, chapterId: null };
+const DEFAULT_PREFS: Prefs = { appearance: 'system', lang: null, length: 5, reader: DEFAULT_READER, bibleLocale: null, chapterId: null, verse: null };
 const deviceLang = (): Lang => (Intl.DateTimeFormat().resolvedOptions().locale || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en';
 
 type AppValue = {
   prefs: Prefs; setPrefs: (patch: Partial<Prefs>) => void;
-  lang: Lang; t: Copy; c: Palette; dark: boolean; bibleLocale: Lang;
+  lang: Lang; t: Copy; c: Palette; dark: boolean; bibleLocale: Lang; reduceMotion: boolean;
 };
 const AppContext = createContext<AppValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const scheme = useColorScheme();
+  const [reduceMotion, setReduceMotion] = useState(true);
+  useEffect(() => {
+    let active = true;
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    AccessibilityInfo.isReduceMotionEnabled().then(value => { if (active) setReduceMotion(value); }).catch(() => undefined);
+    return () => { active = false; subscription.remove(); };
+  }, []);
   const [prefs, setState] = useState<Prefs>(DEFAULT_PREFS);
   useEffect(() => {
     SecureStore.getItemAsync(PREFS_KEY).then(raw => {
@@ -38,21 +45,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           length: parseLength(String(v.length ?? '')),
           reader: parseReaderSettings(JSON.stringify(v.reader ?? null)),
           bibleLocale: v.bibleLocale === 'en' || v.bibleLocale === 'fr' ? v.bibleLocale : null,
+          verse: Number.isInteger(v.verse) && Number(v.verse) >= 1 && Number(v.verse) <= 200 ? Number(v.verse) : null,
           chapterId: typeof v.chapterId === 'string' && /^[1-3]?[A-Z]{2,3}\.\d{1,3}$/.test(v.chapterId) ? v.chapterId : null,
         });
       } catch { /* defaults */ }
     }).catch(() => undefined);
   }, []);
   const setPrefs = useCallback((patch: Partial<Prefs>) => setState(prev => {
-    const next = { ...prev, ...patch };
+    const next = { ...prev, ...patch, ...(patch.chapterId && patch.chapterId !== prev.chapterId && patch.verse === undefined ? { verse: null } : {}) };
     SecureStore.setItemAsync(PREFS_KEY, JSON.stringify(next)).catch(() => undefined);
     return next;
   }), []);
   const value = useMemo(() => {
     const lang = prefs.lang ?? deviceLang();
     const dark = prefs.appearance === 'system' ? scheme === 'dark' : prefs.appearance === 'dark';
-    return { prefs, setPrefs, lang, t: copy[lang], c: dark ? palettes.dark : palettes.light, dark, bibleLocale: prefs.bibleLocale ?? lang };
-  }, [prefs, setPrefs, scheme]);
+    return { prefs, setPrefs, lang, t: copy[lang], c: dark ? palettes.dark : palettes.light, dark, reduceMotion, bibleLocale: prefs.bibleLocale ?? lang };
+  }, [prefs, setPrefs, scheme, reduceMotion]);
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 export function useApp() {

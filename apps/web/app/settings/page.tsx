@@ -74,5 +74,5 @@ export default function Settings() {
         <DeleteAccount language={language}/>
       </div>
     </div>
-  </Shell>;
+  {data && ['ADMIN', 'MODERATOR'].includes(data.role) ? <Link className="btn btn-outline" href="/livingword/editor">{tr('LivingWord editorial', 'Édition LivingWord')}</Link> : null}</Shell>;
 }

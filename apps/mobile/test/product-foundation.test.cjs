@@ -89,6 +89,7 @@ test('prayer detail edits, answers, protects unsaved changes and confirms deleti
     },
     '../../web/lib/prayer-api': { PRAYER_LIMITS: { title: 120, body: 5000, answerNote: 1000 } },
     '../../web/lib/errors': { errorMessage },
+    './guided-prayer': { GuidedPrayer: 'GuidedPrayer' },
     './ui': Object.fromEntries(['Button', 'Card', 'ErrorLine', 'Screen'].map(name => [name, name])),
   });
   let renderer;
@@ -133,8 +134,9 @@ test('mobile profile loads existing choices, preserves custom data/consent, and 
   });
   let renderer;
   await act(async () => { renderer = create(React.createElement(Onboarding)); });
-  const goal = renderer.root.findAllByType('Press').find(node => node.props.accessibilityRole === 'checkbox' && node.findByType('Text').props.children === 'Learn about Jesus');
+  const goal = renderer.root.findAllByType('Press').find(node => node.props.accessibilityRole === 'checkbox' && node.props.accessibilityLabel === 'Learn about Jesus');
   await act(async () => goal.props.onPress());
+  assert.ok(goal.findByType('Text').props.children.join('').startsWith('✓ '), 'selected goals also have a visible mark');
   const save = renderer.root.findAllByType('Button').find(node => node.props.title === 'Save and continue');
   assert.equal(save.props.disabled, false);
   await act(async () => save.props.onPress());
