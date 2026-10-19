@@ -83,6 +83,9 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
       assert.equal((await daily.stats('first')).completedSessions, 1);
       assert.equal((await daily.history('first'))[0].reflection.content, 'Synthetic daily reflection');
       assert.deepEqual(await daily.history('second'), []);
+      assert.equal((await daily.one('first', session.id)).reflection.content, 'Synthetic daily reflection');
+      await assert.rejects(daily.one('second', session.id), /not found/);
+      assert.equal((await daily.stats('first')).totalSessions, 1, 'opening a past session must not create a new session');
       await assert.rejects(daily.removeReflection('second', session.id), /not found/);
       assert.equal((await daily.removeReflection('first', session.id)).deleted, 1);
       assert.equal((await daily.today('first', 'Africa/Accra')).reflection, null);
@@ -96,6 +99,20 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
       await meditation.complete(item.id, 'first');
       assert.equal((await meditation.history('first')).length, 1);
       assert.deepEqual(await meditation.history('second'), []);
+      await meditation.bookmark(item.id, true, 'first');
+      assert.equal((await meditation.removeReflection(item.id, 'second')).deleted, 0);
+      assert.equal((await meditation.myState(item.id, 'first')).reflection, 'Synthetic meditation reflection');
+      await meditation.reflect(item.id, 'Updated synthetic reflection', 'first');
+      assert.equal((await meditation.myState(item.id, 'first')).reflection, 'Updated synthetic reflection');
+      assert.equal((await meditation.removeReflection(item.id, 'first')).deleted, 1);
+      assert.equal((await meditation.removeReflection(item.id, 'first')).deleted, 0);
+      const afterDelete = await meditation.myState(item.id, 'first');
+      assert.equal(afterDelete.reflection, '');
+      assert.equal(afterDelete.bookmarked, true);
+      assert.ok(afterDelete.completedAt, 'deleting a reflection must preserve completion');
+      await meditation.reflect(item.id, 'Synthetic unpublished reflection', 'first');
+      await tx.meditation.update({ where: { id: item.id }, data: { isPublished: false } });
+      assert.equal((await meditation.removeReflection(item.id, 'first')).deleted, 1, 'owners can erase reflections after content is unpublished');
       throw rollback;
     }, { timeout: 20000 }), error => error === rollback);
   } finally {

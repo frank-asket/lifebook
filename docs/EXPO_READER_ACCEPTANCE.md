@@ -28,4 +28,6 @@ Run the matrix in English/French and light/dark themes on iOS and Android. Inclu
 | Keep prayer time open across midnight | Opened passage remains paired with its original session. Closing and reopening starts the new day |
 | Fail chapter metadata, then retry | Chapter controls and translation metadata recover; another translation's stale name is never retained |
 
-Limits to retain in the product checklist: saved-verse list pagination, exact-verse scrolling, meditation history/saved screens, encrypted offline drafts, native session restart checks and broader consent/account parity. Unsent drafts currently live in memory only and are not recoverable after the operating system terminates the app.
+Limits to retain in the product checklist: saved-verse list pagination, exact-verse scrolling, encrypted offline drafts, native session restart checks and broader consent/account parity. Unsent drafts currently live in memory only and are not recoverable after the operating system terminates the app.
+
+Daily Word history and meditation collections/reflection deletion now have source implementations; run the additional [reflection history acceptance matrix](REFLECTION_HISTORY_ACCEPTANCE.md).

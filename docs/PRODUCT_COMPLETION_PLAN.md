@@ -11,7 +11,7 @@ A feature is complete only when its real UI, API, persistence, ownership checks,
 | Workstream | Source present | Remaining product work | Priority |
 | --- | --- | --- | --- |
 | M3.6 Bible reader | Web reader and progress APIs; Expo chapter reader, saved verse editor, highlights, plans and explicit day completion | Device acceptance, Scripture search, pagination beyond 200 annotations and exact-verse scrolling; text/license attribution acceptance across clients | High |
-| M3.6 Daily Word and meditation | Shared daily Scripture, encrypted reflections, web meditation/history; mobile save retries, draft guards and passage/session pairing | History/saved meditation screens; device acceptance for midnight, background and interrupted writes | High |
+| M3.6 Daily Word and meditation | Shared daily Scripture, encrypted reflections, web meditation/history; mobile save retries, draft guards, passage/session pairing, session history and meditation collections | Native device acceptance for midnight, background and interrupted writes | High |
 | M3.7 Prayer Sanctuary | Encrypted journal CRUD, answered notes, consent-gated guided meditation, web journal | Expo journal detail/edit/answer/delete is the first implementation batch below; bulk deletion, guided meditation and consent controls remain | High |
 | M3.7 Pastoral care | Directory, private requests/replies, role checks, reporting, safeguarding and retention implementation | Expo end-to-end care and safeguarding journeys; concurrency/abuse review; independently approved pilot content and contacts | High |
 | M3.8 Account and settings | Web account controls; themed Expo profile editor and saved account language; server owner checks | Expo export/deletion and full consent management; device verification of failure paths and account switching | High |
@@ -59,7 +59,7 @@ This PR also includes the earlier review fixes: account tests enabled in CI, add
 
 ## Explicit exclusions during product work
 
-- Pushing a review branch and opening a PR are authorized. No merge, deployment, production migration, production backfill or retention activation.
+- The user has now authorized pushing, merging and deploying reviewed source changes. Production migrations still require migration-history review and a confirmed recoverable backup; no backfill or retention activation is included.
 - No reset/drop/overwrite of Supabase. Applied migration files are immutable.
 - No assertion that draft pastoral/legal content is approved, or that a provider grants media rights.
 - No claim of product readiness until the acceptance matrix has real results.
@@ -82,3 +82,17 @@ Source implementation on 19 October 2026; device acceptance is still open.
 Use these screens with the matching API source version: older APIs lack the two new endpoints. The mobile editor deliberately displays a read error rather than falling back to an incomplete list. The web editor now checks a seemingly new verse through the same exact endpoint before writing: an older record outside the list blocks the write and offers to load its saved version after confirming draft discard.
 
 Verification: **20 mobile/cross-client component tests passed**, **37 web tests passed**, and **55 API tests passed with one optional live-provider test skipped**. API tests ran against a fresh disposable PostgreSQL 17 database with all 11 existing migrations replayed; it was removed afterwards. Tests include the exact annotation lookup outside the 200-row window, cross-account/locale isolation, HTTP authentication checks, reflection deletion and unchanged step completion. Prisma validation, NestJS build, mobile TypeScript, web and marketing production builds, and iOS/Android Hermes JavaScript exports all passed. No production database or deployment operation ran. Native installation, visual checks and accessibility acceptance remain open.
+
+
+## Daily Word history and reflection controls — 19 October 2026
+
+- [x] Expo Daily Word history with partial/completed progress, UTC-stable stored calendar dates, exact session reads and existing private reflection editing/deletion.
+- [x] Restore the unpublished local meditation continuation against merged main: Today/Saved/Completed collections, published detail, bookmarks, explicit completion and private reflection editing.
+- [x] Add owner-scoped meditation reflection deletion to API, Expo and web, preserving completion/bookmarks. No schema change is introduced.
+- [x] Keep drafts on failed writes, confirm deletion/discard, serialize mobile writes, block blank editing after private-read failures and ignore callbacks after account-tree unmount.
+- [x] Cover persistence, cross-member isolation, repeated deletion and deleting an own reflection after content is unpublished; add mobile/cross-client tests for English/French, failures and account-unmount behavior.
+- [ ] Run the native and web manual matrix in [REFLECTION_HISTORY_ACCEPTANCE.md](REFLECTION_HISTORY_ACCEPTANCE.md). Automated component tests and JavaScript exports are not device acceptance.
+
+The history screens show at most 100 sessions/completions; pagination remains open. Drafts remain in memory only. Published meditation content must already exist; no production content is seeded. Use the matching API source version for the new exact session and meditation-reflection deletion endpoints. Source implementation did not access production. The user subsequently authorized a reviewed production release; no production schema migration, backfill or retention activation is needed.
+
+Verification: **32 mobile/cross-client tests, 37 web tests and 55 API tests passed**, with one optional live-provider API test skipped. Prisma validation, NestJS build, mobile TypeScript, Next.js web build and iOS/Android Hermes JavaScript exports passed. API fixtures ran only against a disposable local PostgreSQL 17 database with existing migrations replayed; it was removed afterwards. Native installation, visual and accessibility acceptance remain open.

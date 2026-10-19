@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   NotFoundException,
@@ -208,6 +209,13 @@ export class MeditationController {
       body.text,
       auth,
     );
+  }
+
+  @Delete(':id/reflection')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete your private reflection without changing completion or bookmark' })
+  removeReflection(@Param('id') id: string, @Headers('authorization') auth?: string) {
+    return this.service.removeReflection(id, auth);
   }
 
   /**

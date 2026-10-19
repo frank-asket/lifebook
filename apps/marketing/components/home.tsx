@@ -31,7 +31,7 @@ export function Home({ locale }: { locale: Locale }) {
           <h2 id="how-title">{t.how.title}</h2>
           <p className="section-lead">{t.how.lead}</p>
         </header>
-        <ol className="walk">{t.how.steps.map(([title, text], i) => <li key={title}>
+        <ol className="walk" tabIndex={0} aria-labelledby="how-title">{t.how.steps.map(([title, text], i) => <li key={title}>
           <Phone label={`${t.screens.steps[i]} · LifeBook`}><StepScreen s={t.screens} step={i} steps={t.screens.steps} /></Phone>
           <div className="walk-copy"><span className="step-n">{i + 1}</span><h3>{title}</h3><p>{text}</p></div>
         </li>)}</ol>
@@ -77,7 +77,7 @@ export function Home({ locale }: { locale: Locale }) {
           <h2 id="ease-title">{t.ease.title}</h2>
           <p className="section-lead">{t.ease.lead}</p>
         </header>
-        <div className="ease-phones">
+        <div className="ease-phones" tabIndex={0} role="region" aria-labelledby="ease-title">
           <figure><Phone label={t.ease.captions[0]}><ReaderScreen s={t.screens} /></Phone><figcaption>{t.ease.captions[0]}</figcaption></figure>
           <figure><Phone label={t.ease.captions[1]} dark><TodayScreen s={t.screens} dark /></Phone><figcaption>{t.ease.captions[1]}</figcaption></figure>
         </div>
