@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy, Se
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { MeditationService } from '../meditation/meditation.service';
+import { pageOf } from '../common/paging';
 import { decryptReflection, encryptReflection } from '../security/reflection-crypto';
 
 export const PRAYER_LIMITS = { body: 5000, title: 120, answerNote: 1000, list: 200, preview: 160 };
@@ -48,13 +49,24 @@ export class PrayerService implements OnModuleDestroy {
     return row;
   }
 
+  private summary(row: Row) {
+    const { body, answerNote: _answerNote, meditation: _meditation, ...rest } = this.detail(row);
+    return { ...rest, preview: body.length > PRAYER_LIMITS.preview ? body.slice(0, PRAYER_LIMITS.preview).trimEnd() + '…' : body };
+  }
+
   async list(auth?: string) {
     const userId = await this.userId(auth);
     const rows = await this.db.prayerEntry.findMany({ where: { userId }, orderBy: { updatedAt: 'desc' }, take: PRAYER_LIMITS.list });
-    return rows.map(row => {
-      const { body, answerNote: _answerNote, meditation: _meditation, ...rest } = this.detail(row);
-      return { ...rest, preview: body.length > PRAYER_LIMITS.preview ? body.slice(0, PRAYER_LIMITS.preview).trimEnd() + '…' : body };
-    });
+    return rows.map(row => this.summary(row));
+  }
+
+  /** The whole journal, 50 at a time, most recently changed first ("Load more"). */
+  async page(auth: string | undefined, cursor?: string) {
+    const userId = await this.userId(auth);
+    const { rows, nextCursor } = await pageOf(cursor,
+      async id => !!await this.db.prayerEntry.findFirst({ where: { id, userId }, select: { id: true } }),
+      window => this.db.prayerEntry.findMany({ where: { userId }, orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }], ...window }));
+    return { items: rows.map(row => this.summary(row)), nextCursor };
   }
   async get(auth: string | undefined, id: string) {
     const userId = await this.userId(auth);

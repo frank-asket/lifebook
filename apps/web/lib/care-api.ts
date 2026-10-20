@@ -19,6 +19,7 @@ const json = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body) })
 export function createCareApi(request: typeof api) { return {
   create: (token: string, input: { topic: CareTopic; language: string; contactPreference: 'messages' | 'callback'; name?: string; phone?: string; message: string; consent: true }) => request<CareThread>('/care/requests', token, json(input)),
   mine: (token: string, signal?: AbortSignal) => request<CareSummary[]>('/care/requests', token, { signal }),
+  minePage: (token: string, cursor?: string, signal?: AbortSignal) => request<{ items: CareSummary[]; nextCursor: string | null }>(`/care/requests/page${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`, token, { signal }),
   get: (token: string, id: string, signal?: AbortSignal) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}`, token, { signal }),
   reply: (token: string, id: string, text: string) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}/messages`, token, json({ text })),
   close: (token: string, id: string) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}/close`, token, { method: 'POST' }),

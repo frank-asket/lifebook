@@ -14,6 +14,7 @@ import { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@clerk/backend';
 import { BibleContentService } from '../bible-content/bible-content.service';
 import { entryFor, validateDailyWordLibrary } from './daily-word-library';
+import { pageOf } from '../common/paging';
 
 type SupportedLocale = 'en' | 'fr';
 
@@ -334,6 +335,15 @@ export class MeditationService implements OnModuleDestroy {
 
       take: 100,
     });
+  }
+
+  /** Completed meditations, 50 at a time, most recent first ("Load more"). */
+  async historyPage(auth: string | undefined, cursor?: string) {
+    const userId = await this.userId(auth);
+    const { rows, nextCursor } = await pageOf(cursor,
+      async id => !!await this.db.meditationCompletion.findFirst({ where: { id, userId }, select: { id: true } }),
+      window => this.db.meditationCompletion.findMany({ where: { userId }, include: { meditation: true }, orderBy: [{ completedAt: 'desc' }, { id: 'desc' }], ...window }));
+    return { items: rows, nextCursor };
   }
 
   // ============================================================

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Param, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Header, Headers, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GuidedMeditationService } from './guided-meditation.service';
 import { PrayerService } from './prayer.service';
@@ -12,6 +12,7 @@ function only(body: unknown, keys: string[]): Record<string, unknown> {
 export class PrayerController {
   constructor(private readonly service: PrayerService, private readonly meditation: GuidedMeditationService) {}
   @Get() list(@Headers('authorization') auth?: string) { return this.service.list(auth); }
+  @Get('page') @Header('Cache-Control', 'no-store') page(@Headers('authorization') auth: string | undefined, @Query('cursor') cursor?: string) { return this.service.page(auth, cursor); }
   @Post() create(@Headers('authorization') auth: string | undefined, @Body() body: unknown) { return this.service.create(auth, only(body, ['title', 'body'])); }
   // Requires an explicit phrase so a stray request cannot erase a prayer journal.
   @Post('delete-all') @HttpCode(200) removeAll(@Headers('authorization') auth: string | undefined, @Body() body: unknown) { return this.service.removeAll(auth, only(body, ['confirm']).confirm); }

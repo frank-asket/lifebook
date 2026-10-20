@@ -134,8 +134,9 @@ function collectionHarness(screen, { signedIn = true, missing = false, fail = fa
       requests.push({ path, token });
       if (fail) throw new web.ApiError('Synthetic failure', 503);
       if (path.includes('/today?')) { if (missing) throw new web.ApiError('No meditation', 404); return meditation; }
+      if (path.startsWith('/daily-word/sessions/page')) return { items: [daily], nextCursor: null };
       return screen === 'meditations' ? [{ meditation }] : [daily];
-    } }, '../../web/lib/api': { ApiError: web.ApiError }, '../../web/lib/errors': { errorMessage }, '../components/ui': ui, '../components/reflection-detail': detail,
+    } }, '../../web/lib/api': { ApiError: web.ApiError }, '../../web/lib/errors': { errorMessage }, '../components/ui': ui, '../components/reflection-detail': detail, '../components/load-more': { LoadMore: () => null },
   });
   return { Component, requests };
 }
@@ -143,7 +144,7 @@ function collectionHarness(screen, { signedIn = true, missing = false, fail = fa
 test('Daily Word history loads owner sessions, marks partial progress and opens exact record', async () => {
   const h = collectionHarness('daily-word-history');
   let r; await act(async () => { r = create(React.createElement(h.Component)); });
-  assert.equal(h.requests[0].path, '/daily-word/sessions?limit=100');
+  assert.equal(h.requests[0].path, '/daily-word/sessions/page');
   assert.equal(h.requests[0].token, 'synthetic-token');
   assert.match(r.root.findByType('Row').props.subtitle, /1\/5 · En cours/);
   await act(async () => r.root.findByType('Row').props.onPress());

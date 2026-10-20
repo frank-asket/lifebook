@@ -2,6 +2,7 @@ import { encryptReflection, decryptReflection } from '../security/reflection-cry
 import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { DailyWordStep, DailyWordSessionStatus, PrismaClient } from '@prisma/client';
 import { MeditationService } from '../meditation/meditation.service';
+import { pageOf } from '../common/paging';
 const STEPS = Object.values(DailyWordStep);
 @Injectable()
 export class DailyWordService implements OnModuleDestroy {
@@ -60,6 +61,14 @@ export class DailyWordService implements OnModuleDestroy {
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new BadRequestException('limit must be an integer from 1 to 100');
     const sessions = await this.db.dailyWordSession.findMany({ where: { userId }, orderBy: { journeyDate: 'desc' }, take: limit, include: this.include });
     return sessions.map(session => this.view(session));
+  }
+  /** Every session, 50 at a time, newest day first ("Load more"). */
+  async page(auth: string, cursor?: string) {
+    const userId = await this.meditation.userId(auth);
+    const { rows, nextCursor } = await pageOf(cursor,
+      async id => !!await this.db.dailyWordSession.findFirst({ where: { id, userId }, select: { id: true } }),
+      window => this.db.dailyWordSession.findMany({ where: { userId }, orderBy: [{ journeyDate: 'desc' }, { id: 'desc' }], include: this.include, ...window }));
+    return { items: rows.map(session => this.view(session)), nextCursor };
   }
   async removeReflection(auth: string, id: string) {
     const session = await this.owner(auth, id);

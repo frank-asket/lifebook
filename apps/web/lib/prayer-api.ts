@@ -8,6 +8,7 @@ export type Prayer = { id: string; title: string | null; body: string; answeredA
 
 export const prayerApi = {
   list: (token: string, signal?: AbortSignal) => api<PrayerSummary[]>('/prayers', token, { signal }),
+  page: (token: string, cursor?: string, signal?: AbortSignal) => api<{ items: PrayerSummary[]; nextCursor: string | null }>(`/prayers/page${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`, token, { signal }),
   get: (token: string, id: string, signal?: AbortSignal) => api<Prayer>(`/prayers/${encodeURIComponent(id)}`, token, { signal }),
   create: (token: string, input: { title?: string; body: string }) => api<Prayer>('/prayers', token, { method: 'POST', body: JSON.stringify(input) }),
   update: (token: string, id: string, input: { title?: string; body?: string }) => api<Prayer>(`/prayers/${encodeURIComponent(id)}`, token, { method: 'PUT', body: JSON.stringify(input) }),

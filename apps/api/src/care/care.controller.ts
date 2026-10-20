@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Param, Post, Put } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Header, Headers, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CareService } from './care.service';
 
@@ -13,6 +13,7 @@ export class CareController {
 
   // Member
   @Post('requests') create(@Headers('authorization') auth: string | undefined, @Body() body: unknown) { return this.care.create(auth, only(body, ['topic', 'language', 'contactPreference', 'name', 'phone', 'message', 'consent'])); }
+  @Get('requests/page') @Header('Cache-Control', 'no-store') pageMine(@Headers('authorization') auth: string | undefined, @Query('cursor') cursor?: string) { return this.care.pageMine(auth, cursor); }
   @Get('requests') listMine(@Headers('authorization') auth?: string) { return this.care.listMine(auth); }
   @Get('requests/:id') mine(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.care.mine(auth, id); }
   @Post('requests/:id/messages') @HttpCode(201) memberReply(@Headers('authorization') auth: string | undefined, @Param('id') id: string, @Body() body: unknown) { return this.care.memberReply(auth, id, only(body, ['text']).text); }

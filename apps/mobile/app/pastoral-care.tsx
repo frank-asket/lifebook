@@ -6,6 +6,7 @@ import { requireToken } from '../lib/api';
 import { care, CARE_TOPICS, REPORT_CATEGORIES, topicLabel, statusLabel, reportCategoryLabel, type CareTopic, type CareSummary, type CareThread, type QueueItem, type PastorStatus, type ReportCategory } from '../lib/care';
 import { Button, Card, ErrorLine, Row, Screen, Segmented, SectionLabel } from '../components/ui';
 import { errorMessage } from '../../web/lib/errors';
+import { LoadMore } from '../components/load-more';
 
 type Pastor = { slug: string; displayName: string; bio: string; languages: string[]; church: string | null };
 export default function PastoralCare() {
@@ -15,6 +16,7 @@ export default function PastoralCare() {
   const [selected, setSelected] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [items, setItems] = useState<CareSummary[] | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [pastors, setPastors] = useState<Pastor[] | null>(null);
   const [status, setStatus] = useState<PastorStatus | null>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
@@ -32,8 +34,8 @@ export default function PastoralCare() {
         const current = await care.pastorStatus(token, controller.signal); if (controller.signal.aborted) return;
         setStatus(current);
         if (mode === 'pastor' && !current.active) return;
-        const [rows, waiting] = await Promise.all([mode === 'pastor' ? care.cases(token, controller.signal) : care.mine(token, controller.signal), mode === 'pastor' ? care.queue(token, controller.signal) : Promise.resolve([])]);
-        if (!controller.signal.aborted) { setItems(rows); setQueue(waiting); }
+        const [rows, waiting] = await Promise.all([mode === 'pastor' ? care.cases(token, controller.signal).then(items => ({ items, nextCursor: null })) : care.minePage(token, undefined, controller.signal), mode === 'pastor' ? care.queue(token, controller.signal) : Promise.resolve([])]);
+        if (!controller.signal.aborted) { setItems(rows.items); setNextCursor(rows.nextCursor); setQueue(waiting); }
       } catch (e) { if (!controller.signal.aborted) setError(errorMessage(e, lang)); }
     })();
     return () => controller.abort();
@@ -65,7 +67,8 @@ export default function PastoralCare() {
         </Card> : null}
         <SectionLabel>{tr('Conversations', 'Échanges')}</SectionLabel>
         {items === null ? <ActivityIndicator accessibilityLabel={tr('Loading requests', 'Chargement des demandes')} color={c.accent} /> : items.length === 0 ? <Text style={{ color: c.muted }}>{tr('No conversations yet.', 'Aucun échange pour le moment.')}</Text> : items.map(item => <Row key={item.id} icon="chatbubble-outline" title={topicLabel(item.topic, lang)} subtitle={`${statusLabel(item.status, lang)}${item.unread ? ` · ${tr('Unread reply', 'Réponse non lue')}` : ''}`} onPress={() => setSelected(item.id)} />)}
-        {items && items.length >= 50 ? <Text style={{ color: c.muted }}>{tr('Showing the 50 most recent conversations.', 'Les 50 échanges les plus récents sont affichés.')}</Text> : null}
+        {mode === 'pastor' && items && items.length >= 50 ? <Text style={{ color: c.muted }}>{tr('Showing the 50 most recent conversations.', 'Les 50 échanges les plus récents sont affichés.')}</Text> : null}
+        {mode !== 'pastor' && items ? <LoadMore cursor={nextCursor} fetchPage={async cursor => care.minePage(await requireToken(session.getToken), cursor)} onLoaded={page => { setItems(rows => [...(rows ?? []), ...page.items.filter(p => !(rows ?? []).some(r => r.id === p.id))]); setNextCursor(page.nextCursor); }} /> : null}
       </>}
     </>}
     <Button kind="quiet" title={tr('Refresh', 'Actualiser')} disabled={busy} onPress={() => setRetry(n => n + 1)} />

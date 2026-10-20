@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { Prisma, PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { MeditationService } from '../meditation/meditation.service';
+import { pageOf } from '../common/paging';
 import { isActivePastor } from '../pastors/pastor-admin';
 import { decryptReflection, encryptReflection } from '../security/reflection-crypto';
 
@@ -99,6 +100,15 @@ export class CareService implements OnModuleDestroy {
     const memberId = await this.userId(auth);
     const rows = await this.db.careRequest.findMany({ where: { memberId }, orderBy: { createdAt: 'desc' }, take: 50, include: { messages: { orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } }, pastor: { select: { pastorProfile: { select: { displayName: true } } } } } });
     return rows.map(r => this.summary(r, 'member', r.pastor?.pastorProfile?.displayName));
+  }
+
+  /** All of the member's requests, 50 at a time, newest first ("Load more"). */
+  async pageMine(auth: string | undefined, cursor?: string) {
+    const memberId = await this.userId(auth);
+    const { rows, nextCursor } = await pageOf(cursor,
+      async id => !!await this.db.careRequest.findFirst({ where: { id, memberId }, select: { id: true } }),
+      window => this.db.careRequest.findMany({ where: { memberId }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include: { messages: { orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } }, pastor: { select: { pastorProfile: { select: { displayName: true } } } } }, ...window }));
+    return { items: rows.map(r => this.summary(r, 'member', r.pastor?.pastorProfile?.displayName)), nextCursor };
   }
 
   private async ownRequest(memberId: string, id: string) {
