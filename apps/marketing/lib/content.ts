@@ -3,10 +3,15 @@
 // In section titles, *words* are set in the italic Scripture serif (see components/accent.tsx).
 
 export type Locale = 'en' | 'fr';
+/** Where a feature stands today. Only "live" may be described as available. */
+export type Status = 'live' | 'pilot' | 'content' | 'review' | 'dev';
+export type Feature = { title: string; text: string; status: Status };
+export type FeatureGroup = { id: 'read' | 'pray' | 'grow'; tab: string; title: string; lead: string; items: Feature[] };
+export type RoadmapStage = { title: string; lead: string; items: [string, string][] };
 
 const en = {
   meta: { title: 'LifeBook — A quiet daily time with God', description: 'One Bible passage a day and five quiet steps to take it in: understand, be still, reflect, pray and live it. In English and French, with a private prayer journal and no streaks.' },
-  nav: { how: 'How it works', inside: 'What’s inside', ease: 'Easy to use', promises: 'Our promises', faq: 'Questions', signIn: 'Sign in', start: 'Get started', menu: 'Menu', close: 'Close menu', other: 'Français', otherHref: '/fr', otherLang: 'fr' },
+  nav: { why: 'Why LifeBook', features: 'Features', how: 'How it works', roadmap: 'What’s coming', churches: 'For churches', inside: 'What’s inside', ease: 'Easy to use', promises: 'Our promises', faq: 'Questions', signIn: 'Sign in', start: 'Get started', menu: 'Menu', close: 'Close menu', other: 'Français', otherHref: '/fr', otherLang: 'fr' },
   hero: {
     eyebrow: 'Daily Scripture and prayer',
     title: 'A quiet *daily time* with God.',
@@ -62,6 +67,88 @@ const en = {
     ] as [string, string][],
     captions: ['Reading settings, one tap away.', 'Dark mode, in French.'],
   },
+  vision: {
+    eyebrow: 'Why we made LifeBook', title: 'Helping people meet God *in His Word,* every day.',
+    lead: 'Many of us want to read the Bible and pray more, but busy days, noisy apps and the fear of “doing it wrong” get in the way. LifeBook offers one passage and a few quiet minutes, in English or French, and walks with you through it. No feed, no scores, no pressure. It is made to sit alongside your church, never to replace it.',
+    pillars: [
+      ['Scripture first', 'Every verse comes from a named translation and is quoted exactly. Nothing is paraphrased or written by AI.'],
+      ['Gentle by design', 'No streaks to protect and no ranking of your faith. A missed day is simply an empty circle.'],
+      ['Private by default', 'Prayers and reflections are encrypted. You can download everything or delete your account at any time.'],
+      ['Rooted in community', 'LifeBook points you back to your church, to trusted pastors, and to local helplines when someone may be in danger.'],
+    ] as [string, string][],
+  },
+  glance: {
+    label: 'LifeBook at a glance',
+    items: [
+      ['2', 'languages: English and French'],
+      ['2', 'Bible translations, quoted exactly: King James Version and J.N. Darby'],
+      ['5', 'quiet steps a day, in 2, 5 or 10 minutes'],
+      ['0', 'streaks, scores or rankings of your faith'],
+    ] as [string, string][],
+  },
+  status: { live: 'Available', pilot: 'Pilot', content: 'Content on its way', review: 'In pastoral review', dev: 'In development' } as Record<Status, string>,
+  features: {
+    eyebrow: 'Features', title: 'Everything LifeBook does, and *what is on its way.*',
+    lead: 'Each feature shows where it stands today. Only those marked Available are open to everyone now.',
+    tabsLabel: 'Feature groups',
+    groups: [
+      { id: 'read', tab: 'Read & study', title: 'Read and study the Bible', lead: 'Scripture in your language, at your pace, with room to think.', items: [
+        { title: 'Today’s Word', text: 'One passage a day, the same for everyone, with a short explanation, a question and a prayer.', status: 'live' },
+        { title: 'The Bible in English and French', text: 'Read any book, pick up where you left off, and set the text size, spacing and typeface that suit your eyes.', status: 'live' },
+        { title: 'Search Scripture', text: 'Find a passage by words or by reference, in the translation you are reading.', status: 'live' },
+        { title: 'Notes, highlights and saved verses', text: 'Mark the verses that speak to you. Your notes are private and encrypted.', status: 'live' },
+        { title: 'Reading plans', text: 'Three plans to begin with: Discover Jesus (21 days), Foundations of Faith (14 days) and Walking with God (30 days). You mark each day yourself.', status: 'live' },
+        { title: 'Bible studies', text: 'Guided studies that read each passage in its context. The library is being written and reviewed.', status: 'content' },
+      ] },
+      { id: 'pray', tab: 'Pray & reflect', title: 'Pray and reflect', lead: 'A private space to respond to what you read.', items: [
+        { title: 'The five-step prayer time', text: 'Understand, be still, reflect, pray and live it, one screen at a time.', status: 'live' },
+        { title: 'A private prayer journal', text: 'Write what is on your heart, mark answered prayers, and delete any of them at any time.', status: 'live' },
+        { title: 'Your reflections, kept', text: 'Look back over past days and what you wrote, and remove anything you no longer want to keep.', status: 'live' },
+        { title: 'Daily meditations', text: 'Short guided meditations on a passage, to save or return to. The first ones are being prepared.', status: 'content' },
+        { title: 'Scripture companion', text: 'Passages for what you are carrying, such as grief, worry or gratitude, chosen from a list pastors have reviewed.', status: 'review' },
+        { title: 'Guided meditation on a prayer', text: 'Only if you ask, a short meditation on one of your prayers. It never writes Scripture, and it shows helplines if someone may be in danger.', status: 'review' },
+      ] },
+      { id: 'grow', tab: 'Grow & belong', title: 'Grow and belong', lead: 'Learning at your own pace, with people who care.', items: [
+        { title: 'Suggestions for you', text: 'If you switch them on, reading suggestions based on the goals you chose, never on your prayers.', status: 'live' },
+        { title: 'My Journey pathways', text: 'Step-by-step courses on the foundations of faith. Progress never ranks your faith. Pathways are being written.', status: 'content' },
+        { title: 'LivingWord teachings', text: 'Approved audio and video teachings in your language, with transcripts. Nothing plays by itself.', status: 'content' },
+        { title: 'Ask a pastor', text: 'A verified pastor who speaks your language can listen and pray with you, privately. Not an emergency service.', status: 'pilot' },
+        { title: 'Your data, your choice', text: 'Download everything LifeBook holds about you, or delete your account and its data, from Settings.', status: 'live' },
+        { title: 'iPhone and Android apps', text: 'LifeBook already works in your phone’s browser. The native apps are being tested.', status: 'dev' },
+      ] },
+    ] as FeatureGroup[],
+  },
+  roadmap: {
+    eyebrow: 'What’s coming', title: 'Built carefully, *opened carefully.*',
+    lead: 'Some features are built but wait for the people and content that make them trustworthy. Here is what is next, and why it is waiting.',
+    stages: [
+      { title: 'Content on its way', lead: 'The features are built. The words inside them are being written and reviewed.', items: [
+        ['Bible studies and daily meditations', 'Each lesson is checked against its passage before it is published.'],
+        ['My Journey pathways', 'Courses on the foundations of faith, written for people at any stage.'],
+        ['LivingWord teachings', 'Teachings appear once their publishing rights, credit and transcript are confirmed.'],
+      ] },
+      { title: 'Pilot and review', lead: 'Features that involve people or sensitive moments open only after review.', items: [
+        ['Ask a pastor', 'We are inviting a small group of verified pastors, with safeguarding support, before opening requests to everyone.'],
+        ['Scripture companion and guided meditation', 'A pastoral reviewer is checking every topic and passage first. Guided meditation stays optional and never writes Scripture.'],
+      ] },
+      { title: 'In development', lead: 'Larger pieces we are building next.', items: [
+        ['iPhone and Android apps', 'Native apps with the same privacy and the same gentle pace, now in testing.'],
+        ['Listening to the Bible', 'Audio Scripture in both languages, once recording licences are in place.'],
+        ['More ways to grow', 'Content for encouragement, discipleship and serving others, and short notes for people new to faith.'],
+      ] },
+    ] as RoadmapStage[],
+  },
+  churches: {
+    eyebrow: 'For pastors, churches and ministries', title: 'Walk with your community *through the week.*',
+    lead: 'LifeBook is a companion to the local church. We are opening it, carefully, to the people who already care for others.',
+    items: [
+      ['Pray with people who ask', 'Verified pastors answer private requests in their language, with safeguarding support and clear limits.', 'pilot'],
+      ['Share approved teaching', 'Ministries can offer audio and video teachings through LivingWord, with transcripts, credit and confirmed publishing rights.', 'content'],
+      ['Help write and review', 'Studies, pathways and Daily Word entries are written and reviewed by people. Every entry is approved before it is published.', 'content'],
+      ['Point people home', 'LifeBook encourages members to stay close to their church, and shows local helplines when someone may be in danger.', 'live'],
+    ] as [string, string, Status][],
+    button: 'Get in touch', subject: 'LifeBook for pastors and churches',
+  },
   inside: {
     eyebrow: 'What’s inside', title: 'Everything here serves the *time you spend with God.*',
     cards: {
@@ -90,6 +177,8 @@ const en = {
       ['Does LifeBook use AI?', 'Not for Scripture. A guided meditation on one of your prayers will be offered only when you ask for it, after pastoral review. It chooses passages from a reviewed list, and if a prayer suggests someone may be in danger, it shows helplines instead.'],
       ['Which languages and devices?', 'English and French. LifeBook works in the browser on any phone or computer. iPhone and Android apps are in development.'],
       ['Does it replace my church?', 'No. LifeBook is a companion for personal time with God, not a substitute for a church community, pastoral care or professional help.'],
+      ['What can I use today?', 'Everything marked Available in Features works today in any browser: Today’s Word and the prayer time, the Bible in English and French with search, notes and reading plans, the private prayer journal, and your data controls. The rest is built and waiting for content, pastoral review or licences, as explained in What’s coming.'],
+      ['Can my church or ministry take part?', 'Yes, carefully. We are inviting verified pastors to the Ask a pastor pilot, and ministries to share approved teachings and help write and review content. Write to hello@lifebook.app.'],
     ] as [string, string][],
   },
   cta: { title: 'Make room for *the Word* today.', text: 'One passage, a few quiet minutes, and space to respond.', button: 'Begin today', open: 'Open LifeBook' },
@@ -101,7 +190,7 @@ export type Content = typeof en;
 
 const fr: Content = {
   meta: { title: 'LifeBook — Un temps calme avec Dieu, chaque jour', description: 'Un passage biblique par jour et cinq étapes paisibles pour l’accueillir : comprendre, faire silence, réfléchir, prier et le vivre. En français et en anglais, avec un journal de prière privé et sans séries à tenir.' },
-  nav: { how: 'Comment ça marche', inside: 'Ce qu’on y trouve', ease: 'Simple', promises: 'Nos engagements', faq: 'Questions', signIn: 'Se connecter', start: 'Commencer', menu: 'Menu', close: 'Fermer le menu', other: 'English', otherHref: '/', otherLang: 'en' },
+  nav: { why: 'Pourquoi LifeBook', features: 'Fonctionnalités', how: 'Comment ça marche', roadmap: 'À venir', churches: 'Églises', inside: 'Ce qu’on y trouve', ease: 'Simple', promises: 'Nos engagements', faq: 'Questions', signIn: 'Se connecter', start: 'Commencer', menu: 'Menu', close: 'Fermer le menu', other: 'English', otherHref: '/', otherLang: 'en' },
   hero: {
     eyebrow: 'La Parole et la prière au quotidien',
     title: 'Un temps *calme* avec Dieu, chaque jour.',
@@ -157,6 +246,88 @@ const fr: Content = {
     ],
     captions: ['Les réglages de lecture, à portée de doigt.', 'Le mode sombre, en anglais.'],
   },
+  vision: {
+    eyebrow: 'Pourquoi LifeBook', title: 'Aider chacun à rencontrer Dieu *dans sa Parole,* chaque jour.',
+    lead: 'Beaucoup d’entre nous aimeraient lire la Bible et prier davantage, mais les journées chargées, les applications bruyantes et la peur de « mal faire » s’en mêlent. LifeBook propose un passage et quelques minutes de calme, en français ou en anglais, et vous accompagne pas à pas. Ni fil d’actualité, ni scores, ni pression. Il est fait pour accompagner votre Église, jamais pour la remplacer.',
+    pillars: [
+      ['La Parole d’abord', 'Chaque verset provient d’une traduction nommée et est cité exactement. Rien n’est paraphrasé ni écrit par une IA.'],
+      ['Doux à dessein', 'Aucune série à préserver, aucun classement de votre foi. Un jour manqué n’est qu’un cercle vide.'],
+      ['Privé par défaut', 'Vos prières et réflexions sont chiffrées. Vous pouvez tout télécharger ou supprimer votre compte à tout moment.'],
+      ['Ancré dans la communauté', 'LifeBook vous renvoie vers votre Église, vers des pasteurs de confiance, et vers les lignes d’écoute locales en cas de danger.'],
+    ],
+  },
+  glance: {
+    label: 'LifeBook en bref',
+    items: [
+      ['2', 'langues : le français et l’anglais'],
+      ['2', 'traductions de la Bible, citées exactement : la Bible J.N. Darby et la King James Version'],
+      ['5', 'étapes paisibles par jour, en 2, 5 ou 10 minutes'],
+      ['0', 'série, score ou classement de votre foi'],
+    ],
+  },
+  status: { live: 'Disponible', pilot: 'Pilote', content: 'Contenu en préparation', review: 'En relecture pastorale', dev: 'En développement' },
+  features: {
+    eyebrow: 'Fonctionnalités', title: 'Tout ce que fait LifeBook, et *ce qui arrive.*',
+    lead: 'Chaque fonctionnalité indique où elle en est. Seules celles marquées Disponible sont ouvertes à tous aujourd’hui.',
+    tabsLabel: 'Groupes de fonctionnalités',
+    groups: [
+      { id: 'read', tab: 'Lire et étudier', title: 'Lire et étudier la Bible', lead: 'La Parole dans votre langue, à votre rythme, avec de la place pour réfléchir.', items: [
+        { title: 'La Parole du jour', text: 'Un passage par jour, le même pour tous, avec une courte explication, une question et une prière.', status: 'live' },
+        { title: 'La Bible en français et en anglais', text: 'Lisez n’importe quel livre, reprenez là où vous en étiez, et choisissez la taille, l’interligne et la police qui vous conviennent.', status: 'live' },
+        { title: 'Rechercher dans la Bible', text: 'Trouvez un passage par des mots ou par sa référence, dans la traduction que vous lisez.', status: 'live' },
+        { title: 'Notes, surlignages et versets enregistrés', text: 'Marquez les versets qui vous parlent. Vos notes sont privées et chiffrées.', status: 'live' },
+        { title: 'Plans de lecture', text: 'Trois plans pour commencer : découvrir Jésus dans les Évangiles (21 jours), les fondements de la foi (14 jours) et marcher avec Dieu (30 jours). Vous marquez vous-même chaque jour.', status: 'live' },
+        { title: 'Études bibliques', text: 'Des études guidées qui lisent chaque passage dans son contexte. La bibliothèque est en cours d’écriture et de relecture.', status: 'content' },
+      ] },
+      { id: 'pray', tab: 'Prier et méditer', title: 'Prier et méditer', lead: 'Un espace privé pour répondre à ce que vous lisez.', items: [
+        { title: 'Le temps de prière en cinq étapes', text: 'Comprendre, faire silence, réfléchir, prier et le vivre, un écran à la fois.', status: 'live' },
+        { title: 'Un journal de prière privé', text: 'Écrivez ce qui vous tient à cœur, notez les prières exaucées, et supprimez-les à tout moment.', status: 'live' },
+        { title: 'Vos réflexions, conservées', text: 'Relisez les jours passés et ce que vous avez écrit, et retirez ce que vous ne voulez plus garder.', status: 'live' },
+        { title: 'Méditations quotidiennes', text: 'De courtes méditations guidées sur un passage, à garder ou à reprendre. Les premières sont en préparation.', status: 'content' },
+        { title: 'Compagnon des Écritures', text: 'Des passages pour ce que vous portez, comme le deuil, l’inquiétude ou la gratitude, choisis dans une liste relue par des pasteurs.', status: 'review' },
+        { title: 'Méditation guidée sur une prière', text: 'Seulement si vous la demandez, une courte méditation sur l’une de vos prières. Elle n’écrit jamais la Parole, et affiche des lignes d’écoute en cas de danger.', status: 'review' },
+      ] },
+      { id: 'grow', tab: 'Grandir et appartenir', title: 'Grandir et appartenir', lead: 'Apprendre à votre rythme, avec des personnes qui prennent soin.', items: [
+        { title: 'Suggestions pour vous', text: 'Si vous les activez, des suggestions de lecture fondées sur les objectifs que vous avez choisis, jamais sur vos prières.', status: 'live' },
+        { title: 'Parcours « Mon parcours »', text: 'Des cours pas à pas sur les fondements de la foi. La progression ne classe jamais votre foi. Les parcours sont en cours d’écriture.', status: 'content' },
+        { title: 'Enseignements LivingWord', text: 'Des enseignements audio et vidéo approuvés, dans votre langue, avec transcription. Rien ne se lance tout seul.', status: 'content' },
+        { title: 'Demander un pasteur', text: 'Un pasteur vérifié qui parle votre langue peut vous écouter et prier avec vous, en privé. Ce n’est pas un service d’urgence.', status: 'pilot' },
+        { title: 'Vos données, votre choix', text: 'Téléchargez tout ce que LifeBook conserve à votre sujet, ou supprimez votre compte et ses données, depuis les paramètres.', status: 'live' },
+        { title: 'Applications iPhone et Android', text: 'LifeBook fonctionne déjà dans le navigateur de votre téléphone. Les applications natives sont en test.', status: 'dev' },
+      ] },
+    ],
+  },
+  roadmap: {
+    eyebrow: 'À venir', title: 'Construit avec soin, *ouvert avec soin.*',
+    lead: 'Certaines fonctionnalités sont prêtes mais attendent les personnes et les contenus qui les rendent dignes de confiance. Voici ce qui arrive, et pourquoi cela attend.',
+    stages: [
+      { title: 'Contenu en préparation', lead: 'Les fonctionnalités sont prêtes. Les textes qu’elles contiennent sont en cours d’écriture et de relecture.', items: [
+        ['Études bibliques et méditations quotidiennes', 'Chaque leçon est vérifiée au regard de son passage avant d’être publiée.'],
+        ['Parcours « Mon parcours »', 'Des cours sur les fondements de la foi, pour chacun, où qu’il en soit.'],
+        ['Enseignements LivingWord', 'Les enseignements paraissent une fois leurs droits de publication, leurs crédits et leur transcription confirmés.'],
+      ] },
+      { title: 'Pilote et relecture', lead: 'Les fonctionnalités qui touchent aux personnes ou aux moments sensibles n’ouvrent qu’après relecture.', items: [
+        ['Demander un pasteur', 'Nous invitons d’abord un petit groupe de pasteurs vérifiés, avec un accompagnement en protection, avant d’ouvrir les demandes à tous.'],
+        ['Compagnon des Écritures et méditation guidée', 'Un relecteur pastoral vérifie d’abord chaque thème et chaque passage. La méditation guidée reste facultative et n’écrit jamais la Parole.'],
+      ] },
+      { title: 'En développement', lead: 'Les grands chantiers à venir.', items: [
+        ['Applications iPhone et Android', 'Des applications natives, avec la même confidentialité et le même rythme paisible, actuellement en test.'],
+        ['Écouter la Bible', 'Les Écritures en audio, dans les deux langues, une fois les licences d’enregistrement obtenues.'],
+        ['Plus de façons de grandir', 'Des contenus pour l’encouragement, la formation de disciple et le service, et de courtes notes pour ceux qui découvrent la foi.'],
+      ] },
+    ],
+  },
+  churches: {
+    eyebrow: 'Pour les pasteurs, les Églises et les ministères', title: 'Accompagnez votre communauté *tout au long de la semaine.*',
+    lead: 'LifeBook accompagne l’Église locale. Nous l’ouvrons, avec soin, à celles et ceux qui prennent déjà soin des autres.',
+    items: [
+      ['Prier avec ceux qui le demandent', 'Des pasteurs vérifiés répondent aux demandes privées dans leur langue, avec un accompagnement en protection et des limites claires.', 'pilot'],
+      ['Partager un enseignement approuvé', 'Les ministères peuvent proposer des enseignements audio et vidéo via LivingWord, avec transcription, crédits et droits de publication confirmés.', 'content'],
+      ['Écrire et relire', 'Les études, les parcours et la Parole du jour sont écrits et relus par des personnes. Chaque texte est approuvé avant publication.', 'content'],
+      ['Ramener vers la maison', 'LifeBook encourage chacun à rester proche de son Église, et affiche les lignes d’écoute locales en cas de danger.', 'live'],
+    ],
+    button: 'Nous écrire', subject: 'LifeBook pour les pasteurs et les Églises',
+  },
   inside: {
     eyebrow: 'Ce qu’on y trouve', title: 'Tout ici sert le *temps que vous passez avec Dieu.*',
     cards: {
@@ -185,6 +356,8 @@ const fr: Content = {
       ['LifeBook utilise-t-il l’IA ?', 'Pas pour la Parole. Une méditation guidée sur l’une de vos prières sera proposée seulement si vous la demandez, après relecture pastorale. Elle choisit des passages dans une liste relue, et si une prière laisse penser que quelqu’un est en danger, elle affiche des lignes d’écoute.'],
       ['Quelles langues et quels appareils ?', 'Le français et l’anglais. LifeBook fonctionne dans le navigateur de tout téléphone ou ordinateur. Les applications iPhone et Android sont en préparation.'],
       ['Est-ce que cela remplace mon Église ?', 'Non. LifeBook accompagne votre temps personnel avec Dieu ; il ne remplace ni une communauté d’Église, ni un accompagnement pastoral, ni une aide professionnelle.'],
+      ['Que puis-je utiliser aujourd’hui ?', 'Tout ce qui est marqué Disponible dans Fonctionnalités fonctionne dès aujourd’hui dans tout navigateur : la Parole du jour et le temps de prière, la Bible en français et en anglais avec la recherche, les notes et les plans de lecture, le journal de prière privé, et la maîtrise de vos données. Le reste est prêt et attend des contenus, une relecture pastorale ou des licences, comme expliqué dans À venir.'],
+      ['Mon Église ou mon ministère peut-il participer ?', 'Oui, avec soin. Nous invitons des pasteurs vérifiés au pilote « Demander un pasteur », et des ministères à partager des enseignements approuvés et à aider à écrire et relire les contenus. Écrivez à hello@lifebook.app.'],
     ],
   },
   cta: { title: 'Faites de la place à *la Parole* aujourd’hui.', text: 'Un passage, quelques minutes de calme, et un espace pour répondre.', button: 'Commencer aujourd’hui', open: 'Ouvrir LifeBook' },

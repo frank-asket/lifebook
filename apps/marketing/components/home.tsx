@@ -5,10 +5,13 @@ import { JournalScreen, PastorScreen, Phone, ReaderScreen, StepScreen, TodayScre
 import { ArrowIcon, BookIcon, ChatIcon, LockIcon, SunIcon } from './icons';
 import { Accent } from './accent';
 import { InsideShowcase } from './inside-showcase';
+import { FeatureTabs } from './feature-tabs';
 
 export function Home({ locale }: { locale: Locale }) {
   const t = content[locale];
   const c = t.inside.cards;
+  const pillarIcons = [<BookIcon key="b" />, <SunIcon key="s" />, <LockIcon key="l" />, <ChatIcon key="c" />];
+  const churchIcons = [<ChatIcon key="c" />, <BookIcon key="b" />, <SunIcon key="s" />, <LockIcon key="l" />];
   return <main>
     <section className="hero">
       <div className="container hero-grid">
@@ -26,6 +29,21 @@ export function Home({ locale }: { locale: Locale }) {
       </div>
     </section>
 
+    <section className="section vision" id="why" aria-labelledby="why-title">
+      <div className="container vision-grid">
+        <header className="vision-head">
+          <p className="eyebrow">{t.vision.eyebrow}</p>
+          <h2 id="why-title"><Accent text={t.vision.title} /></h2>
+          <p className="section-lead">{t.vision.lead}</p>
+        </header>
+        <ul className="pillars">{t.vision.pillars.map(([title, text], i) => <li key={title}><span className="tile-icon">{pillarIcons[i]}</span><h3>{title}</h3><p>{text}</p></li>)}</ul>
+      </div>
+    </section>
+
+    <section className="glance" aria-label={t.glance.label}>
+      <dl className="container glance-row">{t.glance.items.map(([n, text]) => <div key={text}><dt>{n}</dt><dd>{text}</dd></div>)}</dl>
+    </section>
+
     <section className="section" id="how" aria-labelledby="how-title">
       <div className="container">
         <header className="section-head">
@@ -41,7 +59,22 @@ export function Home({ locale }: { locale: Locale }) {
       </div>
     </section>
 
-    <section className="section section-tint" id="inside" aria-labelledby="inside-title">
+    <section className="section section-tint" id="features" aria-labelledby="features-title">
+      <div className="container">
+        <header className="section-head">
+          <p className="eyebrow">{t.features.eyebrow}</p>
+          <h2 id="features-title"><Accent text={t.features.title} /></h2>
+          <p className="section-lead">{t.features.lead}</p>
+        </header>
+        <FeatureTabs groups={t.features.groups} status={t.status} label={t.features.tabsLabel} phones={[
+          <Phone key="read" label={t.features.groups[0].title}><ReaderScreen s={t.screens} sheet={false} /></Phone>,
+          <Phone key="pray" label={t.features.groups[1].title}><JournalScreen s={t.screens} /></Phone>,
+          <Phone key="grow" label={t.features.groups[2].title}><PastorScreen s={t.screens} /></Phone>,
+        ]} />
+      </div>
+    </section>
+
+    <section className="section" id="inside" aria-labelledby="inside-title">
       <div className="container">
         <header className="section-head">
           <p className="eyebrow">{t.inside.eyebrow}</p>
@@ -56,18 +89,48 @@ export function Home({ locale }: { locale: Locale }) {
       </div>
     </section>
 
-    <section className="section" id="ease" aria-labelledby="ease-title">
+    <section className="section section-tint" id="ease" aria-labelledby="ease-title">
       <div className="container">
         <header className="section-head">
           <p className="eyebrow">{t.ease.eyebrow}</p>
           <h2 id="ease-title"><Accent text={t.ease.title} /></h2>
           <p className="section-lead">{t.ease.lead}</p>
         </header>
-        <div className="ease-phones" tabIndex={0} role="region" aria-labelledby="ease-title">
+        <div className="ease-phones" tabIndex={0} role="region" aria-label={t.ease.captions.join(' ')}>
           <figure><Phone label={t.ease.captions[0]}><ReaderScreen s={t.screens} /></Phone><figcaption>{t.ease.captions[0]}</figcaption></figure>
           <figure><Phone label={t.ease.captions[1]} dark><TodayScreen s={t.screens} dark /></Phone><figcaption>{t.ease.captions[1]}</figcaption></figure>
         </div>
         <dl className="ease-points">{t.ease.points.map(([title, text]) => <div key={title}><dt>{title}</dt><dd>{text}</dd></div>)}</dl>
+      </div>
+    </section>
+
+    <section className="section section-tint" id="roadmap" aria-labelledby="roadmap-title">
+      <div className="container">
+        <header className="section-head">
+          <p className="eyebrow">{t.roadmap.eyebrow}</p>
+          <h2 id="roadmap-title"><Accent text={t.roadmap.title} /></h2>
+          <p className="section-lead">{t.roadmap.lead}</p>
+        </header>
+        <ol className="roadmap">{t.roadmap.stages.map((stage, i) => <li key={stage.title} className={`stage stage-${i}`}>
+          <h3><span className="stage-n" aria-hidden="true">{i + 1}</span>{stage.title}</h3>
+          <p className="stage-lead">{stage.lead}</p>
+          <dl>{stage.items.map(([title, text]) => <div key={title}><dt>{title}</dt><dd>{text}</dd></div>)}</dl>
+        </li>)}</ol>
+      </div>
+    </section>
+
+    <section className="section churches" id="churches" aria-labelledby="churches-title">
+      <div className="container churches-grid">
+        <header className="churches-head">
+          <p className="eyebrow">{t.churches.eyebrow}</p>
+          <h2 id="churches-title"><Accent text={t.churches.title} /></h2>
+          <p className="section-lead">{t.churches.lead}</p>
+          <div className="actions"><a className="button" href={`mailto:hello@lifebook.app?subject=${encodeURIComponent(t.churches.subject)}`}>{t.churches.button} <ArrowIcon /></a></div>
+        </header>
+        <ul className="church-list">{t.churches.items.map(([title, text, status], i) => <li key={title}>
+          <span className="tile-icon">{churchIcons[i]}</span>
+          <div><div className="feature-head"><h3>{title}</h3><span className={`status-chip chip-${status}`}>{t.status[status]}</span></div><p>{text}</p></div>
+        </li>)}</ul>
       </div>
     </section>
 
