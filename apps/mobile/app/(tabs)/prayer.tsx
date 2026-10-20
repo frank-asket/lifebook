@@ -9,12 +9,14 @@ import { Press } from '../../components/ui';
 import { requireToken } from '../../lib/api';
 import { errorMessage } from '../../../web/lib/errors';
 import { PRAYER_LIMITS, type PrayerSummary } from '../../../web/lib/prayer-api';
+import { LoadMore } from '../../components/load-more';
 
 export default function Prayer() {
   const { c, t, lang } = useApp();
   const session = useSession();
   const router = useRouter();
   const [items, setItems] = useState<PrayerSummary[] | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadError, setLoadError] = useState('');
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,7 +40,7 @@ export default function Prayer() {
   }
   if (!session.isSignedIn) return;
     let active = true; setLoadError('');
-    requireToken(session.getToken).then(token => active ? api<PrayerSummary[]>('/prayers', token) : null).then(rows => { if (active && rows) setItems(rows); }).catch(() => { if (active) setLoadError(t.prayer.error); });
+    requireToken(session.getToken).then(token => active ? api<{ items: PrayerSummary[]; nextCursor: string | null }>('/prayers/page', token) : null).then(page => { if (active && page) { setItems(page.items); setNextCursor(page.nextCursor); } }).catch(() => { if (active) setLoadError(t.prayer.error); });
     return () => { active = false; };
   }, [session.isSignedIn, session.getToken, reload, t.prayer.error]));
 
@@ -96,6 +98,7 @@ export default function Prayer() {
           <Text style={{ color: c.muted, fontSize: 14, lineHeight: 20 }} numberOfLines={2}>{p.preview}</Text>
           {p.answeredAt ? <Text style={{ alignSelf: 'flex-start', marginTop: 4, color: c.deep, backgroundColor: c.soft, fontSize: 12, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, overflow: 'hidden' }}>{t.prayer.answered}</Text> : null}
         </Press>)}</Card>}
+    {items && !loadError ? <LoadMore cursor={nextCursor} fetchPage={async cursor => api<{ items: PrayerSummary[]; nextCursor: string | null }>(`/prayers/page?cursor=${encodeURIComponent(cursor)}`, await requireToken(session.getToken))} onLoaded={page => { setItems(rows => [...(rows ?? []), ...page.items.filter(p => !(rows ?? []).some(r => r.id === p.id))]); setNextCursor(page.nextCursor); }} /> : null}
     {selected ? <PrayerDetail key={selected} id={selected} onClose={() => setSelected(null)} onChanged={() => setReload(n => n + 1)} /> : null}
     <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} onPress={() => router.push('/pastoral-care')} />
   </Screen>;

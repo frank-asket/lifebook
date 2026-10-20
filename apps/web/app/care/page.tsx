@@ -9,21 +9,22 @@ import { CARE_MESSAGE_MAX, CARE_NAME_MAX } from '../../components/care/limits';
 import { CareEmpty, CareError, CareLoading, useCareToken } from '../../components/care/states';
 import { CARE_TOPICS, careApi, statusLabel, topicLabel, waited, type CareSummary, type CareTopic } from '../../lib/care-api';
 import { languageLabel, pastorsApi } from '../../lib/pastors-api';
+import { LoadMore } from '../../components/LoadMore';
 
 export default function Care() {
   const { language } = useLanguage(); const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
   const token = useCareToken();
   const [mine, setMine] = useState<CareSummary[] | null>(null); const [languages, setLanguages] = useState<string[] | null>(null); const [isPastor, setIsPastor] = useState(false);
-  const [loadError, setLoadError] = useState<unknown>(null); const [reload, setReload] = useState(0);
+  const [loadError, setLoadError] = useState<unknown>(null); const [reload, setReload] = useState(0); const [nextCursor, setNextCursor] = useState<string | null>(null);
   const retry = useCallback(() => setReload(n => n + 1), []);
   useEffect(() => {
     const controller = new AbortController(); setLoadError(null);
     (async () => {
       try {
         const t = await token();
-        const [rows, pastors, status] = await Promise.all([careApi.mine(t, controller.signal), pastorsApi.list(controller.signal), careApi.pastorStatus(t, controller.signal)]);
+        const [page, pastors, status] = await Promise.all([careApi.minePage(t, undefined, controller.signal), pastorsApi.list(controller.signal), careApi.pastorStatus(t, controller.signal)]);
         if (controller.signal.aborted) return;
-        setMine(rows); setIsPastor(status.active); setLanguages([...new Set(pastors.flatMap(p => p.languages))]);
+        setMine(page.items); setNextCursor(page.nextCursor); setIsPastor(status.active); setLanguages([...new Set(pastors.flatMap(p => p.languages))]);
       } catch (e) { if (!controller.signal.aborted) setLoadError(e); }
     })();
     return () => controller.abort();
@@ -64,6 +65,7 @@ export default function Care() {
                 <span className="prayer-item-preview">{statusLabel(r.status, language)}{r.pastor ? ` · ${r.pastor}` : ''}</span>
                 {r.unread && <span className="pill prayer-answered">{tr('New reply', 'Nouvelle réponse')}</span>}
               </Link></li>)}</ul>}
+          {mine !== null && !loadError && <LoadMore cursor={nextCursor} fetchPage={async cursor => careApi.minePage(await token(), cursor)} onLoaded={page => { setMine(rows => [...(rows ?? []), ...page.items.filter(p => !(rows ?? []).some(r => r.id === p.id))]); setNextCursor(page.nextCursor); }} />}
         </section>
         <div className="card" style={{ background: 'var(--pink)' }}><span className="eyebrow icon-line"><LockKeyhole size={13} aria-hidden="true"/> {tr('PRIVATE BY DESIGN', 'PRIVÉ PAR CONCEPTION')}</span><p style={{ marginTop: 12, marginBottom: 0, lineHeight: 1.7 }}>{tr('Your message is encrypted. Only you and the pastor who takes your request can read it, not LifeBook staff. You can close or delete it at any time.', 'Votre message est chiffré. Seuls vous et le pasteur qui prend votre demande pouvez le lire, pas l’équipe LifeBook. Vous pouvez la terminer ou la supprimer à tout moment.')}</p></div>
         <Link className="text-link icon-line care-link" href="/pastors">{tr('Meet our pastors', 'Rencontrer nos pasteurs')} <ArrowRight size={14} aria-hidden="true"/></Link>

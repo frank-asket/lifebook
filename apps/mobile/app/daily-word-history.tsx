@@ -6,6 +6,7 @@ import { api, requireToken } from '../lib/api';
 import { errorMessage } from '../../web/lib/errors';
 import { Button, Card, ErrorLine, Row, Screen } from '../components/ui';
 import { ReflectionDetail, dailySteps, dayLabel, type DailySession } from '../components/reflection-detail';
+import { LoadMore } from '../components/load-more';
 
 export default function DailyWordHistory() {
   const { c, lang } = useApp();
@@ -13,6 +14,7 @@ export default function DailyWordHistory() {
   const router = useRouter();
   const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const [items, setItems] = useState<DailySession[] | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -24,8 +26,8 @@ export default function DailyWordHistory() {
       try {
         const token = await requireToken(session.getToken);
         if (controller.signal.aborted) return;
-        const rows = await api<DailySession[]>('/daily-word/sessions?limit=100', token, { signal: controller.signal });
-        if (!controller.signal.aborted) setItems(rows);
+        const page = await api<{ items: DailySession[]; nextCursor: string | null }>('/daily-word/sessions/page', token, { signal: controller.signal });
+        if (!controller.signal.aborted) { setItems(page.items); setNextCursor(page.nextCursor); }
       } catch (e) { if (!controller.signal.aborted) setError(errorMessage(e, lang)); }
     })();
     return () => controller.abort();
@@ -43,7 +45,7 @@ export default function DailyWordHistory() {
           subtitle={`${count}/5 · ${item.status === 'COMPLETED' ? tr('Completed', 'Terminée') : tr('In progress', 'En cours')}${item.reflection ? ` · ${tr('Private reflection', 'Réflexion privée')}` : ''}`}
           onPress={() => setSelected(item.id)} />;
       })}
-    {items && items.length >= 100 ? <Text style={{ color: c.muted }}>{tr('Showing your 100 most recent sessions.', 'Vos 100 séances les plus récentes sont affichées.')}</Text> : null}
+    {items && !error ? <LoadMore cursor={nextCursor} fetchPage={async cursor => api<{ items: DailySession[]; nextCursor: string | null }>(`/daily-word/sessions/page?cursor=${encodeURIComponent(cursor)}`, await requireToken(session.getToken))} onLoaded={page => { setItems(rows => [...(rows ?? []), ...page.items.filter(p => !(rows ?? []).some(r => r.id === p.id))]); setNextCursor(page.nextCursor); }} /> : null}
     {selected ? <ReflectionDetail key={selected} kind="daily" id={selected} onClose={() => setSelected(null)} onChanged={() => setRetry(n => n + 1)} /> : null}
   </Screen>;
 }

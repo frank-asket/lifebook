@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Headers,
   NotFoundException,
   Param,
@@ -106,6 +107,17 @@ export class MeditationController {
    * Returns the authenticated user's
    * completed meditation history.
    */
+  /**
+   * GET /api/v1/meditations/history/page?cursor=
+   * Completed meditations, 50 at a time ("Load more").
+   */
+  @Get('history/page')
+  @ApiBearerAuth()
+  @Header('Cache-Control', 'no-store')
+  historyPage(@Headers('authorization') auth?: string, @Query('cursor') cursor?: string) {
+    return this.service.historyPage(auth, cursor);
+  }
+
   @Get('history')
   @ApiBearerAuth()
   @ApiOperation({

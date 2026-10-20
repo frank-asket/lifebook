@@ -9,6 +9,7 @@ import { ScriptureCompanion } from '../../components/prayer/ScriptureCompanion';
 import { GuidedMeditation } from '../../components/prayer/GuidedMeditation';
 import { PRAYER_LIMITS, prayerApi, type Prayer as PrayerEntry, type PrayerSummary } from '../../lib/prayer-api';
 import { errorMessage } from '../../lib/errors';
+import { LoadMore } from '../../components/LoadMore';
 
 export default function Prayer() {
   const { language } = useLanguage(); const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
@@ -33,7 +34,7 @@ export default function Prayer() {
 
 function Journal({ language }: { language: 'en' | 'fr' }) {
   const { getToken } = useAuth(); const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
-  const [items, setItems] = useState<PrayerSummary[]>([]); const [loading, setLoading] = useState(true); const [loadError, setLoadError] = useState(''); const [reload, setReload] = useState(0);
+  const [items, setItems] = useState<PrayerSummary[]>([]); const [loading, setLoading] = useState(true); const [loadError, setLoadError] = useState(''); const [reload, setReload] = useState(0); const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [selected, setSelected] = useState<PrayerEntry | null>(null);
   const [title, setTitle] = useState(''); const [body, setBody] = useState(''); const [showTitle, setShowTitle] = useState(false);
   const [answerNote, setAnswerNote] = useState('');
@@ -44,7 +45,7 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
 
   useEffect(() => {
     const controller = new AbortController(); setLoading(true); setLoadError('');
-    (async () => { try { const rows = await prayerApi.list(await token(), controller.signal); if (!controller.signal.aborted) setItems(rows); } catch (e) { if (!controller.signal.aborted) setLoadError(errorMessage(e, language)); } finally { if (!controller.signal.aborted) setLoading(false); } })();
+    (async () => { try { const page = await prayerApi.page(await token(), undefined, controller.signal); if (!controller.signal.aborted) { setItems(page.items); setNextCursor(page.nextCursor); } } catch (e) { if (!controller.signal.aborted) setLoadError(errorMessage(e, language)); } finally { if (!controller.signal.aborted) setLoading(false); } })();
     return () => controller.abort();
   }, [getToken, reload]);
   useEffect(() => {
@@ -106,6 +107,7 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
               <span className="prayer-item-preview">{item.preview}</span>
               {item.answeredAt && <span className="pill prayer-answered"><CheckCircle2 size={12}/> {tr('Answered', 'Exaucée')}</span>}
             </button></li>)}</ul>}
+      {!loading && !loadError && <LoadMore cursor={nextCursor} fetchPage={async cursor => prayerApi.page(await token(), cursor)} onLoaded={page => { setItems(rows => [...rows, ...page.items.filter(p => !rows.some(r => r.id === p.id))]); setNextCursor(page.nextCursor); }} />}
     </section>
   </div>;
 }

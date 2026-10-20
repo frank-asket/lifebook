@@ -15,9 +15,9 @@ function harness(pastor = false) {
     'react-native': { ...native, Alert: { alert: (_a, _b, actions) => { confirmation = actions; } }, BackHandler: { addEventListener: () => ({ remove() {} }) } },
     'expo-router': { useRouter: () => ({ navigate() {} }), useFocusEffect: callback => React.useEffect(callback, [callback]) },
     '../lib/app': { useApp: () => app, useSession: () => session, api: async () => [] }, '../lib/api': { requireToken: async read => read() },
-    '../components/ui': ui, '../../web/lib/errors': { errorMessage },
+    '../components/ui': ui, '../../web/lib/errors': { errorMessage }, '../components/load-more': { LoadMore: () => null },
     '../lib/care': { CARE_TOPICS: ['prayer'], REPORT_CATEGORIES: ['safety', 'conduct'], topicLabel: value => value, statusLabel: value => value, reportCategoryLabel: value => value,
-      care: { pastorStatus: async () => status, mine: async () => [summary], cases: async () => [], queue: async () => [{ ...summary, language: 'en' }], get: async () => thread, case: async () => thread,
+      care: { pastorStatus: async () => status, mine: async () => [summary], minePage: async () => ({ items: [summary], nextCursor: null }), cases: async () => [], queue: async () => [{ ...summary, language: 'en' }], get: async () => thread, case: async () => thread,
         create: write('create'), reply: write('reply'), pastorReply: write('pastorReply'), report: write('report'), pastorReport: write('report'), claim: write('claim'), setAvailability: async () => status, close: write('close'), pastorClose: write('close'), remove: write('delete') } },
   });
   return { Care, controls, writes, get confirmation() { return confirmation; } };
