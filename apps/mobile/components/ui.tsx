@@ -39,8 +39,10 @@ export function Button({ title, onPress, kind = 'primary', disabled, style, acce
 /** A tappable list row with an icon, title, subtitle and chevron. */
 export function Row({ icon, tone = 'soft', title, subtitle, onPress, badge }: { icon: keyof typeof Ionicons.glyphMap; tone?: 'soft' | 'rose'; title: string; subtitle?: string; onPress?: () => void; badge?: string }) {
   const { c } = useApp();
+  const { fontScale } = useWindowDimensions();
+  const largeText = fontScale > 1.3;
   return <Press accessibilityLabel={[title, subtitle, badge].filter(Boolean).join(', ')} accessibilityRole={onPress ? 'button' : undefined} disabled={!onPress} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, backgroundColor: c.paper, borderRadius: 20, borderWidth: 1, borderColor: c.line }}>
-    <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: tone === 'rose' ? c.rose : c.soft }}><Ionicons accessible={false} importantForAccessibility="no" name={icon} size={20} color={c.accent} /></View>
+    {!largeText ? <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: tone === 'rose' ? c.rose : c.soft }}><Ionicons accessible={false} importantForAccessibility="no" name={icon} size={20} color={c.accent} /></View> : null}
     <View style={{ flex: 1, gap: 2 }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
         <Text style={{ color: c.ink, fontSize: 16, fontWeight: '600', flexShrink: 1 }}>{title}</Text>
@@ -48,7 +50,7 @@ export function Row({ icon, tone = 'soft', title, subtitle, onPress, badge }: { 
       </View>
       {subtitle ? <Text style={{ color: c.muted, fontSize: 14 }}>{subtitle}</Text> : null}
     </View>
-    {onPress ? <Ionicons accessible={false} importantForAccessibility="no" name="chevron-forward" size={16} color={c.muted} /> : null}
+    {onPress && !largeText ? <Ionicons accessible={false} importantForAccessibility="no" name="chevron-forward" size={16} color={c.muted} /> : null}
   </Press>;
 }
 

@@ -11,7 +11,7 @@ function uiHarness() {
     '@expo/vector-icons': { Ionicons: 'Icon' },
     '../lib/app': { useApp: () => ({ c: {}, t: copy.en }) },
   });
-  return { ...ui, enlarge() { fontScale = 2; } };
+  return { ...ui, setFontScale(value) { fontScale = value; } };
 }
 
 test('shared controls keep motion still, expose meaningful labels and adapt to enlarged text', async () => {
@@ -24,10 +24,15 @@ test('shared controls keep motion still, expose meaningful labels and adapt to e
   assert.equal(feedback[0].minHeight, 48);
   assert.ok(feedback.every(style => !style || !style.transform));
   assert.ok(renderer.root.findAllByType('Icon').every(icon => icon.props.accessible === false));
+  h.setFontScale(2);
+  await act(async () => renderer.update(React.createElement(h.Row, { icon: 'book', title: 'Commencez votre journal de prière', onPress() {} })));
+  assert.equal(renderer.root.findAllByType('Icon').length, 0, 'decorative icons must leave the full row width for enlarged text');
+  assert.equal(renderer.root.findByType('Pressable').props.accessibilityLabel, 'Commencez votre journal de prière');
+  h.setFontScale(1);
   const choices = { label: 'Appearance', value: 'system', onChange() {}, options: [{ label: 'System', value: 'system' }, { label: 'Light', value: 'light' }, { label: 'Dark', value: 'dark' }] };
   await act(async () => renderer.update(React.createElement(h.Segmented, choices)));
   assert.equal(renderer.root.findByType('View').props.style.flexDirection, 'row');
-  h.enlarge();
+  h.setFontScale(2);
   await act(async () => renderer.update(React.createElement(h.Segmented, choices)));
   assert.equal(renderer.root.findByType('View').props.style.flexDirection, 'column');
   assert.ok(renderer.root.findAllByType('Pressable').every(p => p.props.style.minHeight >= 48));
