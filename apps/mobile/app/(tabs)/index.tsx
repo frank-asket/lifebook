@@ -1,3 +1,4 @@
+import { Suggestions } from '../../components/suggestions';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Text, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -84,6 +85,8 @@ export default function Today() {
       </View>
       <Text style={{ color: c.muted, fontSize: 13, marginTop: 12 }}>{count === 0 ? t.today.fresh : count === 1 ? t.today.oneDay : t.today.days(count)}</Text>
     </Card> : null}
+
+    <Suggestions />
 
     <Row icon="book-outline" title={reading ? t.today.continueReading : t.today.readBible} subtitle={reading ? passageLabel(reading.chapterId, reading.locale, reading.verse) : t.today.readBibleSub} onPress={openReading} />
     <Row icon="lock-closed-outline" tone="rose" title={t.today.journal} subtitle={t.today.journalSub} onPress={() => router.navigate('/prayer')} />

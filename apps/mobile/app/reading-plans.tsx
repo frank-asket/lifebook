@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp, useSession } from '../lib/app';
 import { api, requireToken } from '../lib/api';
 import { Button, Card, ErrorLine, Row, Screen, SectionLabel } from '../components/ui';
@@ -16,7 +16,8 @@ export default function ReadingPlans() {
   const [plans, setPlans] = useState<Plan[] | null>(null);
   const [mine, setMine] = useState<Enrollment[]>([]);
   const [privateReady, setPrivateReady] = useState(false);
-  const [id, setId] = useState<string | null>(null);
+  const params = useLocalSearchParams<{ plan?: string }>();
+  const [id, setId] = useState<string | null>(typeof params.plan === 'string' && /^[a-z0-9-]{1,60}$/.test(params.plan) ? params.plan : null);
   const [plan, setPlan] = useState<PlanDetails | null>(null);
   const [error, setError] = useState('');
   const [privateError, setPrivateError] = useState('');
