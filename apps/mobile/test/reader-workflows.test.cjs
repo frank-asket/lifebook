@@ -28,7 +28,7 @@ test('reading plans enroll and persist explicit completion; reading alone never 
   const app = { c: {}, lang: 'fr', setPrefs: value => { preferences = value; } };
   const { default: Plans } = load('../app/reading-plans.tsx', {
     'react-native': native,
-    'expo-router': { useFocusEffect: focus, useRouter: () => ({ navigate: value => { location = value; } }) },
+    'expo-router': { useLocalSearchParams: () => ({}), useFocusEffect: focus, useRouter: () => ({ navigate: value => { location = value; } }) },
     '../lib/app': { useApp: () => app, useSession: () => session },
     '../lib/api': { api, requireToken: async read => read() }, '../components/ui': ui,
     '../../web/lib/scripture': scripture, '../../web/lib/errors': { errorMessage },
@@ -155,7 +155,7 @@ function dailyHarness({ failInit = false, failStep = true, initialReflection = n
       Animated: { Value, View: 'AnimatedView', timing: () => ({ start() {} }), multiply: () => 0 }, Easing: { bezier() {}, inOut() {}, sin() {} },
       BackHandler: { addEventListener: () => ({ remove() {} }) }, Alert: { alert: (_t, _m, buttons) => { confirmation = buttons; } },
     },
-    'expo-router': { useFocusEffect: focus, useRouter: () => ({ back: () => closed++, navigate() {} }) },
+    'expo-router': { useLocalSearchParams: () => ({}), useFocusEffect: focus, useRouter: () => ({ back: () => closed++, navigate() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }, '@expo/vector-icons': { Ionicons: 'Icon' },
     '../lib/app': {
       useApp: () => ({ c: {}, t: copy.en, lang: 'en', prefs: { length: 5 } }), useSession: () => session, useDailyWord: () => live, timezone: () => 'UTC',
@@ -238,7 +238,7 @@ test('saved verses open the matching chapter/language and can reopen the range e
   let location;
   const { default: Saved } = load('../app/saved-verses.tsx', {
     'react-native': native,
-    'expo-router': { useFocusEffect: focus, useRouter: () => ({ navigate: value => { location = value; } }) },
+    'expo-router': { useLocalSearchParams: () => ({}), useFocusEffect: focus, useRouter: () => ({ navigate: value => { location = value; } }) },
     '../lib/app': { useApp: () => ({ c: {}, lang: 'en', setPrefs: value => { preferences = value; } }), useSession: () => session },
     '../lib/api': { api: async () => ({ items: [record], nextCursor: null }), requireToken: async read => read() },
     '../components/annotation-editor': { AnnotationEditor: 'AnnotationEditor' }, '../components/ui': ui,
@@ -272,7 +272,7 @@ test('a partial Daily Word session does not claim all five steps are complete', 
 test('an unavailable progress read disables enrollment without hiding public plan readings', async () => {
   const plan = { id: 'fixture', title: 'Fixture plan', duration: 1, description: 'Fixture', days: [{ day: 1, chapterId: 'JHN.1' }] };
   const { default: Plans } = load('../app/reading-plans.tsx', {
-    'react-native': native, 'expo-router': { useFocusEffect: focus, useRouter: () => ({ navigate() {} }) },
+    'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useFocusEffect: focus, useRouter: () => ({ navigate() {} }) },
     '../lib/app': { useApp: () => ({ c: {}, lang: 'en', setPrefs() {} }), useSession: () => session },
     '../lib/api': { requireToken: async read => read(), api: async path => { if (path.includes('my-plans')) throw new Error('Offline'); return path.includes('/plans?') ? [plan] : plan; } },
     '../components/ui': ui, '../../web/lib/scripture': scripture, '../../web/lib/errors': { errorMessage },

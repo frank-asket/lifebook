@@ -1,6 +1,6 @@
 # Personalized suggestions — plan
 
-Written 18 October 2026; source status updated 23 October. **Web suggestions and account-owned dismissals are implemented.** Goals still map from saved labels in code; stable stored goal codes, native suggestion cards and reviewed “New to this?” content remain open. The account-dismissal migration was approved and applied on 23 October after checksum review, backup restoration and rehearsal; application release is tracked in PR #68. See [consent and suggestions release scope](CONSENT_AND_SUGGESTIONS_2026-10-23.md) for endpoints, legacy-device import, tests and release gates.
+Written 18 October 2026; source status updated 23 October. **Web suggestions and account-owned dismissals are implemented.** Goals still map from saved labels in code; stable stored goal codes and reviewed “New to this?” content remain open. Native Today cards are source-implemented on `codex/native-suggestions`, with device acceptance pending. The account-dismissal migration was approved and applied on 23 October after checksum review, backup restoration and rehearsal; application release is tracked in PR #68. See [consent and suggestions release scope](CONSENT_AND_SUGGESTIONS_2026-10-23.md) for endpoints, legacy-device import, tests and release gates.
 
 ## Where we are
 
@@ -20,7 +20,7 @@ Written 18 October 2026; source status updated 23 October. **Web suggestions and
 
 ## What people will see (v1)
 
-On web Home, one quiet card (the equivalent native Today card remains planned) titled "Suggested for you" with up to two items:
+On web Home, one quiet card (the equivalent native Today card is source-implemented separately, awaiting device acceptance) titled "Suggested for you" with up to two items:
 
 | If they chose… | We suggest |
 | --- | --- |
@@ -60,3 +60,11 @@ Steps 1–4 can ship with the existing three reading plans. Steps 5–6 wait for
 - Who writes and reviews the 365-entry Daily Word library, and in what order: library first, or suggestions first?
 - Is the "New to this?" note wanted, and who reviews it pastorally?
 - Is two suggestions the right maximum?
+
+## Native Today follow-up — 23 October 2026
+
+The separate native suggestions batch reuses the same consent-gated API and account-owned dismissal endpoint. It shows at most two cards, explains the saved goal or journey in EN/FR, preserves cards on failed dismissal, ignores late responses after leaving or changing accounts, and refreshes consent/content when Today regains focus. No new local storage of private choices or database migration is added.
+
+A reading-plan suggestion opens its detail directly via a validated `plan` search parameter. Prayer-time suggestions select two minutes before opening the existing shared Daily Word flow; journal suggestions open the private journal. Change preferences opens the existing profile editor.
+
+Verification: **62 mobile/cross-client tests passed**, mobile TypeScript passed, and iOS/Android JavaScript bundles exported. Tests cover no-consent behavior, exact plan links, two-minute setup, EN/FR explanations, failed dismissal/retry, and account switching. These are synthetic component checks, not installed-device, VoiceOver or TalkBack acceptance. No native binary or store release is claimed.

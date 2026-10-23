@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.0.0] - 2026-10-23
+
+### Added
+- Show consent-gated suggestions on native Today with English/French explanations and account-owned dismissal.
+- Open suggested reading plans directly and offer a two-minute prayer time without changing the shared Daily Word.
+
+### Validation
+- Native component tests, typechecking and iOS/Android JavaScript exports passed; installed-device and screen-reader acceptance remain pending.
+
 ## [0.2.0.1] - 2026-10-23
 
 ### Fixed
