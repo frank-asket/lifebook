@@ -6,7 +6,7 @@ PR #70 remains a draft until native interaction and accessibility results are re
 
 A successful dismissal could complete while Today was unfocused, then an older focus-refresh response could restore the card. The component now remembers confirmed dismissals in memory for its account/language instance and filters later responses through that set. It updates the list after a confirmed write even if focus changed; account/language changes still unmount that state. No new browser/device storage, API contract or migration is added.
 
-The new delayed-response regression fails against the previous component and passes with the fix. All **64 mobile/cross-client tests** and mobile TypeScript passed. This synthetic evidence does not replace native acceptance.
+The new delayed-response regression fails against the previous component and passes with the fix. All **65 mobile/cross-client tests** and mobile TypeScript passed. This synthetic evidence does not replace native acceptance.
 
 ## Screen-reader announcement correction
 
@@ -37,3 +37,13 @@ Record build commit, observed result and evidence; do not turn pending entries i
 | VoiceOver/TalkBack labels, focus and announcements | Pending | Pending |
 
 No new database operation, store submission or production identity configuration is included in this acceptance pass.
+
+## Native identity configuration mismatch
+
+Installed baseline sign-in restored the existing Google test identity, but private profile reads failed. A fresh Google SSO round trip also completed; the English UI exposed `Invalid or expired access token`. Read-only comparison confirmed the API signing keys match the production web Clerk instance, while the native artifact used a different frontend instance. This was configuration drift, not a reason to bypass verification.
+
+Aligned the ignored local native public configuration and EAS project-scoped development/preview public keys with the existing web/API identity instance (`in-dove-5948.clerk.accounts.dev`). Both Clerk instances and their user records were preserved; no production backend key or database data was rewritten. Native users of the earlier internal artifacts must sign in to the canonical existing LifeBook instance.
+
+Internal EAS profiles now declare `LIFEBOOK_AUTH_FRONTEND_DOMAIN`; app configuration rejects a publishable key for another instance. The regression verifies matching/mismatched instances. Store builds retain their existing production-key and HTTPS gates and still require the separate coordinated production Clerk rollout.
+
+Baseline simulator observations: public Daily Word recovered after retry; Google sign-out/sign-in completed; signed-out EN/FR labels and selected language state changed correctly; light/dark options are present. None closes final-artifact private-flow or real screen-reader acceptance. Final artifacts must include the identity correction as well as both suggestion fixes.
