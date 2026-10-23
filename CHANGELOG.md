@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0.1] - 2026-10-23
+
+### Fixed
+- Make simultaneous suggestion dismissals idempotent using a duplicate-safe database insert.
+
 ## [0.2.0.0] - 2026-10-23
 
 ### Added

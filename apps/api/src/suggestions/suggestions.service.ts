@@ -31,7 +31,7 @@ export class SuggestionsService implements OnModuleDestroy {
   async dismiss(auth: string | undefined, suggestionId: string) {
     const userId = await this.reading.userId(auth);
     if (!['prayer-journal', 'short-prayer-time', ...READING_PLANS.map(p => `plan:${p.id}`)].includes(suggestionId)) throw new BadRequestException('Unknown suggestion');
-    await this.db.suggestionDismissal.upsert({ where: { userId_suggestionId: { userId, suggestionId } }, create: { userId, suggestionId }, update: {} });
+    await this.db.suggestionDismissal.createMany({ data: [{ userId, suggestionId }], skipDuplicates: true });
     return { dismissed: suggestionId };
   }
 
