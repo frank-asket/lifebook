@@ -12,10 +12,11 @@
 - Render explicitly displayed PR #68's merge SHA as its last successfully deployed commit, status Live.
 - API `/api/v1/health` returned 200 and the new unauthenticated dismissal route returned 401, confirming the protected route exists.
 - Vercel reported PR #68's production web deployment READY; signed-in French dashboard loaded Daily Word, reading continuation, progress and suggestions. Browser error log was empty in the inspected tab. No private content or member identifiers are reproduced here.
-- PR #69 production rollout verification is in progress at the time of this entry. A healthy response alone does not identify its revision; the final report must confirm the deployed SHA.
+- PR #69 main-branch CI passed. Its web production deployment is READY (`dpl_9iMJf91eHzZrvuvrEJSRqMcNRKXy`), with all Vercel checks successful.
+- **API correction rollout is blocked:** Render still displayed `a0cfc4a` as Live after the corrected merge. Native Chrome accessibility could read the service and deploy menu, but activation did not reliably start a deployment. The in-app Render tab reached GitHub's credential form; sign-in handoff was requested. Do not claim `c75e88d` is live until Render explicitly shows that revision and health passes. No credentials were extracted from Chrome or pasted into the in-app form.
 
 ## Next milestone
 
-[Draft PR #70](https://github.com/frank-asket/lifebook/pull/70) adds native Today suggestions and exact reading-plan navigation. Local verification: 62 component tests, TypeScript and both platform JavaScript exports passed. It is pushed separately and is not merged or claimed installed on a device. Installed iOS/Android, dynamic text and VoiceOver/TalkBack acceptance remain open.
+[Draft PR #70](https://github.com/frank-asket/lifebook/pull/70) adds native Today suggestions and exact reading-plan navigation. Local verification: 62 component tests, TypeScript and both platform JavaScript exports passed. It is pushed separately with passing CI and remains a draft; it is not merged or claimed installed on a device. Installed iOS/Android, dynamic text and VoiceOver/TalkBack acceptance remain open.
 
 The task-owned restore container was removed. The private production backup remains outside Git. No reset, drop, destructive restore, encryption backfill or retention activation ran.
