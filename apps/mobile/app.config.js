@@ -7,7 +7,8 @@ module.exports = ({ config = {} } = {}) => {
     throw new Error('Configure EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in the matching EAS environment before building.');
   }
   const expectedHost = process.env.LIFEBOOK_AUTH_FRONTEND_DOMAIN;
-  if (expectedHost && (!/^pk_(test|live)_/.test(key) || Buffer.from(key.replace(/^pk_(test|live)_/, ''), 'base64').toString() !== `${expectedHost}$`)) {
+  // EAS resolves the project ID before fetching its remote environment variables.
+  if (expectedHost && key && (!/^pk_(test|live)_/.test(key) || Buffer.from(key.replace(/^pk_(test|live)_/, ''), 'base64').toString() !== `${expectedHost}$`)) {
     throw new Error('Native publishable key does not match the configured LifeBook identity instance. Coordinate web, API and native identity configuration.');
   }
   if (release) {

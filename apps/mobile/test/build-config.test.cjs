@@ -29,6 +29,8 @@ test('native internal profiles reject a key from a different identity instance',
   const host='canonical.clerk.accounts.dev';
   const key=domain=>`pk_test_${Buffer.from(domain+'$').toString('base64')}`;
   const env={EAS_BUILD_PROFILE:'preview',LIFEBOOK_AUTH_FRONTEND_DOMAIN:host,EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:key(host)};
+  assert.ok(config({LIFEBOOK_AUTH_FRONTEND_DOMAIN:host}).extra.eas.projectId);
+  assert.throws(()=>config({EAS_BUILD_PROFILE:'preview',LIFEBOOK_AUTH_FRONTEND_DOMAIN:host}),/matching EAS environment/);
   assert.ok(config(env).extra.eas.projectId);
   assert.throws(()=>config({...env,EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:key('other.clerk.accounts.dev')}),/does not match/);
   const profiles=require('../eas.json').build;
