@@ -5,6 +5,7 @@
   color-scheme: light;
   --bg: #faf9fc; --paper: #fff; --tint: #f3f0f9; --ink: #201b32; --muted: #615a70; --line: #e9e6f0;
   --accent: #6c4fc4; --accent-ink: #fff; --deep: #47318a; --soft: #efe9fb; --rose: #f8e8f2;
+  --dawn: #f5b98c; --dawn-strength: 58%;
   --serif: Georgia, 'Times New Roman', serif;
   --ease: cubic-bezier(.2, .8, .2, 1);
   --radius: 22px;
@@ -14,6 +15,7 @@
     color-scheme: dark;
     --bg: #121019; --paper: #1b1725; --tint: #171320; --ink: #f1edf8; --muted: #b6abc6; --line: #332c43;
     --accent: #b49bef; --accent-ink: #1a1424; --deep: #d3c2fa; --soft: #2a2238; --rose: #34232f;
+    --dawn: #c9784f; --dawn-strength: 30%;
   }
 }
 @media (prefers-contrast: more) { :root { --muted: var(--ink); --line: #8f879a; } }
@@ -26,6 +28,8 @@ a { color: inherit; text-decoration: none; }
 a, button, summary { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 button { font: inherit; color: inherit; }
 h1, h2, h3 { font-family: Manrope, system-ui, sans-serif; margin: 0; text-wrap: balance; }
+/* Starred words in titles take the italic Scripture serif (components/accent.tsx). */
+h1 em, h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -.02em; }
 p { margin: 0; text-wrap: pretty; }
 ::selection { background: color-mix(in srgb, var(--accent) 25%, transparent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
@@ -79,7 +83,12 @@ p { margin: 0; text-wrap: pretty; }
 .hero-note { margin-top: 22px; font-size: 14px; color: var(--muted); }
 
 /* Product preview: two app screens, one behind the other. Static on purpose. */
-.preview { position: relative; margin: 0; min-height: 520px; display: grid; place-items: center; }
+.preview { position: relative; isolation: isolate; margin: 0; min-height: 520px; display: grid; place-items: center; }
+/* Dawn light behind the phones: CSS only, so it costs no data. */
+.preview::before { content: ''; position: absolute; inset: -22% -18%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side at 46% 52%, color-mix(in srgb, var(--dawn) var(--dawn-strength), transparent), transparent),
+    radial-gradient(closest-side at 64% 38%, color-mix(in srgb, var(--accent) 20%, transparent), transparent); }
+@media (prefers-contrast: more) { .preview::before { display: none; } }
 .device { width: 290px; padding: 18px 22px 22px; border-radius: 34px; background: var(--paper); border: 1px solid var(--line); box-shadow: 0 30px 60px -30px rgba(40, 24, 90, .35), 0 2px 6px rgba(40, 24, 90, .06); }
 .device-front { position: relative; z-index: 2; transform: translate(-108px, 28px); }
 .device-back { position: absolute; z-index: 1; transform: translate(122px, -34px) scale(.92); text-align: center; }
@@ -114,16 +123,8 @@ p { margin: 0; text-wrap: pretty; }
 .steps h3 { margin: 18px 0 8px; font-size: 18px; letter-spacing: -.02em; }
 .steps p { font-size: 15px; line-height: 1.6; color: var(--muted); }
 
-.bento { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
-.tile { position: relative; display: flex; flex-direction: column; padding: clamp(24px, 3vw, 34px); border-radius: var(--radius); background: var(--paper); border: 1px solid var(--line); overflow: hidden; }
-.tile-daily { grid-column: span 3; }
-.tile-bible { grid-column: span 3; }
-.tile-prayer { grid-column: span 3; }
-.tile-pastor { grid-column: span 3; }
 .tile-icon { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: var(--soft); color: var(--accent); margin-bottom: 22px; }
 .tile-icon.rose { background: var(--rose); }
-.tile h3 { font-size: 21px; letter-spacing: -.025em; line-height: 1.25; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.tile > p { margin-top: 10px; font-size: 16px; line-height: 1.65; color: var(--muted); max-width: 32em; }
 .badge { font: 700 12px 'DM Sans', sans-serif; letter-spacing: 0; padding: 4px 10px; border-radius: 99px; background: var(--soft); color: var(--deep); }
 .closing .button-quiet { background: var(--paper); box-shadow: none; }
 
@@ -201,7 +202,6 @@ p { margin: 0; text-wrap: pretty; }
   .preview { min-height: 500px; }
   .faq, .promise-list { grid-template-columns: 1fr; gap: 0; }
   .faq .section-head { margin-bottom: 24px; }
-  .tile-daily, .tile-bible, .tile-prayer, .tile-pastor { grid-column: span 6; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: span 2; }
 }
@@ -345,11 +345,6 @@ p { margin: 0; text-wrap: pretty; }
   .walk { margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
 }
 
-/* Feature cards: the real screen rises from the bottom edge of each card. */
-.tile { padding-bottom: 0; }
-.tile-phone { margin: auto auto 0; padding-top: 28px; box-sizing: content-box; height: 330px; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; }
-.tile-phone .phone { --w: 250px; }
-@media (max-width: 560px) { .tile-phone { height: 300px; } .tile-phone .phone { --w: 236px; } }
 
 /* Extra phone-screen parts for the journal and Ask a pastor. */
 .ps-chip { display: inline-flex; align-items: center; gap: 1.2cqw; padding: 1.2cqw 2.6cqw; border-radius: 9cqw; background: var(--soft); color: var(--deep); font-size: 3.1cqw; font-weight: 600; }
@@ -364,6 +359,32 @@ p { margin: 0; text-wrap: pretty; }
 .ps-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; }
 .ps-notes { gap: 2.4cqw; padding: 4.6cqw; }
 .ps-notes p { font-size: 3.6cqw; line-height: 1.5; color: var(--muted); }
+
+/* What's inside: features on the left, one phone on the right that shows the selected feature. */
+.showcase { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 72px); align-items: center; }
+.showcase-list { display: flex; flex-direction: column; gap: 6px; }
+.showcase-item { display: flex; gap: 18px; align-items: flex-start; width: 100%; padding: 20px 22px; border: 1px solid transparent; border-radius: var(--radius); background: transparent; text-align: left; cursor: pointer; transition: background-color .2s, border-color .2s; }
+.showcase-item .tile-icon { margin: 0; flex-shrink: 0; }
+.showcase-item[aria-selected="true"] { background: var(--paper); border-color: var(--line); box-shadow: 0 18px 40px -32px rgba(40, 24, 90, .45); }
+@media (hover: hover) and (pointer: fine) { .showcase-item[aria-selected="false"]:hover { background: color-mix(in srgb, var(--paper) 55%, transparent); } }
+.showcase-copy { display: flex; flex-direction: column; gap: 6px; }
+.showcase-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font: 700 19px/1.3 Manrope, sans-serif; letter-spacing: -.025em; }
+.showcase-text { font-size: 16px; line-height: 1.6; color: var(--muted); }
+.showcase-item[aria-selected="false"] .showcase-text { opacity: .8; }
+.showcase-stage { position: relative; isolation: isolate; display: grid; place-items: center; min-height: 560px; }
+.showcase-stage::before { content: ''; position: absolute; inset: 4% 8%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--dawn) calc(var(--dawn-strength) * .7), transparent), transparent); }
+.showcase-phone { grid-area: 1 / 1; transition: opacity .35s var(--ease), transform .35s var(--ease); }
+.showcase-phone[data-active="false"] { opacity: 0; visibility: hidden; transform: translateY(10px); }
+.showcase-phone .phone { --w: 262px; }
+@media (prefers-reduced-motion: reduce) { .showcase-phone { transition: none; transform: none !important; } }
+@media (prefers-contrast: more) { .showcase-stage::before { display: none; } }
+/* On phones the screen comes first, cropped like a card, and the list sits below it. */
+@media (max-width: 900px) {
+  .showcase { grid-template-columns: 1fr; }
+  .showcase-stage { order: -1; min-height: 0; height: 340px; overflow: hidden; align-items: start; padding-top: 8px; }
+  .showcase-phone .phone { --w: 240px; }
+  .showcase-item { padding: 16px; }
+}
 
 /* ===== Vision, at a glance, features, roadmap and churches (19 October) ===== */
 /* Status chips always carry their label, so colour is never the only signal. */
