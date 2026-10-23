@@ -1,6 +1,6 @@
 # Personalized suggestions — plan
 
-Written 18 October 2026; source status updated 23 October. **Web suggestions and account-owned dismissals are implemented.** Goals still map from saved labels in code; stable stored goal codes, native suggestion cards and reviewed “New to this?” content remain open. The account-dismissal migration is pending production review and backup recovery verification. See [consent and suggestions release scope](CONSENT_AND_SUGGESTIONS_2026-10-23.md) for endpoints, legacy-device import, tests and release gates.
+Written 18 October 2026; source status updated 23 October. **Web suggestions and account-owned dismissals are implemented.** Goals still map from saved labels in code; stable stored goal codes, native suggestion cards and reviewed “New to this?” content remain open. The account-dismissal migration was approved and applied on 23 October after checksum review, backup restoration and rehearsal; application release is tracked in PR #68. See [consent and suggestions release scope](CONSENT_AND_SUGGESTIONS_2026-10-23.md) for endpoints, legacy-device import, tests and release gates.
 
 ## Where we are
 

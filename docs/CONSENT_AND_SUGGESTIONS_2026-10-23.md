@@ -36,3 +36,16 @@ Passed on 23 October 2026:
 Synthetic test data and Clerk test doubles exercise the real HTTP controllers; no real member credentials are used. The disposable test container was removed after verification. The reviewed source has been pushed on `feat/consent-history-and-dismissals`; the pull request is pending. Nothing has been merged or deployed in this continuation.
 
 Manual browser/screen-reader acceptance and production backup/migration approval remain open.
+
+## Production migration verification — 23 October 2026
+
+The product owner approved `20261020125247_consent_history_and_suggestion_dismissals` by name in this session after reviewing the recovery rehearsal.
+
+- All 13 previously applied migration checksums matched repository SQL; exactly the named migration was pending. No applied migration was changed.
+- Private backup: `~/Documents/LifeBook-backups/20261023T020727Z/lifebook-public.dump`, 86,703 bytes, SHA-256 `841fe425e4e39f189e10ad73cfeb9d12dafa65d923c50024e6d77f9ad694bb03`. Folder mode 700; dump mode 600.
+- Restored with PostgreSQL 17 into an isolated loopback database. Counts matched on all 32 original tables, including the migration ledger.
+- Applied only the named migration to the restore. Existing table counts remained unchanged and schema comparison reported no difference.
+- Rechecked live ledger and exact row counts against the backup immediately before application. Applied the approved migration; the ledger now contains 14 applied migrations and the new checksum matches SQL. Existing data table counts remained unchanged.
+- Production schema comparison reported no difference after application. No reset, drop, backfill or retention activation ran.
+
+Application release: [PR #68](https://github.com/frank-asket/lifebook/pull/68), awaiting green checks and merge at the time of this entry. Earlier pending statements above describe the source implementation before approval. The backup is retained; rollback uses the previous application code while keeping additive tables.
