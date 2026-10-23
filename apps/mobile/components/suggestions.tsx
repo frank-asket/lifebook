@@ -19,6 +19,7 @@ function MemberSuggestions() {
   const [items, setItems] = useState<SuggestionView[]>([]);
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [message, setMessage] = useState('');
+  const dismissed = useRef(new Set<string>());
   const generation = useRef(0); const saving = useRef(false); const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useFocusEffect(useCallback(() => {
@@ -28,7 +29,7 @@ function MemberSuggestions() {
         const token = await requireToken(session.getToken);
         if (current !== generation.current) return;
         const response = await api<SuggestionsResponse>(`/me/suggestions?locale=${lang}`, token);
-        if (current === generation.current) setItems(response.consent ? response.suggestions : []);
+        if (current === generation.current) setItems(response.consent ? response.suggestions.filter(item => !dismissed.current.has(item.id)) : []);
       } catch { /* Optional suggestions never block the shared Daily Word. Retry on next focus. */ }
     })();
     return () => { generation.current++; };
@@ -41,9 +42,11 @@ function MemberSuggestions() {
       const token = await requireToken(session.getToken);
       if (current !== generation.current) return;
       await api(`/me/suggestions/${encodeURIComponent(id)}/dismiss`, token, { method: 'POST' });
-      if (current === generation.current) {
+      if (mounted.current) {
+        // A focus refresh may have started before this write committed.
+        dismissed.current.add(id);
         setItems(previous => previous.filter(item => item.id !== id));
-        setMessage(tr('Suggestion hidden on your account.', 'Suggestion masquée sur votre compte.'));
+        if (current === generation.current) setMessage(tr('Suggestion hidden on your account.', 'Suggestion masquée sur votre compte.'));
       }
     } catch { if (current === generation.current) setError(tr('Could not hide this suggestion. Please try again.', 'Impossible de masquer cette suggestion. Réessayez.')); }
     finally { saving.current = false; if (mounted.current) setBusy(false); }
