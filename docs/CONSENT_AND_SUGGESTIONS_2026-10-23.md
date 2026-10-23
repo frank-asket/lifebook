@@ -49,3 +49,7 @@ The product owner approved `20261020125247_consent_history_and_suggestion_dismis
 - Production schema comparison reported no difference after application. No reset, drop, backfill or retention activation ran.
 
 Application release: [PR #68](https://github.com/frank-asket/lifebook/pull/68), awaiting green checks and merge at the time of this entry. Earlier pending statements above describe the source implementation before approval. The backup is retained; rollback uses the previous application code while keeping additive tables.
+
+## Post-merge concurrent dismissal correction
+
+PR #68 merged as `a0cfc4a6a2b1325cda376b2705596b13b1f5f1bf` after both final CI runs passed. Post-merge CI exposed an intermittent failure when simultaneous dismissals used Prisma 5's empty-update upsert. The focused correction uses `createMany` with `skipDuplicates`, letting the database enforce the composite key in one duplicate-safe insert; the regression now sends 12 simultaneous HTTP requests. No schema change or additional migration is required. One earlier CI process also exited with SIGSEGV; that separate native-engine crash has not been reproduced locally or diagnosed as the same issue.
