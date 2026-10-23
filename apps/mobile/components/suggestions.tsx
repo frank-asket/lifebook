@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { AccessibilityInfo, Platform, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useApp, useSession } from '../lib/app';
 import { api, requireToken } from '../lib/api';
@@ -37,7 +37,7 @@ function MemberSuggestions() {
 
   async function hide(id: string) {
     if (saving.current) return;
-    saving.current = true; setBusy(true); setError(''); const current = generation.current;
+    saving.current = true; setBusy(true); setError(''); setMessage(''); const current = generation.current;
     try {
       const token = await requireToken(session.getToken);
       if (current !== generation.current) return;
@@ -46,7 +46,11 @@ function MemberSuggestions() {
         // A focus refresh may have started before this write committed.
         dismissed.current.add(id);
         setItems(previous => previous.filter(item => item.id !== id));
-        if (current === generation.current) setMessage(tr('Suggestion hidden on your account.', 'Suggestion masquée sur votre compte.'));
+        if (current === generation.current) {
+          const confirmation = tr('Suggestion hidden on your account.', 'Suggestion masquée sur votre compte.');
+          setMessage(confirmation);
+          if (Platform.OS === 'ios') AccessibilityInfo.announceForAccessibilityWithOptions(confirmation, { queue: true });
+        }
       }
     } catch { if (current === generation.current) setError(tr('Could not hide this suggestion. Please try again.', 'Impossible de masquer cette suggestion. Réessayez.')); }
     finally { saving.current = false; if (mounted.current) setBusy(false); }

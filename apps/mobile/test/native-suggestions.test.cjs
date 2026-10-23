@@ -7,12 +7,12 @@ const list = [
  { id: 'short-prayer-time', kind: 'prayer-time', reason: { type: 'goal', goal: 'Build a daily prayer habit' } },
  { id: 'prayer-journal', kind: 'journal', reason: { type: 'journey', journey: 'EXPLORING' } },
 ];
-function harness() {
- let consent = true, fails = false, onFocus, cleanup, writeGate, readGate; const calls = [], routes = [], preferences = [];
+function harness(platform = 'ios') {
+ let consent = true, fails = false, onFocus, cleanup, writeGate, readGate; const calls = [], routes = [], preferences = [], announcements = [];
  let session = { isSignedIn: true, userId: 'a', getToken: async () => 'a' };
  const app = { c: {}, lang: 'en', setPrefs: value => preferences.push(value) };
  const { Suggestions } = load('../components/suggestions.tsx', {
-  'react-native': { Text: 'Text', View: 'View' },
+  'react-native': { Text: 'Text', View: 'View', Platform: { OS: platform }, AccessibilityInfo: { announceForAccessibilityWithOptions: (message, options) => announcements.push({ message, options }) } },
   'expo-router': { useFocusEffect: callback => React.useEffect(() => { onFocus = callback; cleanup = callback(); return () => cleanup?.(); }, [callback]), useRouter: () => ({ push: route => routes.push(route), navigate: route => routes.push(route) }) },
   '../lib/app': { useApp: () => app, useSession: () => session },
   '../lib/api': { requireToken: async get => { const token = await get(); if (!token) throw Error('auth'); return token; }, api: async (path, token, options) => {
@@ -24,7 +24,7 @@ function harness() {
   './ui': { Card: 'Card', Row: 'Row', Button: 'Button', ErrorLine: 'ErrorLine' },
   '../../web/lib/api': web, '../../web/lib/suggestions': rules,
  });
- return { Suggestions, calls, routes, preferences, app, blur: () => cleanup?.(), focus: () => { cleanup = onFocus(); }, delayWrite: () => { let resolve; const promise = new Promise(done => { resolve = done; }); writeGate = { promise, resolve }; return resolve; }, delayRead: () => { let resolve; const promise = new Promise(done => { resolve = done; }); readGate = { promise, resolve }; return resolve; }, fail: value => { fails=value; }, consent: value => { consent=value; }, switch: () => { session={...session,userId:'b',getToken:async()=> 'b'}; } };
+ return { Suggestions, calls, routes, preferences, announcements, app, blur: () => cleanup?.(), focus: () => { cleanup = onFocus(); }, delayWrite: () => { let resolve; const promise = new Promise(done => { resolve = done; }); writeGate = { promise, resolve }; return resolve; }, delayRead: () => { let resolve; const promise = new Promise(done => { resolve = done; }); readGate = { promise, resolve }; return resolve; }, fail: value => { fails=value; }, consent: value => { consent=value; }, switch: () => { session={...session,userId:'b',getToken:async()=> 'b'}; } };
 }
 const button = (r, title) => r.root.findAllByType('Button').find(b => b.props.title === title);
 test('native suggestions require consent, explain choices and route to exact plans and short prayer time', async () => {
@@ -70,5 +70,19 @@ test('a stale focus refresh cannot restore a dismissal that succeeds after leavi
  await act(async()=>finishRead({consent:true,suggestions:list}));
  assert.ok(!button(r,'Hide “Discover Jesus”'), 'dismissed suggestion must stay hidden');
  assert.equal(r.root.findAllByType('Row').length,2,'other suggestions remain available');
+ await act(async()=>r.unmount());
+});
+
+test('iOS queues a spoken confirmation for each successful dismissal, never failed writes', async()=>{
+ const h=harness();let r;await act(async()=>{r=create(React.createElement(h.Suggestions));});
+ h.fail(true);await act(async()=>button(r,'Hide “Discover Jesus”').props.onPress());assert.equal(h.announcements.length,0);
+ h.fail(false);await act(async()=>button(r,'Hide “Discover Jesus”').props.onPress());
+ await act(async()=>button(r,'Hide “Try a 2-minute prayer time”').props.onPress());
+ assert.equal(h.announcements.length,2);assert.ok(h.announcements.every(a=>a.options.queue===true&&a.message.includes('hidden')));
+ await act(async()=>r.unmount());
+ const android=harness('android');await act(async()=>{r=create(React.createElement(android.Suggestions));});
+ await act(async()=>button(r,'Hide “Discover Jesus”').props.onPress());
+ assert.equal(android.announcements.length,0,'Android uses its live region without a duplicate explicit announcement');
+ assert.ok(r.root.findAllByType('Text').some(t=>t.props.accessibilityLiveRegion==='polite'));
  await act(async()=>r.unmount());
 });
