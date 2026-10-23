@@ -111,3 +111,9 @@ This SDK migration is isolated on `codex/native-readiness`; it is not a producti
 ## Native screen design pass — 19 October 2026
 
 Reviewed all 12 mobile routes and editor implementations. Improved shared touch targets, large-text adaptation, tablet reading widths, safe-area/keyboard handling, screen-reader labels, motion preferences, chapter retry and authentication error states. See [screen review and remaining release gates](MOBILE_DESIGN_REVIEW_2026-10-19.md). Source and bundle checks do not complete native visual, authenticated or screen-reader acceptance. This work is isolated on `codex/mobile-design-quality`.
+
+## Consent auditing and Suggestions v2 — 23 October 2026
+
+Continued the unfinished branch after the pagination and log-redaction handoff. Source now records atomic consent preference transitions, persists account-owned suggestion dismissals, migrates earlier browser choices, includes both in account exports and deletes them with the account. Web failures preserve cards and allow retry; account switching discards previous state. Existing mobile switches reuse the profile endpoint.
+
+See [scope, migration gate and verification](CONSENT_AND_SUGGESTIONS_2026-10-23.md). The additive migration is **not approved or applied to production by this work**. Earlier milestone rows are historical source snapshots, not a declaration that those features are still missing or that native/launch acceptance is complete.

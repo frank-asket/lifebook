@@ -18,7 +18,7 @@ const open = (value: string | null | undefined, decrypt: (v: string) => string):
 export async function exportAccount(db: PrismaClient, userId: string) {
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return null;
-  const [profile, prayers, sessions, medReflections, medCompletions, medBookmarks, annotations, history, plans, studies, lessons, care, reports, ai, verification, pastorProfile, learningPaths] = await Promise.all([
+  const [profile, prayers, sessions, medReflections, medCompletions, medBookmarks, annotations, history, plans, studies, lessons, care, reports, ai, verification, pastorProfile, learningPaths, consents, dismissals] = await Promise.all([
     db.faithProfile.findUnique({ where: { userId } }),
     db.prayerEntry.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
     db.dailyWordSession.findMany({ where: { userId }, orderBy: { journeyDate: 'asc' }, include: { steps: true, reflection: true } }),
@@ -43,6 +43,8 @@ export async function exportAccount(db: PrismaClient, userId: string) {
       maxOpenRequests: true, createdAt: true, updatedAt: true,
     } }),
     db.enrollment.findMany({ where: { userId }, orderBy: { startedAt: 'asc' }, select: { pathId: true, startedAt: true, completions: { select: { lessonId: true, completedAt: true }, orderBy: { completedAt: 'asc' } } } }),
+    db.consentEvent.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
+    db.suggestionDismissal.findMany({ where: { userId }, orderBy: { dismissedAt: 'asc' } }),
   ]);
   const prayerOpen = (field: string, p: { id: string }, v: string | null) => open(v, x => decryptReflection(x, `prayer:${field}:${userId}:${p.id}`));
   return {
@@ -86,5 +88,7 @@ export async function exportAccount(db: PrismaClient, userId: string) {
     }),
     safetyReportsYouMade: reports.map(r => ({ category: r.category, status: r.status, createdAt: r.createdAt, resolvedAt: r.resolvedAt, details: open(r.detailsCiphertext, v => decryptReflection(v, `care-report:details:${r.id}`)) })),
     aiRequests: ai.map(a => ({ feature: a.feature, outcome: a.outcome, at: a.createdAt })),
+    consentHistory: consents.map(c => ({ consent: c.kind, granted: c.granted, at: c.createdAt })),
+    hiddenSuggestions: dismissals.map(d => ({ suggestion: d.suggestionId, at: d.dismissedAt })),
   };
 }

@@ -1,3 +1,4 @@
+import { saveProfile } from './account/profile-consent';
 import { LivingWordModule } from './livingword/livingword.module';
 import { PathsModule } from './paths/paths.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -308,20 +309,7 @@ class ProfileController {
   ) {
     const user = await this.user(auth);
 
-    return this.db.faithProfile.upsert({
-      where: {
-        userId: user.id,
-      },
-
-      create: {
-        userId: user.id,
-        learningGoals: [],
-        preferredFormats: [],
-        ...dto,
-      },
-
-      update: dto,
-    });
+    return saveProfile(this.db, user.id, dto);
   }
 }
 

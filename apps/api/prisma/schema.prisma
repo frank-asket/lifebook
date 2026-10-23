@@ -72,6 +72,8 @@ model User {
 
   // M3.5.3 — Bible Reader annotations
   bibleAnnotations      BibleAnnotation[]
+  consentEvents         ConsentEvent[]
+  suggestionDismissals  SuggestionDismissal[]
 }
 
 // ============================================================
@@ -655,4 +657,33 @@ model SafeguardingAction {
   createdAt    DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ============================================================
+// CONSENT HISTORY AND SUGGESTION DISMISSALS (20 October 2026)
+// ============================================================
+
+// Preference transitions recorded from this release onward; not a retroactive consent record.
+// kind: "personalization" | "ai_processing". Deleted with the account.
+model ConsentEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  kind      String
+  granted   Boolean
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// A suggestion the member chose to hide, so it stays hidden on every device.
+model SuggestionDismissal {
+  userId       String
+  suggestionId String
+  dismissedAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, suggestionId])
 }
