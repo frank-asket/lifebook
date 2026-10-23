@@ -52,7 +52,8 @@ test('consent transitions are atomic and dismissals persist only for their owner
     assert.equal(response.headers.get('cache-control'), 'no-store');
     assert.ok(response.json.suggestions.some(s => s.id === 'plan:discover-jesus'));
     const dismiss = () => call('a', '/me/suggestions/plan%3Adiscover-jesus/dismiss', 'POST');
-    assert.ok((await Promise.all([dismiss(), dismiss()])).every(r => r.status === 200));
+    const dismissed = await Promise.all(Array.from({ length: 12 }, dismiss));
+    assert.deepEqual(dismissed.map(r => r.status), Array(12).fill(200), JSON.stringify(dismissed.map(r => ({ status: r.status, body: r.json }))));
     assert.equal(await db.suggestionDismissal.count({ where: { userId: a.id } }), 1);
     response = await call('a', '/me/suggestions');
     assert.equal(response.json.suggestions.length, 0);
