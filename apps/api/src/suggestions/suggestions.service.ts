@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { BibleReadingService, READING_PLANS } from '../bible-reading/bible-reading.service';
 import { suggest, type Suggestion } from './suggestion-rules';
@@ -16,13 +16,23 @@ export class SuggestionsService implements OnModuleDestroy {
     const profile = await this.db.faithProfile.findUnique({ where: { userId } });
     if (!profile?.personalizationConsent) return { consent: false, suggestions: [] as ReturnType<SuggestionsService['present']>[] };
     const since = new Date(Date.now() - 7 * 86400000);
-    const [enrollments, prayerCount, completedDaysLast7] = await Promise.all([
+    const [enrollments, prayerCount, completedDaysLast7, dismissed] = await Promise.all([
       this.db.bibleReadingPlanEnrollment.findMany({ where: { userId }, select: { planId: true } }),
       this.db.prayerEntry.count({ where: { userId } }),
       this.db.dailyWordSession.count({ where: { userId, status: 'COMPLETED', completedAt: { gte: since } } }),
+      this.db.suggestionDismissal.findMany({ where: { userId }, select: { suggestionId: true } }),
     ]);
+    const hidden = new Set(dismissed.map(d => d.suggestionId));
     const suggestions = suggest({ consent: true, journey: profile.journey ?? null, goals: profile.learningGoals, enrolledPlanIds: enrollments.map(e => e.planId), prayerCount, completedDaysLast7 });
-    return { consent: true, suggestions: suggestions.map(s => this.present(s, locale)) };
+    return { consent: true, suggestions: suggestions.filter(s => !hidden.has(s.id)).map(s => this.present(s, locale)) };
+  }
+
+  /** Remembers a hidden suggestion. Ids are the rule ids ("plan:<id>", "prayer-journal", "short-prayer-time"). */
+  async dismiss(auth: string | undefined, suggestionId: string) {
+    const userId = await this.reading.userId(auth);
+    if (!['prayer-journal', 'short-prayer-time', ...READING_PLANS.map(p => `plan:${p.id}`)].includes(suggestionId)) throw new BadRequestException('Unknown suggestion');
+    await this.db.suggestionDismissal.upsert({ where: { userId_suggestionId: { userId, suggestionId } }, create: { userId, suggestionId }, update: {} });
+    return { dismissed: suggestionId };
   }
 
   /** Adds what the card shows; plan titles come from the reading plans, in the reader's language. */

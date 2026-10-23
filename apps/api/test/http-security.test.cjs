@@ -20,7 +20,7 @@ test('HTTP API denies unauthenticated private access, rejects invalid input and 
       const response = await fetch(`${base}/api/v1/${path}`);
       assert.equal(response.status, 401, path);
     }
-    for (const [path, method] of [['paths/fixture/enroll', 'POST'], ['paths/fixture/lessons/fixture/complete', 'PUT']]) {
+    for (const [path, method] of [['me/suggestions/prayer-journal/dismiss', 'POST'], ['paths/fixture/enroll', 'POST'], ['paths/fixture/lessons/fixture/complete', 'PUT']]) {
       const response = await fetch(`${base}/api/v1/${path}`, { method });
       assert.equal(response.status, 401, path);
     }

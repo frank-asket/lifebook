@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0.0] - 2026-10-23
+
+### Added
+- Record atomic personalization and optional AI consent preference transitions, including concurrent device saves.
+- Remember hidden suggestions across devices and import earlier device-only choices.
+- Include consent history and hidden suggestions in account exports and account deletion.
+
+### Fixed
+- Preserve suggestion cards after failed dismissal and discard their state on account changes.
+
+### Database
+- Add ConsentEvent and SuggestionDismissal tables; requires the reviewed additive migration before API rollout.
+
 ## [0.1.2.0] - 2026-10-19
 
 ### Changed

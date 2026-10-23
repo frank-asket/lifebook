@@ -1,6 +1,6 @@
 # LifeBook — System Architecture & Engineering README
 
-**Product completion work (19 October 2026):** Development now follows the [milestone-aligned product completion checklist](docs/PRODUCT_COMPLETION_PLAN.md), covering web/marketing, backend, security and Expo before deployment. The dated architecture and release notes below describe earlier snapshots; use the checklist for current gaps and verification status. See [reflection history and deletion acceptance](docs/REFLECTION_HISTORY_ACCEPTANCE.md) for the new Expo journeys, API endpoints and pending device checks.
+**Product completion work (19 October 2026):** Development now follows the [milestone-aligned product completion checklist](docs/PRODUCT_COMPLETION_PLAN.md), covering web/marketing, backend, security and Expo before deployment. The dated architecture and release notes below describe earlier snapshots; use the checklist for current gaps and verification status. See [reflection history and deletion acceptance](docs/REFLECTION_HISTORY_ACCEPTANCE.md) for the new Expo journeys, API endpoints and pending device checks. See [consent history and account suggestion dismissals](docs/CONSENT_AND_SUGGESTIONS_2026-10-23.md) for the 23 October source changes and pending migration/manual acceptance gates.
 
 > **Architecture baseline:** 12 October 2026 · **Repository:** `lifebook` pnpm monorepo · **Status:** Phase 1 / Sprint 2 under integration testing.
 >

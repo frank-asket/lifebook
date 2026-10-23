@@ -1,5 +1,5 @@
 // Personalized suggestions on Home: what the API sends, and which ones to show. Hidden ones are remembered
-// on this device only (per account), until dismissals move to the profile.
+// on the account; the local helpers import choices saved by earlier releases.
 
 export type Reason = { type: 'goal'; goal: string } | { type: 'journey'; journey: string };
 export type SuggestionView = { id: string; kind: 'plan' | 'journal' | 'prayer-time'; reason: Reason; href: string; title?: string; description?: string; duration?: number };
@@ -14,6 +14,6 @@ export function visible(list: readonly SuggestionView[], hidden: readonly string
 }
 
 export function parseHidden(raw: string | null): string[] {
-  try { const v = raw ? JSON.parse(raw) : []; return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 50) : []; }
+  try { const v = raw ? JSON.parse(raw) : []; return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && /^(plan:(discover-jesus|foundations-of-faith|walking-with-god)|prayer-journal|short-prayer-time)$/.test(x)).slice(0, 50) : []; }
   catch { return []; }
 }
