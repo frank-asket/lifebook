@@ -33,6 +33,6 @@ Passed on 23 October 2026:
 - **41 web tests and 59 mobile/cross-client component tests passed**. The new web component tests cover failed dismissal/retry, identity changes and importing legacy device choices without deleting them on failure.
 - Prisma generation and validation, NestJS build, web and marketing Next.js production builds, mobile TypeScript, and Git whitespace checks passed.
 
-Synthetic test data and Clerk test doubles exercise the real HTTP controllers; no real member credentials are used. The disposable test container was removed after verification. The source remains on `feat/consent-history-and-dismissals`; nothing was pushed, merged or deployed in this continuation.
+Synthetic test data and Clerk test doubles exercise the real HTTP controllers; no real member credentials are used. The disposable test container was removed after verification. The reviewed source has been pushed on `feat/consent-history-and-dismissals`; the pull request is pending. Nothing has been merged or deployed in this continuation.
 
 Manual browser/screen-reader acceptance and production backup/migration approval remain open.

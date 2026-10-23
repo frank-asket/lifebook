@@ -1,6 +1,6 @@
 # Personalized suggestions — plan
 
-Written 18 October 2026. Status: **v1 built** (steps 2–4 and 6, without a migration): goals are mapped from their saved labels in code, and hidden suggestions are remembered per device. Steps 1 and 5, and moving hidden suggestions to the profile, are still to do.
+Written 18 October 2026; source status updated 23 October. **Web suggestions and account-owned dismissals are implemented.** Goals still map from saved labels in code; stable stored goal codes, native suggestion cards and reviewed “New to this?” content remain open. The account-dismissal migration is pending production review and backup recovery verification. See [consent and suggestions release scope](CONSENT_AND_SUGGESTIONS_2026-10-23.md) for endpoints, legacy-device import, tests and release gates.
 
 ## Where we are
 
@@ -20,7 +20,7 @@ Written 18 October 2026. Status: **v1 built** (steps 2–4 and 6, without a migr
 
 ## What people will see (v1)
 
-Under the Today card on the home page (web) and the Today tab (mobile), one quiet card titled "Suggested for you" with up to two items:
+On web Home, one quiet card (the equivalent native Today card remains planned) titled "Suggested for you" with up to two items:
 
 | If they chose… | We suggest |
 | --- | --- |
