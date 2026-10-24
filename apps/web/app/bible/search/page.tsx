@@ -10,7 +10,7 @@ import type { ScriptureSearch } from '../../../lib/scripture-search';
 export default function SearchPage() { return <Suspense fallback={<p role="status">…</p>}><Search /></Suspense>; }
 function Search() {
   const { language } = useLanguage(); const params = useSearchParams(); const locale = params.get('locale') === 'fr' ? 'fr' : params.get('locale') === 'en' ? 'en' : language; const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
-  const [query, setQuery] = useState(''); const [search, setSearch] = useState(''); const [offset, setOffset] = useState(0); const [data, setData] = useState<ScriptureSearch | null>(null); const [error, setError] = useState(''); const [retry, setRetry] = useState(0);
+  const [query, setQuery] = useState(params.get('q') ?? ''); const [search, setSearch] = useState((params.get('q') ?? '').trim()); const [offset, setOffset] = useState(0); const [data, setData] = useState<ScriptureSearch | null>(null); const [error, setError] = useState(''); const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!search) return;
     const controller = new AbortController(); setData(null); setError('');

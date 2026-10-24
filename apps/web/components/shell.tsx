@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { BookOpen, LayoutDashboard, HeartHandshake, Headphones, GraduationCap, BookMarked, Settings, Search, UserRound, Menu, Sun } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/nextjs';
 import { useLanguage } from './language-provider';
@@ -29,6 +29,18 @@ export function Shell({ children, title = 'Your space to grow' }: { children: Re
   const { language } = useLanguage();
   const { user } = useUser();
   const more = useRef<HTMLDetailsElement>(null);
+  const router = useRouter();
+  // ⌘K / Ctrl+K anywhere, or "/" when not typing, opens search.
+  useEffect(() => {
+    const open = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLElement && (e.target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName));
+      if (((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey)) {
+        e.preventDefault(); if (path !== '/search') router.push('/search'); else document.getElementById('site-search')?.focus();
+      }
+    };
+    window.addEventListener('keydown', open);
+    return () => window.removeEventListener('keydown', open);
+  }, [path, router]);
   const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
   const reading = /^\/bible\/(read|plans|my-reading|dashboard|annotations)(\/|$)/.test(path);
   const active = (href: string) => href === '/bible/dashboard' ? reading : href === '/bible' ? path === '/bible' || (path.startsWith('/bible/') && !reading) : path === href || path.startsWith(`${href}/`);
@@ -46,8 +58,8 @@ export function Shell({ children, title = 'Your space to grow' }: { children: Re
       </div>
     </aside>
     <div className="main-column">
-      <div className="mobile-top"><Brand /><div className="mobile-header-actions"><UserButton /></div></div>
-      <header className="topbar"><div><div className="greeting">{title}</div></div><div className="topbar-right"><Link href="/bible" className="icon-button" aria-label={tr('Find a Bible study', 'Rechercher une étude biblique')}><Search size={18} aria-hidden="true" /></Link><Link href="/settings" className="icon-button" aria-label={tr('Settings', 'Paramètres')}><Settings size={18} aria-hidden="true" /></Link><UserButton /></div></header>
+      <div className="mobile-top"><Brand /><div className="mobile-header-actions"><Link href="/search" className="icon-button" aria-label={tr('Search LifeBook', 'Rechercher dans LifeBook')}><Search size={18} aria-hidden="true" /></Link><UserButton /></div></div>
+      <header className="topbar"><div><div className="greeting">{title}</div></div><div className="topbar-right"><Link href="/search" className="icon-button" aria-label={tr('Search LifeBook', 'Rechercher dans LifeBook')} aria-keyshortcuts="Control+K Meta+K /" title={tr('Search (⌘K)', 'Rechercher (⌘K)')}><Search size={18} aria-hidden="true" /></Link><Link href="/settings" className="icon-button" aria-label={tr('Settings', 'Paramètres')}><Settings size={18} aria-hidden="true" /></Link><UserButton /></div></header>
       <main id="main-content" className="page" tabIndex={-1}>{children}</main>
       <nav className="mobile-menu" aria-label={tr('Mobile navigation', 'Navigation mobile')}>
         {[links[0], links[1], links[2], links[5]].map(({ href, en, fr, icon: Icon }) => <Link key={href} href={href} className={active(href) ? 'active' : ''} aria-current={active(href) ? 'page' : undefined} onClick={() => { if (more.current) more.current.open = false; }}><Icon size={21} aria-hidden="true" />{href === '/bible/dashboard' ? tr('Bible', 'Bible') : href === '/prayer' ? tr('Prayer', 'Prière') : tr(en, fr)}</Link>)}

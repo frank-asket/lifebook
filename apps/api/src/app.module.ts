@@ -7,6 +7,7 @@ import { BibleAnnotationsModule } from './bible-annotations/bible-annotations.mo
 import { BibleReadingModule } from './bible-reading/bible-reading.module';
 import { SuggestionsModule } from './suggestions/suggestions.module';
 import { AccountModule } from './account/account.module';
+import { SearchModule } from './search/search.module';
 import {
   Module,
   Controller,
@@ -328,6 +329,7 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
     LivingWordModule,
     SuggestionsModule,
     AccountModule,
+    SearchModule,
     BibleContentModule,
     BibleAnnotationsModule,
     // Sprint 2 — Daily Bible Meditation

@@ -11,7 +11,7 @@ function harness() {
   const item = { id: 'synthetic-teaching', title: 'Synthetic teaching', speaker: 'Synthetic teacher', kind: 'audio', locale: 'en', mediaUrl: 'https://media.example.invalid/a.mp3', attribution: 'Synthetic credit', transcript: 'Synthetic accessible transcript', description: null };
   const { default: Library } = load('../app/livingword.tsx', {
     'react-native': native, 'expo': { useEvent: () => ({ status: 'readyToPlay' }) },
-    'expo-router': { useRouter: () => ({ navigate() {} }), useFocusEffect: callback => React.useEffect(callback, [callback]) },
+    'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ navigate() {} }), useFocusEffect: callback => React.useEffect(callback, [callback]) },
     'expo-audio': { useAudioPlayer: () => player, useAudioPlayerStatus: () => ({ isLoaded: controls.loaded, error: controls.error, isBuffering: false, playing: false, currentTime: 0, duration: 60 }) },
     'expo-video': { useVideoPlayer: () => player, VideoView: 'VideoView' }, '../lib/app': { useApp: () => app }, '../components/ui': ui, '../../web/lib/errors': { errorMessage },
     '../lib/api': { api: async path => { calls.push(path); return path.includes('?') ? { items: path.includes('q=missing') ? [] : [item], total: 1, page: 1, pageSize: 20 } : item; } },

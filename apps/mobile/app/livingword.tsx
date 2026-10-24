@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TextInput, View } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
@@ -14,7 +14,8 @@ export default function LivingWord() {
   const { c, lang } = useApp(); const router = useRouter(); const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const [query, setQuery] = useState(''); const [search, setSearch] = useState(''); const [page, setPage] = useState(1);
   const [data, setData] = useState<TeachingPage | null>(null); const [error, setError] = useState(''); const [retry, setRetry] = useState(0);
-  const [id, setId] = useState<string | null>(null);
+  const params = useLocalSearchParams<{ id?: string }>();
+  const [id, setId] = useState<string | null>(typeof params.id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(params.id) ? params.id : null);
   useEffect(() => { setPage(1); }, [lang]);
   useFocusEffect(useCallback(() => {
     const controller = new AbortController(); setData(null); setError('');

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Text } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp, useSession } from '../lib/app';
 import { api, requireToken } from '../lib/api';
 import { ApiError } from '../../web/lib/api';
@@ -19,7 +19,8 @@ export default function Meditations() {
   const [items, setItems] = useState<Entry[] | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
-  const [selected, setSelected] = useState<string | null>(null);
+  const params = useLocalSearchParams<{ id?: string }>();
+  const [selected, setSelected] = useState<string | null>(typeof params.id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(params.id) ? params.id : null);
   useFocusEffect(useCallback(() => {
     const controller = new AbortController();
     setItems(null); setError('');

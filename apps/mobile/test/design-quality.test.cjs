@@ -114,10 +114,15 @@ test('reading settings can scroll to every control and respect the home indicato
     '../lib/app': { useApp: () => ({ c: {}, t: copy.en, prefs: { reader: { size: 'm', spacing: 'normal', font: 'serif' } }, setPrefs() {}, bibleLocale: 'en' }) },
     '../lib/theme': { fonts: { serif: 'Georgia' } }, '../components/ui': { Segmented: 'Segmented' },
     '../../web/lib/reader-settings': load('../../web/lib/reader-settings.ts'),
+    '../lib/reader-style': load('../lib/reader-style.ts', { './theme': { fonts: { serif: 'Georgia' } } }),
   });
   let renderer;
   await act(async () => { renderer = create(React.createElement(Settings)); });
   assert.equal(renderer.root.findByType('ScrollView').props.contentContainerStyle.paddingBottom, 58);
+  // The live preview shows the reader's text in the reader's own size, spacing and typeface.
+  const preview = renderer.root.findAllByType('Text').find(t => t.props.children === 'Thy word is a lamp unto my feet, and a light unto my path.');
+  assert.ok(preview, 'preview verse is shown');
+  assert.equal(preview.props.style.fontSize, 19); assert.equal(preview.props.style.lineHeight, Math.round(19 * 1.8)); assert.equal(preview.props.style.fontFamily, 'Georgia');
   assert.equal(renderer.root.findAllByType('Segmented').length, 3);
   assert.ok(renderer.root.findAllByType('Pressable').every(p => {
     const style = typeof p.props.style === 'function' ? p.props.style({ pressed: false }) : p.props.style;

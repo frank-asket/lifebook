@@ -128,7 +128,7 @@ function collectionHarness(screen, { signedIn = true, missing = false, fail = fa
   const requests = [];
   const detail = { ReflectionDetail: 'ReflectionDetail', dailySteps: ['UNDERSTAND', 'MEDITATE', 'REFLECT', 'PRAY', 'LIVE'], dayLabel: (value, language) => new Date(value).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-GB', { timeZone: 'UTC' }) };
   const { default: Component } = load(`../app/${screen}.tsx`, {
-    'react-native': native, 'expo-router': { useFocusEffect: cb => React.useEffect(cb, [cb]), useRouter: () => ({ navigate() {} }) },
+    'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useFocusEffect: cb => React.useEffect(cb, [cb]), useRouter: () => ({ navigate() {} }) },
     '../lib/app': { useApp: () => ({ c: {}, lang }), useSession: () => ({ ...session, isSignedIn: signedIn }) },
     '../lib/api': { requireToken: async read => read(), api: async (path, token) => {
       requests.push({ path, token });

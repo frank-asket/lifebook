@@ -12,7 +12,7 @@ function harness({ signedIn = true, failRead = false } = {}) {
   const writes = [];
   const { default: Journey } = load('../app/discipleship.tsx', {
     'react-native': native,
-    'expo-router': { useRouter: () => ({ navigate() {}, push() {} }), useFocusEffect: callback => React.useEffect(callback, [callback]) },
+    'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ navigate() {}, push() {} }), useFocusEffect: callback => React.useEffect(callback, [callback]) },
     '../lib/app': { useApp: () => app, useSession: () => session }, '../components/ui': ui,
     '../../web/lib/errors': { errorMessage }, '../../web/lib/learning-paths': load('../../web/lib/learning-paths.ts'),
     '../lib/api': { requireToken: async read => read(), api: async (endpoint, _token, init = {}) => {

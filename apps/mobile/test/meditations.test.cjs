@@ -87,7 +87,7 @@ function collectionHarness({ signedIn = true, missing = false, unavailable = fal
   const app = { c: {}, lang: 'fr' };
   const { default: Meditations } = load('../app/meditations.tsx', {
     'react-native': native,
-    'expo-router': { useFocusEffect: cb => React.useEffect(cb, [cb]), useRouter: () => ({ navigate() {} }) },
+    'expo-router': { useLocalSearchParams: () => ({}), useFocusEffect: cb => React.useEffect(cb, [cb]), useRouter: () => ({ navigate() {} }) },
     '../lib/app': { useApp: () => app, useSession: () => ({ ...session, isSignedIn: signedIn }) },
     '../lib/api': { requireToken: async read => read(), api: async path => {
       requests.push(path);
