@@ -2,7 +2,7 @@
 // the sheet itself lives in components/Announcement.tsx. Seen state is kept on this device only.
 
 type Text = { en: string; fr: string };
-export type Slide = { id: string; icon: 'sun' | 'book' | 'lock' | 'calendar' | 'settings' | 'type' | 'sparkles'; title: Text; body: Text; cta?: { label: Text; href: string } };
+export type Slide = { id: string; icon: 'sun' | 'book' | 'lock' | 'calendar' | 'settings' | 'type' | 'sparkles' | 'search'; title: Text; body: Text; cta?: { label: Text; href: string } };
 export type Announcement = { id: string; kind: 'welcome' | 'release'; date: string; label: Text; slides: Slide[] };
 
 export const WELCOME: Announcement = {
@@ -30,6 +30,18 @@ export const WELCOME: Announcement = {
 
 /** Newest first. Add a release here when something worth telling returning users ships. */
 export const RELEASES: Announcement[] = [
+  { id: '2026-10-search', kind: 'release', date: '2026-10-24',
+    label: { en: 'What’s new', fr: 'Nouveautés' },
+    slides: [
+      { id: 'search', icon: 'search',
+        title: { en: 'One search for everything', fr: 'Une seule recherche pour tout' },
+        body: { en: 'Type a passage like “John 3:16” to go straight there, or a word like “peace” to find verses, reading plans and more. Press ⌘K, or tap the search button. It never searches your private writing.', fr: 'Tapez un passage comme « Jean 3:16 » pour y aller directement, ou un mot comme « paix » pour trouver des versets, des plans de lecture et plus encore. Appuyez sur ⌘K ou touchez le bouton de recherche. Elle ne parcourt jamais vos écrits privés.' },
+        cta: { label: { en: 'Try search', fr: 'Essayer la recherche' }, href: '/search' } },
+      { id: 'reader-preview', icon: 'type',
+        title: { en: 'See your reading settings', fr: 'Voyez vos réglages de lecture' },
+        body: { en: 'Tap Aa in the Bible reader: a verse at the top now shows your text size, spacing and typeface as you change them.', fr: 'Touchez Aa dans le lecteur biblique : un verset en haut montre désormais la taille, l’interligne et la police à mesure que vous les changez.' },
+        cta: { label: { en: 'Open the Bible', fr: 'Ouvrir la Bible' }, href: '/bible/read' } },
+    ] },
   { id: '2026-10-prayer-time', kind: 'release', date: '2026-10-18',
     label: { en: 'What’s new', fr: 'Nouveautés' },
     slides: [

@@ -94,8 +94,8 @@ const en = {
     groups: [
       { id: 'read', tab: 'Read & study', title: 'Read and study the Bible', lead: 'Scripture in your language, at your pace, with room to think.', items: [
         { title: 'Today’s Word', text: 'One passage a day, the same for everyone, with a short explanation, a question and a prayer.', status: 'live' },
-        { title: 'The Bible in English and French', text: 'Read any book, pick up where you left off, and set the text size, spacing and typeface that suit your eyes.', status: 'live' },
-        { title: 'Search Scripture', text: 'Find a passage by words or by reference, in the translation you are reading.', status: 'live' },
+        { title: 'The Bible in English and French', text: 'Read any book, pick up where you left off, and set the text size, spacing and typeface that suit your eyes, with a live preview as you choose.', status: 'live' },
+        { title: 'One search for everything', text: 'Type “John 3:16” to go straight there, or a word like “peace” to find verses, reading plans and more. Never searches your private writing.', status: 'live' },
         { title: 'Notes, highlights and saved verses', text: 'Mark the verses that speak to you. Your notes are private and encrypted.', status: 'live' },
         { title: 'Reading plans', text: 'Three plans to begin with: Discover Jesus (21 days), Foundations of Faith (14 days) and Walking with God (30 days). You mark each day yourself.', status: 'live' },
         { title: 'Bible studies', text: 'Guided studies that read each passage in its context. The library is being written and reviewed.', status: 'content' },
@@ -273,8 +273,8 @@ const fr: Content = {
     groups: [
       { id: 'read', tab: 'Lire et étudier', title: 'Lire et étudier la Bible', lead: 'La Parole dans votre langue, à votre rythme, avec de la place pour réfléchir.', items: [
         { title: 'La Parole du jour', text: 'Un passage par jour, le même pour tous, avec une courte explication, une question et une prière.', status: 'live' },
-        { title: 'La Bible en français et en anglais', text: 'Lisez n’importe quel livre, reprenez là où vous en étiez, et choisissez la taille, l’interligne et la police qui vous conviennent.', status: 'live' },
-        { title: 'Rechercher dans la Bible', text: 'Trouvez un passage par des mots ou par sa référence, dans la traduction que vous lisez.', status: 'live' },
+        { title: 'La Bible en français et en anglais', text: 'Lisez n’importe quel livre, reprenez là où vous en étiez, et choisissez la taille, l’interligne et la police qui vous conviennent, avec un aperçu en direct.', status: 'live' },
+        { title: 'Une seule recherche pour tout', text: 'Tapez « Jean 3:16 » pour y aller directement, ou un mot comme « paix » pour trouver des versets, des plans de lecture et plus encore. Elle ne parcourt jamais vos écrits privés.', status: 'live' },
         { title: 'Notes, surlignages et versets enregistrés', text: 'Marquez les versets qui vous parlent. Vos notes sont privées et chiffrées.', status: 'live' },
         { title: 'Plans de lecture', text: 'Trois plans pour commencer : découvrir Jésus dans les Évangiles (21 jours), les fondements de la foi (14 jours) et marcher avec Dieu (30 jours). Vous marquez vous-même chaque jour.', status: 'live' },
         { title: 'Études bibliques', text: 'Des études guidées qui lisent chaque passage dans son contexte. La bibliothèque est en cours d’écriture et de relecture.', status: 'content' },

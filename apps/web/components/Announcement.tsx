@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth, useUser } from '@clerk/nextjs';
-import { BookOpen, CalendarDays, LockKeyhole, Settings2, Sparkles, Sun, Type, X } from 'lucide-react';
+import { BookOpen, CalendarDays, LockKeyhole, Settings2, Sparkles, Sun, Type, X, Search } from 'lucide-react';
 import { useLanguage } from './language-provider';
 import { byId, markSeen, parseSeen, pickAnnouncement, seenKey, RELEASES, type Announcement as Item, type Slide } from '../lib/announcements';
 
-const ICONS: Record<Slide['icon'], typeof Sun> = { sun: Sun, book: BookOpen, lock: LockKeyhole, calendar: CalendarDays, settings: Settings2, type: Type, sparkles: Sparkles };
+const ICONS: Record<Slide['icon'], typeof Sun> = { sun: Sun, book: BookOpen, lock: LockKeyhole, calendar: CalendarDays, settings: Settings2, type: Type, sparkles: Sparkles, search: Search };
 const read = (key: string) => { try { return localStorage.getItem(key); } catch { return null; } };
 const write = (key: string, value: string) => { try { localStorage.setItem(key, value); } catch { /* not remembered on this device */ } };
 
