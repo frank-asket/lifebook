@@ -4,6 +4,12 @@ import { Minus, Plus, Type } from 'lucide-react';
 import { TEXT_SIZES, stepSize, type ReaderSettings } from '../../lib/reader-settings';
 import type { BibleLocale } from '../../lib/bible-api';
 
+// Shown in the panel so each change is visible before closing it. Quoted exactly from the translations the app uses.
+const PREVIEW = {
+  en: { text: 'Thy word is a lamp unto my feet, and a light unto my path.', reference: 'Psalm 119:105', translation: 'King James Version' },
+  fr: { text: 'Ta parole est une lampe à mon pied, et une lumière à mon sentier.', reference: 'Psaume 119:105', translation: 'Bible J.N. Darby' },
+} as const;
+
 type Props = {
   locale: BibleLocale; uiLanguage: 'en' | 'fr'; settings: ReaderSettings;
   onSettings: (next: ReaderSettings) => void; onLocale: (locale: BibleLocale) => void;
@@ -27,6 +33,10 @@ export function ReaderSettingsPanel({ locale, uiLanguage, settings, onSettings, 
   return <details className="reader-menu" ref={menu}>
     <summary className="icon-button reader-menu-button" aria-label={tr('Reading settings', 'Réglages de lecture')}><Type size={18} aria-hidden="true" /></summary>
     <div className="reader-menu-panel" role="group" aria-label={tr('Reading settings', 'Réglages de lecture')}>
+      <figure className="reader-preview" data-size={settings.size} data-spacing={settings.spacing} data-font={settings.font} aria-label={tr('Preview of your settings', 'Aperçu de vos réglages')}>
+        <blockquote className="scripture-text" lang={locale}>{PREVIEW[locale].text}</blockquote>
+        <figcaption>{PREVIEW[locale].reference} · {PREVIEW[locale].translation}</figcaption>
+      </figure>
       <div className="reader-setting">
         <span className="field-label" id="rs-language">{tr('Bible language', 'Langue de la Bible')}</span>
         <div className="mini-segmented" role="radiogroup" aria-labelledby="rs-language">
@@ -44,15 +54,15 @@ export function ReaderSettingsPanel({ locale, uiLanguage, settings, onSettings, 
       <div className="reader-setting">
         <span className="field-label" id="rs-spacing">{tr('Line spacing', 'Interligne')}</span>
         <div className="mini-segmented" role="radiogroup" aria-labelledby="rs-spacing">
-          <button type="button" role="radio" aria-checked={settings.spacing === 'normal'} onClick={() => set({ spacing: 'normal' })}>{tr('Standard', 'Standard')}</button>
-          <button type="button" role="radio" aria-checked={settings.spacing === 'relaxed'} onClick={() => set({ spacing: 'relaxed' })}>{tr('Airy', 'Aéré')}</button>
+          <button type="button" role="radio" aria-checked={settings.spacing === 'normal'} onClick={() => set({ spacing: 'normal' })}><span className="spacing-sample" data-spacing="normal" aria-hidden="true"><i /><i /><i /></span>{tr('Standard', 'Standard')}</button>
+          <button type="button" role="radio" aria-checked={settings.spacing === 'relaxed'} onClick={() => set({ spacing: 'relaxed' })}><span className="spacing-sample" data-spacing="relaxed" aria-hidden="true"><i /><i /><i /></span>{tr('Airy', 'Aéré')}</button>
         </div>
       </div>
       <div className="reader-setting">
         <span className="field-label" id="rs-font">{tr('Typeface', 'Police')}</span>
         <div className="mini-segmented" role="radiogroup" aria-labelledby="rs-font">
           <button type="button" role="radio" aria-checked={settings.font === 'serif'} onClick={() => set({ font: 'serif' })} className="font-serif-sample">{tr('Serif', 'Avec empattement')}</button>
-          <button type="button" role="radio" aria-checked={settings.font === 'sans'} onClick={() => set({ font: 'sans' })}>{tr('Sans', 'Sans empattement')}</button>
+          <button type="button" role="radio" aria-checked={settings.font === 'sans'} onClick={() => set({ font: 'sans' })} className="font-sans-sample">{tr('Sans', 'Sans empattement')}</button>
         </div>
       </div>
     </div>

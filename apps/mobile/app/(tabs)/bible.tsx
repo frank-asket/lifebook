@@ -11,12 +11,12 @@ import { AnnotationEditor } from '../../components/annotation-editor';
 import { annotationAt, highlightColors, validVerseRange, type Annotation } from '../../lib/annotations';
 import { requireToken } from '../../lib/api';
 import { bookName, parseVerses } from '../../../web/lib/scripture';
+import { readerText } from '../../lib/reader-style';
 
 type Chapter = { id: string; number: string };
 type Content = { id: string; reference: string; content: string; copyright?: string; fumsToken?: string | null };
 type Translation = { name?: string; nameLocal?: string; abbreviation?: string };
 
-const SIZES = { s: 17, m: 19, l: 22, xl: 25 } as const;
 
 export default function Bible() {
   const { c, t, prefs, setPrefs, bibleLocale, lang, dark } = useApp();
@@ -115,9 +115,7 @@ export default function Bible() {
   const previous = index > 0 ? chapters[index - 1] : undefined;
   const next = index >= 0 ? chapters[index + 1] : undefined;
   const paragraphs = useMemo(() => content ? parseVerses(content.content) : [], [content]);
-  const size = SIZES[prefs.reader.size];
-  const leading = prefs.reader.spacing === 'relaxed' ? 2.2 : 1.8;
-  const family = prefs.reader.font === 'sans' ? undefined : fonts.serif;
+  const { size, leading, family } = readerText(prefs.reader);
   const iconButton = (name: keyof typeof Ionicons.glyphMap, label: string, onPress: (() => void) | undefined) =>
     <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: !onPress }} disabled={!onPress} onPress={onPress} style={({ pressed }) => ({ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, opacity: onPress ? 1 : 0.35, backgroundColor: pressed ? c.soft : 'transparent' })}>
       <Ionicons name={name} size={20} color={c.muted} />

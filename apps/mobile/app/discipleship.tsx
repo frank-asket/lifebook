@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Text } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { useApp, useSession } from '../lib/app';
 import { api, requireToken } from '../lib/api';
 import { Button, Card, ErrorLine, Row, Screen } from '../components/ui';
@@ -13,7 +13,8 @@ export default function Discipleship() {
   const router = useRouter();
   const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const [items, setItems] = useState<PathSummary[] | null>(null);
-  const [id, setId] = useState<string | null>(null);
+  const params = useLocalSearchParams<{ id?: string }>();
+  const [id, setId] = useState<string | null>(typeof params.id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(params.id) ? params.id : null);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   useFocusEffect(useCallback(() => {

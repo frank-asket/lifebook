@@ -56,12 +56,12 @@ export class BibleContentService {
     } finally { clearTimeout(timer); }
   }
 
-  async search(locale: Locale, query: string, offsetInput = '0') {
+  async search(locale: Locale, query: string, offsetInput = '0', sort: 'canonical' | 'relevance' = 'canonical') {
     if (typeof query !== 'string' || !query.trim() || query.length > 120 || typeof offsetInput !== 'string' || !/^(0|[1-9][0-9]{0,4})$/.test(offsetInput)) throw new BadRequestException('Invalid Scripture search');
     const bibleId = this.bibleId(locale);
     if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
     const offset = Number(offsetInput); const limit = 20;
-    const params = new URLSearchParams({ query: query.trim(), limit: String(limit), offset: String(offset), sort: 'canonical', 'fums-version': '3' });
+    const params = new URLSearchParams({ query: query.trim(), limit: String(limit), offset: String(offset), sort, 'fums-version': '3' });
     const result = await this.request<{ data?: { total?: number; verses?: { id: string; reference: string }[]; passages?: { id: string; reference: string }[] } }>(`/bibles/${encodeURIComponent(bibleId)}/search?${params}`);
     if (!result.data) throw new ServiceUnavailableException('Scripture search unavailable');
     // Reference-only results avoid publishing provider markup or uncredited snippets.

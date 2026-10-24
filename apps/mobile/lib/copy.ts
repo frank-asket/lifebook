@@ -30,7 +30,7 @@ const en = {
     loading: 'Loading Scripture…', error: 'Scripture could not be loaded.', books: 'Books', chapters: 'Chapters', cancel: 'Cancel',
     placeNotSaved: 'Your place could not be saved. You can keep reading.',
   },
-  reader: { title: 'Reading settings', done: 'Done', language: 'Bible language', size: 'Text size', smaller: 'Smaller text', larger: 'Larger text', sizeOf: (n: number) => `Size ${n} of 4`, spacing: 'Line spacing', standard: 'Standard', airy: 'Airy', typeface: 'Typeface', serif: 'Serif', sans: 'Sans' },
+  reader: { title: 'Reading settings', done: 'Done', language: 'Bible language', size: 'Text size', smaller: 'Smaller text', larger: 'Larger text', sizeOf: (n: number) => `Size ${n} of 4`, spacing: 'Line spacing', standard: 'Standard', airy: 'Airy', typeface: 'Typeface', serif: 'Serif', sans: 'Sans', preview: 'Preview' },
   prayer: {
     title: 'Prayer', write: 'Write a prayer', lock: 'Encrypted', placeholder: 'Heavenly Father, today I want to bring before You…', save: 'Save prayer', saving: 'Saving…', saved: 'Saved privately.',
     journal: 'YOUR JOURNAL', empty: 'Prayers you save will appear here, newest first.', untitled: 'Untitled prayer', answered: 'Answered',
@@ -82,7 +82,7 @@ const fr: Copy = {
     loading: 'Chargement des Écritures…', error: 'Impossible de charger les Écritures.', books: 'Livres', chapters: 'Chapitres', cancel: 'Annuler',
     placeNotSaved: 'Votre position n’a pas été enregistrée. Vous pouvez continuer à lire.',
   },
-  reader: { title: 'Réglages de lecture', done: 'OK', language: 'Langue de la Bible', size: 'Taille du texte', smaller: 'Texte plus petit', larger: 'Texte plus grand', sizeOf: (n) => `Taille ${n} sur 4`, spacing: 'Interligne', standard: 'Standard', airy: 'Aéré', typeface: 'Police', serif: 'Avec empattement', sans: 'Sans empattement' },
+  reader: { title: 'Réglages de lecture', done: 'OK', language: 'Langue de la Bible', size: 'Taille du texte', smaller: 'Texte plus petit', larger: 'Texte plus grand', sizeOf: (n) => `Taille ${n} sur 4`, spacing: 'Interligne', standard: 'Standard', airy: 'Aéré', typeface: 'Police', serif: 'Avec empattement', sans: 'Sans empattement' , preview: 'Aperçu' },
   prayer: {
     title: 'Prière', write: 'Écrire une prière', lock: 'Chiffré', placeholder: 'Père céleste, aujourd’hui je souhaite te confier…', save: 'Enregistrer la prière', saving: 'Enregistrement…', saved: 'Enregistrée en privé.',
     journal: 'VOTRE JOURNAL', empty: 'Les prières enregistrées apparaîtront ici, les plus récentes en premier.', untitled: 'Prière sans titre', answered: 'Exaucée',

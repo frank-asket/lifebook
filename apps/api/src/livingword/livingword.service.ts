@@ -14,7 +14,8 @@ export function mediaUrl(raw: string) {
   return url.toString();
 }
 const select = { id: true, title: true, description: true, mediaKey: true, kind: true, locale: true, speaker: true, attribution: true, transcript: true, publishedAt: true } as const;
-const approved = (): Prisma.SermonWhereInput => {
+/** Teachings anyone may see: approved, published, credited, transcribed, on an approved media host. */
+export const approvedTeachings = (): Prisma.SermonWhereInput => {
   const hosts = mediaHosts();
   return { approvedAt: { not: null }, publishedAt: { lte: new Date() }, rightsReference: { not: null }, attribution: { not: null }, transcript: { not: null }, kind: { in: ['audio', 'video'] },
     ...(hosts.length ? { OR: hosts.map(host => ({ mediaKey: { startsWith: `https://${host}/` } })) } : { id: { in: [] } }) };
@@ -28,12 +29,12 @@ export class LivingWordService implements OnModuleDestroy {
   async list(locale = 'en', q = '', pageInput = '1') {
     if (typeof locale !== 'string' || typeof q !== 'string' || typeof pageInput !== 'string' || !['en', 'fr'].includes(locale) || q.length > 80 || !/^[1-9][0-9]{0,3}$/.test(pageInput)) throw new BadRequestException('Invalid library filters');
     const page = Number(pageInput); const pageSize = 20;
-    const where: Prisma.SermonWhereInput = { AND: [approved(), { locale }, ...(q.trim() ? [{ OR: [{ title: { contains: q.trim(), mode: 'insensitive' as const } }, { description: { contains: q.trim(), mode: 'insensitive' as const } }, { speaker: { contains: q.trim(), mode: 'insensitive' as const } }] }] : [])] };
+    const where: Prisma.SermonWhereInput = { AND: [approvedTeachings(), { locale }, ...(q.trim() ? [{ OR: [{ title: { contains: q.trim(), mode: 'insensitive' as const } }, { description: { contains: q.trim(), mode: 'insensitive' as const } }, { speaker: { contains: q.trim(), mode: 'insensitive' as const } }] }] : [])] };
     const [rows, total] = await this.db.$transaction([this.db.sermon.findMany({ where, select, orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }], take: pageSize, skip: (page - 1) * pageSize }), this.db.sermon.count({ where })]);
     return { items: rows.map(row => this.present(row)), total, page, pageSize };
   }
   async details(id: string) {
-    const row = await this.db.sermon.findFirst({ where: { ...approved(), id }, select });
+    const row = await this.db.sermon.findFirst({ where: { ...approvedTeachings(), id }, select });
     if (!row) throw new NotFoundException('Teaching not found');
     return this.present(row);
   }

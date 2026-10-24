@@ -37,7 +37,7 @@ const ROUTES = {
   'GET /livingword': 'public', 'GET /livingword/:id': 'public', 'GET /livingword/editor': 'role', 'POST /livingword/editor': 'role', 'PUT /livingword/editor/:id': 'role', 'POST /livingword/editor/:id/unpublish': 'role',
   'POST /me/account/delete': 'own', 'GET /me/account/export': 'own', 'GET /me/profile': 'own', 'PUT /me/profile': 'own', 'GET /me/suggestions': 'own', 'POST /me/suggestions/:id/dismiss': 'own',
   'GET /meditations/:id': 'public', 'PUT /meditations/:id/bookmark': 'own', 'POST /meditations/:id/complete': 'own', 'PUT /meditations/:id/reflection': 'own', 'DELETE /meditations/:id/reflection': 'own', 'GET /meditations/:id/state': 'own', 'GET /meditations/daily-word/today': 'public', 'GET /meditations/history': 'own', 'GET /meditations/history/page': 'own', 'GET /meditations/saved': 'own', 'GET /meditations/today': 'public',
-  'GET /pastors': 'public', 'GET /pastors/:slug': 'public',
+  'GET /pastors': 'public', 'GET /search': 'public', 'GET /pastors/:slug': 'public',
   'GET /paths': 'public', 'GET /paths/:id': 'public', 'POST /paths/:id/enroll': 'own', 'PUT /paths/:id/lessons/:lessonId/complete': 'own', 'GET /paths/:id/state': 'own',
   'GET /prayer-companion/topics': 'public', 'GET /prayer-companion/topics/:id': 'public',
   'GET /prayers': 'own', 'GET /prayers/page': 'own', 'POST /prayers': 'own', 'GET /prayers/:id': 'a', 'PUT /prayers/:id': 'a', 'DELETE /prayers/:id': 'a', 'PUT /prayers/:id/answer': 'a', 'POST /prayers/:id/meditation': 'a', 'DELETE /prayers/:id/meditation': 'a', 'POST /prayers/delete-all': 'own',
