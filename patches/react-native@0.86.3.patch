@@ -1,0 +1,51 @@
+diff --git a/Libraries/Text/Text.js b/Libraries/Text/Text.js
+index 8e7b29cb609698cbd6a1852a4276fda920f860ba..799859bf26a48c0ecd43d7827fe251ab46b79dad 100644
+--- a/Libraries/Text/Text.js
++++ b/Libraries/Text/Text.js
+@@ -21,6 +21,7 @@ import flattenStyle from '../StyleSheet/flattenStyle';
+ import processColor from '../StyleSheet/processColor';
+ import StyleSheet from '../StyleSheet/StyleSheet';
+ import Platform from '../Utilities/Platform';
++import useWindowDimensions from '../Utilities/useWindowDimensions';
+ import TextAncestorContext from './TextAncestorContext';
+ import {
+   NativeSelectableText,
+@@ -85,6 +86,7 @@ const TextImpl: component(
+   ref?: React.RefSetter<TextForwardRef>,
+   ...TextProps,
+ }) => {
++  const {fontScale} = useWindowDimensions();
+   const processedProps = restProps as {
+     ...NativeTextProps,
+   };
+@@ -287,6 +289,10 @@ const TextImpl: component(
+ 
+   processedProps.accessible = _accessible;
+   processedProps.allowFontScaling = allowFontScaling !== false;
++  // iOS Fabric otherwise keeps cached paragraph measurements after Dynamic Type changes.
++  if (Platform.OS === 'ios') {
++    processedProps.fontSizeMultiplier = fontScale;
++  }
+   processedProps.disabled = _disabled;
+   processedProps.ellipsizeMode = ellipsizeMode ?? 'tail';
+   processedProps.children = children;
+diff --git a/Libraries/Text/TextNativeComponent.js b/Libraries/Text/TextNativeComponent.js
+index 11c86911333771eb2a1ff95490bc962a8913e902..22ce0e8808b836f07731adee9b188887a1b846d8 100644
+--- a/Libraries/Text/TextNativeComponent.js
++++ b/Libraries/Text/TextNativeComponent.js
+@@ -21,6 +21,7 @@ import createReactNativeComponentClass from '../Renderer/shims/createReactNative
+ export type NativeTextProps = Readonly<{
+   ...TextProps,
+   isHighlighted?: ?boolean,
++  fontSizeMultiplier?: ?number,
+   selectionColor?: ?ProcessedColorValue,
+   onClick?: ?(event: GestureResponderEvent) => unknown,
+   // This is only needed for platforms that optimize text hit testing, e.g.,
+@@ -36,6 +37,7 @@ const textViewConfig = {
+     numberOfLines: true,
+     ellipsizeMode: true,
+     allowFontScaling: true,
++    fontSizeMultiplier: true,
+     dynamicTypeRamp: true,
+     maxFontSizeMultiplier: true,
+     disabled: true,

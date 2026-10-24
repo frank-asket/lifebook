@@ -38,6 +38,9 @@
           "expo-font": "~13.0.4"
         }
       }
+    },
+    "patchedDependencies": {
+      "react-native@0.86.3": "patches/react-native@0.86.3.patch"
     }
   }
 }
