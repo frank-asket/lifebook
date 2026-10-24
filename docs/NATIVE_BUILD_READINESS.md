@@ -1,6 +1,8 @@
 # Native build readiness
 
-Updated 19 October 2026. Branch: `codex/native-readiness`. SDK migration and internal test builds are separate from production app-store distribution. No production database or authentication-instance migration is included.
+Historical baseline: 19 October 2026. Branch: `codex/native-readiness`. SDK migration and internal test builds are separate from production app-store distribution. No production database or authentication-instance migration is included.
+
+Current follow-up (24 October): PR #70 merged as `5c38dcd`. Native internal builds now align with the existing web/API Clerk instance; the initial EAS project lookup is allowed before remote variables load, while actual builds still reject missing or mismatched keys. The 0.3.1.0 follow-up also removes decorative row icons at enlarged text sizes. Latest source checks pass, but the corrected layout and physical-device screen-reader acceptance remain pending. The [native acceptance record](NATIVE_SUGGESTIONS_ACCEPTANCE_2026-10-23.md) supersedes the historical build and device statuses below. Android testing remains pending by the user’s choice after insufficient emulator storage.
 
 ## Stack and identity
 
