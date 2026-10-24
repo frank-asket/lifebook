@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1.0] - 2026-10-24
+
+### Fixed
+- Align internal mobile sign-in with the existing LifeBook web and API account instance, and reject mismatched build keys.
+- Allow EAS to discover the project before loading its remote build configuration.
+- Give enlarged row labels the full card width while preserving the chosen text size and accessibility labels.
+- Refresh iOS text measurements when system text size changes without restarting screens or discarding drafts.
+
 ## [0.3.0.0] - 2026-10-23
 
 ### Added

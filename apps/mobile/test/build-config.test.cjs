@@ -6,7 +6,7 @@ const vm = require('node:vm');
 function config(env) {
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname, '../app.config.js'), 'utf8'), {
-    module, URL, process: { env }, require: name => { assert.equal(name, './app.json'); return require('../app.json'); },
+    module, URL, Buffer, process: { env }, require: name => { assert.equal(name, './app.json'); return require('../app.json'); },
   });
   return module.exports({ config: {} });
 }
@@ -23,4 +23,16 @@ test('preview builds keep development identity separate from store releases', ()
   assert.ok(value.extra.eas.projectId);
   assert.ok(value.plugins.includes('@clerk/expo'));
   assert.ok(value.plugins.includes('expo-secure-store'));
+});
+
+test('native internal profiles reject a key from a different identity instance', () => {
+  const host='canonical.clerk.accounts.dev';
+  const key=domain=>`pk_test_${Buffer.from(domain+'$').toString('base64')}`;
+  const env={EAS_BUILD_PROFILE:'preview',LIFEBOOK_AUTH_FRONTEND_DOMAIN:host,EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:key(host)};
+  assert.ok(config({LIFEBOOK_AUTH_FRONTEND_DOMAIN:host}).extra.eas.projectId);
+  assert.throws(()=>config({EAS_BUILD_PROFILE:'preview',LIFEBOOK_AUTH_FRONTEND_DOMAIN:host}),/matching EAS environment/);
+  assert.ok(config(env).extra.eas.projectId);
+  assert.throws(()=>config({...env,EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:key('other.clerk.accounts.dev')}),/does not match/);
+  const profiles=require('../eas.json').build;
+  assert.equal(profiles.development.env.LIFEBOOK_AUTH_FRONTEND_DOMAIN,profiles.preview.env.LIFEBOOK_AUTH_FRONTEND_DOMAIN);
 });
