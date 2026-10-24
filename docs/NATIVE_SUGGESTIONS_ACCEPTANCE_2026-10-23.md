@@ -1,6 +1,6 @@
 # Native suggestions acceptance — 23 October 2026
 
-PR #70 merged as `5c38dcd` on 23 October. Its later identity, EAS configuration and large-text corrections are being prepared separately on `codex/native-release-fixes` (0.3.1.0). Native interaction and accessibility acceptance remain open. Passing component tests or JavaScript exports do not close installed-device acceptance.
+PR #70 merged as `5c38dcd` on 23 October. Its later identity, EAS configuration and large-text corrections are tracked in [draft PR #71](https://github.com/frank-asket/lifebook/pull/71), `codex/native-release-fixes` (0.3.1.0). Native interaction and accessibility acceptance remain open. Passing component tests or JavaScript exports do not close installed-device acceptance.
 
 ## Source regression found during acceptance preparation
 
@@ -56,10 +56,19 @@ The `fdceca8` iOS EAS artifact finished and installed over the existing app with
 
 ## Enlarged text and remaining device gates
 
-At maximum iOS Larger Accessibility Sizes (slider 100%), controls remained reachable but decorative row icons and chevrons narrowed labels enough to break words awkwardly. The shared row now removes those decorative elements above font scale 1.3, giving labels their full available width without reducing the member’s text size. Existing accessibility labels and actions are retained. The added regression failed against the prior row. Visual recheck of this correction remains pending.
+At maximum iOS Larger Accessibility Sizes (slider 100%), controls remained reachable but decorative row icons and chevrons narrowed labels enough to break words awkwardly. The shared row now removes those decorative elements above font scale 1.3, giving labels their full available width without reducing the member’s text size. Existing accessibility labels and actions are retained. The added regression failed against the prior row. The 24 October follow-up below records the source-runtime and compiled-simulator recheck; the full device matrix remains incomplete.
 
 The `fdceca8` Android EAS artifact compiled, but installation failed with `INSTALL_FAILED_INSUFFICIENT_STORAGE`; the existing emulator has 371 MB free. Android’s cache-only `pm trim-caches 1G` reclaimed nothing. No app was uninstalled or cleared. The user chose to keep Android testing pending instead of creating another emulator. Do not treat compilation as installed Android acceptance.
 
 The user offered to connect a physical test iPhone for VoiceOver. No physical iPhone was connected at the last check. VoiceOver listening, second-member account switching, and the two-minute suggestion path remain open; synthetic tests cover their source behavior only.
+
+## Follow-up verification — 24 October
+
+- Synchronized the follow-up with merged `main`. Fresh checks passed: 65 mobile/cross-client tests, mobile TypeScript, Prisma validation, NestJS build, web Next.js build and marketing Next.js build. Both CI build jobs passed on `b8380a1`; the web preview completed. The independent code review found no source issue and prompted the PR-status correction above.
+- Expo Go connected explicitly to the current production-mode bundle on port 8087; Metro recorded a fresh iOS bundle. At maximum iOS accessibility text size, French/light Today rows and English/dark Today rows used the full card width with decorative columns absent. Text and actions remained available. Signing out removed the member greeting and private state. This does not test switching to a second member.
+- Restored the development runtime’s original French/system appearance preferences. These signed-out language changes did not alter the member’s saved account language.
+- API reads timed out during initial runtime checks; the public API health retry returned 200 and English Daily Word subsequently rendered. Do not count failed private reads as successful acceptance.
+- The user reported the test iPhone connected, unlocked and visible in Finder. This executor still detected no physical iPhone through CoreDevice, Finder’s inspected sidebar or USB diagnostics. Physical VoiceOver remains unverified; no security setting, pairing record or device data was changed.
+- Updated standalone iOS simulator build `e3569c11-02a8-4562-a7ac-56a170a2bd97` finished successfully from source `b8380a1` and installed over the existing LifeBook app without clearing data. On iPhone 16 / iOS 18.5 at maximum accessibility text size, Today loaded authenticated reading history and two suggestions; the earlier hidden plan remained absent. “Reprendre la lecture” and “Journal de prière” rendered at full row width without decorative columns. Activating reading continuation opened the expected John 1 chapter, which loaded successfully. These results close the specific compiled-row visual check, not physical VoiceOver or the full native acceptance matrix.
 
 Baseline simulator observations: public Daily Word recovered after retry; Google sign-out/sign-in completed; signed-out EN/FR labels and selected language state changed correctly; light/dark options are present. None closes final-artifact private-flow or real screen-reader acceptance. Final artifacts must include the identity correction as well as both suggestion fixes.
