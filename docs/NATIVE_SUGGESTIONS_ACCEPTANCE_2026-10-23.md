@@ -1,6 +1,6 @@
 # Native suggestions acceptance — 23 October 2026
 
-PR #70 remains a draft until native interaction and accessibility results are recorded. Passing component tests or JavaScript exports do not close installed-device acceptance.
+PR #70 merged as `5c38dcd` on 23 October. Its later identity, EAS configuration and large-text corrections are being prepared separately on `codex/native-release-fixes` (0.3.1.0). Native interaction and accessibility acceptance remain open. Passing component tests or JavaScript exports do not close installed-device acceptance.
 
 ## Source regression found during acceptance preparation
 
