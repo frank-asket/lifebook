@@ -759,6 +759,721 @@
         "reviewedOn": null,
         "notes": "Draft by engineering (Claude) on 2026-10-24 for pastoral review. Check faithfulness to the passage, tone and French. AI review (Claude) on 2026-10-25: approved, no changes. Pastoral sign-off still required."
       }
+    },
+    {
+      "key": "D_12_01",
+      "passage": "ISA.9.6",
+      "passageFr": "ISA.9.5",
+      "date": "12-01",
+      "en": {
+        "explanation": "Isaiah speaks to a people in darkness and promises a child who will carry the weight of government. Christians have long heard in these names the Messiah, Jesus.",
+        "question": "Which of these names, Wonderful Counsellor, Mighty God, Everlasting Father or Prince of Peace, do you most need this Advent?",
+        "prayer": "Lord Jesus, as Advent begins, be my counsellor and my peace. Amen.",
+        "action": "Write the four names somewhere you will see them each day this week."
+      },
+      "fr": {
+        "explanation": "Ésaïe s’adresse à un peuple dans les ténèbres et annonce un enfant qui portera le poids du gouvernement. Les chrétiens ont reconnu depuis longtemps dans ces noms le Messie, Jésus.",
+        "question": "Lequel de ces noms, Merveilleux, Conseiller, Dieu fort, Père du siècle, Prince de paix, vous est le plus nécessaire en cet Avent ?",
+        "prayer": "Seigneur Jésus, au début de cet Avent, sois mon conseiller et ma paix. Amen.",
+        "action": "Écrivez ces noms à un endroit où vous les verrez chaque jour cette semaine."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_02",
+      "passage": "MIC.5.2",
+      "passageFr": "MIC.5.1",
+      "date": "12-02",
+      "en": {
+        "explanation": "Micah names Bethlehem, a small town among the clans of Judah, as the place a ruler will come from. God’s plans often begin in small and overlooked places.",
+        "question": "Where do you feel small or overlooked right now?",
+        "prayer": "God of small beginnings, help me trust you in the places that seem unimportant. Amen.",
+        "action": "Notice one small, faithful thing someone does today, and thank them for it."
+      },
+      "fr": {
+        "explanation": "Michée nomme Bethléhem, une petite ville parmi les clans de Juda, comme le lieu d’où sortira un chef. Les projets de Dieu commencent souvent dans des lieux petits et oubliés.",
+        "question": "Où vous sentez-vous petit ou oublié en ce moment ?",
+        "prayer": "Dieu des humbles commencements, aide-moi à te faire confiance là où tout semble sans importance. Amen.",
+        "action": "Remarquez aujourd’hui un petit geste fidèle de quelqu’un, et remerciez-le."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_03",
+      "passage": "LUK.1.38",
+      "date": "12-03",
+      "en": {
+        "explanation": "After the angel’s message, Mary does not understand everything, yet she answers: let it be to me according to your word. Her trust comes with honest questions.",
+        "question": "What is God asking you to trust him with, even before you understand it?",
+        "prayer": "Lord, I do not see the whole way. Give me Mary’s trust for the next step. Amen.",
+        "action": "Bring one unanswered question to God in prayer today, and leave it with him."
+      },
+      "fr": {
+        "explanation": "Après le message de l’ange, Marie ne comprend pas tout, et pourtant elle répond : qu’il me soit fait selon ta parole. Sa confiance n’exclut pas les questions honnêtes.",
+        "question": "Que Dieu vous demande-t-il de lui confier, avant même de comprendre ?",
+        "prayer": "Seigneur, je ne vois pas tout le chemin. Donne-moi la confiance de Marie pour le prochain pas. Amen.",
+        "action": "Apportez aujourd’hui à Dieu une question sans réponse, et laissez-la entre ses mains."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_04",
+      "passage": "ISA.40.3",
+      "date": "12-04",
+      "en": {
+        "explanation": "A voice calls for a road to be prepared in the wilderness for the Lord. The Gospels hear this voice in John the Baptist, who prepared people for Jesus.",
+        "question": "What needs clearing in your life to make room for God this season?",
+        "prayer": "Lord, prepare a way in me for you this Advent. Amen.",
+        "action": "Choose one thing that crowds your days, and make space by setting it aside this week."
+      },
+      "fr": {
+        "explanation": "Une voix appelle à préparer dans le désert un chemin pour l’Éternel. Les Évangiles reconnaissent cette voix en Jean-Baptiste, qui a préparé le peuple à la venue de Jésus.",
+        "question": "Qu’y a-t-il à dégager dans votre vie pour faire de la place à Dieu en ce temps ?",
+        "prayer": "Seigneur, prépare en moi un chemin pour toi en cet Avent. Amen.",
+        "action": "Choisissez une chose qui encombre vos journées et faites de la place en la mettant de côté cette semaine."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_05",
+      "passage": "LUK.1.46-47",
+      "date": "12-05",
+      "en": {
+        "explanation": "Mary, young and in an uncertain situation, sings praise to God her Saviour. Her song begins not with her circumstances but with who God is.",
+        "question": "What could you praise God for today, whatever your circumstances?",
+        "prayer": "My soul magnifies you, Lord, and my spirit rejoices in you, my Saviour. Amen.",
+        "action": "Write your own two-line song of praise, and read it aloud tonight."
+      },
+      "fr": {
+        "explanation": "Marie, jeune et dans une situation incertaine, chante la louange de Dieu son Sauveur. Son chant ne commence pas par sa situation, mais par qui est Dieu.",
+        "question": "Pour quoi pourriez-vous louer Dieu aujourd’hui, quelle que soit votre situation ?",
+        "prayer": "Mon âme te magnifie, Seigneur, et mon esprit se réjouit en toi, mon Sauveur. Amen.",
+        "action": "Écrivez votre propre louange en deux lignes, et lisez-la à voix haute ce soir."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_06",
+      "passage": "JHN.1.14",
+      "date": "12-06",
+      "en": {
+        "explanation": "John says the Word became flesh and lived among us. God did not stay distant: in Jesus he shared human life, full of grace and truth.",
+        "question": "What does it mean to you that God came close in Jesus?",
+        "prayer": "Jesus, Word made flesh, thank you for coming close. Let me see your grace and truth today. Amen.",
+        "action": "Spend a few minutes today with someone who is lonely, simply being present."
+      },
+      "fr": {
+        "explanation": "Jean écrit que la Parole a été faite chair et a habité parmi nous. Dieu n’est pas resté lointain : en Jésus, il a partagé la vie humaine, plein de grâce et de vérité.",
+        "question": "Que signifie pour vous que Dieu se soit fait proche en Jésus ?",
+        "prayer": "Jésus, Parole faite chair, merci d’être venu tout près. Fais-moi voir ta grâce et ta vérité aujourd’hui. Amen.",
+        "action": "Passez quelques minutes aujourd’hui avec une personne seule, simplement présent à ses côtés."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_07",
+      "passage": "ISA.7.14",
+      "date": "12-07",
+      "en": {
+        "explanation": "Isaiah gives a frightened king a sign: a child called Immanuel, God with us. Matthew sees its fulfilment in the birth of Jesus.",
+        "question": "Where do you most need to remember that God is with us?",
+        "prayer": "Immanuel, God with us, be with me in what I fear today. Amen.",
+        "action": "Each time you wait today, in a queue or traffic, quietly say: God with us."
+      },
+      "fr": {
+        "explanation": "Ésaïe donne à un roi effrayé un signe : un enfant appelé Emmanuel, Dieu avec nous. Matthieu en voit l’accomplissement dans la naissance de Jésus.",
+        "question": "Où avez-vous le plus besoin de vous rappeler que Dieu est avec nous ?",
+        "prayer": "Emmanuel, Dieu avec nous, sois avec moi dans ce que je crains aujourd’hui. Amen.",
+        "action": "Chaque fois que vous attendez aujourd’hui, dans une file ou un embouteillage, dites doucement : Dieu avec nous."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_08",
+      "passage": "MAT.1.20-21",
+      "date": "12-08",
+      "en": {
+        "explanation": "Joseph planned to quietly end his engagement. In a dream he is told not to fear, and to name the child Jesus, for he will save his people from their sins.",
+        "question": "What decision are you weighing where you need courage more than certainty?",
+        "prayer": "Lord, give me Joseph’s quiet courage to do what is right, even when it costs me. Amen.",
+        "action": "Do one right thing today that you have been avoiding because it is hard."
+      },
+      "fr": {
+        "explanation": "Joseph pensait rompre discrètement ses fiançailles. En songe, il lui est dit de ne pas craindre et d’appeler l’enfant Jésus, car il sauvera son peuple de ses péchés.",
+        "question": "Quelle décision pesez-vous, où il vous faut plus de courage que de certitude ?",
+        "prayer": "Seigneur, donne-moi le courage tranquille de Joseph pour faire ce qui est juste, même quand cela me coûte. Amen.",
+        "action": "Faites aujourd’hui une chose juste que vous repoussez parce qu’elle est difficile."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_09",
+      "passage": "LUK.1.78-79",
+      "date": "12-09",
+      "en": {
+        "explanation": "Zechariah, silent for months, sings of God’s tender mercy: a light rising to shine on those in darkness and guide their feet into peace.",
+        "question": "Who do you know who is sitting in darkness this season?",
+        "prayer": "God of tender mercy, shine on those in darkness, and guide our feet into peace. Amen.",
+        "action": "Send a short message of care today to someone going through a dark time."
+      },
+      "fr": {
+        "explanation": "Zacharie, resté muet pendant des mois, chante la tendre miséricorde de Dieu : une lumière qui se lève pour éclairer ceux qui sont dans les ténèbres et guider leurs pas vers la paix.",
+        "question": "Qui connaissez-vous qui se trouve dans les ténèbres en ce moment ?",
+        "prayer": "Dieu de tendre miséricorde, éclaire ceux qui sont dans les ténèbres, et guide nos pas vers la paix. Amen.",
+        "action": "Envoyez aujourd’hui un court message d’attention à une personne qui traverse un temps sombre."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_10",
+      "passage": "PSA.130.5-6",
+      "date": "12-10",
+      "en": {
+        "explanation": "The psalmist waits for the Lord more than watchmen wait for the morning. Waiting here is not passive: it is hope fixed on God’s word.",
+        "question": "What are you waiting for, and how are you waiting?",
+        "prayer": "Lord, I wait for you. Keep my hope fixed on your word while I wait. Amen.",
+        "action": "Read a short psalm slowly before you sleep tonight."
+      },
+      "fr": {
+        "explanation": "Le psalmiste attend le Seigneur plus que les veilleurs n’attendent le matin. Ici, attendre n’est pas passif : c’est une espérance tournée vers la parole de Dieu.",
+        "question": "Qu’attendez-vous, et comment l’attendez-vous ?",
+        "prayer": "Seigneur, je t’attends. Garde mon espérance tournée vers ta parole pendant que j’attends. Amen.",
+        "action": "Lisez lentement un court psaume avant de dormir ce soir."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_11",
+      "passage": "GAL.4.4-5",
+      "date": "12-11",
+      "en": {
+        "explanation": "Paul says that when the right time had fully come, God sent his Son, born under the law, so that we might be adopted as his children.",
+        "question": "What does being adopted as God’s child change in how you see yourself?",
+        "prayer": "Father, thank you for sending your Son at the right time, and for making me your child. Amen.",
+        "action": "Begin your prayers today with the word Father, and stay with what it means."
+      },
+      "fr": {
+        "explanation": "Paul écrit que, lorsque le temps fut accompli, Dieu a envoyé son Fils, né sous la loi, afin que nous recevions l’adoption comme ses enfants.",
+        "question": "Qu’est-ce que le fait d’être adopté comme enfant de Dieu change à votre regard sur vous-même ?",
+        "prayer": "Père, merci d’avoir envoyé ton Fils au temps voulu, et de faire de moi ton enfant. Amen.",
+        "action": "Commencez vos prières aujourd’hui par le mot Père, et restez un moment sur ce qu’il signifie."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_12",
+      "passage": "ISA.11.1-2",
+      "date": "12-12",
+      "en": {
+        "explanation": "From what looks like a dead stump, a shoot will grow, and the Spirit of the Lord will rest on him. Hope can grow from what seems finished.",
+        "question": "What in your life feels like a cut-down stump?",
+        "prayer": "Lord, bring new life where things seem finished, in your time and your way. Amen.",
+        "action": "Pray today for one situation you have stopped praying about."
+      },
+      "fr": {
+        "explanation": "D’une souche qui semble morte sortira un rejeton, et l’Esprit de l’Éternel reposera sur lui. L’espérance peut naître de ce qui paraît fini.",
+        "question": "Qu’est-ce qui, dans votre vie, ressemble à une souche coupée ?",
+        "prayer": "Seigneur, fais naître la vie là où tout semble fini, en ton temps et à ta manière. Amen.",
+        "action": "Priez aujourd’hui pour une situation pour laquelle vous avez cessé de prier."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_13",
+      "passage": "LUK.2.10-11",
+      "date": "12-13",
+      "en": {
+        "explanation": "The first to hear of Jesus’ birth were shepherds working at night. The angel’s first words are: do not be afraid. The good news is for all the people.",
+        "question": "Who in your life most needs to hear good news this season?",
+        "prayer": "Saviour, born for all people, let your good news reach those who feel left out. Amen.",
+        "action": "Invite someone who may be alone this Christmas to share a meal or a service with you."
+      },
+      "fr": {
+        "explanation": "Les premiers à apprendre la naissance de Jésus furent des bergers au travail dans la nuit. Les premiers mots de l’ange sont : n’ayez pas peur. La bonne nouvelle est pour tout le peuple.",
+        "question": "Qui, autour de vous, a le plus besoin d’entendre une bonne nouvelle en ce temps ?",
+        "prayer": "Sauveur né pour tous, que ta bonne nouvelle atteigne ceux qui se sentent mis à l’écart. Amen.",
+        "action": "Invitez une personne qui sera peut-être seule à Noël à partager un repas ou un culte avec vous."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_14",
+      "passage": "JHN.1.5",
+      "date": "12-14",
+      "en": {
+        "explanation": "John writes that the light shines in the darkness, and the darkness has not overcome it. He does not pretend the darkness is gone; he says it does not win.",
+        "question": "Where have you seen light in a dark place recently?",
+        "prayer": "Jesus, light of the world, shine in the dark places of my life and of our world. Amen.",
+        "action": "Light a candle this evening and pray for one place in the world that is suffering."
+      },
+      "fr": {
+        "explanation": "Jean écrit que la lumière luit dans les ténèbres, et que les ténèbres ne l’ont pas saisie. Il ne prétend pas que les ténèbres ont disparu ; il dit qu’elles n’ont pas le dernier mot.",
+        "question": "Où avez-vous vu récemment de la lumière dans un endroit sombre ?",
+        "prayer": "Jésus, lumière du monde, brille dans les lieux sombres de ma vie et de notre monde. Amen.",
+        "action": "Allumez une bougie ce soir et priez pour un lieu du monde qui souffre."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_15",
+      "passage": "ISA.42.1-3",
+      "date": "12-15",
+      "en": {
+        "explanation": "God’s servant brings justice, yet gently: he will not break a bruised reed or snuff out a faintly burning wick. Matthew applies these words to Jesus.",
+        "question": "Where do you feel like a bruised reed or a flickering wick?",
+        "prayer": "Gentle Saviour, you do not break what is bruised. Hold me with your gentleness today. Amen.",
+        "action": "Be gentle today with someone who is struggling, including yourself."
+      },
+      "fr": {
+        "explanation": "Le serviteur de Dieu apporte la justice, mais avec douceur : il ne brise pas le roseau froissé et n’éteint pas la mèche qui faiblit. Matthieu applique ces paroles à Jésus.",
+        "question": "Où vous sentez-vous comme un roseau froissé ou une mèche qui faiblit ?",
+        "prayer": "Doux Sauveur, tu ne brises pas ce qui est froissé. Tiens-moi avec douceur aujourd’hui. Amen.",
+        "action": "Soyez doux aujourd’hui avec quelqu’un qui peine, y compris avec vous-même."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_16",
+      "passage": "HAB.2.3",
+      "date": "12-16",
+      "en": {
+        "explanation": "Habakkuk complained about injustice and waited for God’s answer. He is told the vision has its appointed time: though it seems slow, wait for it.",
+        "question": "Where is waiting for God hardest for you right now?",
+        "prayer": "Lord, when your timing feels slow, help me keep watch with patience and honesty. Amen.",
+        "action": "Write down one prayer you are waiting on, with today’s date, and keep it."
+      },
+      "fr": {
+        "explanation": "Habakuk s’est plaint de l’injustice et a attendu la réponse de Dieu. Il lui est dit que la vision a son temps fixé : si elle tarde, il faut l’attendre.",
+        "question": "Où l’attente de Dieu vous est-elle la plus difficile en ce moment ?",
+        "prayer": "Seigneur, quand ton temps me semble lent, aide-moi à veiller avec patience et honnêteté. Amen.",
+        "action": "Notez une prière que vous attendez, avec la date d’aujourd’hui, et gardez-la."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_17",
+      "passage": "ISA.52.7",
+      "date": "12-17",
+      "en": {
+        "explanation": "Isaiah pictures a messenger running over the mountains to announce peace and salvation: your God reigns. Paul uses this verse for those who share the gospel.",
+        "question": "Who brought the good news of Jesus to you?",
+        "prayer": "Lord, thank you for those who brought me good news. Make my words bring peace too. Amen.",
+        "action": "Thank someone today who helped you come to faith or grow in it."
+      },
+      "fr": {
+        "explanation": "Ésaïe décrit un messager qui court sur les montagnes pour annoncer la paix et le salut : ton Dieu règne. Paul reprend ce verset pour ceux qui annoncent l’Évangile.",
+        "question": "Qui vous a apporté la bonne nouvelle de Jésus ?",
+        "prayer": "Seigneur, merci pour ceux qui m’ont apporté la bonne nouvelle. Que mes paroles apportent aussi la paix. Amen.",
+        "action": "Remerciez aujourd’hui une personne qui vous a aidé à venir à la foi ou à y grandir."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_18",
+      "passage": "LUK.2.19",
+      "date": "12-18",
+      "en": {
+        "explanation": "After the shepherds’ visit, Mary keeps these things and ponders them in her heart. She takes time to hold what God is doing, rather than rushing past it.",
+        "question": "What has God been doing this year that you have not yet stopped to ponder?",
+        "prayer": "Lord, slow me down. Help me treasure and ponder what you are doing. Amen.",
+        "action": "Take ten minutes today to look back over this year and note where you saw God at work."
+      },
+      "fr": {
+        "explanation": "Après la visite des bergers, Marie garde toutes ces choses et les repasse dans son cœur. Elle prend le temps de recevoir ce que Dieu fait, au lieu de passer vite.",
+        "question": "Qu’est-ce que Dieu a fait cette année que vous n’avez pas encore pris le temps de méditer ?",
+        "prayer": "Seigneur, ralentis-moi. Aide-moi à garder et à méditer ce que tu fais. Amen.",
+        "action": "Prenez dix minutes aujourd’hui pour relire cette année et noter où vous avez vu Dieu à l’œuvre."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_19",
+      "passage": "1JN.4.9",
+      "date": "12-19",
+      "en": {
+        "explanation": "John says God showed his love by sending his only Son into the world so that we might live through him. Christmas is love taking the first step.",
+        "question": "How would you describe God’s love to someone who has never felt loved?",
+        "prayer": "Father, thank you for loving us first and sending your Son. Let me live through him today. Amen.",
+        "action": "Take a first step of love today toward someone you find difficult."
+      },
+      "fr": {
+        "explanation": "Jean écrit que Dieu a manifesté son amour en envoyant son Fils unique dans le monde, afin que nous vivions par lui. Noël, c’est l’amour qui fait le premier pas.",
+        "question": "Comment décririez-vous l’amour de Dieu à quelqu’un qui ne s’est jamais senti aimé ?",
+        "prayer": "Père, merci de nous avoir aimés le premier et d’avoir envoyé ton Fils. Fais-moi vivre par lui aujourd’hui. Amen.",
+        "action": "Faites aujourd’hui un premier pas d’amour vers une personne qui vous est difficile."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_20",
+      "passage": "PHP.2.6-7",
+      "date": "12-20",
+      "en": {
+        "explanation": "Paul says Jesus, though in the form of God, did not cling to his status but emptied himself, taking the form of a servant and being born as a man.",
+        "question": "Where could you set aside your own status to serve someone?",
+        "prayer": "Lord Jesus, you came as a servant. Make my heart humble like yours. Amen.",
+        "action": "Serve someone today in a way that brings you no credit."
+      },
+      "fr": {
+        "explanation": "Paul écrit que Jésus, étant en forme de Dieu, ne s’est pas accroché à son rang, mais s’est dépouillé, prenant la forme d’un serviteur et naissant comme un homme.",
+        "question": "Où pourriez-vous laisser de côté votre rang pour servir quelqu’un ?",
+        "prayer": "Seigneur Jésus, tu es venu comme un serviteur. Rends mon cœur humble comme le tien. Amen.",
+        "action": "Servez aujourd’hui quelqu’un d’une manière qui ne vous apporte aucune reconnaissance."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_21",
+      "passage": "ISA.60.1",
+      "date": "12-21",
+      "en": {
+        "explanation": "Isaiah calls Jerusalem to rise and shine, because its light has come and the glory of the Lord has risen on it. The light comes first; shining follows.",
+        "question": "On the longest nights of the year, where do you need God’s light?",
+        "prayer": "Lord, your light has come. Help me rise and reflect it to those around me. Amen.",
+        "action": "Do one thing today that brings light to someone’s day."
+      },
+      "fr": {
+        "explanation": "Ésaïe appelle Jérusalem à se lever et à resplendir, car sa lumière est venue et la gloire de l’Éternel s’est levée sur elle. La lumière vient d’abord ; resplendir suit.",
+        "question": "Dans les nuits les plus longues de l’année, où avez-vous besoin de la lumière de Dieu ?",
+        "prayer": "Seigneur, ta lumière est venue. Aide-moi à me lever et à la refléter autour de moi. Amen.",
+        "action": "Faites aujourd’hui une chose qui éclaire la journée de quelqu’un."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_22",
+      "passage": "LUK.2.29-30",
+      "date": "12-22",
+      "en": {
+        "explanation": "Simeon has waited all his life. Holding the baby Jesus in the temple, he says he can now go in peace, because he has seen God’s salvation.",
+        "question": "What would it mean for you to be at peace because you have seen Jesus?",
+        "prayer": "Lord, let my eyes see your salvation, and give me Simeon’s peace. Amen.",
+        "action": "Spend time today with an older person, and ask them what they have learned about waiting on God."
+      },
+      "fr": {
+        "explanation": "Siméon a attendu toute sa vie. Tenant l’enfant Jésus dans le temple, il dit qu’il peut maintenant s’en aller en paix, car il a vu le salut de Dieu.",
+        "question": "Que signifierait pour vous être en paix parce que vous avez vu Jésus ?",
+        "prayer": "Seigneur, que mes yeux voient ton salut, et donne-moi la paix de Siméon. Amen.",
+        "action": "Passez du temps aujourd’hui avec une personne âgée, et demandez-lui ce qu’elle a appris sur l’attente de Dieu."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_23",
+      "passage": "MAT.2.10-11",
+      "date": "12-23",
+      "en": {
+        "explanation": "The wise men, foreigners who travelled far, rejoice greatly when they find the child. They bow down to worship him and open their treasures.",
+        "question": "What gift could you bring to Jesus this Christmas?",
+        "prayer": "Lord Jesus, I worship you. Receive what I have and what I am. Amen.",
+        "action": "Give a gift this week to someone who cannot give one back."
+      },
+      "fr": {
+        "explanation": "Les mages, des étrangers venus de loin, se réjouissent d’une très grande joie en trouvant l’enfant. Ils se prosternent pour l’adorer et ouvrent leurs trésors.",
+        "question": "Quel présent pourriez-vous apporter à Jésus à ce Noël ?",
+        "prayer": "Seigneur Jésus, je t’adore. Reçois ce que j’ai et ce que je suis. Amen.",
+        "action": "Offrez cette semaine un cadeau à une personne qui ne peut rien vous rendre."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_24",
+      "passage": "LUK.2.7",
+      "date": "12-24",
+      "en": {
+        "explanation": "Mary lays her newborn son in a manger, because there was no room for them in the guest room. The Saviour of the world arrives without comfort or welcome.",
+        "question": "Is there room in your life this Christmas Eve for Jesus to come in?",
+        "prayer": "Lord Jesus, you were born where there was no room. Come and find room in me tonight. Amen.",
+        "action": "Tonight, set aside a few quiet minutes to welcome Jesus, away from the rush."
+      },
+      "fr": {
+        "explanation": "Marie couche son fils nouveau-né dans une mangeoire, parce qu’il n’y avait pas de place pour eux dans la salle d’hôtes. Le Sauveur du monde arrive sans confort ni accueil.",
+        "question": "Y a-t-il de la place dans votre vie, en cette veille de Noël, pour accueillir Jésus ?",
+        "prayer": "Seigneur Jésus, tu es né là où il n’y avait pas de place. Viens trouver une place en moi ce soir. Amen.",
+        "action": "Ce soir, prenez quelques minutes de calme pour accueillir Jésus, loin de l’agitation."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_25",
+      "passage": "LUK.2.14",
+      "date": "12-25",
+      "en": {
+        "explanation": "On the night of Jesus’ birth, the angels praise God: glory to God in the highest, and on earth peace among those he favours. Christmas begins in praise.",
+        "question": "What will you thank God for on this Christmas Day?",
+        "prayer": "Glory to you, God, in the highest. Thank you for the gift of your Son. Bring your peace on earth. Amen.",
+        "action": "Before the day’s celebrations, take a moment to give thanks for Jesus, alone or with others."
+      },
+      "fr": {
+        "explanation": "La nuit de la naissance de Jésus, les anges louent Dieu : gloire à Dieu dans les lieux très hauts, et sur la terre paix parmi les hommes qu’il agrée. Noël commence par la louange.",
+        "question": "Pour quoi remercierez-vous Dieu en ce jour de Noël ?",
+        "prayer": "Gloire à toi, Dieu, dans les lieux très hauts. Merci pour le don de ton Fils. Donne ta paix sur la terre. Amen.",
+        "action": "Avant les festivités, prenez un moment pour rendre grâce pour Jésus, seul ou avec d’autres."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_26",
+      "passage": "MAT.2.13",
+      "date": "12-26",
+      "en": {
+        "explanation": "Soon after the wise men leave, Joseph is warned to flee with Mary and the child to Egypt. Jesus begins his life as a refugee.",
+        "question": "Who do you know who has had to leave home, and how could you pray for them?",
+        "prayer": "Lord, you knew what it was to flee. Protect refugees and those far from home today. Amen.",
+        "action": "Learn about one person or family far from home, and find one way to support them."
+      },
+      "fr": {
+        "explanation": "Peu après le départ des mages, Joseph est averti de fuir en Égypte avec Marie et l’enfant. Jésus commence sa vie comme réfugié.",
+        "question": "Qui connaissez-vous qui a dû quitter son pays, et comment pourriez-vous prier pour lui ?",
+        "prayer": "Seigneur, tu as connu la fuite. Protège aujourd’hui les réfugiés et ceux qui sont loin de chez eux. Amen.",
+        "action": "Renseignez-vous sur une personne ou une famille loin de chez elle, et trouvez une manière de la soutenir."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_27",
+      "passage": "LUK.2.36-38",
+      "date": "12-27",
+      "en": {
+        "explanation": "Anna, a widow of great age, has spent years in prayer in the temple. When she sees the child Jesus, she gives thanks and speaks of him to all who were waiting.",
+        "question": "What would faithful prayer look like for you in this season of life?",
+        "prayer": "Lord, make me faithful in prayer like Anna, and ready to speak of you. Amen.",
+        "action": "Set a regular time this week to pray, and keep it each day."
+      },
+      "fr": {
+        "explanation": "Anne, une veuve très âgée, a passé des années dans la prière au temple. En voyant l’enfant Jésus, elle rend grâce et parle de lui à tous ceux qui attendaient.",
+        "question": "À quoi ressemblerait une prière fidèle pour vous, à cette étape de votre vie ?",
+        "prayer": "Seigneur, rends-moi fidèle dans la prière comme Anne, et prêt à parler de toi. Amen.",
+        "action": "Fixez cette semaine un moment régulier pour prier, et gardez-le chaque jour."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_28",
+      "passage": "JHN.3.17",
+      "date": "12-28",
+      "en": {
+        "explanation": "Right after John 3:16, Jesus says God did not send his Son into the world to condemn it, but so that the world might be saved through him.",
+        "question": "Do you picture God as more eager to condemn or to save?",
+        "prayer": "Father, thank you that you sent your Son to save, not to condemn. Let me receive your mercy. Amen.",
+        "action": "Choose not to condemn someone today; pray for them instead."
+      },
+      "fr": {
+        "explanation": "Juste après Jean 3.16, Jésus dit que Dieu n’a pas envoyé son Fils dans le monde pour le juger, mais pour que le monde soit sauvé par lui.",
+        "question": "Imaginez-vous Dieu plus pressé de condamner ou de sauver ?",
+        "prayer": "Père, merci d’avoir envoyé ton Fils pour sauver et non pour condamner. Aide-moi à recevoir ta miséricorde. Amen.",
+        "action": "Choisissez aujourd’hui de ne pas condamner quelqu’un ; priez plutôt pour lui."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_29",
+      "passage": "TIT.2.11",
+      "date": "12-29",
+      "en": {
+        "explanation": "Paul writes that the grace of God has appeared, bringing salvation to all people. Grace is not only a feeling: it appeared in a person, Jesus.",
+        "question": "Where have you experienced God’s grace this year?",
+        "prayer": "God of grace, thank you that your grace has appeared in Jesus. Teach me to live by it. Amen.",
+        "action": "Write down three moments of grace from this year."
+      },
+      "fr": {
+        "explanation": "Paul écrit que la grâce de Dieu est apparue, apportant le salut à tous les hommes. La grâce n’est pas seulement un sentiment : elle est apparue en une personne, Jésus.",
+        "question": "Où avez-vous fait l’expérience de la grâce de Dieu cette année ?",
+        "prayer": "Dieu de grâce, merci de ce que ta grâce est apparue en Jésus. Apprends-moi à en vivre. Amen.",
+        "action": "Notez trois moments de grâce de cette année."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_30",
+      "passage": "PSA.90.12",
+      "date": "12-30",
+      "en": {
+        "explanation": "Moses’ prayer reflects on how short human life is, and asks God to teach us to number our days, so that we may gain a heart of wisdom.",
+        "question": "As the year ends, what would a wise use of your days look like?",
+        "prayer": "Lord, teach me to number my days, and give me a heart of wisdom for the year ahead. Amen.",
+        "action": "Choose one priority for the new year, and write it where you will see it."
+      },
+      "fr": {
+        "explanation": "La prière de Moïse médite sur la brièveté de la vie humaine et demande à Dieu de nous apprendre à compter nos jours, afin d’acquérir un cœur sage.",
+        "question": "À la fin de cette année, à quoi ressemblerait un usage sage de vos jours ?",
+        "prayer": "Seigneur, apprends-moi à compter mes jours, et donne-moi un cœur sage pour l’année qui vient. Amen.",
+        "action": "Choisissez une priorité pour la nouvelle année, et écrivez-la là où vous la verrez."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
+    },
+    {
+      "key": "D_12_31",
+      "passage": "REV.21.5",
+      "date": "12-31",
+      "en": {
+        "explanation": "In John’s vision, the one on the throne says: I am making all things new. It is a promise about God’s final renewal of creation, not about every new year.",
+        "question": "As this year closes, what do you long for God to make new one day?",
+        "prayer": "Lord, you are making all things new. I give you this year, and I place the next in your hands. Amen.",
+        "action": "Before midnight, take a moment to give the year to God: what you are thankful for, and what you leave with him."
+      },
+      "fr": {
+        "explanation": "Dans la vision de Jean, celui qui est assis sur le trône dit : je fais toutes choses nouvelles. C’est une promesse sur le renouvellement final de la création par Dieu, non sur chaque nouvelle année.",
+        "question": "Alors que l’année se termine, qu’aspirez-vous à voir Dieu renouveler un jour ?",
+        "prayer": "Seigneur, tu fais toutes choses nouvelles. Je te remets cette année, et je place la suivante entre tes mains. Amen.",
+        "action": "Avant minuit, prenez un moment pour remettre l’année à Dieu : ce pour quoi vous êtes reconnaissant, et ce que vous lui confiez."
+      },
+      "review": {
+        "status": "draft",
+        "reviewedBy": null,
+        "reviewedOn": null,
+        "notes": "Draft by engineering (Claude) on 2026-10-25 for pastoral review, written to the checklist from the 25 October AI review. Check faithfulness to the passage, tone and French."
+      }
     }
   ]
 }
