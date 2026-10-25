@@ -113,6 +113,53 @@ export class SafeguardingService implements OnModuleDestroy {
     return this.report(auth, id);
   }
 
+  /**
+   * Pastor applications for review, newest activity first. The lead sees the reference's contact so they can check it;
+   * each time the list is opened that is logged, because it is the applicant's private data.
+   */
+  async applications(auth?: string) {
+    const leadId = await this.lead(auth);
+    const rows = await this.db.ministryVerification.findMany({
+      where: { status: { not: 'NOT_REQUESTED' } }, orderBy: { updatedAt: 'desc' }, take: 200,
+      include: { user: { select: { pastorProfile: true } } },
+    });
+    await this.log(leadId, 'viewed-applications', { note: `${rows.length} application(s)` });
+    return rows.map(v => {
+      const p = v.user.pastorProfile;
+      let referenceContact: string | null = null;
+      try { referenceContact = v.referenceContactCiphertext ? decryptReflection(v.referenceContactCiphertext, `pastor-reference:${v.userId}`) : null; } catch { referenceContact = null; }
+      return {
+        slug: p?.slug ?? null, displayName: p?.displayName ?? null, bio: p?.bio ?? null, languages: p?.languages ?? [],
+        status: v.status, active: isActivePastor(v), suspended: !!v.suspendedAt, self: v.userId === leadId,
+        churchName: v.churchName, ministryRole: v.ministryRole, country: v.country,
+        referenceName: v.referenceName, referenceContact,
+        trainingCourse: v.trainingCourse, trainingCompletedOn: v.trainingCompletedAt?.toISOString().slice(0, 10) ?? null,
+        codeOfConductSignedOn: v.codeOfConductSignedAt?.toISOString().slice(0, 10) ?? null,
+        reviewerNotes: v.reviewerNotes, submittedAt: v.createdAt, updatedAt: v.updatedAt, reviewedAt: v.reviewedAt,
+      };
+    });
+  }
+
+  async approveApplication(auth: string | undefined, slug: string) {
+    const leadId = await this.lead(auth);
+    const profile = await this.pastorBySlug(slug);
+    try { await new PastorAdmin(this.db).approve(profile.userId, leadId); }
+    catch (error) { if (error instanceof Error && error.constructor === Error) throw new ConflictException(error.message); throw error; }
+    await this.log(leadId, 'approved-pastor', { pastorUserId: profile.userId });
+    return { slug, status: 'APPROVED' };
+  }
+
+  async rejectApplication(auth: string | undefined, slug: string, notes: unknown) {
+    const leadId = await this.lead(auth);
+    const profile = await this.pastorBySlug(slug);
+    if (profile.userId === leadId) throw new ForbiddenException('You cannot review your own application');
+    if (typeof notes !== 'string' || !notes.trim()) throw new BadRequestException('Say why, so the applicant knows what to change');
+    try { await new PastorAdmin(this.db).reject(profile.userId, notes); }
+    catch (error) { if (error instanceof Error && error.constructor === Error) throw new BadRequestException(error.message); throw error; }
+    await this.log(leadId, 'rejected-pastor', { pastorUserId: profile.userId });
+    return { slug, status: 'REJECTED' };
+  }
+
   async suspendPastor(auth: string | undefined, slug: string, reason: unknown) {
     const leadId = await this.lead(auth);
     const profile = await this.pastorBySlug(slug);
