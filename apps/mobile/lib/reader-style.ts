@@ -11,8 +11,8 @@ export function readerText(reader: ReaderSettings) {
   return { size, leading, family: reader.font === 'sans' ? undefined : fonts.serif };
 }
 
-/** Shown in the settings sheet so each change is visible at once. Quoted exactly from the translations the app uses. */
+/** The preview's reference in each language. The verse itself comes from the chosen version (web/lib/bible-versions.ts). */
 export const READER_PREVIEW = {
-  en: { text: 'Thy word is a lamp unto my feet, and a light unto my path.', reference: 'Psalm 119:105', translation: 'King James Version' },
-  fr: { text: 'Ta parole est une lampe à mon pied, et une lumière à mon sentier.', reference: 'Psaume 119:105', translation: 'Bible J.N. Darby' },
+  en: { reference: 'Psalm 119:105' },
+  fr: { reference: 'Psaume 119:105' },
 } as const;

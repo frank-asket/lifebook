@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import { copy, type Copy } from './copy';
 import { palettes, type Palette } from './theme';
 import { DEFAULT_READER, parseReaderSettings, type ReaderSettings } from '../../web/lib/reader-settings';
+import { parseVersionChoice, type VersionChoice } from '../../web/lib/bible-versions';
 import { parseLength, type PrayerLength } from '../../web/lib/prayer-time';
 import { dailyWordDate, type DailyWord } from '../../web/lib/daily-word';
 
@@ -13,9 +14,9 @@ export { api } from './api';
 
 // ---- Preferences (this device only) ----
 type Appearance = 'system' | 'light' | 'dark';
-type Prefs = { appearance: Appearance; lang: Lang | null; length: PrayerLength; reader: ReaderSettings; bibleLocale: Lang | null; chapterId: string | null; verse: number | null };
+type Prefs = { appearance: Appearance; lang: Lang | null; length: PrayerLength; reader: ReaderSettings; bibleLocale: Lang | null; bibleVersions: VersionChoice; chapterId: string | null; verse: number | null };
 const PREFS_KEY = 'lifebook.prefs';
-const DEFAULT_PREFS: Prefs = { appearance: 'system', lang: null, length: 5, reader: DEFAULT_READER, bibleLocale: null, chapterId: null, verse: null };
+const DEFAULT_PREFS: Prefs = { appearance: 'system', lang: null, length: 5, reader: DEFAULT_READER, bibleLocale: null, bibleVersions: {}, chapterId: null, verse: null };
 const deviceLang = (): Lang => (Intl.DateTimeFormat().resolvedOptions().locale || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en';
 
 type AppValue = {
@@ -45,6 +46,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           length: parseLength(String(v.length ?? '')),
           reader: parseReaderSettings(JSON.stringify(v.reader ?? null)),
           bibleLocale: v.bibleLocale === 'en' || v.bibleLocale === 'fr' ? v.bibleLocale : null,
+          bibleVersions: parseVersionChoice(JSON.stringify(v.bibleVersions ?? null)),
           verse: Number.isInteger(v.verse) && Number(v.verse) >= 1 && Number(v.verse) <= 200 ? Number(v.verse) : null,
           chapterId: typeof v.chapterId === 'string' && /^[1-3]?[A-Z]{2,3}\.\d{1,3}$/.test(v.chapterId) ? v.chapterId : null,
         });

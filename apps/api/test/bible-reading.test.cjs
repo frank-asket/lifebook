@@ -21,7 +21,7 @@ test('root registers reading, annotations and the content controller with transl
 
 test('reader content contract supports translation metadata and plain text chapters', async () => {
   const service = new BibleContentService();
-  service.bibleId = locale => locale === 'fr' ? 'french-version' : 'english-version';
+  service.bibleId = version => version.locale === 'fr' ? 'french-version' : 'english-version';
   const paths = [];
   service.request = async path => {
     paths.push(path);

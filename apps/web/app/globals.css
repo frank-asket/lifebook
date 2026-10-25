@@ -2049,6 +2049,15 @@ progress::-moz-progress-bar { background: var(--purple); }
 .reader-menu-panel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: min(320px, calc(100vw - 32px)); display: grid; gap: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: var(--shadow); transform-origin: top right; animation: reader-menu-in .18s var(--ease-out); }
 @keyframes reader-menu-in { from { opacity: 0; transform: scale(.96); } }
 .reader-setting { display: grid; gap: 8px; }
+.reader-menu-panel { max-height: calc(100vh - 160px); overflow-y: auto; }
+.reader-menu-button { gap: 6px; padding: 0 10px; }
+.reader-version-tag { font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+.reader-versions { display: grid; gap: 2px; padding: 4px; border-radius: 12px; background: var(--soft); }
+.reader-versions button { display: grid; grid-template-columns: 3.4em 1fr auto; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 13px; text-align: left; }
+.reader-versions button strong { color: var(--ink); font-weight: 800; font-size: 12px; letter-spacing: .02em; }
+.reader-versions button[aria-checked='true'] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(32, 27, 50, .08), 0 0 0 1px var(--line); }
+.reader-versions button[aria-checked='true'] svg { color: var(--purple); }
+.reader-versions button:focus-visible { outline: 2px solid var(--purple); outline-offset: 1px; }
 .mini-segmented { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--soft); }
 .mini-segmented button { min-height: 40px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 700; font-size: 13px; }
 .mini-segmented button[aria-checked='true'] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(32, 27, 50, .08), 0 0 0 1px var(--line); }

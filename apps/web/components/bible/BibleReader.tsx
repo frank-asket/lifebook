@@ -13,6 +13,7 @@ import { parseVerses } from '../../lib/scripture';
 import { reportScripture } from '../../lib/fums';
 import { DEFAULT_READER, READER_KEY, parseReaderSettings, type ReaderSettings } from '../../lib/reader-settings';
 import { ReaderSettingsPanel } from './ReaderSettingsPanel';
+import { VERSIONS_KEY, parseVersionChoice, versionFor, type VersionChoice } from '../../lib/bible-versions';
 import { bibleApi, type BibleBook, type BibleChapter, type BibleChapterContent, type BibleLocale, type BibleTranslation } from '../../lib/bible-api';
 import { errorMessage } from '../../lib/errors';
 
@@ -65,14 +66,19 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
   const [settings, setSettings] = useState<ReaderSettings>(DEFAULT_READER);
   useEffect(() => { try { setSettings(parseReaderSettings(localStorage.getItem(READER_KEY))); } catch { /* storage unavailable */ } }, []);
   const saveSettings = (next: ReaderSettings) => { setSettings(next); try { localStorage.setItem(READER_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ } };
+  // The version chosen for each language, remembered on this device. Read before the book list loads, so a chosen version opens directly.
+  const [choice, setChoice] = useState<VersionChoice | null>(null);
+  useEffect(() => { let saved: VersionChoice = {}; try { saved = parseVersionChoice(localStorage.getItem(VERSIONS_KEY)); } catch { /* storage unavailable */ } setChoice(saved); }, []);
+  const version = versionFor(locale, choice);
+  const versionsReady = choice !== null;
   const canLeave = () => !annotationDirty || window.confirm(locale === 'fr' ? 'Quitter sans enregistrer votre note ?' : 'Leave without saving your note?');
 
-  // Changing locale invalidates the book and chapter lists. Abort stale requests.
+  // Changing locale or version invalidates the book and chapter lists. Abort stale requests.
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !versionsReady) return;
     const abort = new AbortController();
     setBooksBusy(true); setError(''); setBooks([]); setBookId(''); setChapters([]); setChapterId(''); setContent(null); setTranslation(null);
-    Promise.all([bibleApi.books(locale, abort.signal), bibleApi.translation(locale, abort.signal)])
+    Promise.all([bibleApi.books(locale, version.id, abort.signal), bibleApi.translation(locale, version.id, abort.signal)])
       .then(([items, version]) => {
         if (abort.signal.aborted) return;
         setBooks(items); setTranslation(version);
@@ -82,13 +88,13 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
       .catch(e => { if (!abort.signal.aborted) setError(errorMessage(e, language)); })
       .finally(() => { if (!abort.signal.aborted) setBooksBusy(false); });
     return () => abort.abort();
-  }, [locale, retry, ready]);
+  }, [locale, version.id, retry, ready, versionsReady]);
 
   useEffect(() => {
     if (!bookId) { setChaptersBusy(false); return; }
     const abort = new AbortController();
     setChaptersBusy(true); setError(''); setChapters([]); setChapterId(''); setContent(null);
-    bibleApi.chapters(bookId, locale, abort.signal)
+    bibleApi.chapters(bookId, locale, version.id, abort.signal)
       .then(items => {
         if (abort.signal.aborted) return;
         const numbered = items.filter(x => /^\d+$/.test(x.number));
@@ -97,26 +103,33 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
       .catch(e => { if (!abort.signal.aborted) setError(errorMessage(e, language)); })
       .finally(() => { if (!abort.signal.aborted) setChaptersBusy(false); });
     return () => abort.abort();
-  }, [bookId, locale, retry]);
+  }, [bookId, locale, version.id, retry]);
 
   useEffect(() => {
     if (!chapterId) { setContentBusy(false); return; }
     const abort = new AbortController();
     setContentBusy(true); setError(''); setContent(null);
-    bibleApi.chapter(chapterId, locale, abort.signal)
+    bibleApi.chapter(chapterId, locale, version.id, abort.signal)
       .then(data => { if (!abort.signal.aborted) setContent(data); })
       .catch(e => { if (!abort.signal.aborted) setError(errorMessage(e, language)); })
       .finally(() => { if (!abort.signal.aborted) setContentBusy(false); });
     return () => abort.abort();
-  }, [chapterId, locale, retry]);
+  }, [chapterId, locale, version.id, retry]);
 
   // Report the chapter to API.Bible's usage system once it is actually on screen.
-  useEffect(() => { if (content) reportScripture(`chapter:${locale}:${content.id}`, content.fumsToken); }, [content, locale]);
+  useEffect(() => { if (content) reportScripture(`chapter:${version.id}:${content.id}`, content.fumsToken); }, [content, version.id]);
   const index = useMemo(() => chapters.findIndex(x => x.id === chapterId), [chapters, chapterId]);
   const previous = index > 0 ? chapters[index - 1] : undefined;
   const next = index >= 0 ? chapters[index + 1] : undefined;
 
   const changeLocale = (next: BibleLocale) => { if (next !== locale && canLeave()) { setTarget(chapterId || target); setResumed(true); setLocale(next); } };
+  // Same chapter, another translation: keep the place, then reload the lists for the new version.
+  const changeVersion = (id: string) => {
+    if (id === version.id || !canLeave()) return;
+    const next = { ...choice, [locale]: id };
+    setTarget(chapterId || target); setResumed(true); setChoice(next);
+    try { localStorage.setItem(VERSIONS_KEY, JSON.stringify(next)); } catch { /* storage unavailable */ }
+  };
   const go = (chapter?: BibleChapter) => { if (chapter && canLeave()) { setChapterId(chapter.id); window.scrollTo({ top: 0 }); } };
   const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
 
@@ -137,7 +150,7 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
           </select>
         </label>
         <button type="button" className="icon-button" disabled={!next || busy} onClick={() => go(next)} aria-label={t.next}><ChevronRight size={18} aria-hidden="true" /></button>
-        <ReaderSettingsPanel locale={locale} uiLanguage={language} settings={settings} onSettings={saveSettings} onLocale={changeLocale} />
+        <ReaderSettingsPanel locale={locale} version={version} uiLanguage={language} settings={settings} onSettings={saveSettings} onLocale={changeLocale} onVersion={changeVersion} />
       </nav>
       {error && <div role="alert" className="alert reader-error">{error} <button className="btn btn-soft btn-sm" onClick={() => setRetry(x => x + 1)}>{t.retry}</button></div>}
       <article className="reader-paper card" aria-busy={busy} data-size={settings.size} data-spacing={settings.spacing} data-font={settings.font}>
@@ -147,10 +160,10 @@ export default function BibleReader({ initialLocale, initialChapter, initialVers
           <div className="scripture-text">{parseVerses(content.content).map((paragraph, i) => <p key={i}>{paragraph.map((v, j) => <span key={j} id={v.number ? `scripture-verse-${v.number}` : undefined} tabIndex={-1} className="verse">{v.number && <sup className="verse-number">{v.number}</sup>}{v.text} </span>)}</p>)}</div>
           <footer className="scripture-attribution">
             <details>
-              <summary>{translation?.name ?? translation?.abbreviation ?? 'API.Bible'}</summary>
+              <summary>{translation?.name ?? version.name}</summary>
               {translation?.copyright && <p className="attribution-line">{translation.copyright}</p>}
-              {content.copyright && <p className="attribution-line">{content.copyright}</p>}
-              <p className="attribution-line">{locale === 'fr' ? 'Texte biblique fourni par API.Bible.' : 'Scripture provided by API.Bible.'}</p>
+              {content.copyright && content.copyright !== translation?.copyright && <p className="attribution-line">{content.copyright}</p>}
+              {version.source === 'api.bible' && <p className="attribution-line">{locale === 'fr' ? 'Texte biblique fourni par API.Bible.' : 'Scripture provided by API.Bible.'}</p>}
             </details>
           </footer>
         </> : <p>{t.empty}</p>}

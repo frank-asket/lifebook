@@ -40,13 +40,16 @@ test('shared controls keep motion still, expose meaningful labels and adapt to e
 
 test('chapter picker retries a failed chapter request and sizes its grid for enlarged text', async () => {
   let requests = 0;
+  const paths = [];
   const { default: Books } = load('../app/books.tsx', {
     'react-native': { ...native, useWindowDimensions: () => ({ width: 320, fontScale: 2 }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ top: 20, bottom: 34, left: 0, right: 0 }) },
     'expo-router': { useRouter: () => ({ back() {} }) },
     '@expo/vector-icons': { Ionicons: 'Icon' },
     '../components/ui': { ErrorLine: 'ErrorLine' },
-    '../lib/app': { useApp: () => ({ c: {}, t: copy.en, prefs: { chapterId: 'JHN.1' }, setPrefs() {}, bibleLocale: 'en' }), api: async path => {
+    '../../web/lib/bible-versions': load('../../web/lib/bible-versions.ts'),
+    '../lib/app': { useApp: () => ({ c: {}, t: copy.en, prefs: { chapterId: 'JHN.1', bibleVersions: { en: 'nkjv' } }, setPrefs() {}, bibleLocale: 'en' }), api: async path => {
+      paths.push(path);
       if (path.includes('/chapters')) { requests++; if (requests === 1) throw new Error('offline'); return { data: [{ id: 'JHN.1', number: '1' }] }; }
       return { data: [{ id: 'JHN', name: 'John' }] };
     } },
@@ -58,6 +61,8 @@ test('chapter picker retries a failed chapter request and sizes its grid for enl
   assert.equal(renderer.root.findAllByType('ErrorLine').length, 1);
   await act(async () => renderer.root.findByType('ErrorLine').props.onRetry());
   assert.equal(requests, 2);
+  // Books and chapters come from the version chosen for this language.
+  assert.ok(paths.length && paths.every(path => path.includes('locale=en&version=nkjv')));
   const list = renderer.root.findByType('FlatList');
   assert.equal(list.props.numColumns, 3);
   const cell = list.props.renderItem({ item: { id: 'JHN.1', number: '1' } });
@@ -73,6 +78,7 @@ test('app motion preferences follow OS changes and remove the subscription on un
     'react-native': { useColorScheme: () => 'light', AccessibilityInfo: { isReduceMotionEnabled: async () => false, addEventListener: (name, callback) => { assert.equal(name, 'reduceMotionChanged'); listener = callback; return { remove() { removed = true; } }; } } },
     'expo-secure-store': { getItemAsync: async () => null }, './copy': { copy }, './theme': { palettes: { light: {}, dark: {} } },
     '../../web/lib/reader-settings': { DEFAULT_READER: {}, parseReaderSettings() {} }, '../../web/lib/prayer-time': { parseLength() {} },
+    '../../web/lib/bible-versions': { parseVersionChoice: () => ({}) },
     '../../web/lib/daily-word': { dailyWordDate() {} }, './api': { api() {} },
   });
   const Probe = () => React.createElement('Probe', { reduceMotion: app.useApp().reduceMotion });
@@ -108,10 +114,13 @@ test('failed sign-out keeps the account screen available and offers a retry', as
 });
 
 test('reading settings can scroll to every control and respect the home indicator', async () => {
+  const patches = [];
   const { default: Settings } = load('../app/reader-settings.tsx', {
     'react-native': native, 'expo-router': { useRouter: () => ({ back() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({ bottom: 34 }) },
-    '../lib/app': { useApp: () => ({ c: {}, t: copy.en, prefs: { reader: { size: 'm', spacing: 'normal', font: 'serif' } }, setPrefs() {}, bibleLocale: 'en' }) },
+    '@expo/vector-icons': { Ionicons: 'Icon' }, '../lib/scripture-usage': { reportScripture() {} },
+    '../../web/lib/bible-versions': load('../../web/lib/bible-versions.ts'),
+    '../lib/app': { api: async () => { throw new Error('public-domain previews are quoted, not fetched'); }, useApp: () => ({ c: {}, t: copy.en, prefs: { reader: { size: 'm', spacing: 'normal', font: 'serif' }, bibleVersions: {} }, setPrefs: patch => patches.push(patch), bibleLocale: 'en' }) },
     '../lib/theme': { fonts: { serif: 'Georgia' } }, '../components/ui': { Segmented: 'Segmented' },
     '../../web/lib/reader-settings': load('../../web/lib/reader-settings.ts'),
     '../lib/reader-style': load('../lib/reader-style.ts', { './theme': { fonts: { serif: 'Georgia' } } }),
@@ -124,6 +133,12 @@ test('reading settings can scroll to every control and respect the home indicato
   assert.ok(preview, 'preview verse is shown');
   assert.equal(preview.props.style.fontSize, 19); assert.equal(preview.props.style.lineHeight, Math.round(19 * 1.8)); assert.equal(preview.props.style.fontFamily, 'Georgia');
   assert.equal(renderer.root.findAllByType('Segmented').length, 3);
+  // Every English version is offered, the default is checked, and choosing one is remembered for English only.
+  const versions = renderer.root.findAllByType('Pressable').filter(p => p.props.accessibilityRole === 'radio');
+  assert.equal(versions.map(v => v.props.accessibilityLabel).join(', '), ['King James Version', 'Berean Standard Bible', 'World English Bible', 'New King James Version', 'Good News Translation'].join(', '));
+  assert.equal(versions[0].props.accessibilityState.checked, true);
+  await act(async () => versions[1].props.onPress());
+  assert.equal(JSON.stringify(patches), JSON.stringify([{ bibleVersions: { en: 'bsb' } }]));
   assert.ok(renderer.root.findAllByType('Pressable').every(p => {
     const style = typeof p.props.style === 'function' ? p.props.style({ pressed: false }) : p.props.style;
     return style.minHeight >= 48;
