@@ -73,7 +73,8 @@ export default function Today() {
 
     {days ? <Card style={{ paddingVertical: 18 }}>
       <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 15, fontWeight: '700', marginBottom: 14 }}>{t.today.week}</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 16, justifyContent: 'space-between' }}>
+      {/* Rebuild only this stateless grid when iOS retains old percentage measurements. */}
+      <View key={fontScale} style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 16, justifyContent: 'space-between' }}>
         {days.map(d => <View key={d.date} accessible accessibilityLabel={`${d.name}, ${d.state === 'done' ? (lang === 'fr' ? 'terminé' : 'completed') : d.state === 'started' ? (lang === 'fr' ? 'en cours' : 'in progress') : (lang === 'fr' ? 'pas encore commencé' : 'not started')}`} style={{ alignItems: 'center', gap: 6, flex: fontScale > 1.3 ? undefined : 1, width: fontScale > 2 ? '50%' : fontScale > 1.3 ? '33.333%' : undefined }}>
           <View style={[{ width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, borderColor: c.line, alignItems: 'center', justifyContent: 'center' },
             d.state === 'done' && { backgroundColor: c.accent, borderColor: c.accent }, d.state === 'started' && { backgroundColor: c.soft, borderColor: c.accent },

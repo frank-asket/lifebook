@@ -9,7 +9,8 @@
       "distribution": "internal",
       "environment": "development",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lifebook-yhbx.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://lifebook-yhbx.onrender.com",
+        "LIFEBOOK_AUTH_FRONTEND_DOMAIN": "in-dove-5948.clerk.accounts.dev"
       },
       "node": "22.23.2"
     },
@@ -26,7 +27,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lifebook-yhbx.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://lifebook-yhbx.onrender.com",
+        "LIFEBOOK_AUTH_FRONTEND_DOMAIN": "in-dove-5948.clerk.accounts.dev"
       },
       "node": "22.23.2"
     },

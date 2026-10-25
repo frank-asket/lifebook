@@ -11,7 +11,7 @@ function uiHarness() {
     '@expo/vector-icons': { Ionicons: 'Icon' },
     '../lib/app': { useApp: () => ({ c: {}, t: copy.en }) },
   });
-  return { ...ui, enlarge() { fontScale = 2; } };
+  return { ...ui, setFontScale(value) { fontScale = value; } };
 }
 
 test('shared controls keep motion still, expose meaningful labels and adapt to enlarged text', async () => {
@@ -24,10 +24,15 @@ test('shared controls keep motion still, expose meaningful labels and adapt to e
   assert.equal(feedback[0].minHeight, 48);
   assert.ok(feedback.every(style => !style || !style.transform));
   assert.ok(renderer.root.findAllByType('Icon').every(icon => icon.props.accessible === false));
+  h.setFontScale(2);
+  await act(async () => renderer.update(React.createElement(h.Row, { icon: 'book', title: 'Commencez votre journal de prière', onPress() {} })));
+  assert.equal(renderer.root.findAllByType('Icon').length, 0, 'decorative icons must leave the full row width for enlarged text');
+  assert.equal(renderer.root.findByType('Pressable').props.accessibilityLabel, 'Commencez votre journal de prière');
+  h.setFontScale(1);
   const choices = { label: 'Appearance', value: 'system', onChange() {}, options: [{ label: 'System', value: 'system' }, { label: 'Light', value: 'light' }, { label: 'Dark', value: 'dark' }] };
   await act(async () => renderer.update(React.createElement(h.Segmented, choices)));
   assert.equal(renderer.root.findByType('View').props.style.flexDirection, 'row');
-  h.enlarge();
+  h.setFontScale(2);
   await act(async () => renderer.update(React.createElement(h.Segmented, choices)));
   assert.equal(renderer.root.findByType('View').props.style.flexDirection, 'column');
   assert.ok(renderer.root.findAllByType('Pressable').every(p => p.props.style.minHeight >= 48));
@@ -69,6 +74,48 @@ test('chapter picker retries a failed chapter request and sizes its grid for enl
   assert.ok(cell.props.style({ pressed: false }).minHeight >= 96);
   assert.equal(cell.props.accessibilityState.selected, true);
   await act(async () => renderer.unmount());
+});
+
+test('Today rebuilds only the display grid when font scale changes', async () => {
+  let fontScale = 1;
+  const session = { isSignedIn: true, getToken: async () => 'synthetic' };
+  const days = Array.from({ length: 7 }, (_, i) => ({ date: `day-${i}`, name: `Day ${i}`, label: String(i), state: 'none' }));
+  const { default: Today } = load('../app/(tabs)/index.tsx', {
+    'react-native': { ...native, useWindowDimensions: () => ({ fontScale }) },
+    'expo-router': { useFocusEffect: callback => React.useEffect(callback, [callback]), useRouter: () => ({}) },
+    '@expo/vector-icons': { Ionicons: 'Icon' },
+    '../../components/suggestions': { Suggestions: 'Suggestions' },
+    '../../components/ui': Object.fromEntries(['Button', 'Card', 'ErrorLine', 'Row', 'Screen'].map(name => [name, name])),
+    '../../lib/app': {
+      useApp: () => ({ c: {}, t: copy.en, lang: 'en', prefs: { length: 5 } }),
+      useDailyWord: () => ({ date: '2026-10-24' }), useSession: () => session, timezone: () => 'UTC',
+      api: async url => url.includes('?limit=7') ? [] : null,
+    },
+    '../../lib/theme': { fonts: {} }, '../../lib/scripture-usage': { reportScripture() {} },
+    '../../../web/lib/scripture': { calendarDay: () => 'Today', lastSevenDays: () => days },
+    '../../../web/lib/daily-word-navigation': { DAILY_WORD_STEPS: [] },
+  });
+  let renderer;
+  await act(async () => { renderer = create(React.createElement(Today)); });
+  let previousGrid;
+  let previousScale;
+  const screen = renderer.root.findByType('Screen');
+  for (const scale of [1, 3.571, 1.5, 1]) {
+    fontScale = scale;
+    await act(() => renderer.update(React.createElement(Today)));
+    const cells = renderer.root.findAllByType('View').filter(view => view.props.accessibilityLabel?.startsWith('Day '));
+    assert.equal(cells.length, 7);
+    const grid = cells[0].parent;
+    assert.equal(renderer.root.findByType('Screen'), screen, 'the screen and its state must stay mounted');
+    if (previousGrid && previousScale !== scale) assert.notEqual(grid, previousGrid, 'old native measurements must not be reused');
+    for (const cell of cells) {
+      assert.equal(cell.props.style.flex, scale > 1.3 ? undefined : 1);
+      assert.equal(cell.props.style.width, scale > 2 ? '50%' : scale > 1.3 ? '33.333%' : undefined);
+    }
+    previousGrid = grid;
+    previousScale = scale;
+  }
+  await act(() => renderer.unmount());
 });
 
 test('app motion preferences follow OS changes and remove the subscription on unmount', async () => {
