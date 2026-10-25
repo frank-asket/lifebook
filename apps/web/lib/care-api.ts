@@ -7,6 +7,7 @@ export type CareThread = {
   id: string; topic: CareTopic; language: string; status: 'OPEN' | 'CLAIMED' | 'CLOSED'; contactPreference: 'messages' | 'callback';
   createdAt: string; claimedAt: string | null; closedAt: string | null; closedBy: 'member' | 'pastor' | 'system' | null;
   name: string | null; phone: string | null; message: string; pastor: { displayName: string; slug: string } | null;
+  nextCursor?: string | null;
   messages: { id: string; from: 'member' | 'pastor'; text: string; createdAt: string }[];
 };
 export type QueueItem = { id: string; topic: CareTopic; language: string; contactPreference: 'messages' | 'callback'; createdAt: string };
@@ -20,7 +21,7 @@ export function createCareApi(request: typeof api) { return {
   create: (token: string, input: { topic: CareTopic; language: string; contactPreference: 'messages' | 'callback'; name?: string; phone?: string; message: string; consent: true }) => request<CareThread>('/care/requests', token, json(input)),
   mine: (token: string, signal?: AbortSignal) => request<CareSummary[]>('/care/requests', token, { signal }),
   minePage: (token: string, cursor?: string, signal?: AbortSignal) => request<{ items: CareSummary[]; nextCursor: string | null }>(`/care/requests/page${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`, token, { signal }),
-  get: (token: string, id: string, signal?: AbortSignal) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}`, token, { signal }),
+  get: (token: string, id: string, signal?: AbortSignal, before?: string) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}${before ? `?before=${encodeURIComponent(before)}` : ''}`, token, { signal }),
   reply: (token: string, id: string, text: string) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}/messages`, token, json({ text })),
   close: (token: string, id: string) => request<CareThread>(`/care/requests/${encodeURIComponent(id)}/close`, token, { method: 'POST' }),
   remove: (token: string, id: string) => request<{ deleted: boolean }>(`/care/requests/${encodeURIComponent(id)}`, token, { method: 'DELETE' }),
@@ -29,7 +30,7 @@ export function createCareApi(request: typeof api) { return {
   queue: (token: string, signal?: AbortSignal) => request<QueueItem[]>('/care/pastor/queue', token, { signal }),
   claim: (token: string, id: string) => request<CareThread>(`/care/pastor/queue/${encodeURIComponent(id)}/claim`, token, { method: 'POST' }),
   cases: (token: string, signal?: AbortSignal) => request<CareSummary[]>('/care/pastor/cases', token, { signal }),
-  case: (token: string, id: string, signal?: AbortSignal) => request<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}`, token, { signal }),
+  case: (token: string, id: string, signal?: AbortSignal, before?: string) => request<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}${before ? `?before=${encodeURIComponent(before)}` : ''}`, token, { signal }),
   pastorReply: (token: string, id: string, text: string) => request<CareThread>(`/care/pastor/cases/${encodeURIComponent(id)}/messages`, token, json({ text })),
   report: (token: string, id: string, input: ReportInput) => request<{ reported: boolean; sharedConversation: boolean }>(`/care/requests/${encodeURIComponent(id)}/report`, token, json(input)),
   pastorReport: (token: string, id: string, input: ReportInput) => request<{ reported: boolean; sharedConversation: boolean }>(`/care/pastor/cases/${encodeURIComponent(id)}/report`, token, json(input)),

@@ -29,6 +29,14 @@ export function CareConversation({ id, viewer, language }: { id: string; viewer:
   const send = useCallback((text: string) => act(t => viewer === 'member' ? careApi.reply(t, id, text) : careApi.pastorReply(t, id, text)), [act, viewer, id]);
   const close = useCallback(() => { if (window.confirm(language === 'fr' ? 'Terminer cette conversation ? Vous pourrez toujours la relire.' : 'Close this conversation? You can still read it afterwards.')) void act(t => viewer === 'member' ? careApi.close(t, id) : careApi.pastorClose(t, id)); }, [act, viewer, id, language]);
   const remove = () => { if (window.confirm(tr('Permanently delete this request and every message? This cannot be undone.', 'Supprimer définitivement cette demande et tous les messages ? Action irréversible.'))) void act(async t => { await careApi.remove(t, id); router.push('/care'); return null; }); };
+  const older = async () => {
+    if (!thread?.nextCursor || busy) return;
+    setBusy(true); setError(null);
+    try {
+      const row = await (viewer === 'member' ? careApi.get : careApi.case)(await token(), id, undefined, thread.nextCursor);
+      setThread(current => current && { ...current, nextCursor: row.nextCursor, messages: [...row.messages.filter(m => !current.messages.some(existing => existing.id === m.id)), ...current.messages] });
+    } catch (e) { setError(e); } finally { setBusy(false); }
+  };
   const heading = <h1 className="page-heading">{thread ? topicLabel(thread.topic, language) : tr('Private conversation', 'Conversation privée')}</h1>;
 
   if (missing) return <div className="card status-card"><h1>{tr('This conversation is not available', 'Cette conversation n’est pas disponible')}</h1><p>{tr('It may have been closed and deleted, or it belongs to someone else.', 'Elle a peut-être été terminée et supprimée, ou elle appartient à quelqu’un d’autre.')}</p><Link className="btn btn-primary" href={viewer === 'member' ? '/care' : '/care/pastor'}>{tr('Back', 'Retour')}</Link></div>;
@@ -42,6 +50,7 @@ export function CareConversation({ id, viewer, language }: { id: string; viewer:
       {viewer === 'member' && thread.status === 'CLOSED' && thread.closedBy === 'system' && <p className="alert" style={{ marginTop: 14 }}>{tr('We are sorry: no pastor was able to take this request within 30 days, so it was closed. You are welcome to ask again.', 'Nous sommes désolés : aucun pasteur n’a pu prendre cette demande en 30 jours, elle a donc été fermée. Vous pouvez en faire une nouvelle.')}</p>}
       {viewer === 'member' && thread.status === 'OPEN' && <p className="notice" style={{ marginTop: 14 }}>{tr('A pastor who speaks your language will reply, usually within 24 hours. This is not an emergency service: if you are in danger, call 112.', 'Un pasteur qui parle votre langue vous répondra, en général sous 24 heures. Ce n’est pas un service d’urgence : en cas de danger, appelez le 112.')}</p>}
       {viewer === 'pastor' && thread.contactPreference === 'callback' && thread.phone && <p className="notice icon-line" style={{ marginTop: 14, flexWrap: 'wrap' }}><Phone size={15} aria-hidden="true"/> {tr('Asked for a callback:', 'Souhaite être rappelé(e) :')} <a className="care-phone care-link" href={`tel:${thread.phone.replace(/[^+\d]/g, '')}`}>{thread.phone}</a></p>}
+      {thread.nextCursor && <button className="btn btn-outline" type="button" disabled={busy} onClick={() => void older()}>{tr('Load earlier messages', 'Afficher les messages précédents')}</button>}
       <Messages thread={thread} viewer={viewer} other={other} language={language}/>
       {thread.status === 'CLOSED' ? <p className="muted">{tr('This conversation is closed.', 'Cette conversation est terminée.')}</p>
         : <ReplyForm language={language} busy={busy} onSend={send} onClose={close}/>}
