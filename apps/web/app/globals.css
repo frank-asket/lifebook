@@ -2251,3 +2251,34 @@ p a.text-link, li a.text-link { display: inline; min-height: 0; }
 .spacing-sample i { display: block; height: 2px; border-radius: 1px; background: currentColor; opacity: .7; }
 .spacing-sample[data-spacing='normal'] { gap: 2px; }
 .spacing-sample[data-spacing='relaxed'] { gap: 4px; }
+
+/* Pastor application and review */
+.pastor-apply fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.pastor-apply legend { padding: 0; }
+.pastor-apply legend h2 { font-size: 19px; margin: 0; }
+.pastor-apply fieldset + fieldset { border-top: 1px solid var(--line); padding-top: 18px; }
+.field-hint { font-size: 12px; }
+.input-prefix { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.input-prefix > span { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.input-prefix .input { flex: 1; min-width: 0; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-check { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; cursor: pointer; }
+.chip-check.on { border-color: var(--purple); background: var(--soft); color: var(--ink); font-weight: 700; }
+.chip-check input { accent-color: var(--purple); }
+.chip-check:focus-within { outline: 2px solid var(--purple); outline-offset: 2px; }
+.conduct-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.5; }
+.apply-status.rejected svg { color: var(--danger); }
+.apply-status.approved svg { color: var(--purple); }
+.pastor-apply-link { margin: 0 0 12px; font-size: 14px; }
+.apps-filter { justify-self: start; max-width: 100%; }
+.apps-filter .count { font-variant-numeric: tabular-nums; opacity: .7; margin-left: 4px; }
+.application-card { display: grid; gap: 14px; }
+.application-head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.application-head h2 { margin: 0; font-size: 20px; }
+.application-head p { margin: 4px 0 0; }
+.app-status.pending { background: var(--soft); }
+.app-details { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 18px; margin: 0; }
+.app-row { min-width: 0; }
+.app-row dt { font-size: 12px; font-weight: 800; color: var(--muted); }
+.app-row dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+.selectable { user-select: all; font-variant-numeric: tabular-nums; }

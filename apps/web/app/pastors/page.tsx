@@ -22,6 +22,7 @@ export default function Pastors() {
       <h1 className="page-heading">{tr('Our pastors', 'Nos pasteurs')}</h1>
       <p className="subheading">{tr('Every pastor here is endorsed by their church, has completed suicide-awareness training and has signed LifeBook’s code of conduct.', 'Chaque pasteur ici est recommandé par son Église, a suivi une formation à la prévention du suicide et a signé le code de conduite de LifeBook.')}</p>
     </div>
+    <p className="pastor-apply-link">{tr('Are you a pastor?', 'Vous êtes pasteur ?')} <Link className="text-link" href="/pastors/apply">{tr('Apply to serve on LifeBook', 'Postulez pour servir sur LifeBook')}</Link></p>
     <p className="notice">{tr('Pastors are not an emergency service. If you or someone else is in danger, call your local emergency number now.', 'Les pasteurs ne sont pas un service d’urgence. Si vous ou quelqu’un d’autre êtes en danger, appelez immédiatement le numéro d’urgence local.')}</p>
     {error ? <div style={{ marginTop: 20 }}><CareError error={error} language={language} onRetry={() => setRetry(n => n + 1)}/></div>
       : items === null ? <div style={{ marginTop: 20 }}><CareLoading label={tr('Loading pastors…', 'Chargement des pasteurs…')} lines={4}/></div>

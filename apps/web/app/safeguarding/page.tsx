@@ -74,7 +74,7 @@ export default function Safeguarding() {
         </section>}
 
         <section className="card" aria-labelledby="sg-pastors">
-          <h2 id="sg-pastors" className="icon-line" style={{ fontSize: 19 }}><Users size={18} aria-hidden="true"/> {tr('Pastors', 'Pasteurs')}</h2>
+          <div className="split-title"><h2 id="sg-pastors" className="icon-line" style={{ fontSize: 19 }}><Users size={18} aria-hidden="true"/> {tr('Pastors', 'Pasteurs')}</h2><Link className="btn btn-soft btn-sm" href="/safeguarding/pastors">{tr('Review applications', 'Examiner les candidatures')}{overview.pastors.some(p => p.status === 'PENDING') ? ` · ${overview.pastors.filter(p => p.status === 'PENDING').length}` : ''}</Link></div>
           {!overview.pastors.length ? <CareEmpty icon={Users}>{tr('No pastors yet.', 'Aucun pasteur pour le moment.')}</CareEmpty>
             : <div className="sg-table-wrap" role="region" aria-labelledby="sg-pastors" tabIndex={0}><table className="sg-table"><thead><tr><th scope="col">{tr('Pastor', 'Pasteur')}</th><th scope="col">{tr('Status', 'Statut')}</th><th scope="col">{tr('Open', 'Ouvertes')}</th><th scope="col">{tr('Action', 'Action')}</th></tr></thead>
             <tbody>{overview.pastors.map(p => <tr key={p.slug}>
