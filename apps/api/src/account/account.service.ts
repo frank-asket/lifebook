@@ -1,6 +1,7 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleDestroy, UnauthorizedException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
-import { createClerkClient, verifyToken } from '@clerk/backend';
+import { verifiedSubject } from '../common/identity';
+import { database } from '../common/database';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { createClerkClient } from '@clerk/backend';
 import { exportAccount } from './account-export';
 
 export const DELETE_CONFIRMATION = 'DELETE_MY_ACCOUNT';
@@ -19,20 +20,10 @@ export function deletionBlocked(user: { role: string }, verificationStatus: stri
  */
 @Injectable()
 export class AccountService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  private readonly db = database;
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
 
-  private async subject(auth?: string): Promise<string> {
-    if (!auth?.startsWith('Bearer ')) throw new UnauthorizedException('Authorization bearer token required');
-    const secretKey = process.env.CLERK_SECRET_KEY;
-    if (!secretKey) throw new UnauthorizedException('Authentication is not configured');
-    const authorizedParties = (process.env.CLERK_AUTHORIZED_PARTIES || '').split(',').map(s => s.trim()).filter(Boolean);
-    try {
-      const claims = await verifyToken(auth.slice(7).trim(), { secretKey, ...(authorizedParties.length ? { authorizedParties } : {}) });
-      if (!claims.sub) throw new Error('No subject');
-      return claims.sub;
-    } catch { throw new UnauthorizedException('Invalid session token'); }
-  }
+  private subject(auth?: string) { return verifiedSubject(auth); }
 
   /** "Download my data": everything about the signed-in member, decrypted for them. */
   async exportData(auth: string | undefined) {

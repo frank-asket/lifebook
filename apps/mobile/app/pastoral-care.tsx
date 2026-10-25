@@ -135,6 +135,17 @@ function Conversation({ id, viewer, onClose }: { id: string; viewer: 'member' | 
     } catch (e) { if (mounted.current) setError(errorMessage(e, lang)); }
     finally { saving.current = false; if (mounted.current) setBusy(false); }
   }
+  async function older() {
+    if (saving.current || !thread?.nextCursor) return;
+    saving.current = true; setBusy(true); setError('');
+    try {
+      const token = await requireToken(session.getToken);
+      if (!mounted.current) return;
+      const page = await (viewer === 'member' ? care.get : care.case)(token, id, undefined, thread.nextCursor);
+      if (mounted.current) setThread(current => current && { ...current, nextCursor: page.nextCursor, messages: [...page.messages.filter(m => !current.messages.some(existing => existing.id === m.id)), ...current.messages] });
+    } catch (e) { if (mounted.current) setError(errorMessage(e, lang)); }
+    finally { saving.current = false; if (mounted.current) setBusy(false); }
+  }
   if (reporting) return <Concern id={id} viewer={viewer} onClose={() => setReporting(false)} onSent={() => { setReporting(false); setReported(true); }} />;
   return <Screen title={tr('Pastoral conversation', 'Échange pastoral')}>
     <Button kind="quiet" title={tr('Back to conversations', 'Retour aux échanges')} disabled={busy} onPress={leave} />
@@ -144,8 +155,8 @@ function Conversation({ id, viewer, onClose }: { id: string; viewer: 'member' | 
       {thread.pastor ? <Text style={{ color: c.ink }}>{thread.pastor.displayName}</Text> : null}
       {viewer === 'pastor' && thread.phone ? <Text selectable style={{ color: c.ink }}>{tr('Callback', 'Rappel')}: {thread.phone}</Text> : null}
       <Card><Text style={{ color: c.ink, fontSize: 17, lineHeight: 27 }}>{thread.message}</Text></Card>
+      {thread.nextCursor ? <Button kind="soft" title={tr('Load earlier messages', 'Afficher les messages précédents')} disabled={busy} onPress={() => void older()} /> : null}
       {thread.messages.map(item => <Card key={item.id} style={{ gap: 8 }}><Text style={{ color: c.deep, fontWeight: '600' }}>{item.from === 'member' ? tr('Member', 'Membre') : tr('Pastor', 'Pasteur')} · {new Date(item.createdAt).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB')}</Text><Text style={{ color: c.ink, fontSize: 17, lineHeight: 27 }}>{item.text}</Text></Card>)}
-      {thread.messages.length >= 500 ? <Text style={{ color: c.muted }}>{tr('Showing the first 500 messages.', 'Les 500 premiers messages sont affichés.')}</Text> : null}
       {thread.status !== 'CLOSED' ? <>
         <TextInput accessibilityLabel={tr('Your reply', 'Votre réponse')} value={draft} onChangeText={setDraft} editable={!busy} multiline maxLength={2000} style={{ minHeight: 140, padding: 14, borderWidth: 1, borderColor: c.line, borderRadius: 12, backgroundColor: c.paper, color: c.ink, fontSize: 17, lineHeight: 26, textAlignVertical: 'top' }} />
         <Button title={tr('Send reply', 'Envoyer la réponse')} disabled={busy || !draft.trim()} onPress={() => void write('reply')} />

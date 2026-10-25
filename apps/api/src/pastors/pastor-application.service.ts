@@ -1,5 +1,5 @@
+import { database } from '../common/database';
 import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { MeditationService } from '../meditation/meditation.service';
 import { decryptReflection } from '../security/reflection-crypto';
 import { PastorAdmin, PASTOR_LIMITS, isActivePastor } from './pastor-admin';
@@ -14,9 +14,9 @@ const RESERVED = new Set(['apply', 'application', 'new', 'admin']);
  */
 @Injectable()
 export class PastorApplicationService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly meditation: MeditationService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
 
   /** The applicant's own view. The reference contact is never sent back, only whether one is on file. */
   async get(auth?: string) {

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.2.0] - 2026-10-25
+
+### Fixed
+- Keep active Daily Word passages and unsaved reflections intact across midnight, and ignore delayed saves from an earlier day or account.
+- Complete Daily Word sessions reliably when final steps are saved from multiple devices.
+- Prevent suspended or reassigned pastors from accessing or changing former conversations.
+- Show the latest care replies and let members and pastors load earlier messages without losing reply drafts.
+- Enforce concurrent AI request limits and avoid saving a meditation for a prayer edited during generation.
+- Include the workspace patch when building the API container and verify that build in CI.
+
+### Changed
+- Reuse one API database connection pool and a shared session-verification path.
+- Report unavailable readiness when the database schema cannot be verified.
+- Update the marketing support contact and prepare English/French legal drafts for review.
+
 ## [0.3.1.0] - 2026-10-24
 
 ### Fixed

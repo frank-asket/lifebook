@@ -1,5 +1,6 @@
+import type { Prisma } from '@prisma/client';
+import { database } from '../common/database';
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { crisisContacts, crisisScreen } from './crisis-screen';
 import { OpenAiClient } from './openai-client';
 import { PrayerCompanionService } from './prayer-companion.service';
@@ -41,10 +42,10 @@ export async function aiPick(ai: AiLike, candidates: { title: string; descriptio
  */
 @Injectable()
 export class PrayerVerseService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   ai: AiLike = new OpenAiClient(undefined, 15000);
   constructor(private readonly companion: PrayerCompanionService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
 
   /** Null when the topic library isn't available here (it stays off in production until reviewed). */
   async choose(userId: string, prayerId: string, body: string, locale: Locale, allowAi = false): Promise<StoredVerse | null> {
@@ -52,15 +53,16 @@ export class PrayerVerseService implements OnModuleDestroy {
     if (crisisScreen(body)) return { status: 'crisis', locale };
     let source: 'keywords' | 'ai' = 'keywords';
     let pick = this.companion.keywordPick(body, locale, prayerId);
-    if (allowAi && await this.aiAllowed(userId)) {
+    const usage = allowAi ? await this.reserveAi(userId) : null;
+    if (usage) {
       let outcome: 'generated' | 'not-generated' = 'not-generated';
       try {
         const chosen = await aiPick(this.ai, this.companion.candidates(), body);
         // Deliberately coarse, as for guided meditation: a "crisis" outcome tied to a person would itself be sensitive.
-        if (chosen === 'crisis') { await this.log(userId, outcome); return { status: 'crisis', locale }; }
+        if (chosen === 'crisis') { await this.db.aiUsage.update({ where: { id: usage.id }, data: { outcome } }); return { status: 'crisis', locale }; }
         if (chosen) { pick = { ...pick, passageId: chosen, topicId: this.companion.topicOf(chosen) ?? pick.topicId }; source = 'ai'; outcome = 'generated'; }
       } catch { /* fall back to the keyword match */ }
-      await this.log(userId, outcome);
+      await this.db.aiUsage.update({ where: { id: usage.id }, data: { outcome } });
     }
     const [passage] = await this.companion.resolve(locale, [pick.passageId]);
     return { status: 'ok', locale, source, topicId: pick.topicId, passage };
@@ -72,14 +74,16 @@ export class PrayerVerseService implements OnModuleDestroy {
     return { ...verse, topic: this.companion.topicTitle(verse.topicId, verse.locale) };
   }
 
-  private async aiAllowed(userId: string) {
-    if (!process.env.OPENAI_API_KEY?.trim()) return false;
-    const profile = await this.db.faithProfile.findUnique({ where: { userId }, select: { aiProcessingConsent: true } });
-    if (!profile?.aiProcessingConsent) return false;
-    const since = new Date(Date.now() - 86400000);
-    return await this.db.aiUsage.count({ where: { userId, feature: 'prayer-verse', createdAt: { gte: since } } }) < VERSE_LIMITS.aiPerDay;
-  }
-  private log(userId: string, outcome: 'generated' | 'not-generated') {
-    return this.db.aiUsage.create({ data: { userId, feature: 'prayer-verse', outcome } });
+  private transaction<T>(run: (tx: Prisma.TransactionClient) => Promise<T>) { return this.db.$transaction(run); }
+  private async reserveAi(userId: string) {
+    if (!process.env.OPENAI_API_KEY?.trim()) return null;
+    return this.transaction(async tx => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+      const profile = await tx.faithProfile.findUnique({ where: { userId }, select: { aiProcessingConsent: true } });
+      if (!profile?.aiProcessingConsent) return null;
+      const since = new Date(Date.now() - 86400000);
+      if (await tx.aiUsage.count({ where: { userId, feature: 'prayer-verse', createdAt: { gte: since } } }) >= VERSE_LIMITS.aiPerDay) return null;
+      return tx.aiUsage.create({ data: { userId, feature: 'prayer-verse', outcome: 'not-generated' } });
+    });
   }
 }

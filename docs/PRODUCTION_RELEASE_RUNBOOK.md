@@ -19,7 +19,7 @@ How LifeBook reaches production safely. Written 18 October 2026, after the M3.7 
 
 Option 1 is the default.
 
-**Safety net (since 19 October):** the API's `/api/v1/health` compares the migrations shipped in its build with those applied to the database. If any are missing, it returns **503** `{"status":"schema-behind","pendingMigrations":N}` and logs which ones, so Render never promotes that deploy and the previous version keeps serving. Once the migrations are applied, redeploy (or wait for the next deploy) and health returns 200. A database error doesn't trip it. `SCHEMA_GUARD=off` on Render disables it in an emergency. This catches the mistake of 19 October, when PR #58 merged before its migrations; it doesn't replace section A.
+**Safety net (since 19 October, hardened 25 October):** the API's `/api/v1/health` compares the migrations shipped in its build with those applied to the database. If any are missing, it returns **503** `{"status":"schema-behind","service":"lifebook-api","pendingMigrations":N}` and logs which ones, so Render never promotes that deploy and the previous version keeps serving. Database-verification errors or missing bundled migration metadata return **503** `{"status":"schema-unavailable","service":"lifebook-api"}`. Results are cached for 30 seconds. Investigate connectivity and packaging before assuming a migration is needed; section A still requires reviewed history, a recoverable backup and named approval. `SCHEMA_GUARD=off` on Render explicitly disables verification in an emergency. This catches the mistake of 19 October, when PR #58 merged before its migrations; it doesn't replace section A.
 
 ## A. Database change (any new migration)
 

@@ -1,6 +1,7 @@
+import { database } from '../common/database';
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { isIP } from 'node:net';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { BibleReadingService } from '../bible-reading/bible-reading.service';
 
 function mediaHosts() {
@@ -22,9 +23,9 @@ export const approvedTeachings = (): Prisma.SermonWhereInput => {
 };
 @Injectable()
 export class LivingWordService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly identity: BibleReadingService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
   private present<T extends { mediaKey: string }>(row: T) { const { mediaKey, ...rest } = row; return { ...rest, mediaUrl: mediaUrl(mediaKey) }; }
   async list(locale = 'en', q = '', pageInput = '1') {
     if (typeof locale !== 'string' || typeof q !== 'string' || typeof pageInput !== 'string' || !['en', 'fr'].includes(locale) || q.length > 80 || !/^[1-9][0-9]{0,3}$/.test(pageInput)) throw new BadRequestException('Invalid library filters');

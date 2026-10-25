@@ -1,5 +1,6 @@
+import { database } from '../common/database';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { crisisContacts, crisisScreen } from './crisis-screen';
 import { OpenAiClient } from './openai-client';
 import { PrayerCompanionService } from './prayer-companion.service';
@@ -66,10 +67,12 @@ export async function composeMeditation(ai: AiLike, candidates: Candidate[], bod
 /** Guided meditation on a saved prayer: consent, crisis screening, then a structured AI draft built on verified Scripture. */
 @Injectable()
 export class GuidedMeditationService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   ai = new OpenAiClient();
   constructor(private readonly prayers: PrayerService, private readonly companion: PrayerCompanionService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
+
+  private transaction<T>(run: (tx: Prisma.TransactionClient) => Promise<T>) { return this.db.$transaction(run); }
 
   private crisis(locale: 'en' | 'fr') {
     return {
@@ -80,10 +83,6 @@ export class GuidedMeditationService implements OnModuleDestroy {
       contacts: crisisContacts(locale),
     };
   }
-  private log(userId: string, outcome: 'generated' | 'not-generated') {
-    // Deliberately coarse: a "crisis" outcome tied to a person would itself be sensitive data.
-    return this.db.aiUsage.create({ data: { userId, feature: 'meditation', outcome } });
-  }
 
   async generate(auth: string | undefined, prayerId: string, input: Record<string, unknown>) {
     const userId = await this.prayers.userId(auth);
@@ -91,21 +90,28 @@ export class GuidedMeditationService implements OnModuleDestroy {
     const locale: 'en' | 'fr' = input.locale === 'fr' ? 'fr' : 'en';
     const profile = await this.db.faithProfile.findUnique({ where: { userId }, select: { aiProcessingConsent: true } });
     if (!profile?.aiProcessingConsent) throw new ForbiddenException('Optional AI processing is turned off in your preferences');
-    const body = await this.prayers.ownedBody(userId, prayerId);
+    const source = await this.prayers.meditationSource(userId, prayerId);
+    const candidates = this.companion.candidates();
     const since = new Date(Date.now() - 86400000);
-    if (await this.db.aiUsage.count({ where: { userId, feature: 'meditation', createdAt: { gte: since } } }) >= MEDITATION_LIMITS.perDay) {
-      throw new ConflictException(`You can ask for ${MEDITATION_LIMITS.perDay} guided meditations a day. Please come back tomorrow.`);
-    }
-    const composed = await composeMeditation(this.ai, this.companion.candidates(), body, locale);
-    if (composed.status === 'crisis') { await this.log(userId, 'not-generated'); return this.crisis(locale); }
+    // Reserve before contacting the provider; do not hold a transaction during AI calls.
+    const usage = await this.transaction(async tx => {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+      const current = await tx.faithProfile.findUnique({ where: { userId }, select: { aiProcessingConsent: true } });
+      if (!current?.aiProcessingConsent) throw new ForbiddenException('Optional AI processing is turned off in your preferences');
+      if (await tx.aiUsage.count({ where: { userId, feature: 'meditation', createdAt: { gte: since } } }) >= MEDITATION_LIMITS.perDay) {
+        throw new ConflictException(`You can ask for ${MEDITATION_LIMITS.perDay} guided meditations a day. Please come back tomorrow.`);
+      }
+      return tx.aiUsage.create({ data: { userId, feature: 'meditation', outcome: 'not-generated' } });
+    });
+    const composed = await composeMeditation(this.ai, candidates, source.body, locale);
+    if (composed.status === 'crisis') { return this.crisis(locale); }
     if (composed.status === 'invalid') {
-      await this.log(userId, 'not-generated');
       throw new ConflictException('Guided meditation could not be written for this prayer. Please try again.');
     }
     const { passageIds, ...text } = composed;
     const meditation = { locale, passages: await this.companion.resolve(locale, passageIds), reflection: text.reflection, questions: text.questions, prayer: text.prayer, concern: text.concern };
-    await this.prayers.saveMeditation(userId, prayerId, meditation);
-    await this.log(userId, 'generated');
+    await this.prayers.saveMeditation(userId, prayerId, meditation, source);
+    await this.db.aiUsage.update({ where: { id: usage.id }, data: { outcome: 'generated' } });
     return { status: 'ok' as const, meditation };
   }
 }

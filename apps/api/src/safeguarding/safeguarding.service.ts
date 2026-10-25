@@ -1,5 +1,5 @@
+import { database } from '../common/database';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { MeditationService } from '../meditation/meditation.service';
 import { REPORT_LIMITS } from '../care/care.service';
 import { PastorAdmin, isActivePastor } from '../pastors/pastor-admin';
@@ -11,9 +11,9 @@ const hours = (from: Date, now = Date.now()) => Math.floor((now - from.getTime()
 /** The safeguarding lead's tools. Leads never read live conversations, only copies a reporter chose to share. */
 @Injectable()
 export class SafeguardingService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly meditation: MeditationService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
   userId(auth?: string) { return this.meditation.userId(auth); }
 
   private async lead(auth?: string) {

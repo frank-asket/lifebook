@@ -1,4 +1,4 @@
-import type { PlatformRole, PrismaClient } from '@prisma/client';
+import type { PlatformRole, Prisma, PrismaClient } from '@prisma/client';
 import { encryptReflection } from '../security/reflection-crypto';
 
 type Verification = { status: string; trainingCompletedAt: Date | null; codeOfConductSignedAt: Date | null; suspendedAt: Date | null } | null | undefined;
@@ -30,7 +30,7 @@ function date(value: unknown, label: string): Date {
 
 /** Operator actions for the pastoral care pilot. Used by scripts/pastor-admin.cjs; never exposed over HTTP. */
 export class PastorAdmin {
-  constructor(private readonly db: PrismaClient) {}
+  constructor(private readonly db: PrismaClient | Prisma.TransactionClient) {}
 
   private async verification(userId: string) {
     const row = await this.db.ministryVerification.findUnique({ where: { userId } });
@@ -107,10 +107,13 @@ export class PastorAdmin {
   /** Takes effect immediately: the profile disappears and no new requests can reach this pastor. */
   async suspend(userId: string, reason: string) {
     await this.verification(userId);
-    await this.db.ministryVerification.update({ where: { userId }, data: { suspendedAt: new Date(), suspensionReason: text(reason, PASTOR_LIMITS.reason, 'Reason') } });
-    await this.db.pastorProfile.updateMany({ where: { userId }, data: { acceptingRequests: false } });
-    // Members are not left waiting on a suspended pastor: their conversations go back to the shared queue.
-    const released = await this.db.careRequest.updateMany({ where: { pastorId: userId, status: 'CLAIMED' }, data: { status: 'OPEN', pastorId: null, claimedAt: null } });
+    const release = async (tx: Prisma.TransactionClient) => {
+      await tx.ministryVerification.update({ where: { userId }, data: { suspendedAt: new Date(), suspensionReason: text(reason, PASTOR_LIMITS.reason, 'Reason') } });
+      await tx.pastorProfile.updateMany({ where: { userId }, data: { acceptingRequests: false } });
+      // Members are not left waiting on a suspended pastor: conversations return to the queue.
+      return tx.careRequest.updateMany({ where: { pastorId: userId, status: 'CLAIMED' }, data: { status: 'OPEN', pastorId: null, claimedAt: null } });
+    };
+    const released = '$transaction' in this.db ? await this.db.$transaction(release) : await release(this.db);
     return { ...(await this.summary(userId)), releasedConversations: released.count };
   }
 

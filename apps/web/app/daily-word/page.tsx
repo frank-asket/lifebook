@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@clerk/nextjs';
 import { ArrowRight, Check } from 'lucide-react';
@@ -15,7 +15,7 @@ import { errorMessage } from '../../lib/errors';
 import { reportScripture } from '../../lib/fums';
 
 type Session = {
-  id: string; passageKey: string; status: 'IN_PROGRESS' | 'COMPLETED';
+  id: string; journeyDate: string; passageKey: string; status: 'IN_PROGRESS' | 'COMPLETED';
   steps: { step: string }[]; reflection: { content: string } | null;
 };
 
@@ -30,6 +30,9 @@ export default function DailyWordPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [step, setStep] = useState(0);
   const [open, setOpen] = useState(false);
+  // Keep the active passage and session day together while the provider advances at midnight.
+  const [reading, setReading] = useState<{ word: NonNullable<typeof word>; date: string } | null>(null);
+  const sessionDate = open && reading ? reading.date : date;
   const [length, setLength] = useState<PrayerLength>(5);
   const [sound, setSound] = useState(false);
   const [reflection, setReflection] = useState('');
@@ -37,13 +40,16 @@ export default function DailyWordPage() {
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
+  const visit = useRef(0);
+  const activeJourney = useRef({ userId, sessionDate, sessionId: session?.id, open, step, visit: visit.current });
+  activeJourney.current = { userId, sessionDate, sessionId: session?.id, open, step, visit: visit.current };
   useEffect(() => { setLength(parseLength(remember('lifebook.prayerLength'))); setSound(remember('lifebook.prayerChime') === 'on'); }, []);
   useEffect(() => {
-    if (!isLoaded || !date) return;
+    if (!isLoaded || !sessionDate) return;
     let active = true;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     (async () => {
-      setLoading(true); setError(''); setSession(null); setReflection('');
+      setLoading(true); setBusy(false); setError(''); setSession(null); setReflection('');
       try {
         let current: Session | null = null;
         if (isSignedIn) {
@@ -51,16 +57,18 @@ export default function DailyWordPage() {
           if (token) current = await api<Session>('/daily-word/sessions/today', token, { method: 'POST', body: JSON.stringify({ timezone }) });
         }
         if (!active) return;
+        if (current && current.journeyDate.slice(0, 10) !== sessionDate) throw new Error(tr('The day has changed. Close prayer time and open today’s Word to save your progress.', 'Le jour a changé. Fermez le temps de prière et ouvrez la Parole du jour pour enregistrer votre progression.'));
         setSession(current); setReflection(current?.reflection?.content || '');
         const requested = new URLSearchParams(window.location.search).get('step');
         setStep(initialDailyWordStep(requested, current?.steps.map(done => done.step)));
-        if (requested !== null && /^[0-4]$/.test(requested)) setOpen(true);
+        if (requested !== null && /^[0-4]$/.test(requested)) { if (word) setReading({ word, date }); setOpen(true); }
       } catch (e) { if (active) setError(errorMessage(e, language)); }
       finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [date, isLoaded, isSignedIn, userId, getToken, attempt]);
+  }, [sessionDate, isLoaded, isSignedIn, userId, getToken, attempt]);
 
+  useEffect(() => { if (open && !reading && word) setReading({ word, date }); }, [open, reading, word, date]);
   useEffect(() => { if (word) reportScripture(`word:${language}:${word.date}`, word.verse.fumsToken); }, [word, language]);
   const done = steps.map(s => Boolean(session?.steps.some(x => x.step === s)));
   const completed = session?.status === 'COMPLETED';
@@ -71,30 +79,42 @@ export default function DailyWordPage() {
   // Moving on never waits for the network; only an unsaved reflection does, because it is the person's own words.
   async function continueJourney() {
     const current = step;
+    const origin = activeJourney.current;
+    const stillCurrent = () => {
+      const active = activeJourney.current;
+      return active.open && active.userId === origin.userId && active.sessionDate === origin.sessionDate && active.sessionId === origin.sessionId && visit.current === origin.visit;
+    };
     setError('');
     if (!session) { setStep(Math.min(5, current + 1)); return; }
     if (current === 2 && reflectionDirty && reflection.trim()) {
       setBusy(true);
       try {
-        await api(`/daily-word/sessions/${session.id}/reflection`, await getToken(), { method: 'PUT', body: JSON.stringify({ content: reflection }) });
-        setSession(s => s && { ...s, reflection: { content: reflection } });
-      } catch { setError(tr('Your reflection could not be saved. Check your connection and try again.', 'Votre réflexion n’a pas pu être enregistrée. Vérifiez votre connexion et réessayez.')); return; }
-      finally { setBusy(false); }
+        const token = await getToken();
+        if (!stillCurrent()) return;
+        await api(`/daily-word/sessions/${session.id}/reflection`, token, { method: 'PUT', body: JSON.stringify({ content: reflection }) });
+        if (!stillCurrent()) return;
+        setSession(s => s?.id === session.id ? { ...s, reflection: { content: reflection } } : s);
+      } catch { if (stillCurrent()) setError(tr('Your reflection could not be saved. Check your connection and try again.', 'Votre réflexion n’a pas pu être enregistrée. Vérifiez votre connexion et réessayez.')); return; }
+      finally { if (stillCurrent()) setBusy(false); }
     }
-    setStep(current + 1);
+    if (!stillCurrent()) return;
+    if (activeJourney.current.step === current) setStep(current + 1);
     if (done[current]) return;
     try {
-      const updated = await api<Session>(`/daily-word/sessions/${session.id}/steps/${steps[current]}`, await getToken(), { method: 'PUT' });
-      // Saves can finish out of order: keep every step either response knows about.
-      setSession(s => s && { ...updated, reflection: s.reflection, status: s.status === 'COMPLETED' ? s.status : updated.status, steps: [...s.steps, ...updated.steps.filter(x => !s.steps.some(y => y.step === x.step))] });
-    } catch { setError(tr('Your progress could not be saved just now. You can carry on.', 'Votre progression n’a pas pu être enregistrée. Vous pouvez continuer.')); }
+      const token = await getToken();
+      if (!stillCurrent()) return;
+      const updated = await api<Session>(`/daily-word/sessions/${session.id}/steps/${steps[current]}`, token, { method: 'PUT' });
+      if (!stillCurrent() || updated.id !== session.id) return;
+      // Saves can finish out of order within this session, never across days or accounts.
+      setSession(s => s?.id === session.id ? { ...updated, reflection: s.reflection, status: s.status === 'COMPLETED' ? s.status : updated.status, steps: [...s.steps, ...updated.steps.filter(x => !s.steps.some(y => y.step === x.step))] } : s);
+    } catch { if (stillCurrent()) setError(tr('Your progress could not be saved just now. You can carry on.', 'Votre progression n’a pas pu être enregistrée. Vous pouvez continuer.')); }
   }
-  const begin = () => { setError(''); setStep(completed ? 0 : initialDailyWordStep(null, session?.steps.map(s => s.step))); setOpen(true); };
+  const begin = () => { if (word) setReading({ word, date }); setError(''); setStep(completed ? 0 : initialDailyWordStep(null, session?.steps.map(s => s.step))); setOpen(true); };
   const chooseLength = (value: PrayerLength) => { setLength(value); remember('lifebook.prayerLength', String(value)); };
   const chooseSound = (on: boolean) => { setSound(on); remember('lifebook.prayerChime', on ? 'on' : 'off'); };
-  const close = () => { setOpen(false); setError(''); if (session) setReflection(session.reflection?.content || ''); window.history.replaceState(null, '', '/daily-word'); };
+  const close = () => { visit.current += 1; setBusy(false); setReading(null); setOpen(false); setError(''); if (session) setReflection(session.reflection?.content || ''); window.history.replaceState(null, '', '/daily-word'); };
 
-  if (open && word) return <PrayerTime word={word} language={language} length={length} step={step} done={done} busy={busy} error={error} signedIn={Boolean(isSignedIn)}
+  if (open && (reading?.word || word)) return <PrayerTime word={(reading?.word || word)!} language={language} length={length} step={step} done={done} busy={busy} error={error} signedIn={Boolean(isSignedIn)}
     reflection={reflection} onReflection={setReflection} reflectionDirty={reflectionDirty} sound={sound} onSound={chooseSound}
     onBack={() => setStep(n => Math.max(0, n - 1))} onContinue={() => void continueJourney()} onGoTo={n => { setError(''); setStep(n); }} onClose={close} />;
 

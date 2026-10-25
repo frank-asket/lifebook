@@ -1,5 +1,5 @@
+import { database } from '../common/database';
 import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { decryptNote, encryptNote } from './note-crypto';
 import { MeditationService } from '../meditation/meditation.service';
 
@@ -7,9 +7,9 @@ type Locale = 'en' | 'fr';
 const passagePattern = /^[A-Z0-9]{3}\.[1-9][0-9]*\.[1-9][0-9]*(?:-[1-9][0-9]*)?$/;
 @Injectable()
 export class BibleAnnotationsService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly meditation: MeditationService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
   private validate(passageId: string, locale: string) {
     if (!passagePattern.test(passageId)) throw new BadRequestException('Invalid verse identifier');
     if (locale !== 'en' && locale !== 'fr') throw new BadRequestException('Invalid locale');

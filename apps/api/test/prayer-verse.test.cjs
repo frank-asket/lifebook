@@ -29,8 +29,10 @@ function harness({ consent = false, used = 0, ai = {} } = {}) {
   const logged = []; const calls = [];
   service.db = {
     faithProfile: { findUnique: async () => ({ aiProcessingConsent: consent }) },
-    aiUsage: { count: async () => used, create: async ({ data }) => { logged.push(data.outcome); } },
+    aiUsage: { count: async () => used, create: async ({ data }) => { logged.push(data.outcome); return { id: String(logged.length - 1) }; }, update: async ({ where, data }) => { logged[Number(where.id)] = data.outcome; } },
   };
+  service.transaction = run => run(service.db);
+  service.db.$queryRaw = async () => [];
   service.ai = {
     flagsRisk: async text => { calls.push('moderation'); return ai.flagged ?? false; },
     structured: async input => { calls.push('pick'); if (ai.fail) throw new Error('provider down'); assert.ok(input.schema.properties.passage_id.enum.includes('PHP.4.6-7')); return { safety: ai.crisis ? 'crisis' : 'none', passage_id: ai.pick ?? 'PSA.23.1-3' }; },

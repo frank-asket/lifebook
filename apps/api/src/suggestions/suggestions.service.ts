@@ -1,14 +1,14 @@
+import { database } from '../common/database';
 import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { BibleReadingService, READING_PLANS } from '../bible-reading/bible-reading.service';
 import { suggest, type Suggestion } from './suggestion-rules';
 
 /** Gathers only what the rules need: the saved profile, which plans are started, and two counts. */
 @Injectable()
 export class SuggestionsService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly reading: BibleReadingService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
 
   async forUser(auth: string | undefined, localeInput?: string) {
     const userId = await this.reading.userId(auth);

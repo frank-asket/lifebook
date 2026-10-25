@@ -58,7 +58,7 @@ test('guided meditation needs consent, screens for crisis, uses only reviewed Sc
       const companion = new PrayerCompanionService(bible);
       const guided = new GuidedMeditationService(prayers, companion);
       for (const s of [meditation, prayers, guided]) await s.onModuleDestroy();
-      prayers.db = tx; guided.db = tx;
+      prayers.db = tx; guided.db = tx; guided.transaction = run => run(tx);
       prayers.userId = async auth => auth === 'owner' ? owner.id : other.id;
       let flag = false; let draft; const generated = [];
       let risk = 'none';

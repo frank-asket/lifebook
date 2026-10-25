@@ -24,6 +24,7 @@ jobs:
       DIRECT_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
       LIFEBOOK_STUDY_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
       LIFEBOOK_M36_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
+      LIFEBOOK_LEARNING_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
       LIFEBOOK_ACCOUNT_TEST_DATABASE_URL: postgresql://postgres:lifebook-ci-only@127.0.0.1:5432/lifebook_restore
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -49,3 +50,10 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       - run: pnpm --filter @lifebook/mobile exec tsc --noEmit
       - run: node --test apps/mobile/test/*.test.cjs
+
+  api-container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build the API from the production Docker context
+        run: docker build -f apps/api/Dockerfile -t lifebook-api:ci .

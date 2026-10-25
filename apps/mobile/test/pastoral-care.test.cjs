@@ -17,10 +17,10 @@ function harness(pastor = false) {
     '../lib/app': { useApp: () => app, useSession: () => session, api: async () => [] }, '../lib/api': { requireToken: async read => read() },
     '../components/ui': ui, '../../web/lib/errors': { errorMessage }, '../components/load-more': { LoadMore: () => null },
     '../lib/care': { CARE_TOPICS: ['prayer'], REPORT_CATEGORIES: ['safety', 'conduct'], topicLabel: value => value, statusLabel: value => value, reportCategoryLabel: value => value,
-      care: { pastorStatus: async () => status, mine: async () => [summary], minePage: async () => ({ items: [summary], nextCursor: null }), cases: async () => [], queue: async () => [{ ...summary, language: 'en' }], get: async () => thread, case: async () => thread,
+      care: { pastorStatus: async () => status, mine: async () => [summary], minePage: async () => ({ items: [summary], nextCursor: null }), cases: async () => [], queue: async () => [{ ...summary, language: 'en' }], get: async (...args) => args[3] ? controls.earlier : thread, case: async (...args) => args[3] ? controls.earlier : thread,
         create: write('create'), reply: write('reply'), pastorReply: write('pastorReply'), report: write('report'), pastorReport: write('report'), claim: write('claim'), setAvailability: async () => status, close: write('close'), pastorClose: write('close'), remove: write('delete') } },
   });
-  return { Care, controls, writes, get confirmation() { return confirmation; } };
+  return { Care, controls, writes, thread, get confirmation() { return confirmation; } };
 }
 const button = (renderer, title) => renderer.root.findAllByType('Button').find(b => b.props.title === title);
 const input = (renderer, label) => renderer.root.findAllByType('TextInput').find(n => n.props.accessibilityLabel === label);
@@ -79,5 +79,25 @@ test('mobile pastor workspace shows metadata before an explicit claim opens priv
   await act(async () => claim.props.onPress());
   assert.equal(h.writes[0].action, 'claim');
   assert.ok(input(renderer, 'Your reply'));
+  await act(async () => renderer.unmount());
+});
+
+test('loading earlier care messages preserves the reply draft and includes history only once', async () => {
+  const h = harness();
+  h.thread.nextCursor = 'older-cursor';
+  h.thread.messages = [{ id: 'latest', from: 'pastor', text: 'Latest synthetic reply', createdAt: '2026-10-25T10:00:00Z' }];
+  h.controls.earlier = { ...h.thread, nextCursor: null, messages: [
+    { id: 'old', from: 'pastor', text: 'Earlier synthetic reply', createdAt: '2026-10-24T10:00:00Z' },
+    h.thread.messages[0],
+  ] };
+  const renderer = await render(h);
+  await act(async () => renderer.root.findByType('Row').props.onPress());
+  await act(async () => input(renderer, 'Your reply').props.onChangeText('Keep this private draft'));
+  await act(async () => button(renderer, 'Load earlier messages').props.onPress());
+  assert.equal(input(renderer, 'Your reply').props.value, 'Keep this private draft');
+  const text = renderer.root.findAllByType('Text').map(n => n.props.children);
+  assert.equal(text.filter(value => value === 'Earlier synthetic reply').length, 1);
+  assert.equal(text.filter(value => value === 'Latest synthetic reply').length, 1);
+  assert.equal(button(renderer, 'Load earlier messages'), undefined);
   await act(async () => renderer.unmount());
 });
