@@ -7,6 +7,7 @@ import { Button, Card, ErrorLine, Row, Screen } from '../components/ui';
 import { errorMessage } from '../../web/lib/errors';
 import type { ScriptureSearch } from '../../web/lib/scripture-search';
 import { SECTION_TITLES, resultCount, type SearchItem, type SearchResult } from '../../web/lib/search-api';
+import { versionFor } from '../../web/lib/bible-versions';
 
 /** Where a web result path opens in the app. Studies have no mobile screen yet, so they are not shown here. */
 function route(href: string): { kind: 'passage'; chapterId: string; verse: number | null } | { kind: 'screen'; to: Href } | null {
@@ -23,7 +24,7 @@ function route(href: string): { kind: 'passage'; chapterId: string; verse: numbe
 
 /** One search for Scripture, plans, pathways, teachings and meditations, with "All Scripture results" for paging. */
 export default function Search() {
-  const { c, lang, bibleLocale, setPrefs } = useApp(); const router = useRouter(); const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
+  const { c, lang, bibleLocale, prefs, setPrefs } = useApp(); const version = versionFor(bibleLocale, prefs?.bibleVersions).id; const router = useRouter(); const tr = (en: string, fr: string) => lang === 'fr' ? fr : en;
   const [query, setQuery] = useState(''); const [search, setSearch] = useState(''); const [retry, setRetry] = useState(0); const [error, setError] = useState('');
   const [result, setResult] = useState<SearchResult | null>(null);
   const [scriptureOnly, setScriptureOnly] = useState(false); const [offset, setOffset] = useState(0); const [data, setData] = useState<ScriptureSearch | null>(null);
@@ -32,13 +33,13 @@ export default function Search() {
     const controller = new AbortController(); setError('');
     if (scriptureOnly) {
       setData(null);
-      api<ScriptureSearch>(`/bible-content/search?locale=${bibleLocale}&q=${encodeURIComponent(search)}&offset=${offset}`, null, { signal: controller.signal }).then(value => { if (!controller.signal.aborted) setData(value); }).catch(e => { if (!controller.signal.aborted) setError(errorMessage(e, lang)); });
+      api<ScriptureSearch>(`/bible-content/search?locale=${bibleLocale}&version=${version}&q=${encodeURIComponent(search)}&offset=${offset}`, null, { signal: controller.signal }).then(value => { if (!controller.signal.aborted) setData(value); }).catch(e => { if (!controller.signal.aborted) setError(errorMessage(e, lang)); });
     } else {
       setResult(null);
       api<SearchResult>(`/search?q=${encodeURIComponent(search)}&locale=${bibleLocale}`, null, { signal: controller.signal }).then(value => { if (!controller.signal.aborted) setResult(value); }).catch(e => { if (!controller.signal.aborted) setError(errorMessage(e, lang)); });
     }
     return () => controller.abort();
-  }, [bibleLocale, search, offset, retry, lang, scriptureOnly]));
+  }, [bibleLocale, version, search, offset, retry, lang, scriptureOnly]));
   const run = () => { setSearch(query.trim()); setOffset(0); setScriptureOnly(false); };
   const open = (href: string) => {
     const target = route(href); if (!target) return;

@@ -1,6 +1,5 @@
 import { Injectable, ServiceUnavailableException, BadRequestException } from '@nestjs/common';
-
-type Locale = 'en' | 'fr';
+import { BIBLE_VERSIONS, LocalBible, resolveVersion, type BibleVersion, type Locale } from './bible-versions';
 type BibleResponse = { data?: { id?: string; content?: string; reference?: string; copyright?: string }; meta?: { fumsToken?: string } };
 
 const FUMS_ENDPOINT = 'https://fums.api.bible/f3';
@@ -25,18 +24,32 @@ export function usageUrl(tokens: string[], deviceId: string, sessionId: string):
   return `${FUMS_ENDPOINT}?${query.toString()}`;
 }
 
-/** Bible text is fetched server-side. No API key is sent to browsers or stored in PostgreSQL. */
+/**
+ * Bible text is fetched server-side. No API key is sent to browsers or stored in PostgreSQL.
+ * Every reading method takes an optional version (see bible-versions.ts); without one it reads the language's default.
+ */
 @Injectable()
 export class BibleContentService {
   private readonly endpoint = 'https://rest.api.bible/v1';
   private readonly timeoutMs = 8000;
+  private readonly local = new Map(BIBLE_VERSIONS.flatMap(v => v.source === 'local' ? [[v.id, new LocalBible(v.id, v.folder)] as const] : []));
 
   isConfigured(locale: Locale): boolean {
-    return Boolean(process.env.API_BIBLE_KEY && this.bibleId(locale));
+    return Boolean(process.env.API_BIBLE_KEY && this.bibleId(resolveVersion(locale)));
   }
 
-  private bibleId(locale: Locale): string | undefined {
-    return locale === 'fr' ? process.env.API_BIBLE_FR_BIBLE_ID : process.env.API_BIBLE_EN_BIBLE_ID;
+  /** The API.Bible id for a version, or the local Bible that serves it. */
+  private source(locale: Locale, version?: string): { local: LocalBible; bibleId?: undefined } | { local?: undefined; bibleId: string } {
+    const v = resolveVersion(locale, version);
+    const local = this.local.get(v.id);
+    if (local) return { local };
+    const bibleId = this.bibleId(v);
+    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+    return { bibleId };
+  }
+
+  private bibleId(version: BibleVersion): string | undefined {
+    return version.source === 'api.bible' ? version.bibleId() : undefined;
   }
 
   private async request<T>(path: string): Promise<T> {
@@ -56,11 +69,11 @@ export class BibleContentService {
     } finally { clearTimeout(timer); }
   }
 
-  async search(locale: Locale, query: string, offsetInput = '0', sort: 'canonical' | 'relevance' = 'canonical') {
+  async search(locale: Locale, query: string, offsetInput = '0', sort: 'canonical' | 'relevance' = 'canonical', version?: string) {
     if (typeof query !== 'string' || !query.trim() || query.length > 120 || typeof offsetInput !== 'string' || !/^(0|[1-9][0-9]{0,4})$/.test(offsetInput)) throw new BadRequestException('Invalid Scripture search');
-    const bibleId = this.bibleId(locale);
-    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+    const { local, bibleId } = this.source(locale, version);
     const offset = Number(offsetInput); const limit = 20;
+    if (local) return { ...local.search(query, offset, limit), offset, limit };
     const params = new URLSearchParams({ query: query.trim(), limit: String(limit), offset: String(offset), sort, 'fums-version': '3' });
     const result = await this.request<{ data?: { total?: number; verses?: { id: string; reference: string }[]; passages?: { id: string; reference: string }[] } }>(`/bibles/${encodeURIComponent(bibleId)}/search?${params}`);
     if (!result.data) throw new ServiceUnavailableException('Scripture search unavailable');
@@ -72,12 +85,12 @@ export class BibleContentService {
     return { items, offset, limit, total: typeof result.data.total === 'number' ? result.data.total : items.length };
   }
 
-  async passage(locale: Locale, passageId: string) {
+  async passage(locale: Locale, passageId: string, version?: string) {
     if (!/^[A-Z0-9]{3}(?:\.[0-9]+(?:\.[0-9]+(?:-[0-9]+)?)?)?$/.test(passageId)) {
       throw new BadRequestException('Invalid passage identifier');
     }
-    const bibleId = this.bibleId(locale);
-    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+    const { local, bibleId } = this.source(locale, version);
+    if (local) return { ...local.passage(passageId), translation: local.id, provider: 'LifeBook', fumsToken: null };
     // API.Bible rejects short ranges such as PHP.4.6-7; it needs PHP.4.6-PHP.4.7.
     const range = passageId.match(/^([A-Z0-9]{3}\.[0-9]+\.)([0-9]+)-([0-9]+)$/);
     const providerId = range ? `${range[1]}${range[2]}-${range[1]}${range[3]}` : passageId;
@@ -94,30 +107,30 @@ export class BibleContentService {
     };
   }
 
-  /** Returns metadata for the configured translation. */
-  async translation(locale: Locale) {
-    const bibleId = this.bibleId(locale);
-    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+  /** Returns metadata for the requested translation. */
+  async translation(locale: Locale, version?: string) {
+    const { local, bibleId } = this.source(locale, version);
+    if (local) return local.translation();
     return this.request(`/bibles/${encodeURIComponent(bibleId)}`);
   }
 
-  async books(locale: Locale) {
-    const bibleId = this.bibleId(locale);
-    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+  async books(locale: Locale, version?: string) {
+    const { local, bibleId } = this.source(locale, version);
+    if (local) return local.books();
     return this.request(`/bibles/${encodeURIComponent(bibleId)}/books`);
   }
 
-  async chapters(locale: Locale, bookId: string) {
+  async chapters(locale: Locale, bookId: string, version?: string) {
     if (!/^[A-Z0-9]{3}$/.test(bookId)) throw new BadRequestException('Invalid book');
-    const bibleId = this.bibleId(locale);
-    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+    const { local, bibleId } = this.source(locale, version);
+    if (local) return local.chapters(bookId);
     return this.request(`/bibles/${encodeURIComponent(bibleId)}/books/${bookId}/chapters`);
   }
 
-  async chapter(locale: Locale, chapterId: string) {
+  async chapter(locale: Locale, chapterId: string, version?: string) {
     if (!/^[A-Z0-9]{3}\.[0-9]+$/.test(chapterId)) throw new BadRequestException('Invalid chapter');
-    const bibleId = this.bibleId(locale);
-    if (!bibleId) throw new ServiceUnavailableException('Translation is not configured');
+    const { local, bibleId } = this.source(locale, version);
+    if (local) return local.chapter(chapterId);
     const result = await this.request<{ data?: { id?: string; bibleId?: string; reference?: string; content?: string; copyright?: string }; meta?: { fumsToken?: string } }>(
       `/bibles/${encodeURIComponent(bibleId)}/chapters/${encodeURIComponent(chapterId)}?content-type=text&include-notes=false&include-titles=false&fums-version=3`,
     );

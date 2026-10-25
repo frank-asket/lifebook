@@ -34,7 +34,7 @@ Import the same GitHub repository as a **separate project** from `apps/web`:
 - Validate any app store / mobile availability statements before advertising downloads.
 - Connect live app URL and test sign-in navigation.
 - Replace the CSS/SVG placeholder book brand with the final approved LifeBook brand asset when ready.
-- Scripture on the site is quoted exactly from the app's translations (KJV, J.N. Darby) with attribution; check any new verse against the Bible API before adding it.
+- Scripture on the site is quoted exactly from the app's translations (KJV and J.N. Darby for the site's own verses; the reader also offers BSB, WEB, NKJV, GNT and Louis Segond 1910) with attribution; check any new verse against the Bible API before adding it.
 - Check typography/network policies: Google Fonts are imported via CSS with system fallbacks.
 
 No backend is required to render this marketing site. No forms silently collect data. Features are described as product direction, not falsely represented as fully launched.

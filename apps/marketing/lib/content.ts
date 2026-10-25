@@ -81,7 +81,7 @@ const en = {
     label: 'LifeBook at a glance',
     items: [
       ['2', 'languages: English and French'],
-      ['2', 'Bible translations, quoted exactly: King James Version and J.N. Darby'],
+      ['7', 'Bible versions to read in, quoted exactly: KJV, BSB, WEB, NKJV and GNT in English; Louis Segond 1910 and J.N. Darby in French'],
       ['5', 'quiet steps a day, in 2, 5 or 10 minutes'],
       ['0', 'streaks, scores or rankings of your faith'],
     ] as [string, string][],
@@ -260,7 +260,7 @@ const fr: Content = {
     label: 'LifeBook en bref',
     items: [
       ['2', 'langues : le français et l’anglais'],
-      ['2', 'traductions de la Bible, citées exactement : la Bible J.N. Darby et la King James Version'],
+      ['7', 'versions de la Bible, citées exactement : Louis Segond 1910 et J.N. Darby en français ; KJV, BSB, WEB, NKJV et GNT en anglais'],
       ['5', 'étapes paisibles par jour, en 2, 5 ou 10 minutes'],
       ['0', 'série, score ou classement de votre foi'],
     ],

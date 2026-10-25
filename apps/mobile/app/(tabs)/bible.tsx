@@ -12,6 +12,7 @@ import { annotationAt, highlightColors, validVerseRange, type Annotation } from 
 import { requireToken } from '../../lib/api';
 import { bookName, parseVerses } from '../../../web/lib/scripture';
 import { readerText } from '../../lib/reader-style';
+import { versionFor } from '../../../web/lib/bible-versions';
 
 type Chapter = { id: string; number: string };
 type Content = { id: string; reference: string; content: string; copyright?: string; fumsToken?: string | null };
@@ -29,6 +30,7 @@ export default function Bible() {
   const scroller = useRef<ScrollView>(null);
   const positions = useRef<Record<number, { top?: number; lines?: { text: string; y: number }[] }>>({});
   const positioned = useRef<string | null>(null);
+  const version = versionFor(bibleLocale, prefs.bibleVersions);
   const chapterId = prefs.chapterId ?? 'JHN.1';
   const bookId = chapterId.split('.')[0];
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -74,16 +76,16 @@ export default function Bible() {
   useEffect(() => {
     let active = true;
     setChapters([]); setTranslation(null); setMetadataError('');
-    api<{ data: Chapter[] }>(`/bible-content/books/${encodeURIComponent(bookId)}/chapters?locale=${bibleLocale}`)
+    api<{ data: Chapter[] }>(`/bible-content/books/${encodeURIComponent(bookId)}/chapters?locale=${bibleLocale}&version=${version.id}`)
       .then(r => { if (active) setChapters(r.data.filter(x => /^\d+$/.test(x.number))); }).catch(() => { if (active) setMetadataError(t.bible.error); });
-    api<{ data: Translation }>(`/bible-content/translation?locale=${bibleLocale}`).then(r => { if (active) setTranslation(r.data); }).catch(() => { if (active) setMetadataError(t.bible.error); });
+    api<{ data: Translation }>(`/bible-content/translation?locale=${bibleLocale}&version=${version.id}`).then(r => { if (active) setTranslation(r.data); }).catch(() => { if (active) setMetadataError(t.bible.error); });
     return () => { active = false; };
-  }, [bookId, bibleLocale, attempt, t.bible.error]);
+  }, [bookId, bibleLocale, version.id, attempt, t.bible.error]);
 
   useEffect(() => {
     let active = true;
     setContent(null); setError(''); setPlaceFailed(false);
-    api<{ data: Content }>(`/bible-content/chapters/${encodeURIComponent(chapterId)}?locale=${bibleLocale}`)
+    api<{ data: Content }>(`/bible-content/chapters/${encodeURIComponent(chapterId)}?locale=${bibleLocale}&version=${version.id}`)
       .then(r => {
         if (!active) return;
         positions.current = {}; positioned.current = null; setContent(r.data);
@@ -92,7 +94,7 @@ export default function Bible() {
       })
       .catch(() => { if (active) setError(t.bible.error); });
     return () => { active = false; };
-  }, [chapterId, bibleLocale, attempt, session.isSignedIn, session.getToken, t.bible.error]);
+  }, [chapterId, bibleLocale, version.id, attempt, session.isSignedIn, session.getToken, t.bible.error]);
 
   const scrollToTarget = useCallback(() => {
     if (!content || content.id !== chapterId || !prefs.verse) return;
@@ -108,8 +110,8 @@ export default function Bible() {
   }, [content, prefs.verse, bibleLocale, chapterId]);
   useFocusEffect(useCallback(() => {
     positioned.current = null; scrollToTarget();
-    if (content) reportScripture(`chapter:${bibleLocale}:${content.id}`, content.fumsToken);
-  }, [content, bibleLocale, scrollToTarget]));
+    if (content) reportScripture(`chapter:${version.id}:${content.id}`, content.fumsToken);
+  }, [content, version.id, scrollToTarget]));
 
   const index = chapters.findIndex(x => x.id === chapterId);
   const previous = index > 0 ? chapters[index - 1] : undefined;
@@ -132,8 +134,9 @@ export default function Bible() {
       {picker(bookName(bookId, bibleLocale), bookName(bookId, bibleLocale), t.bible.book, true)}
       {picker(chapterId.split('.')[1], chapterId.split('.')[1], t.bible.chapter, false)}
       {!compact ? iconButton('chevron-forward', t.bible.next, next ? () => setPrefs({ chapterId: next.id }) : undefined) : null}
-      <Pressable accessibilityRole="button" accessibilityLabel={t.bible.settings} onPress={() => router.push('/reader-settings')} style={({ pressed }) => ({ width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`${t.bible.settings}, ${version.name}`} onPress={() => router.push('/reader-settings')} style={({ pressed }) => ({ minWidth: 48, height: 48, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: pressed ? c.soft : 'transparent' })}>
         <Text style={{ color: c.accent, fontFamily: fonts.serif, fontSize: 18, fontWeight: '700' }}>Aa</Text>
+        <Text style={{ color: c.muted, fontSize: 10, fontWeight: '800', letterSpacing: 0.3 }}>{version.abbreviation}</Text>
       </Pressable>
     </View>
     {compact ? <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingVertical: 8 }}>
@@ -173,7 +176,7 @@ export default function Bible() {
             })}
           </Text>)}
           <View style={{ marginTop: 20, paddingTop: 14, borderTopWidth: 1, borderTopColor: c.line, gap: 4 }}>
-            <Text style={{ color: c.muted, fontSize: 13, fontWeight: '600' }}>{translation?.nameLocal ?? translation?.name ?? 'API.Bible'}</Text>
+            <Text style={{ color: c.muted, fontSize: 13, fontWeight: '600' }}>{translation?.nameLocal ?? translation?.name ?? version.name}</Text>
             {content.copyright ? <Text style={{ color: c.muted, fontSize: 12 }}>{content.copyright}</Text> : null}
           </View>
         </>}

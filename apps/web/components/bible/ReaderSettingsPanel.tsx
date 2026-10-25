@@ -1,24 +1,41 @@
 'use client';
-import { useEffect, useRef } from 'react';
-import { Minus, Plus, Type } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Check, Minus, Plus, Type } from 'lucide-react';
 import { TEXT_SIZES, stepSize, type ReaderSettings } from '../../lib/reader-settings';
-import type { BibleLocale } from '../../lib/bible-api';
+import { bibleApi, type BibleLocale } from '../../lib/bible-api';
+import { PREVIEW_PASSAGE, versionsFor, type BibleVersion } from '../../lib/bible-versions';
+import { reportScripture } from '../../lib/fums';
 
-// Shown in the panel so each change is visible before closing it. Quoted exactly from the translations the app uses.
-const PREVIEW = {
-  en: { text: 'Thy word is a lamp unto my feet, and a light unto my path.', reference: 'Psalm 119:105', translation: 'King James Version' },
-  fr: { text: 'Ta parole est une lampe à mon pied, et une lumière à mon sentier.', reference: 'Psaume 119:105', translation: 'Bible J.N. Darby' },
-} as const;
+const PREVIEW_REFERENCE = { en: 'Psalm 119:105', fr: 'Psaume 119:105' } as const;
 
 type Props = {
-  locale: BibleLocale; uiLanguage: 'en' | 'fr'; settings: ReaderSettings;
-  onSettings: (next: ReaderSettings) => void; onLocale: (locale: BibleLocale) => void;
+  locale: BibleLocale; version: BibleVersion; uiLanguage: 'en' | 'fr'; settings: ReaderSettings;
+  onSettings: (next: ReaderSettings) => void; onLocale: (locale: BibleLocale) => void; onVersion: (id: string) => void;
 };
 
-/** "Aa" menu: Bible language, text size, line spacing and typeface. Opens from its button and closes on Escape or an outside tap. */
-export function ReaderSettingsPanel({ locale, uiLanguage, settings, onSettings, onLocale }: Props) {
+/** Psalm 119:105 in the chosen version, so each change is visible before closing the menu. Public-domain texts are
+ *  quoted from lib/bible-versions.ts; the others load from the API while the menu is open, and count as shown. */
+function usePreview(version: BibleVersion, open: boolean): string {
+  const [loaded, setLoaded] = useState<{ id: string; text: string } | null>(null);
+  useEffect(() => {
+    if (version.preview || !open || loaded?.id === version.id) return;
+    const abort = new AbortController();
+    bibleApi.passage(PREVIEW_PASSAGE, version.locale, version.id, abort.signal).then(p => {
+      if (abort.signal.aborted) return;
+      setLoaded({ id: version.id, text: p.text.replace(/^\s*\[\d+\]\s*/, '').replace(/\s+/g, ' ').trim() });
+      reportScripture(`preview:${version.id}`, p.fumsToken);
+    }).catch(() => undefined);
+    return () => abort.abort();
+  }, [version, open, loaded?.id]);
+  return version.preview ?? (loaded?.id === version.id ? loaded.text : '…');
+}
+
+/** "Aa" menu: Bible language and version, text size, line spacing and typeface. Opens from its button and closes on Escape or an outside tap. */
+export function ReaderSettingsPanel({ locale, version, uiLanguage, settings, onSettings, onLocale, onVersion }: Props) {
   const tr = (en: string, fr: string) => uiLanguage === 'fr' ? fr : en;
   const menu = useRef<HTMLDetailsElement>(null);
+  const [open, setOpen] = useState(false);
+  const preview = usePreview(version, open);
   useEffect(() => {
     const close = (e: Event) => {
       const el = menu.current;
@@ -30,17 +47,25 @@ export function ReaderSettingsPanel({ locale, uiLanguage, settings, onSettings, 
   }, []);
   const set = (patch: Partial<ReaderSettings>) => onSettings({ ...settings, ...patch });
   const level = TEXT_SIZES.indexOf(settings.size);
-  return <details className="reader-menu" ref={menu}>
-    <summary className="icon-button reader-menu-button" aria-label={tr('Reading settings', 'Réglages de lecture')}><Type size={18} aria-hidden="true" /></summary>
+  return <details className="reader-menu" ref={menu} onToggle={e => setOpen(e.currentTarget.open)}>
+    <summary className="icon-button reader-menu-button" aria-label={tr(`Reading settings, ${version.name}`, `Réglages de lecture, ${version.name}`)}><Type size={18} aria-hidden="true" /><span className="reader-version-tag" aria-hidden="true">{version.abbreviation}</span></summary>
     <div className="reader-menu-panel" role="group" aria-label={tr('Reading settings', 'Réglages de lecture')}>
       <figure className="reader-preview" data-size={settings.size} data-spacing={settings.spacing} data-font={settings.font} aria-label={tr('Preview of your settings', 'Aperçu de vos réglages')}>
-        <blockquote className="scripture-text" lang={locale}>{PREVIEW[locale].text}</blockquote>
-        <figcaption>{PREVIEW[locale].reference} · {PREVIEW[locale].translation}</figcaption>
+        <blockquote className="scripture-text" lang={locale}>{preview}</blockquote>
+        <figcaption>{PREVIEW_REFERENCE[locale]} · {version.name}</figcaption>
       </figure>
       <div className="reader-setting">
         <span className="field-label" id="rs-language">{tr('Bible language', 'Langue de la Bible')}</span>
         <div className="mini-segmented" role="radiogroup" aria-labelledby="rs-language">
           {(['en', 'fr'] as const).map(l => <button key={l} type="button" role="radio" aria-checked={locale === l} onClick={() => onLocale(l)}>{l === 'en' ? 'English' : 'Français'}</button>)}
+        </div>
+      </div>
+      <div className="reader-setting">
+        <span className="field-label" id="rs-version">{tr('Version', 'Version')}</span>
+        <div className="reader-versions" role="radiogroup" aria-labelledby="rs-version">
+          {versionsFor(locale).map(v => <button key={v.id} type="button" role="radio" aria-checked={v.id === version.id} onClick={() => onVersion(v.id)}>
+            <strong>{v.abbreviation}</strong><span>{v.name}</span>{v.id === version.id && <Check size={16} aria-hidden="true" />}
+          </button>)}
         </div>
       </div>
       <div className="reader-setting">

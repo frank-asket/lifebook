@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api, useApp } from '../lib/app';
 import { ErrorLine } from '../components/ui';
+import { versionFor } from '../../web/lib/bible-versions';
 
 type Book = { id: string; name: string };
 type Chapter = { id: string; number: string };
@@ -12,6 +13,7 @@ type Chapter = { id: string; number: string };
 /** Choose a book, then a chapter. Opens as a sheet and returns to the reader. */
 export default function Books() {
   const { c, t, prefs, setPrefs, bibleLocale } = useApp();
+  const version = versionFor(bibleLocale, prefs.bibleVersions).id;
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width, fontScale } = useWindowDimensions();
@@ -27,16 +29,16 @@ export default function Books() {
   useEffect(() => {
     if (book) return;
     let active = true; setError(''); setBooks(null);
-    api<{ data: Book[] }>(`/bible-content/books?locale=${bibleLocale}`).then(r => { if (active) setBooks(r.data); }).catch(() => { if (active) setError(t.bible.error); });
+    api<{ data: Book[] }>(`/bible-content/books?locale=${bibleLocale}&version=${version}`).then(r => { if (active) setBooks(r.data); }).catch(() => { if (active) setError(t.bible.error); });
     return () => { active = false; };
-  }, [book, bibleLocale, attempt, t.bible.error]);
+  }, [book, bibleLocale, version, attempt, t.bible.error]);
   useEffect(() => {
     if (!book) return;
     let active = true; setChapters(null); setError('');
-    api<{ data: Chapter[] }>(`/bible-content/books/${encodeURIComponent(book.id)}/chapters?locale=${bibleLocale}`)
+    api<{ data: Chapter[] }>(`/bible-content/books/${encodeURIComponent(book.id)}/chapters?locale=${bibleLocale}&version=${version}`)
       .then(r => { if (active) setChapters(r.data.filter(x => /^\d+$/.test(x.number))); }).catch(() => { if (active) setError(t.bible.error); });
     return () => { active = false; };
-  }, [book, bibleLocale, attempt, t.bible.error]);
+  }, [book, bibleLocale, version, attempt, t.bible.error]);
 
   const header = <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 8 }}>
     {book ? <Pressable accessibilityRole="button" accessibilityLabel={t.bible.books} onPress={() => setBook(null)} style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 6 }}><Ionicons name="chevron-back" size={20} color={c.accent} /><Text style={{ color: c.accent, fontSize: 16 }}>{t.bible.books}</Text></Pressable> : <View />}
