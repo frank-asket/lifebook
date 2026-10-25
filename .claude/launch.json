@@ -30,19 +30,27 @@
       "port": 3000
     },
     {
-      "name": "accept-api-4101",
+      "name": "klingbo-prototype",
       "runtimeExecutable": "node",
       "runtimeArgs": [
-        "/private/tmp/claude-501/-Users-franckasket-Documents-GitHub-LifeBook/f784d9ad-2135-462f-ae74-5dba1f182446/scratchpad/accept-local.cjs",
+        "/private/tmp/claude-501/-Users-franckasket-Documents-GitHub-LifeBook/9beec283-10df-41da-aa0d-fab23cf9751a/scratchpad/serve.cjs"
+      ],
+      "port": 4173
+    },
+    {
+      "name": "apple-api-4101",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "/private/tmp/claude-501/-Users-franckasket-Documents-GitHub-LifeBook/f784d9ad-2135-462f-ae74-5dba1f182446/scratchpad/apple-local.cjs",
         "api"
       ],
       "port": 4101
     },
     {
-      "name": "accept-web-3003",
+      "name": "apple-web-3003",
       "runtimeExecutable": "node",
       "runtimeArgs": [
-        "/private/tmp/claude-501/-Users-franckasket-Documents-GitHub-LifeBook/f784d9ad-2135-462f-ae74-5dba1f182446/scratchpad/accept-local.cjs",
+        "/private/tmp/claude-501/-Users-franckasket-Documents-GitHub-LifeBook/f784d9ad-2135-462f-ae74-5dba1f182446/scratchpad/apple-local.cjs",
         "web"
       ],
       "port": 3003
