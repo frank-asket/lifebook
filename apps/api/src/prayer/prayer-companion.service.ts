@@ -6,9 +6,11 @@ import { BibleContentService } from '../bible-content/bible-content.service';
 type Locale = 'en' | 'fr';
 type Localized = Record<Locale, string>;
 type PassageRef = string | { id: string; fr?: string };
-export type CompanionTopic = { id: string; title: Localized; description: Localized; prompt: Localized; passages: PassageRef[] };
-export type CompanionLibrary = { version: number; status: 'draft' | 'reviewed'; review: { reviewedBy: string | null; reviewedOn: string | null }; topics: CompanionTopic[] };
+/** Keywords are lower-case words without accents ("inquiet"), or phrases ("loin de dieu"); a trailing * also matches longer words ("worr*"). */
+export type CompanionTopic = { id: string; title: Localized; description: Localized; prompt: Localized; keywords: Record<Locale, string[]>; passages: PassageRef[] };
+export type CompanionLibrary = { version: number; status: 'draft' | 'reviewed'; review: { reviewedBy: string | null; reviewedOn: string | null }; fallbackTopic: string; topics: CompanionTopic[] };
 
+const keywordPattern = /^[a-z0-9]+(?: [a-z0-9]+)*\*?$/;
 const passagePattern = /^[1-4A-Z][A-Z0-9]{2}\.[1-9][0-9]{0,2}\.[1-9][0-9]{0,2}(?:-[1-9][0-9]{0,2})?$/;
 const CACHE_MS = 6 * 60 * 60 * 1000, CACHE_MAX = 500;
 
@@ -24,6 +26,10 @@ export function validateLibrary(value: unknown): CompanionLibrary {
     if (!/^[a-z][a-z0-9-]{1,39}$/.test(topic.id) || ids.has(topic.id)) throw new Error(`Invalid or duplicate topic id: ${topic.id}`);
     ids.add(topic.id);
     if (!localized(topic.title) || !localized(topic.description) || !localized(topic.prompt)) throw new Error(`Topic ${topic.id} needs English and French text`);
+    for (const locale of ['en', 'fr'] as const) {
+      const words = topic.keywords?.[locale];
+      if (!Array.isArray(words) || words.length < 3 || !words.every(w => typeof w === 'string' && keywordPattern.test(w))) throw new Error(`Topic ${topic.id} needs at least 3 ${locale} keywords in lower case without accents`);
+    }
     if (!Array.isArray(topic.passages) || topic.passages.length < 3 || topic.passages.length > 8) throw new Error(`Topic ${topic.id} needs 3 to 8 passages`);
     for (const ref of topic.passages) {
       const id = typeof ref === 'string' ? ref : ref?.id;
@@ -31,7 +37,26 @@ export function validateLibrary(value: unknown): CompanionLibrary {
       if (!passagePattern.test(id ?? '') || (fr !== undefined && !passagePattern.test(fr))) throw new Error(`Topic ${topic.id} has an invalid passage: ${JSON.stringify(ref)}`);
     }
   }
+  if (!ids.has(lib.fallbackTopic)) throw new Error('fallbackTopic must name a topic');
   return lib;
+}
+
+/** Lower case, accents and punctuation removed, so "Inquiète" matches "inquiet" and "l’avenir" matches "avenir". */
+export function foldText(text: string): string {
+  return ` ${text.toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()} `;
+}
+
+/** The topic whose keywords appear most often in the prayer (ties go to the earlier topic), or the fallback topic. */
+export function matchTopic(library: CompanionLibrary, text: string, locale: Locale): { topic: CompanionTopic; matched: boolean } {
+  const folded = foldText(text);
+  let best: { topic: CompanionTopic; score: number } | null = null;
+  for (const topic of library.topics) {
+    // Prayers are often written in the other language than the app's, so both keyword lists count.
+    const words = [...topic.keywords[locale], ...topic.keywords[locale === 'fr' ? 'en' : 'fr']];
+    const score = new Set(words.filter(w => w.endsWith('*') ? folded.includes(` ${w.slice(0, -1)}`) : folded.includes(` ${w} `))).size;
+    if (score > 0 && (!best || score > best.score)) best = { topic, score };
+  }
+  return best ? { topic: best.topic, matched: true } : { topic: library.topics.find(t => t.id === library.fallbackTopic)!, matched: false };
 }
 
 @Injectable()
@@ -42,7 +67,7 @@ export class PrayerCompanionService {
 
   // Unreviewed content is only served where an operator has explicitly allowed it (staging).
   private ensureAvailable() {
-    if (this.library.status !== 'reviewed' && process.env.PRAYER_COMPANION_ALLOW_DRAFT !== 'true') throw new ServiceUnavailableException('Scripture companion is not available yet');
+    if (!this.available()) throw new ServiceUnavailableException('Scripture companion is not available yet');
   }
   private locale(value?: string): Locale { return value === 'fr' ? 'fr' : 'en'; }
   private async passage(locale: Locale, id: string) {
@@ -55,6 +80,19 @@ export class PrayerCompanionService {
     return value;
   }
 
+  /** False while the library awaits review, except where drafts are allowed (staging). */
+  available() { return this.library.status === 'reviewed' || process.env.PRAYER_COMPANION_ALLOW_DRAFT === 'true'; }
+  /** The keyword match for a prayer, and one of its topic's passages chosen by `seed` so the same prayer keeps the same verse. */
+  keywordPick(text: string, locale: Locale, seed: string): { topicId: string; passageId: string; matched: boolean } {
+    this.ensureAvailable();
+    const { topic, matched } = matchTopic(this.library, text, locale);
+    let hash = 0;
+    for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    const ref = topic.passages[hash % topic.passages.length];
+    return { topicId: topic.id, passageId: typeof ref === 'string' ? ref : ref.id, matched };
+  }
+  topicOf(passageId: string) { return this.library.topics.find(t => t.passages.some(p => (typeof p === 'string' ? p : p.id) === passageId))?.id ?? null; }
+  topicTitle(id: string, locale: Locale) { return this.library.topics.find(t => t.id === id)?.title[locale] ?? null; }
   /** For guided meditation: the reviewed themes and their passage ids (English ids; French overrides applied later). */
   candidates() {
     this.ensureAvailable();

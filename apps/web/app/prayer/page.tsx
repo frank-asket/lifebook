@@ -7,8 +7,10 @@ import { Shell } from '../../components/shell';
 import { useLanguage } from '../../components/language-provider';
 import { ScriptureCompanion } from '../../components/prayer/ScriptureCompanion';
 import { GuidedMeditation } from '../../components/prayer/GuidedMeditation';
+import { PrayerVerse } from '../../components/prayer/PrayerVerse';
 import { PRAYER_LIMITS, prayerApi, type Prayer as PrayerEntry, type PrayerSummary } from '../../lib/prayer-api';
 import { errorMessage } from '../../lib/errors';
+import { api, type ProfileResponse } from '../../lib/api';
 import { LoadMore } from '../../components/LoadMore';
 
 export default function Prayer() {
@@ -38,6 +40,8 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
   const [selected, setSelected] = useState<PrayerEntry | null>(null);
   const [title, setTitle] = useState(''); const [body, setBody] = useState(''); const [showTitle, setShowTitle] = useState(false);
   const [answerNote, setAnswerNote] = useState('');
+  // The AI verse choice is offered only to members who turned on optional AI processing, and asked for on each prayer.
+  const [aiAllowed, setAiAllowed] = useState(false); const [aiVerse, setAiVerse] = useState(false);
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [error, setError] = useState('');
   const dirty = selected ? title !== (selected.title ?? '') || body !== selected.body : Boolean(title.trim() || body.trim());
   const token = async () => { const value = await getToken(); if (!value) throw new Error(tr('Please sign in again.', 'Reconnectez-vous.')); return value; };
@@ -49,13 +53,18 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
     return () => controller.abort();
   }, [getToken, reload]);
   useEffect(() => {
+    let active = true;
+    (async () => { try { const profile = await api<ProfileResponse>('/me/profile', await token()); if (active) setAiAllowed(!!profile.profile?.aiProcessingConsent); } catch { /* keyword matching still works */ } })();
+    return () => { active = false; };
+  }, [getToken]);
+  useEffect(() => {
     if (!dirty) return;
     const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); };
     window.addEventListener('beforeunload', warn); return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
 
   const canLeave = () => !dirty || window.confirm(tr('Leave without saving your prayer?', 'Quitter sans enregistrer votre prière ?'));
-  const show = (prayer: PrayerEntry | null) => { setSelected(prayer); setShowTitle(false); setTitle(prayer?.title ?? ''); setBody(prayer?.body ?? ''); setAnswerNote(prayer?.answerNote ?? ''); setError(''); };
+  const show = (prayer: PrayerEntry | null) => { setSelected(prayer); setAiVerse(false); setShowTitle(false); setTitle(prayer?.title ?? ''); setBody(prayer?.body ?? ''); setAnswerNote(prayer?.answerNote ?? ''); setError(''); };
   const open = async (id: string) => { if (!canLeave()) return; setBusy(true); setMessage(''); try { show(await prayerApi.get(await token(), id)); } catch (e) { fail(e); } finally { setBusy(false); } };
   const startNew = () => { if (!canLeave()) return; show(null); setMessage(''); };
   const run = async (action: () => Promise<PrayerEntry | null>, done: string) => {
@@ -63,8 +72,8 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
     try { show(await action()); setMessage(done); setReload(n => n + 1); } catch (e) { fail(e); } finally { setBusy(false); }
   };
   const save = () => run(async () => selected
-    ? prayerApi.update(await token(), selected.id, { title, body })
-    : prayerApi.create(await token(), { ...(title.trim() ? { title } : {}), body }), tr('Prayer saved privately.', 'Prière enregistrée en privé.'));
+    ? prayerApi.update(await token(), selected.id, { title, body, locale: language, ...(body !== selected.body && aiVerse ? { aiVerse } : {}) })
+    : prayerApi.create(await token(), { ...(title.trim() ? { title } : {}), body, locale: language, ...(aiVerse ? { aiVerse } : {}) }), tr('Prayer saved privately.', 'Prière enregistrée en privé.'));
   const markAnswered = (answered: boolean) => selected && run(async () => prayerApi.answer(await token(), selected.id, answered, answerNote || undefined), answered ? tr('Marked as answered.', 'Marquée comme exaucée.') : tr('Answered mark removed.', 'Marque retirée.'));
   const remove = () => selected && window.confirm(tr('Delete this prayer permanently?', 'Supprimer définitivement cette prière ?')) && run(async () => { await prayerApi.remove(await token(), selected.id); return null; }, tr('Prayer deleted.', 'Prière supprimée.'));
   const date = (value: string) => new Date(value).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -79,11 +88,14 @@ function Journal({ language }: { language: 'en' | 'fr' }) {
       {showTitle || title ? <label className="form-field prayer-title"><span className="field-label">{tr('Title', 'Titre')}</span>
         <input className="input" value={title} maxLength={PRAYER_LIMITS.title} onChange={e => setTitle(e.target.value)} placeholder={tr('For my family', 'Pour ma famille')} autoFocus={showTitle && !title}/></label>
         : <button type="button" className="text-link prayer-add-title" onClick={() => setShowTitle(true)}><Plus size={13} aria-hidden="true"/> {tr('Add a title', 'Ajouter un titre')}</button>}
+      {aiAllowed && (!selected || body !== selected.body) && <label className="check-row prayer-ai-verse"><input type="checkbox" checked={aiVerse} onChange={e => setAiVerse(e.target.checked)}/>
+        <span><strong className="check-row-title">{tr('Let AI choose the verse for this prayer', 'Laisser l’IA choisir le verset de cette prière')}</strong>{tr('Sends this prayer’s text, without your name or account, to OpenAI to choose one passage from LifeBook’s prayer topics. Otherwise the verse is matched on LifeBook from the words you use.', 'Envoie le texte de cette prière, sans votre nom ni votre compte, à OpenAI pour choisir un passage parmi les thèmes de prière de LifeBook. Sinon, le verset est choisi sur LifeBook d’après vos mots.')}</span></label>}
       <div className="icon-line" style={{ gap: 10, flexWrap: 'wrap' }}>
         <button className="btn btn-primary" disabled={busy || !body.trim() || !dirty}>{busy ? tr('Saving…', 'Enregistrement…') : tr('Save prayer', 'Enregistrer la prière')}</button>
         {selected && <button type="button" className="btn btn-outline" disabled={busy} onClick={() => void remove()}>{tr('Delete', 'Supprimer')}</button>}
       </div>
       {error && <p className="alert" role="alert">{error}</p>}{message && <p className="notice" role="status">{message}</p>}
+      {selected?.verse && <PrayerVerse key={`${selected.id}:${selected.updatedAt}`} verse={selected.verse} language={language}/>}
       {selected && <div className="divider"/>}
       {selected && <div>
         <h3 className="icon-line"><CheckCircle2 size={18} aria-hidden="true"/> {selected.answeredAt ? tr(`Answered · ${date(selected.answeredAt)}`, `Exaucée · ${date(selected.answeredAt)}`) : tr('Has this prayer been answered?', 'Cette prière a-t-elle été exaucée ?')}</h3>

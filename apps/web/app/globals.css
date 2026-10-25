@@ -1831,6 +1831,11 @@ progress::-moz-progress-bar { background: var(--purple); }
 .gm-prayer { font-style: italic; }
 .gm-questions { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .gm-crisis { display: grid; gap: 8px; padding: 14px 16px; border-radius: 12px; background: var(--pink); line-height: 1.6; }
+.prayer-verse { margin-top: 18px; padding: 16px 18px; border-radius: 14px; background: var(--soft); }
+.prayer-verse h3 { margin: 0; font-size: 15px; }
+.prayer-verse.gm-crisis { background: var(--pink); }
+.prayer-ai-verse { margin: 4px 0 14px; font-size: 13px; }
+.prayer-verse-note { margin: 10px 0 0; font-size: 12px; line-height: 1.5; }
 .gm-crisis p { margin: 0; }
 .gm-crisis ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .sg-stat { display: grid; gap: 6px; }

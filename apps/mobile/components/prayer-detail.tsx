@@ -5,6 +5,7 @@ import { api, requireToken } from '../lib/api';
 import { PRAYER_LIMITS, type Prayer } from '../../web/lib/prayer-api';
 import { errorMessage } from '../../web/lib/errors';
 import { GuidedPrayer } from './guided-prayer';
+import { PrayerVerse } from './prayer-verse';
 import { Button, Card, ErrorLine, Screen } from './ui';
 
 export function PrayerDetail({ id, onClose, onChanged }: { id: string; onClose: () => void; onChanged: () => void }) {
@@ -61,7 +62,7 @@ export function PrayerDetail({ id, onClose, onChanged }: { id: string; onClose: 
         return;
       }
       const updated = await api<Prayer>(action === 'save' ? path : `${path}/answer`, token, {
-        method: 'PUT', body: JSON.stringify(action === 'save' ? { title, body } : action === 'answer' ? { answered: true, note } : { answered: false }),
+        method: 'PUT', body: JSON.stringify(action === 'save' ? { title, body, locale: lang } : action === 'answer' ? { answered: true, note } : { answered: false }),
       });
       if (!mounted.current) return;
       setEntry(updated);
@@ -86,6 +87,7 @@ export function PrayerDetail({ id, onClose, onChanged }: { id: string; onClose: 
             <TextInput accessibilityLabel={t.prayer.bodyLabel} value={body} onChangeText={setBody} editable={!busy && !guidanceBusy} maxLength={PRAYER_LIMITS.body} multiline style={[input, { minHeight: 180, lineHeight: 26, textAlignVertical: 'top' }]} />
             <Button title={busy ? t.prayer.saving : t.prayer.saveChanges} disabled={busy || guidanceBusy || !edited || !body.trim()} onPress={() => void change('save')} />
           </Card>
+          {entry.verse ? <PrayerVerse verse={entry.verse} /> : null}
           <Card style={{ gap: 12 }}>
             <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 18, fontWeight: '700' }}>{t.prayer.answered}</Text>
             <TextInput accessibilityLabel={t.prayer.answerNote} placeholder={t.prayer.answerNote} placeholderTextColor={c.muted} value={note} onChangeText={setNote} editable={!busy && !guidanceBusy} multiline maxLength={PRAYER_LIMITS.answerNote} style={[input, { minHeight: 90, textAlignVertical: 'top' }]} />

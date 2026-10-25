@@ -22,7 +22,7 @@ test('prayer journal encrypts every field, binds ciphertext to its record and en
       const first = await tx.user.create({ data: { oidcSubject: `${prefix}-first` } });
       const second = await tx.user.create({ data: { oidcSubject: `${prefix}-second` } });
       const meditation = new MeditationService();
-      const prayers = new PrayerService(meditation);
+      const prayers = new PrayerService(meditation, { choose: async () => null, present: verse => verse });
       for (const service of [meditation, prayers]) await service.onModuleDestroy();
       prayers.db = tx; prayers.userId = async auth => auth === 'first' ? first.id : second.id;
 

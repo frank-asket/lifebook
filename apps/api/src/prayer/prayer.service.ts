@@ -4,16 +4,17 @@ import { randomUUID } from 'node:crypto';
 import { MeditationService } from '../meditation/meditation.service';
 import { pageOf } from '../common/paging';
 import { decryptReflection, encryptReflection } from '../security/reflection-crypto';
+import { PrayerVerseService, type StoredVerse } from './prayer-verse.service';
 
 export const PRAYER_LIMITS = { body: 5000, title: 120, answerNote: 1000, list: 200, preview: 160 };
-type Field = 'body' | 'title' | 'answer' | 'meditation';
-type Row = { id: string; userId: string; ciphertext: string; titleCiphertext: string | null; answerNoteCiphertext: string | null; answeredAt: Date | null; meditationCiphertext?: string | null; meditationAt?: Date | null; createdAt: Date; updatedAt: Date };
+type Field = 'body' | 'title' | 'answer' | 'meditation' | 'verse';
+type Row = { id: string; userId: string; ciphertext: string; titleCiphertext: string | null; answerNoteCiphertext: string | null; answeredAt: Date | null; meditationCiphertext?: string | null; meditationAt?: Date | null; verseCiphertext?: string | null; createdAt: Date; updatedAt: Date };
 const idPattern = /^[A-Za-z0-9_-]{1,64}$/;
 
 @Injectable()
 export class PrayerService implements OnModuleDestroy {
   private readonly db = new PrismaClient();
-  constructor(private readonly meditation: MeditationService) {}
+  constructor(private readonly meditation: MeditationService, private readonly verses: PrayerVerseService) {}
   async onModuleDestroy() { await this.db.$disconnect(); }
   userId(auth?: string) { return this.meditation.userId(auth); }
 
@@ -39,6 +40,7 @@ export class PrayerService implements OnModuleDestroy {
       body: this.open('body', row, row.ciphertext),
       answeredAt: row.answeredAt, answerNote: row.answerNoteCiphertext ? this.open('answer', row, row.answerNoteCiphertext) : null,
       meditation: row.meditationCiphertext ? JSON.parse(this.open('meditation', row, row.meditationCiphertext)) as unknown : null, meditationAt: row.meditationAt ?? null,
+      verse: row.verseCiphertext ? this.verses.present(JSON.parse(this.open('verse', row, row.verseCiphertext)) as StoredVerse) : null,
       createdAt: row.createdAt, updatedAt: row.updatedAt,
     };
   }
@@ -50,7 +52,7 @@ export class PrayerService implements OnModuleDestroy {
   }
 
   private summary(row: Row) {
-    const { body, answerNote: _answerNote, meditation: _meditation, ...rest } = this.detail(row);
+    const { body, answerNote: _answerNote, meditation: _meditation, verse: _verse, ...rest } = this.detail(row);
     return { ...rest, preview: body.length > PRAYER_LIMITS.preview ? body.slice(0, PRAYER_LIMITS.preview).trimEnd() + '…' : body };
   }
 
@@ -72,25 +74,35 @@ export class PrayerService implements OnModuleDestroy {
     const userId = await this.userId(auth);
     return this.detail(await this.owned(userId, id));
   }
-  async create(auth: string | undefined, input: { title?: unknown; body?: unknown }) {
+  /** A verse for the prayer's text (see PrayerVerseService), sealed like the prayer. Saving never waits on a failure here. */
+  private async verseFor(userId: string, id: string, body: string, input: { locale?: unknown; aiVerse?: unknown }) {
+    if (input.aiVerse !== undefined && typeof input.aiVerse !== 'boolean') throw new BadRequestException('Invalid aiVerse value');
+    try {
+      const verse = await this.verses.choose(userId, id, body, input.locale === 'fr' ? 'fr' : 'en', input.aiVerse === true);
+      return verse ? this.seal('verse', userId, id, JSON.stringify(verse)) : null;
+    } catch { return null; }
+  }
+  async create(auth: string | undefined, input: { title?: unknown; body?: unknown; locale?: unknown; aiVerse?: unknown }) {
     const userId = await this.userId(auth);
     const body = this.text(input.body, PRAYER_LIMITS.body, 'Prayer', true)!;
     const title = this.text(input.title, PRAYER_LIMITS.title, 'Title', false);
     const id = randomUUID();
     const row = await this.db.prayerEntry.create({ data: {
       id, userId, keyVersion: 1, ciphertext: this.seal('body', userId, id, body), titleCiphertext: title ? this.seal('title', userId, id, title) : null,
+      verseCiphertext: await this.verseFor(userId, id, body, input),
     } });
     return this.detail(row);
   }
-  async update(auth: string | undefined, id: string, input: { title?: unknown; body?: unknown }) {
+  async update(auth: string | undefined, id: string, input: { title?: unknown; body?: unknown; locale?: unknown; aiVerse?: unknown }) {
     const userId = await this.userId(auth);
     if (input.title === undefined && input.body === undefined) throw new BadRequestException('No changes provided');
     await this.owned(userId, id);
     const body = input.body === undefined ? undefined : this.text(input.body, PRAYER_LIMITS.body, 'Prayer', true)!;
     const title = input.title === undefined ? undefined : this.text(input.title, PRAYER_LIMITS.title, 'Title', false);
+    const verseCiphertext = body === undefined ? undefined : await this.verseFor(userId, id, body, input);
     const updated = await this.db.prayerEntry.updateMany({ where: { id, userId }, data: {
-      // A meditation written for the old text no longer fits the edited prayer.
-      ...(body !== undefined ? { ciphertext: this.seal('body', userId, id, body), meditationCiphertext: null, meditationAt: null } : {}),
+      // A meditation or verse chosen for the old text no longer fits the edited prayer.
+      ...(body !== undefined ? { ciphertext: this.seal('body', userId, id, body), meditationCiphertext: null, meditationAt: null, verseCiphertext } : {}),
       ...(title !== undefined ? { titleCiphertext: title ? this.seal('title', userId, id, title) : null } : {}),
     } });
     if (!updated.count) throw new NotFoundException('Prayer not found');
