@@ -15,7 +15,7 @@ export function PrayerVerse({ verse, language }: { verse: Verse; language: 'en' 
     <h3 className="icon-line"><BookOpen size={17} aria-hidden="true"/> {tr('A verse for your prayer', 'Un verset pour votre prière')}</h3>
     <figure className="companion-passage"><blockquote className="verse-quote" lang={verse.locale}>{verse.passage.text.replace(/\[\d+\]\s*/g, '').replace(/¶\s*/g, '').trim()}</blockquote><figcaption className="verse-ref">{verse.passage.reference.toUpperCase()} · {translation}</figcaption></figure>
     <p className="muted prayer-verse-note">{verse.source === 'ai'
-      ? tr(`Chosen with AI from LifeBook’s prayer topics${verse.topic ? ` (${verse.topic})` : ''}, as you allowed in your privacy settings.`, `Choisi avec l’IA parmi les thèmes de prière de LifeBook${verse.topic ? ` (${verse.topic})` : ''}, comme vous l’avez autorisé dans vos paramètres.`)
+      ? tr(`Chosen with AI from LifeBook’s prayer topics${verse.topic ? ` (${verse.topic})` : ''}, as you asked for this prayer.`, `Choisi avec l’IA parmi les thèmes de prière de LifeBook${verse.topic ? ` (${verse.topic})` : ''}, comme vous l’avez demandé pour cette prière.`)
       : tr(`Chosen from LifeBook’s prayer topics${verse.topic ? ` (${verse.topic})` : ''} by the words of your prayer. Your prayer never leaves LifeBook for this.`, `Choisi parmi les thèmes de prière de LifeBook${verse.topic ? ` (${verse.topic})` : ''} d’après les mots de votre prière. Votre prière ne quitte pas LifeBook pour cela.`)}</p>
   </section>;
 }
