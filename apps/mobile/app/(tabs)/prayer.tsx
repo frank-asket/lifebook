@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api, useApp, useSession } from '../../lib/app';
@@ -8,7 +8,8 @@ import { PrayerDetail } from '../../components/prayer-detail';
 import { Press } from '../../components/ui';
 import { requireToken } from '../../lib/api';
 import { errorMessage } from '../../../web/lib/errors';
-import { PRAYER_LIMITS, type PrayerSummary } from '../../../web/lib/prayer-api';
+import { PRAYER_LIMITS, type Prayer as PrayerEntry, type PrayerSummary } from '../../../web/lib/prayer-api';
+import { PrayerVerse } from '../../components/prayer-verse';
 import { LoadMore } from '../../components/load-more';
 
 export default function Prayer() {
@@ -26,6 +27,10 @@ export default function Prayer() {
   const [signInError, setSignInError] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  // The verse chosen for the prayer just saved. The AI choice is offered only to members who turned on optional AI processing.
+  const [saved, setSaved] = useState<PrayerEntry | null>(null);
+  const [aiAllowed, setAiAllowed] = useState(false);
+  const [aiVerse, setAiVerse] = useState(false);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const date = (v: string) => new Date(v).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
@@ -44,15 +49,23 @@ export default function Prayer() {
     return () => { active = false; };
   }, [session.isSignedIn, session.getToken, reload, t.prayer.error]));
 
+  useEffect(() => {
+    if (!session.isSignedIn) return;
+    let active = true;
+    requireToken(session.getToken).then(token => api<{ profile: { aiProcessingConsent?: boolean } | null }>('/me/profile', token))
+      .then(value => { if (active) setAiAllowed(!!value.profile?.aiProcessingConsent); }).catch(() => undefined);
+    return () => { active = false; };
+  }, [session.isSignedIn, session.getToken]);
+
   async function save() {
     if (!draft.trim()) return;
     setBusy(true); setError(''); setMessage('');
     try {
       const token = await requireToken(session.getToken);
       if (!mounted.current) return;
-      await api('/prayers', token, { method: 'POST', body: JSON.stringify({ body: draft }) });
+      const created = await api<PrayerEntry>('/prayers', token, { method: 'POST', body: JSON.stringify({ body: draft, locale: lang, ...(aiAllowed && aiVerse ? { aiVerse: true } : {}) }) });
       if (!mounted.current) return;
-      setDraft(''); setMessage(t.prayer.saved); setReload(n => n + 1);
+      setDraft(''); setAiVerse(false); setSaved(created); setMessage(t.prayer.saved); setReload(n => n + 1);
     } catch (e) { if (mounted.current) setError(errorMessage(e, lang)); }
     finally { if (mounted.current) setBusy(false); }
   }
@@ -82,13 +95,18 @@ export default function Prayer() {
         <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 17, fontWeight: '700' }}>{t.prayer.write}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: c.soft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99 }}><Ionicons name="lock-closed" size={11} color={c.deep} /><Text style={{ color: c.deep, fontSize: 12, fontWeight: '600' }}>{t.prayer.lock}</Text></View>
       </View>
-      <TextInput accessibilityLabel={t.prayer.write} value={draft} onChangeText={v => { setDraft(v); setMessage(''); }} multiline maxLength={PRAYER_LIMITS.body} placeholder={t.prayer.placeholder} placeholderTextColor={c.muted}
+      <TextInput accessibilityLabel={t.prayer.write} value={draft} onChangeText={v => { setDraft(v); setMessage(''); setSaved(null); }} multiline maxLength={PRAYER_LIMITS.body} placeholder={t.prayer.placeholder} placeholderTextColor={c.muted}
         style={{ minHeight: 130, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: c.line, backgroundColor: c.bg, color: c.ink, fontSize: 17, lineHeight: 26, textAlignVertical: 'top' }} />
       {draft.length > PRAYER_LIMITS.body * 0.9 ? <Text style={{ color: c.muted, fontSize: 12 }}>{PRAYER_LIMITS.body - draft.length}</Text> : null}
+      {aiAllowed ? <View style={{ gap: 6 }}>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}><Text style={{ flex: 1, color: c.ink, fontSize: 15 }}>{lang === 'fr' ? 'Laisser l’IA choisir le verset de cette prière' : 'Let AI choose the verse for this prayer'}</Text><Switch accessibilityLabel={lang === 'fr' ? 'Laisser l’IA choisir le verset de cette prière' : 'Let AI choose the verse for this prayer'} value={aiVerse} disabled={busy} onValueChange={setAiVerse} /></View>
+        <Text style={{ color: c.muted, fontSize: 13, lineHeight: 19 }}>{lang === 'fr' ? 'Envoie le texte de cette prière, sans votre nom ni votre compte, à OpenAI pour choisir un passage parmi les thèmes de prière de LifeBook. Sinon, le verset est choisi sur LifeBook d’après vos mots.' : 'Sends this prayer’s text, without your name or account, to OpenAI to choose one passage from LifeBook’s prayer topics. Otherwise the verse is matched on LifeBook from the words you use.'}</Text>
+      </View> : null}
       <Button title={busy ? t.prayer.saving : t.prayer.save} onPress={() => void save()} disabled={busy || !draft.trim()} />
       {message ? <Text accessibilityLiveRegion="polite" style={{ color: c.deep, textAlign: 'center' }}>{message}</Text> : null}
       {error ? <Text accessibilityRole="alert" style={{ color: c.danger }}>{error}</Text> : null}
     </Card>
+    {saved?.verse ? <PrayerVerse verse={saved.verse} /> : null}
     <SectionLabel>{t.prayer.journal}</SectionLabel>
     {loadError ? <ErrorLine message={loadError} onRetry={() => setReload(n => n + 1)} />
       : !items ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} />

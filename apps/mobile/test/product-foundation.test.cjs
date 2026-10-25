@@ -67,7 +67,8 @@ test('switching mobile accounts discards mounted private screen state', async ()
 });
 
 test('prayer detail edits, answers, protects unsaved changes and confirms deletion', async () => {
-  let entry = { id: 'fixture', title: 'Family', body: 'A private synthetic prayer', answerNote: null, answeredAt: null };
+  const verse = { status: 'ok', locale: 'en', source: 'keywords', topicId: 'family', topic: 'Family', passage: { id: 'PSA.23.1', reference: 'Psalms 23:1', text: '[1] Synthetic verse', copyright: null } };
+  let entry = { id: 'fixture', title: 'Family', body: 'A private synthetic prayer', answerNote: null, answeredAt: null, verse };
   const calls = [];
   let confirmation;
   let changed = 0;
@@ -93,10 +94,13 @@ test('prayer detail edits, answers, protects unsaved changes and confirms deleti
     '../../web/lib/prayer-api': { PRAYER_LIMITS: { title: 120, body: 5000, answerNote: 1000 } },
     '../../web/lib/errors': { errorMessage },
     './guided-prayer': { GuidedPrayer: 'GuidedPrayer' },
+    './prayer-verse': { PrayerVerse: 'PrayerVerse' },
     './ui': Object.fromEntries(['Button', 'Card', 'ErrorLine', 'Screen'].map(name => [name, name])),
   });
   let renderer;
   await act(async () => { renderer = create(React.createElement(PrayerDetail, { id: 'fixture', onChanged: () => changed++, onClose: () => closed++ })); });
+  // The verse chosen when the prayer was saved is shown with it.
+  assert.equal(renderer.root.findByType('PrayerVerse').props.verse.passage.id, 'PSA.23.1');
   const button = title => renderer.root.findAllByType('Button').find(node => node.props.title === title);
   await act(async () => renderer.root.findAllByType('TextInput')[1].props.onChangeText('Edited synthetic prayer'));
   await act(async () => button(copy.en.prayer.close).props.onPress());
@@ -104,6 +108,7 @@ test('prayer detail edits, answers, protects unsaved changes and confirms deleti
   assert.equal(confirmation[0].style, 'cancel');
   await act(async () => button(copy.en.prayer.saveChanges).props.onPress());
   assert.equal(entry.body, 'Edited synthetic prayer');
+  assert.equal(JSON.parse(calls.find(call => call.init.method === 'PUT').init.body).locale, 'en', 'an edit asks for a verse in the reader’s language');
   await act(async () => renderer.root.findAllByType('TextInput')[2].props.onChangeText('A synthetic answer'));
   await act(async () => button(copy.en.prayer.markAnswered).props.onPress());
   assert.equal(entry.answerNote, 'A synthetic answer');

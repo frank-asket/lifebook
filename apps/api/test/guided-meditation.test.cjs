@@ -53,7 +53,7 @@ test('guided meditation needs consent, screens for crisis, uses only reviewed Sc
       const owner = await tx.user.create({ data: { oidcSubject: `${prefix}-owner` } });
       const other = await tx.user.create({ data: { oidcSubject: `${prefix}-other` } });
       const meditation = new MeditationService();
-      const prayers = new PrayerService(meditation);
+      const prayers = new PrayerService(meditation, { choose: async () => null, present: verse => verse });
       const bible = { passage: async (locale, id) => ({ reference: `${locale}:${id}`, text: `verified text ${id}`, copyright: null }) };
       const companion = new PrayerCompanionService(bible);
       const guided = new GuidedMeditationService(prayers, companion);
