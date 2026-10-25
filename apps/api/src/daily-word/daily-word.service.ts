@@ -1,14 +1,15 @@
+import { database } from '../common/database';
 import { encryptReflection, decryptReflection } from '../security/reflection-crypto';
 import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
-import { DailyWordStep, DailyWordSessionStatus, PrismaClient } from '@prisma/client';
+import { DailyWordStep, DailyWordSessionStatus } from '@prisma/client';
 import { MeditationService } from '../meditation/meditation.service';
 import { pageOf } from '../common/paging';
 const STEPS = Object.values(DailyWordStep);
 @Injectable()
 export class DailyWordService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly meditation: MeditationService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
   private date(timezone = 'UTC'): string {
     try {
       const parts = new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -43,9 +44,13 @@ export class DailyWordService implements OnModuleDestroy {
     if (!STEPS.includes(rawStep as DailyWordStep)) throw new BadRequestException('Unknown Daily Word step');
     const step = rawStep as DailyWordStep;
     const updated = await this.db.$transaction(async tx => {
+      // Serialize progress decisions for this session, including requests from other devices.
+      await tx.$queryRaw`SELECT "id" FROM "DailyWordSession" WHERE "id" = ${session.id} FOR UPDATE`;
+      const fresh = await tx.dailyWordSession.findUnique({ where: { id: session.id } });
+      if (!fresh) throw new NotFoundException('Daily Word session not found');
       await tx.dailyWordStepProgress.upsert({ where: { sessionId_step: { sessionId: session.id, step } }, create: { sessionId: session.id, step }, update: {} });
       const count = await tx.dailyWordStepProgress.count({ where: { sessionId: session.id } });
-      return tx.dailyWordSession.update({ where: { id: session.id }, data: count === STEPS.length ? { status: DailyWordSessionStatus.COMPLETED, completedAt: session.completedAt ?? new Date() } : {}, include: this.include });
+      return tx.dailyWordSession.update({ where: { id: session.id }, data: count === STEPS.length ? { status: DailyWordSessionStatus.COMPLETED, completedAt: fresh.completedAt ?? new Date() } : {}, include: this.include });
     });
     return this.view(updated);
   }

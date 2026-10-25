@@ -1,5 +1,5 @@
+import { database } from '../common/database';
 import { Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { isActivePastor } from './pastor-admin';
 
 // Only these fields ever leave the API: no user id, email, reference or review notes.
@@ -8,8 +8,8 @@ type Row = { slug: string; displayName: string; bio: string; languages: string[]
 
 @Injectable()
 export class PastorDirectoryService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  private readonly db = database;
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
 
   private present(row: Row) {
     const v = row.user.verification!;

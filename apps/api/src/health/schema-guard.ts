@@ -12,13 +12,13 @@ export function bundledMigrations(dir = resolve(__dirname, '../../prisma/migrati
 }
 
 type Db = { $queryRaw<T = unknown>(query: TemplateStringsArray, ...values: unknown[]): Promise<T> };
-export type SchemaState = { state: 'current' } | { state: 'behind'; pending: number } | { state: 'unchecked' };
+export type SchemaState = { state: 'current' } | { state: 'behind'; pending: number } | { state: 'unchecked' } | { state: 'unavailable' };
 
 /**
  * Render deploys the API on every merge, so code can go live before its migrations are applied.
  * The health check reports "behind" when the database lacks a migration this build needs: Render then
- * never promotes the deploy and the previous version keeps serving. A database error is "unchecked",
- * not "behind", so a blip cannot fail health checks on a healthy service. SCHEMA_GUARD=off disables it.
+ * never promotes an unverified deploy. Database errors and missing migration bundles fail readiness.
+ * SCHEMA_GUARD=off explicitly disables schema verification.
  */
 export class SchemaGuard {
   private readonly log = new Logger('SchemaGuard');
@@ -27,7 +27,8 @@ export class SchemaGuard {
   constructor(private readonly db: Db, private readonly expected = bundledMigrations(), private readonly ttlMs = 30_000) {}
 
   async state(now = Date.now()): Promise<SchemaState> {
-    if (process.env.SCHEMA_GUARD === 'off' || !this.expected.length) return { state: 'unchecked' };
+    if (process.env.SCHEMA_GUARD === 'off') return { state: 'unchecked' };
+    if (!this.expected.length) return { state: 'unavailable' };
     if (this.cached && now - this.cached.at < this.ttlMs) return this.cached.value;
     let value: SchemaState;
     try {
@@ -42,8 +43,8 @@ export class SchemaGuard {
         else this.log.log('Database schema matches this build');
       }
     } catch (error) {
-      value = { state: 'unchecked' };
-      this.log.warn(`Schema check skipped (${(error as Error)?.name ?? 'error'})`);
+      value = { state: 'unavailable' };
+      this.log.warn(`Schema check unavailable (${(error as Error)?.name ?? 'error'})`);
     }
     this.cached = { at: now, value };
     return value;

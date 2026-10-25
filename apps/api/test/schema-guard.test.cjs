@@ -31,8 +31,8 @@ test('behind reports only a count when the database lacks a bundled migration', 
   assert.deepEqual(state, { state: 'behind', pending: 2 });
 });
 
-test('a database error is unchecked, never behind, so a blip cannot fail health checks', async () => {
-  assert.deepEqual(await new SchemaGuard(db([], true), ['a']).state(), { state: 'unchecked' });
+test('a database error fails readiness instead of silently accepting a deploy', async () => {
+  assert.deepEqual(await new SchemaGuard(db([], true), ['a']).state(), { state: 'unavailable' });
 });
 
 test('results are cached, and SCHEMA_GUARD=off disables the check', async () => {
@@ -43,4 +43,8 @@ test('results are cached, and SCHEMA_GUARD=off disables the check', async () => 
   assert.equal(d.calls.n, 2);
   process.env.SCHEMA_GUARD = 'off';
   try { assert.deepEqual(await new SchemaGuard(db([]), ['a']).state(), { state: 'unchecked' }); } finally { delete process.env.SCHEMA_GUARD; }
+});
+
+test('a missing migration bundle fails readiness', async () => {
+  assert.deepEqual(await new SchemaGuard(db([]), []).state(), { state: 'unavailable' });
 });

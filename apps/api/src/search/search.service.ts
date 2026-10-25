@@ -1,5 +1,5 @@
+import { database } from '../common/database';
 import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { BibleContentService } from '../bible-content/bible-content.service';
 import { READING_PLANS } from '../bible-reading/bible-reading.service';
 import { approvedTeachings } from '../livingword/livingword.service';
@@ -18,9 +18,9 @@ const CANDIDATES = 500;
  */
 @Injectable()
 export class SearchService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly bible: BibleContentService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
 
   async search(qInput?: string, localeInput?: string) {
     if (typeof qInput !== 'string' || qInput.trim().length < 2 || qInput.length > 120) throw new BadRequestException('Search needs 2 to 120 characters');

@@ -1,3 +1,4 @@
+import { Database, database } from './common/database';
 import { saveProfile } from './account/profile-consent';
 import { LivingWordModule } from './livingword/livingword.module';
 import { PathsModule } from './paths/paths.module';
@@ -13,19 +14,16 @@ import {
   Controller,
   Get,
   Injectable,
-  UnauthorizedException,
   Headers,
   Put,
   Body,
-  OnModuleDestroy,
-  OnModuleInit,
   Res,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { SchemaGuard } from './health/schema-guard';
 
-import { PrismaClient, FaithJourney } from '@prisma/client';
-import { verifyToken } from '@clerk/backend';
+import { FaithJourney } from '@prisma/client';
+import { verifiedSubject } from './common/identity';
 
 import {
   ArrayMaxSize,
@@ -58,98 +56,12 @@ import { CareModule } from './care/care.module';
 import { SafeguardingModule } from './safeguarding/safeguarding.module';
 
 // ============================================================
-// DATABASE SERVICE
-// ============================================================
-
-@Injectable()
-class Database
-  extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
-  async onModuleInit(): Promise<void> {
-    await this.$connect();
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.$disconnect();
-  }
-}
-
-// ============================================================
 // CLERK IDENTITY SERVICE
 // ============================================================
 
 @Injectable()
 class Identity {
-  /**
-   * Verify the Clerk session token.
-   *
-   * Returns the authenticated Clerk subject.
-   *
-   * The internal LifeBook user ID is resolved separately
-   * using the User.oidcSubject field.
-   */
-  async subject(authorization?: string): Promise<string> {
-    if (!authorization?.startsWith('Bearer ')) {
-      throw new UnauthorizedException(
-        'Bearer token required',
-      );
-    }
-
-    const token = authorization.slice(7).trim();
-
-    if (!token) {
-      throw new UnauthorizedException(
-        'Bearer token required',
-      );
-    }
-
-    const secretKey = process.env.CLERK_SECRET_KEY;
-
-    if (!secretKey) {
-      throw new UnauthorizedException(
-        'Clerk authentication is not configured',
-      );
-    }
-
-    // --------------------------------------------------------
-    // Parse configured authorized parties
-    // --------------------------------------------------------
-
-    const authorizedParties: string[] = (
-      process.env.CLERK_AUTHORIZED_PARTIES ?? ''
-    )
-      .split(',')
-      .map((value: string) => value.trim())
-      .filter((value: string) => value.length > 0);
-
-    // --------------------------------------------------------
-    // Verify Clerk token
-    // --------------------------------------------------------
-
-    try {
-      const payload = await verifyToken(token, {
-        secretKey,
-
-        // Only include authorizedParties when configured.
-        ...(authorizedParties.length > 0
-          ? { authorizedParties }
-          : {}),
-      });
-
-      if (!payload.sub) {
-        throw new UnauthorizedException(
-          'Token subject is missing',
-        );
-      }
-
-      return payload.sub;
-    } catch {
-      throw new UnauthorizedException(
-        'Invalid or expired access token',
-      );
-    }
-  }
+  subject(authorization?: string) { return verifiedSubject(authorization); }
 }
 
 // ============================================================
@@ -198,11 +110,15 @@ class HealthController {
 
   /**
    * GET /api/v1/health
-   * 503 while the database lacks a migration this build needs, so Render keeps the previous deploy.
+   * 503 when migrations are missing or schema readiness cannot be verified.
    */
   @Get()
   async health(@Res({ passthrough: true }) res: Response) {
     const schema = await this.schema.state();
+    if (schema.state === 'unavailable') {
+      res.status(503);
+      return { status: 'schema-unavailable', service: 'lifebook-api' };
+    }
     if (schema.state === 'behind') {
       res.status(503);
       return { status: 'schema-behind', service: 'lifebook-api', pendingMigrations: schema.pending };
@@ -357,7 +273,7 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
   ],
 
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard },
-    Database,
+    { provide: Database, useValue: database },
     Identity,
   ],
 })

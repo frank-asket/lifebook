@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { database } from '../common/database';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { MeditationService } from '../meditation/meditation.service';
 import { pageOf } from '../common/paging';
@@ -13,9 +13,9 @@ const idPattern = /^[A-Za-z0-9_-]{1,64}$/;
 
 @Injectable()
 export class PrayerService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly meditation: MeditationService, private readonly verses: PrayerVerseService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
   userId(auth?: string) { return this.meditation.userId(auth); }
 
   // Bind each value to its field, owner and record so ciphertext cannot be swapped between them.
@@ -113,9 +113,14 @@ export class PrayerService implements OnModuleDestroy {
     const row = await this.owned(userId, id);
     return this.open('body', row, row.ciphertext);
   }
-  async saveMeditation(userId: string, id: string, meditation: unknown) {
+  async meditationSource(userId: string, id: string) {
+    const row = await this.owned(userId, id);
+    return { body: this.open('body', row, row.ciphertext), ciphertext: row.ciphertext, updatedAt: row.updatedAt };
+  }
+  async saveMeditation(userId: string, id: string, meditation: unknown, source: { ciphertext: string; updatedAt: Date }) {
     await this.owned(userId, id);
-    await this.db.prayerEntry.updateMany({ where: { id, userId }, data: { meditationCiphertext: this.seal('meditation', userId, id, JSON.stringify(meditation)), meditationAt: new Date() } });
+    const saved = await this.db.prayerEntry.updateMany({ where: { id, userId, ciphertext: source.ciphertext, updatedAt: source.updatedAt }, data: { meditationCiphertext: this.seal('meditation', userId, id, JSON.stringify(meditation)), meditationAt: new Date() } });
+    if (!saved.count) throw new ConflictException('Your prayer changed while the meditation was being prepared. Please try again.');
   }
   async clearMeditation(auth: string | undefined, id: string) {
     const userId = await this.userId(auth);

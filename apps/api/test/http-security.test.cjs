@@ -16,6 +16,14 @@ test('HTTP API denies unauthenticated private access, rejects invalid input and 
   await app.listen(0, '127.0.0.1');
   try {
     const base = await app.getUrl();
+    const { database } = require('../dist/common/database');
+    const query = database.$queryRaw;
+    try {
+      database.$queryRaw = async () => { throw new Error('Synthetic database outage'); };
+      const readiness = await fetch(`${base}/api/v1/health`);
+      assert.equal(readiness.status, 503, 'an unverified schema cannot report production readiness');
+      assert.equal((await readiness.json()).status, 'schema-unavailable');
+    } finally { database.$queryRaw = query; }
     for (const path of ['me/profile','paths/fixture/state','livingword/editor','bible-reading/history','bible-annotations','bible-annotations/passage?locale=fr&passageId=LUK.1.1','daily-word/sessions','daily-word/sessions/fixture','meditations/history','prayers','care/requests','care/pastor/queue','safeguarding/overview']) {
       const response = await fetch(`${base}/api/v1/${path}`);
       assert.equal(response.status, 401, path);

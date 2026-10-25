@@ -1,3 +1,4 @@
+import { database } from '../common/database';
 import { encryptReflection, decryptReflection } from '../security/reflection-crypto';
 import {
   BadRequestException,
@@ -5,13 +6,11 @@ import {
   NotFoundException,
   OnModuleDestroy,
   ServiceUnavailableException,
-  UnauthorizedException,
 } from '@nestjs/common';
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PrismaClient } from '@prisma/client';
-import { verifyToken } from '@clerk/backend';
+import { verifiedSubject } from '../common/identity';
 import { BibleContentService } from '../bible-content/bible-content.service';
 import { entryFor, validateDailyWordLibrary } from './daily-word-library';
 import { pageOf } from '../common/paging';
@@ -25,16 +24,16 @@ const DAILY_WORD_LIBRARY = validateDailyWordLibrary(JSON.parse(readFileSync(join
 
 @Injectable()
 export class MeditationService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   private readonly verseCache = new Map<string, { expires: number; value: { reference: string; text: string; translation: string; copyright: string | null; provider: string; fumsToken: string | null } }>();
 
   constructor(private readonly bible?: BibleContentService) {}
 
   /**
-   * Disconnect Prisma when NestJS shuts down.
+   * The root Database provider owns the shared pool lifecycle.
    */
   async onModuleDestroy(): Promise<void> {
-    await this.db.$disconnect();
+    // The root Database provider owns the shared pool lifecycle.
   }
 
   // ============================================================
@@ -99,64 +98,7 @@ export class MeditationService implements OnModuleDestroy {
    * The Clerk subject is used as the identity key.
    */
   async userId(auth?: string): Promise<string> {
-    if (!auth?.startsWith('Bearer ')) {
-      throw new UnauthorizedException(
-        'Bearer token required',
-      );
-    }
-
-    const rawToken = auth.slice(7).trim();
-
-    if (!rawToken) {
-      throw new UnauthorizedException(
-        'Bearer token required',
-      );
-    }
-
-    const secretKey = process.env.CLERK_SECRET_KEY;
-
-    if (!secretKey) {
-      throw new UnauthorizedException(
-        'Clerk authentication is not configured',
-      );
-    }
-
-    const authorizedParties = (
-      process.env.CLERK_AUTHORIZED_PARTIES || ''
-    )
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean);
-
-    let subject: string;
-
-    try {
-      const token = await verifyToken(rawToken, {
-        secretKey,
-
-        ...(authorizedParties.length > 0
-          ? { authorizedParties }
-          : {}),
-      });
-
-      if (!token.sub) {
-        throw new Error('Missing Clerk subject');
-      }
-
-      subject = token.sub;
-    } catch {
-      throw new UnauthorizedException(
-        'Invalid or expired access token',
-      );
-    }
-
-    /**
-     * Keep database operations outside the
-     * authentication catch block.
-     *
-     * Database errors should not be reported
-     * as invalid authentication tokens.
-     */
+    const subject = await verifiedSubject(auth);
     const user = await this.db.user.upsert({
       where: {
         oidcSubject: subject,

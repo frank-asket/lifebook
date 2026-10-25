@@ -1,12 +1,12 @@
+import { database } from '../common/database';
 import { BadRequestException, Injectable, NotFoundException, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { BibleReadingService } from '../bible-reading/bible-reading.service';
 
 @Injectable()
 export class PathsService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly identity: BibleReadingService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
 
   list() {
     return this.db.learningPath.findMany({ where: { isPublished: true }, orderBy: [{ title: 'asc' }, { id: 'asc' }], take: 100,

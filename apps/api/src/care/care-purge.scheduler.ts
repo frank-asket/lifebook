@@ -1,3 +1,4 @@
+import { database } from '../common/database';
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { purgeCare } from './care-purge';
@@ -32,12 +33,11 @@ export class CarePurgeScheduler implements OnApplicationBootstrap, OnModuleDestr
 
   async onModuleDestroy() {
     for (const timer of this.timers) clearTimeout(timer);
-    if (this.db instanceof PrismaClient) await this.db.$disconnect();
   }
 
   /** One retention pass. Returns the counts, or null when another instance holds the lock or the pass failed. */
   async run(now = new Date()) {
-    this.db ??= new PrismaClient();
+    this.db ??= database;
     try {
       const result = await this.db.$transaction(async tx => {
         const [{ locked }] = await tx.$queryRaw<{ locked: boolean }[]>`SELECT pg_try_advisory_xact_lock(${LOCK}) AS locked`;

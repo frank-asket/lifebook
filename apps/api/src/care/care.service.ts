@@ -1,5 +1,6 @@
+import { database } from '../common/database';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { MeditationService } from '../meditation/meditation.service';
 import { pageOf } from '../common/paging';
@@ -16,9 +17,9 @@ type Request = { id: string; memberId: string; pastorId: string | null; topic: s
 
 @Injectable()
 export class CareService implements OnModuleDestroy {
-  private readonly db = new PrismaClient();
+  private readonly db = database;
   constructor(private readonly meditation: MeditationService) {}
-  async onModuleDestroy() { await this.db.$disconnect(); }
+  async onModuleDestroy() { /* The root Database provider owns the shared pool lifecycle. */ }
   userId(auth?: string) { return this.meditation.userId(auth); }
 
   private transaction<T>(run: (tx: Prisma.TransactionClient) => Promise<T>) {
@@ -46,20 +47,33 @@ export class CareService implements OnModuleDestroy {
     return { userId, profile };
   }
 
-  private async thread(request: Request, viewer: Role) {
-    const messages = await this.db.careMessage.findMany({ where: { requestId: request.id }, orderBy: { createdAt: 'asc' }, take: 500 });
-    const pastor = request.pastorId ? await this.db.pastorProfile.findUnique({ where: { userId: request.pastorId }, select: { displayName: true, slug: true } }) : null;
-    await this.db.careRequest.update({ where: { id: request.id }, data: viewer === 'member' ? { memberReadAt: new Date() } : { pastorReadAt: new Date() } });
-    return {
-      id: request.id, topic: request.topic, language: request.language, status: request.status, contactPreference: request.contactPreference,
-      createdAt: request.createdAt, claimedAt: request.claimedAt, closedAt: request.closedAt, closedBy: request.closedBy,
-      name: request.nameCiphertext ? this.open('name', request, request.nameCiphertext) : null,
-      // The phone number is shown only to the pastor who claimed a callback request.
-      phone: viewer === 'pastor' && request.phoneCiphertext ? this.open('phone', request, request.phoneCiphertext) : null,
-      message: this.open('request', request, request.messageCiphertext),
-      pastor: pastor ? { displayName: pastor.displayName, slug: pastor.slug } : null,
-      messages: messages.map(m => ({ id: m.id, from: m.senderRole, text: this.open('message', request, m.ciphertext, m.id), createdAt: m.createdAt })),
-    };
+  private async thread(request: Request, viewer: Role, before?: string) {
+    return this.transaction(async tx => {
+      request = await this.authorizeLocked(tx, request, viewer);
+      const readAt = new Date();
+      if (before) {
+        this.checkId(before);
+        if (!await tx.careMessage.findFirst({ where: { id: before, requestId: request.id }, select: { id: true } })) throw new BadRequestException('Invalid message cursor');
+      }
+      // Preserve the existing 500-message window for older clients; newest first, with history reachable by cursor.
+      const rows = await tx.careMessage.findMany({ where: { requestId: request.id }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 501, ...(before ? { cursor: { id: before }, skip: 1 } : {}) });
+      const page = rows.slice(0, 500);
+      const nextCursor = rows.length > 500 ? page[page.length - 1].id : null;
+      const messages = page.reverse();
+      const pastor = request.pastorId ? await tx.pastorProfile.findUnique({ where: { userId: request.pastorId }, select: { displayName: true, slug: true } }) : null;
+      if (!before) await tx.careRequest.update({ where: { id: request.id }, data: viewer === 'member' ? { memberReadAt: readAt } : { pastorReadAt: readAt } });
+      return {
+        id: request.id, topic: request.topic, language: request.language, status: request.status, contactPreference: request.contactPreference,
+        createdAt: request.createdAt, claimedAt: request.claimedAt, closedAt: request.closedAt, closedBy: request.closedBy,
+        name: request.nameCiphertext ? this.open('name', request, request.nameCiphertext) : null,
+        // The phone number is shown only to the pastor who claimed a callback request.
+        phone: viewer === 'pastor' && request.phoneCiphertext ? this.open('phone', request, request.phoneCiphertext) : null,
+        message: this.open('request', request, request.messageCiphertext),
+        pastor: pastor ? { displayName: pastor.displayName, slug: pastor.slug } : null,
+        nextCursor,
+        messages: messages.map(m => ({ id: m.id, from: m.senderRole, text: this.open('message', request, m.ciphertext, m.id), createdAt: m.createdAt })),
+      };
+    });
   }
   private summary(request: Request & { messages?: { senderRole: string; createdAt: Date }[] }, viewer: Role, pastorName?: string | null) {
     const lastReply = request.messages?.find(m => m.senderRole !== viewer)?.createdAt;
@@ -98,7 +112,7 @@ export class CareService implements OnModuleDestroy {
 
   async listMine(auth?: string) {
     const memberId = await this.userId(auth);
-    const rows = await this.db.careRequest.findMany({ where: { memberId }, orderBy: { createdAt: 'desc' }, take: 50, include: { messages: { orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } }, pastor: { select: { pastorProfile: { select: { displayName: true } } } } } });
+    const rows = await this.db.careRequest.findMany({ where: { memberId }, orderBy: { createdAt: 'desc' }, take: 50, include: { messages: { where: { senderRole: 'pastor' }, take: 1, orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } }, pastor: { select: { pastorProfile: { select: { displayName: true } } } } } });
     return rows.map(r => this.summary(r, 'member', r.pastor?.pastorProfile?.displayName));
   }
 
@@ -107,7 +121,7 @@ export class CareService implements OnModuleDestroy {
     const memberId = await this.userId(auth);
     const { rows, nextCursor } = await pageOf(cursor,
       async id => !!await this.db.careRequest.findFirst({ where: { id, memberId }, select: { id: true } }),
-      window => this.db.careRequest.findMany({ where: { memberId }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include: { messages: { orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } }, pastor: { select: { pastorProfile: { select: { displayName: true } } } } }, ...window }));
+      window => this.db.careRequest.findMany({ where: { memberId }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], include: { messages: { where: { senderRole: 'pastor' }, take: 1, orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } }, pastor: { select: { pastorProfile: { select: { displayName: true } } } } }, ...window }));
     return { items: rows.map(r => this.summary(r, 'member', r.pastor?.pastorProfile?.displayName)), nextCursor };
   }
 
@@ -117,7 +131,7 @@ export class CareService implements OnModuleDestroy {
     if (!request) throw new NotFoundException('Request not found');
     return request as Request;
   }
-  async mine(auth: string | undefined, id: string) { return this.thread(await this.ownRequest(await this.userId(auth), id), 'member'); }
+  async mine(auth: string | undefined, id: string, before?: string) { return this.thread(await this.ownRequest(await this.userId(auth), id), 'member', before); }
 
   async memberReply(auth: string | undefined, id: string, text: unknown) {
     const request = await this.ownRequest(await this.userId(auth), id);
@@ -182,7 +196,7 @@ export class CareService implements OnModuleDestroy {
   }
   async cases(auth?: string) {
     const { userId } = await this.activePastor(auth);
-    const rows = await this.db.careRequest.findMany({ where: { pastorId: userId }, orderBy: { claimedAt: 'desc' }, take: 50, include: { messages: { orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } } } });
+    const rows = await this.db.careRequest.findMany({ where: { pastorId: userId }, orderBy: { claimedAt: 'desc' }, take: 50, include: { messages: { where: { senderRole: 'member' }, take: 1, orderBy: { createdAt: 'desc' }, select: { senderRole: true, createdAt: true } } } });
     return rows.map(r => this.summary(r, 'pastor'));
   }
   private async ownCase(pastorId: string, id: string) {
@@ -191,7 +205,7 @@ export class CareService implements OnModuleDestroy {
     if (!request) throw new NotFoundException('Request not found');
     return request as Request;
   }
-  async case(auth: string | undefined, id: string) { const { userId } = await this.activePastor(auth); return this.thread(await this.ownCase(userId, id), 'pastor'); }
+  async case(auth: string | undefined, id: string, before?: string) { const { userId } = await this.activePastor(auth); return this.thread(await this.ownCase(userId, id), 'pastor', before); }
   async pastorReply(auth: string | undefined, id: string, text: unknown) {
     const { userId } = await this.activePastor(auth);
     const request = await this.ownCase(userId, id);
@@ -225,10 +239,11 @@ export class CareService implements OnModuleDestroy {
     const sharedConversation = await this.transaction(async tx => {
       await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${reporterId} FOR UPDATE`;
       if (await tx.careReport.count({ where: { reporterId, createdAt: { gte: since } } }) >= REPORT_LIMITS.perDay) throw new ConflictException('You have sent several reports today. If someone is in danger, call 112 now.');
+      request = await this.authorizeLocked(tx, request, role);
       const id = randomUUID();
       let transcriptCiphertext: string | null = null;
       if (input.shareConversation) {
-        const messages = await tx.careMessage.findMany({ where: { requestId: request.id }, orderBy: { createdAt: 'asc' } });
+        const messages = await tx.careMessage.findMany({ where: { requestId: request.id }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }] });
         const transcript = [{ from: 'member', at: request.createdAt, text: this.open('request', request, request.messageCiphertext) },
           ...messages.map(m => ({ from: m.senderRole, at: m.createdAt, text: this.open('message', request, m.ciphertext, m.id) }))];
         transcriptCiphertext = encryptReflection(JSON.stringify(transcript), `care-report:transcript:${id}`);
@@ -242,22 +257,39 @@ export class CareService implements OnModuleDestroy {
     return { reported: true, sharedConversation };
   }
 
+  /** Lock authorization before reading private content or making a decision from a stale snapshot. */
+  private async authorizeLocked(tx: Prisma.TransactionClient, request: Request, role: Role) {
+    if (role === 'pastor') {
+      if (!request.pastorId) throw new ForbiddenException('This conversation is no longer assigned to you');
+      // Verification updates (including suspension) must finish before this action can proceed.
+      await tx.$queryRaw`SELECT "userId" FROM "MinistryVerification" WHERE "userId" = ${request.pastorId} FOR SHARE`;
+      const verification = await tx.ministryVerification.findUnique({ where: { userId: request.pastorId } });
+      if (!isActivePastor(verification)) throw new ForbiddenException('Only active, verified pastors can do this');
+    }
+    await tx.$queryRaw`SELECT "id" FROM "CareRequest" WHERE "id" = ${request.id} FOR UPDATE`;
+    const fresh = await tx.careRequest.findUnique({ where: { id: request.id } });
+    if (!fresh || fresh.memberId !== request.memberId || (role === 'pastor' && fresh.pastorId !== request.pastorId)) throw new ForbiddenException('This conversation is no longer assigned to you');
+    return fresh;
+  }
+
   // ---------- Shared ----------
 
   private async addMessage(request: Request, role: Role, text: unknown) {
     const body = this.text(text, CARE_LIMITS.message, 'Message');
     const id = randomUUID();
     await this.transaction(async tx => {
-      await tx.$queryRaw`SELECT "id" FROM "CareRequest" WHERE "id" = ${request.id} FOR UPDATE`;
-      const fresh = await tx.careRequest.findUnique({ where: { id: request.id } });
+      const fresh = await this.authorizeLocked(tx, request, role);
       if (!fresh || fresh.status === 'CLOSED' || (role === 'pastor' && fresh.status !== 'CLAIMED')) throw new ConflictException('This conversation is closed');
       await tx.careMessage.create({ data: { id, requestId: request.id, senderRole: role, ciphertext: this.seal('message', request, body, id) } });
       await tx.careRequest.update({ where: { id: request.id }, data: role === 'member' ? { memberReadAt: new Date() } : { pastorReadAt: new Date() } });
     });
   }
   private async close(request: Request, by: Role) {
-    if (request.status === 'CLOSED') return;
-    const now = new Date();
-    await this.db.careRequest.updateMany({ where: { id: request.id, status: { not: 'CLOSED' } }, data: { status: 'CLOSED', closedAt: now, closedBy: by, deleteAfter: new Date(now.getTime() + CARE_LIMITS.retentionDays * 86400000) } });
+    await this.transaction(async tx => {
+      const fresh = await this.authorizeLocked(tx, request, by);
+      if (fresh.status === 'CLOSED') return;
+      const now = new Date();
+      await tx.careRequest.update({ where: { id: request.id }, data: { status: 'CLOSED', closedAt: now, closedBy: by, deleteAfter: new Date(now.getTime() + CARE_LIMITS.retentionDays * 86400000) } });
+    });
   }
 }
