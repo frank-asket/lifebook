@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.4.0.0] - 2026-10-26
+
+### Added
+- Give moderators and administrators a bilingual content workspace for drafting, reviewing and publishing meditations, Bible Studies and learning paths.
+- Load seven original meditation pairs and starter study/path lessons as local, unapproved drafts without automatic database writes.
+- Discover recent YouTube resources from an explicitly configured channel list through an editor-only, read-only API and source-linked review page. Discovery is disabled by default; it does not import, download, embed or publish media.
+- Prepare a cited evangelical pilot content pack, source/rights register and personal-data pilot documentation.
+
+### Fixed
+- Reject stale/concurrent editorial saves and preserve existing lesson IDs and completion records during edits.
+- Keep draft and future-dated meditation content out of member detail, saved/history and search results while retaining personal records.
+- Report empty published libraries separately from broken endpoints in launch-readiness checks.
+
+### Changed
+- Keep starter meditation text in one canonical file shared by the editor and existing operator seed.
+- Document remaining M3.8 approval, identity, personal-data pilot and device gates. No migration, content publication or production configuration change is included.
+
 ## [0.3.3.0] - 2026-10-26
 
 ### Fixed

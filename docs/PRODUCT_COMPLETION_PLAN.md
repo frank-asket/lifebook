@@ -1,6 +1,6 @@
 # LifeBook product completion plan
 
-Updated 19 October 2026. This is the implementation checklist for the user's decision to finish the product before discussing deployment. Source inspection is not visual or device acceptance. Existing M3.6–M3.8 work is retained; mobile work previously deferred to M3.9 starts now. No deployment or production database changes are included.
+Updated 26 October 2026. This checklist distinguishes source implementation, available content and launch/device acceptance. The current source audit below supersedes the historical batch notes. Existing M3.6–M3.8 work is retained; native-store distribution remains separate.
 
 ## Current milestone — 26 October 2026
 
@@ -12,23 +12,29 @@ M3.6/M3.7 feature source is present, but remaining device/provider/content accep
 
 A feature is complete only when its real UI, API, persistence, ownership checks, English/French copy, loading/empty/error/retry states and meaningful tests work together. Mobile also needs iOS/Android interaction and accessibility acceptance. Mock content, previews and a successful typecheck do not count as complete features. Content approval and licensing remain separate human gates.
 
-## Milestone map and source audit
+## Current feature audit — 26 October 2026
 
-| Workstream | Source present | Remaining product work | Priority |
-| --- | --- | --- | --- |
-| M3.6 Bible reader | Web reader and progress APIs; Expo chapter reader, saved verse editor, highlights, plans and explicit day completion | Device acceptance, Scripture search, pagination beyond 200 annotations and exact-verse scrolling; text/license attribution acceptance across clients | High |
-| M3.6 Daily Word and meditation | Shared daily Scripture, encrypted reflections, web meditation/history; mobile save retries, draft guards, passage/session pairing, session history and meditation collections | Native device acceptance for midnight, background and interrupted writes | High |
-| M3.7 Prayer Sanctuary | Encrypted journal CRUD, answered notes, consent-gated guided meditation, web journal | Expo journal detail/edit/answer/delete is the first implementation batch below; bulk deletion, guided meditation and consent controls remain | High |
-| M3.7 Pastoral care | Directory, private requests/replies, role checks, reporting, safeguarding and retention implementation | Expo end-to-end care and safeguarding journeys; concurrency/abuse review; independently approved pilot content and contacts | High |
-| M3.8 Account and settings | Web account controls; themed Expo profile editor and saved account language; server owner checks | Expo export/deletion and full consent management; device verification of failure paths and account switching | High |
-| M3.8 Web application design | Shared shell, theme/language providers, responsive components, accessibility pass; **visual matrix done 19 Oct** (`M3.8_WEB_VISUAL_MATRIX.md`): 27 routes × 4 widths, EN/FR, light/dark, all clean after fixes | Screen-reader results; the three data-dependent detail routes once pilot data exists | High |
-| M3.8 Marketing | English/French home, responsive navigation, product previews, privacy/terms routes | Audit claims against working features; complete content/detail navigation and legal layouts using approved copy; avoid publishing invented legal text | Medium |
-| Discipleship / My Journey | Learning paths, lessons and enrollment models; published paths list; separate functional Bible Study progress | Actual path details, enrollment and persisted lesson progress; web/Expo journey screens; keep progress separate from faith/ministry authority | High |
-| LivingWord | Web placeholder; sermon model | Approved-content API and editorial permissions, searchable library, detail/player UI, media validation, playback states and Expo parity; licensed media is required for final acceptance | Medium |
-| Security and API quality | Clerk verification, ownership filters, encryption, throttling, safeguarding tests; **full HTTP ownership matrix** (`cross-member-access.test.cjs`, 19 Oct: all 98 routes classified, member B blocked on every route naming A's records, A's rows unchanged); **migration safeguard** (health 503 while the schema is behind, PR #61); **load more** on prayers, Daily Word and meditation history, care requests (PR #66); **redacted logs** (`log-redaction.test.cjs`: private text never logged, including bad input); **client-state isolation** (audited 20 Oct: web stores only preferences and per-member dismissals, never private text; mobile keys screens by member) | Consent auditing | High |
-| Expo foundation | SDK 57, React 19.2, current Clerk SDK/token cache, EAS test profiles, four tabs, theme, reading controls | Complete feature navigation and account settings; validate session restart, offline/error recovery, accessibility, dynamic text and device builds | High |
+**All features are not complete.** A built screen, an empty working API and an approved, usable library are different states. See [how the core experiences work](FEATURE_READINESS.md) for their actual behavior, content dependencies and next actions.
 
-## Implementation sequence
+| Workstream | Source implemented | Remaining before acceptance |
+| --- | --- | --- |
+| Bible reader | Web/Expo reading, version selection, search, bookmarks/notes/highlights, plans and persisted progress | Device/provider attribution acceptance; capped saved-annotation list and exact-verse behavior require verification |
+| Daily Word / Moment of Peace | One shared dated passage, five steps, private reflection, saved progress/history and web/Expo journeys | Thirty approved dated entries for the actual launch window, production-identity and device tests; currently uses legacy fallback entries |
+| Published meditations | Web/Expo Today, saved/completed collections, private reflection edit/delete and explicit completion; local draft/schedule editor | No eligible published EN/FR meditation at live inspection; editorial approval/publication and device acceptance |
+| Bible Study | Web catalog, four study methods, lesson detail, enrollment and private completion API; local role-protected series/lesson editor | No published EN/FR series at live inspection; no Expo study screen; first reviewed lessons and end-to-end content acceptance |
+| Prayer Sanctuary | Web/Expo journal, answered state, guided meditation, per-prayer AI choice, consent controls and deletion | Reviewed prayer topics and provider/rights checks; guided features remain gated in production; device acceptance |
+| Pastoral care | Web/Expo directory, requests/replies/reporting, web safeguarding and application review, API ownership/retention controls | Staffed approved pilot, verified crisis contacts, working notification ownership, verified retention schedule and device acceptance |
+| Account/settings | Web/Expo profile/language, privacy choices, export/deletion; atomic consent history | Final production Clerk identity/isolation/export/deletion tests, legal approval and device acceptance; large mobile exports use the web download |
+| Discipleship / My Journey | Web/Expo path detail, enrollment and persisted lesson completion; race-safe API; local course/lesson editor | No published path at live inspection; approved course content and device acceptance |
+| LivingWord | Search/pagination, approved-content API, web moderator/admin editor, web/Expo audio/video players with transcript and retry | No visible EN/FR teachings at live inspection; approved media hosts, rights, transcripts and real playback/device acceptance |
+| Suggestions | Consent-gated web/Expo suggestions, account-owned dismissals and consent auditing | Device acceptance and broader goal content; no spiritual scoring |
+| Web/marketing | Responsive shell, EN/FR, themes, web visual/accessibility pass; bilingual draft legal pages | Final legal copy, physical browser/screen-reader checks and remaining content-dependent detail checks |
+| Security/data | Session/ownership checks, encrypted private writes, log redaction, schema readiness, integration tests | Paused legacy-reflection backfill; fresh backup/rehearsal/approval before data operations; operational retention proof |
+| Native distribution | EAS profiles and compiled iOS simulator candidate; source parity for most features | Android testing remains pending by owner choice; installed-device, spoken accessibility, signing/store acceptance; Bible Study parity missing |
+
+The public content survey reads endpoints only, not private database rows. Empty results do not prove no drafts exist. `launch-check.cjs` now reports content availability separately from the nine launch gates and requires explicit content acceptance or scope exclusions for the beta.
+
+## Historical implementation sequence
 
 1. **Mobile account safety and private journal:** isolate screens by identity; harden the API client; finish prayer CRUD and safe profile editing. Reuse the encrypted API and existing design tokens.
 2. **Reader and Daily Word parity:** saved verses/annotations, plans, progress, meditation history and reliable session saving. Add mobile navigation for those real features.
@@ -123,3 +129,7 @@ Reviewed all 12 mobile routes and editor implementations. Improved shared touch 
 Continued the unfinished branch after the pagination and log-redaction handoff. Source now records atomic consent preference transitions, persists account-owned suggestion dismissals, migrates earlier browser choices, includes both in account exports and deletes them with the account. Web failures preserve cards and allow retry; account switching discards previous state. Existing mobile switches reuse the profile endpoint.
 
 See [scope, migration gate and verification](CONSENT_AND_SUGGESTIONS_2026-10-23.md). The additive migration is **not approved or applied to production by this work**. Earlier milestone rows are historical source snapshots, not a declaration that those features are still missing or that native/launch acceptance is complete.
+
+## Content authoring batch — 26 October 2026
+
+The local [content workspace](CONTENT_WORKSPACE.md) adds role-protected web/API drafting, explicit review-confirmed publication, revision/conflict checks and lesson edits/appends that preserve completion IDs. Seven original meditation pairs and a three-lesson study/path per language can be loaded locally as drafts. No migration, seeding, production publication or role grant ran. LivingWord reuses its existing editor; recordings/rights and its separate concurrency behavior remain open. Expo Bible Study, typed cross-feature path activities and versioned editorial review history remain next work.
