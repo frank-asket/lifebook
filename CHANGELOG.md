@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.3.0] - 2026-10-26
+
+### Fixed
+- Require explicit legal and pastoral approval evidence, real Scripture content, and coverage of the actual first 30 launch days in readiness checks.
+- Bound transient network retries for Render Free wake-up delays without hiding persistent failures.
+- Verify care message pagination deterministically when timestamps are tied.
+
+### Changed
+- Add French privacy and terms draft pages and keep both languages explicitly marked unapproved.
+- Prepare invite-only configuration, pastoral review packets and an evidence-based M3.8 beta release checklist.
+- Record the decision to retain Render Free; production identity, data operations and launch approval remain separate.
+
 ## [0.3.2.0] - 2026-10-25
 
 ### Fixed

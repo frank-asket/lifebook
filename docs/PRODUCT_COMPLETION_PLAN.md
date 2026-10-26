@@ -2,6 +2,12 @@
 
 Updated 19 October 2026. This is the implementation checklist for the user's decision to finish the product before discussing deployment. Source inspection is not visual or device acceptance. Existing M3.6–M3.8 work is retained; mobile work previously deferred to M3.9 starts now. No deployment or production database changes are included.
 
+## Current milestone — 26 October 2026
+
+**M3.8 launch readiness is active and incomplete.** The current source release prepares a web-first invited beta; deploying it does not approve access for real users. See the [beta procedure](WEB_BETA_RELEASE.md), [acceptance evidence](M3.8_WEB_BETA_ACCEPTANCE.md), and [M3.8 launch gates](M3.8_LAUNCH_PLAN.md). Those documents include the legal and pastoral review packets, production identity requirements and the owner's decision to retain Render Free.
+
+M3.6/M3.7 feature source is present, but remaining device/provider/content acceptance still applies. Native-store distribution and its installed-device, accessibility, signing and submission gates remain separate; the historical implementation rows below do not close them.
+
 ## Completion standard
 
 A feature is complete only when its real UI, API, persistence, ownership checks, English/French copy, loading/empty/error/retry states and meaningful tests work together. Mobile also needs iOS/Android interaction and accessibility acceptance. Mock content, previews and a successful typecheck do not count as complete features. Content approval and licensing remain separate human gates.

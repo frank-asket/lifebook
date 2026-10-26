@@ -1,4 +1,9 @@
-import { SiteFrame } from '../../components/site-frame';
-import type {Metadata} from 'next';
-export const metadata:Metadata={title:'Terms'};
-export default function Terms(){return <SiteFrame><main className="legal-page"><div className="container legal-content"><span className="eyebrow">USING LIFEBOOK</span><h1>Terms of use</h1><p className="legal-notice">Pre-launch placeholder. This is not a substitute for reviewed legal terms. Publish approved terms before offering public accounts or paid services.</p><h2>Our purpose</h2><p>LifeBook is being built to support Bible engagement, prayer, and Christian learning. It is not a replacement for pastoral community, medical care, mental-health care, or emergency services.</p><h2>Content and scripture</h2><p>Scripture translations and third-party media are subject to their respective rights and licenses. User-submitted content will be governed by the finalized terms.</p><h2>Contact</h2><p>For questions, contact <a href="mailto:lifebook.meditation@gmail.com">lifebook.meditation@gmail.com</a>.</p></div></main></SiteFrame>}
+import type { Metadata } from 'next';
+import { LegalOverview } from '../../components/legal-overview';
+
+export const metadata: Metadata = {
+  title: 'Terms',
+  robots: { index: false, follow: true },
+  other: { 'lifebook-legal-status': 'draft' },
+};
+export default function Page() { return <LegalOverview locale="en" document="terms" />; }
