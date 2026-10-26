@@ -2,11 +2,15 @@
 
 Prepared 26 October 2026. This is a release procedure, **not a launch approval**. The native-store release stays separate.
 
+## Pilot before public launch
+
+On 26 October Franck chose to pursue a pilot first and defer the owned domain and public contact address. See [the prepared pilot program](PILOT_PROGRAM.md). Franck confirmed a personal-data pilot for up to 10 invited adults of any belief, targeting 26 October–1 November 2026. Participant selection, the exact opening day and the personal-data start checks remain pending. The production identity and public legal gates below remain for the later public release; they are not claimed complete by the pilot.
+
 ## Scope and owner
 
 Franck Asket identified himself as LifeBook's operator and final pastoral approver in this session. Contact: `lifebook.meditation@gmail.com`. Public business/contact address, country/legal capacity, and an owned production domain remain pending. No legal text or pastoral content has been approved merely by identifying the approver.
 
-The proposed first cohort is 5–10 invited adult testers. Franck selects the actual participants; no invitations or emails have been sent. Increase access only after the first cohort's issues are resolved. Do not use anonymous public sign-up as a substitute for this phase.
+The confirmed maximum first cohort is 10 invited adults, regardless of belief. Franck selects the actual participants; no invitations or emails have been sent. Increase access only after the first cohort's issues are resolved. Do not use anonymous public sign-up as a substitute for this phase.
 
 ## Identity transition — before changing keys
 
@@ -42,6 +46,8 @@ Inspect the preview before applying the exact patch. Do not run it against devel
 
 ## Approval and operational gates
 
+- **Feature scope/content:** review [the current feature inventory](FEATURE_READINESS.md). The latest public survey found no eligible published meditations, studies, paths or LivingWord teachings. Include a library in the beta only after reviewed content and its detail/playback flow pass acceptance; otherwise explicitly record it as excluded and tell testers it is unavailable. Do not seed or publish unapproved content to make a check pass.
+
 - **Legal:** review the engineering drafts, supply the public contact address, and approve final EN/FR privacy and terms. `/privacy`, `/terms`, `/fr/privacy`, `/fr/terms` stay explicit drafts, non-indexed, with `lifebook-legal-status=draft`. Only change that marker after replacing the overview with approved final text; the checker also rejects known placeholder language.
 - **Pastoral:** review [November's 30 bilingual entries](review/NOVEMBER_2026_PASTORAL_REVIEW.md) and [the 24 prayer topics](review/PRAYER_TOPICS_PASTORAL_REVIEW.md). November is a proposed review window, not an approved launch date. Record exact corrections and actual approval dates in the source. The checker requires coverage for the chosen first 30 launch days, not 30 unrelated older entries.
 - **Crisis resources:** have the appropriate local reviewers verify the services. When all applicable checks are complete, record `**Status:** VERIFIED`, `**Verified by:** <actual reviewer>`, `**Verified on:** YYYY-MM-DD` in the contacts document. Removing DRAFT alone no longer passes.
@@ -59,7 +65,7 @@ After building the API:
 node apps/api/scripts/launch-check.cjs --date YYYY-MM-DD --json
 ```
 
-Use the **actual proposed launch date**. It reads public endpoints and source metadata only; it never changes a database or approves content. A retry can recover a transient cold start but does not make persistent timeouts pass. Automated success does not approve the separate manual gates. Keep detailed logs and account exports private, outside Git.
+Use the **actual proposed launch date**. It also reports published meditation, Bible Study and LivingWord availability in both languages, plus the shared learning-path catalog. Availability is separate from approval and does not change the nine-gate count. It reads public endpoints and source metadata only; it never changes a database or approves content. A retry can recover a transient cold start but does not make persistent timeouts pass. Automated success does not approve the separate manual gates. Keep detailed logs and account exports private, outside Git.
 
 ## Launch sequence
 

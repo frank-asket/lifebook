@@ -1,3 +1,4 @@
+import { publishedMeditations } from './meditation-visibility';
 import { database } from '../common/database';
 import { encryptReflection, decryptReflection } from '../security/reflection-crypto';
 import {
@@ -235,7 +236,7 @@ export class MeditationService implements OnModuleDestroy {
     const meditation = await this.db.meditation.findFirst({
       where: {
         id,
-        isPublished: true,
+        ...publishedMeditations(),
       },
     });
 
@@ -265,6 +266,7 @@ export class MeditationService implements OnModuleDestroy {
     return this.db.meditationCompletion.findMany({
       where: {
         userId,
+        meditation: publishedMeditations(),
       },
 
       include: {
@@ -283,8 +285,8 @@ export class MeditationService implements OnModuleDestroy {
   async historyPage(auth: string | undefined, cursor?: string) {
     const userId = await this.userId(auth);
     const { rows, nextCursor } = await pageOf(cursor,
-      async id => !!await this.db.meditationCompletion.findFirst({ where: { id, userId }, select: { id: true } }),
-      window => this.db.meditationCompletion.findMany({ where: { userId }, include: { meditation: true }, orderBy: [{ completedAt: 'desc' }, { id: 'desc' }], ...window }));
+      async id => !!await this.db.meditationCompletion.findFirst({ where: { id, userId, meditation: publishedMeditations() }, select: { id: true } }),
+      window => this.db.meditationCompletion.findMany({ where: { userId, meditation: publishedMeditations() }, include: { meditation: true }, orderBy: [{ completedAt: 'desc' }, { id: 'desc' }], ...window }));
     return { items: rows, nextCursor };
   }
 
@@ -302,6 +304,7 @@ export class MeditationService implements OnModuleDestroy {
     return this.db.meditationBookmark.findMany({
       where: {
         userId,
+        meditation: publishedMeditations(),
       },
 
       include: {

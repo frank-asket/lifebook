@@ -12,6 +12,8 @@
 
 **Implementation update (16 October 2026):** Annotation UI, encrypted new reflection writes, patched web/API frameworks and stronger CI/container checks are prepared on the feature branch. See [implementation status](M36_IMPLEMENTATION_STATUS.md) and [staging/privacy rollout](deploy/staging/README.md). Provider access and staging acceptance remain blocked; this is not production sign-off.
 
+**Content authoring update (26 October 2026):** The [content workspace](docs/CONTENT_WORKSPACE.md) adds role-protected meditation, Bible Study and learning-path editing with explicit publication confirmation. [Teaching discovery](docs/content/SERMON_DISCOVERY_API_DESIGN.md) adds opt-in, read-only YouTube metadata/source links for editors; it is disabled until server configuration is supplied, and neither imports nor publishes sermons. [Feature readiness](docs/FEATURE_READINESS.md) and the [pilot program](docs/PILOT_PROGRAM.md) distinguish implementation from content approval and personal-data pilot acceptance. These changes do not complete M3.8 or authorize opening the pilot.
+
 ## 1. Product overview
 
 LifeBook is a mobile-first Christian devotional and discipleship platform bringing Scripture, personal reflection, prayer, teaching and user-directed spiritual learning into one experience. The initial release centers on **Daily Bible Meditation**, with **Prayer Sanctuary**, **LivingWord**, Bible Study and discipleship pathways expanding in later releases.
@@ -282,6 +284,7 @@ flowchart TB
 | Mobile | `EXPO_PUBLIC_API_URL`, Clerk publishable key | Public mobile values |
 | API | `DATABASE_URL`, `DIRECT_URL`, `CLERK_SECRET_KEY`, `CLERK_AUTHORIZED_PARTIES`, `CORS_ORIGINS`, `PORT` | Server-only |
 | AI | `AI_INTERNAL_TOKEN` | Server-only; stub generation remains disabled |
+| API discovery (optional) | `YOUTUBE_API_KEY`, `YOUTUBE_APPROVED_CHANNEL_IDS` | Server-only; both required, default off; editor-only metadata/source links, no imports or media rights |
 
 Do not commit `.env`, `.env.local`, database URLs, Clerk secrets or other credentials.
 

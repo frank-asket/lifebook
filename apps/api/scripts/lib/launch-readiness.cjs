@@ -48,4 +48,17 @@ function reviewedDays(library, start, count = 30, asOf = new Date().toISOString(
   return { reviewed: count - missing.length, total: count, missing };
 }
 
-module.exports = { get, json, validDate, validDailyWord, approvedLegalPage, verifiedContacts, reviewedDays };
+function contentState(response, kind) {
+  if (kind === 'meditation' && response.status === 404) return { state: 'empty', count: 0 };
+  if (response.status !== 200) return { state: 'unavailable', count: null };
+  const body = json(response.body);
+  if (kind === 'meditation') return body && typeof body.id === 'string' && !!body.id && typeof body.title === 'string' && !!body.title.trim()
+    ? { state: 'available', count: 1 } : { state: 'invalid', count: null };
+  const items = kind === 'teachings' ? body?.items : body;
+  if (!Array.isArray(items) || items.some(item => !item || typeof item.id !== 'string' || !item.id || typeof item.title !== 'string' || !item.title.trim())) return { state: 'invalid', count: null };
+  if (kind === 'teachings' && (!Number.isSafeInteger(body.total) || body.total < items.length || (body.total > 0 && !items.length))) return { state: 'invalid', count: null };
+  const count = kind === 'teachings' ? body.total : items.length;
+  return { state: count ? 'available' : 'empty', count };
+}
+
+module.exports = { get, json, validDate, validDailyWord, approvedLegalPage, verifiedContacts, reviewedDays, contentState };

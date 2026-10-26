@@ -2282,3 +2282,14 @@ p a.text-link, li a.text-link { display: inline; min-height: 0; }
 .app-row dt { font-size: 12px; font-weight: 800; color: var(--muted); }
 .app-row dd { margin: 2px 0 0; overflow-wrap: anywhere; }
 .selectable { user-select: all; font-variant-numeric: tabular-nums; }
+
+/* Editorial fields remain readable at mobile widths and with long translated labels. */
+.editorial-form { display: grid; gap: 20px; }
+.editorial-form .form-field { display: grid; gap: 8px; min-width: 0; }
+.editorial-form .input, .editorial-form .textarea, .editorial-form .select { width: 100%; padding: 12px; min-height: 48px; font: inherit; border: 1px solid var(--line); border-radius: 12px; }
+.editorial-form .textarea { resize: vertical; line-height: 1.6; }
+.editorial-form fieldset { display: grid; gap: 20px; min-width: 0; margin: 0; }
+.editorial-form legend { padding: 0 8px; font-weight: 700; }
+.editorial-form .learning-toolbar { margin: 0; }
+.editorial-form .check-row { display: flex; gap: 12px; align-items: flex-start; min-height: 44px; }
+.editorial-tabs .btn[aria-pressed='true'] { background: var(--soft); color: var(--deep); box-shadow: inset 0 0 0 1px var(--purple); }

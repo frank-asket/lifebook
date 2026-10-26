@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { get, validDailyWord, approvedLegalPage, verifiedContacts, reviewedDays, validDate } = require('../scripts/lib/launch-readiness.cjs');
+const { get, validDailyWord, approvedLegalPage, verifiedContacts, reviewedDays, validDate, contentState } = require('../scripts/lib/launch-readiness.cjs');
 
 test('read-only network checks retry transient failures once, but preserve failed readiness', async () => {
   let attempts = 0;
@@ -60,4 +60,21 @@ test('Scripture readiness needs a successful response with real text/reference, 
   assert.equal(validDailyWord(response(200, { ...verse, reference: '' }), 'en'), false);
   assert.equal(validDailyWord(response(200, verse), 'fr'), false);
   assert.equal(validDailyWord(response(200, { ...verse, translation: 'Bible J.N. Darby' }), 'fr'), true);
+});
+
+test('content inventory distinguishes empty libraries, missing meditations and broken endpoints without leaking content', () => {
+  const response = (status, body) => ({ status, body: JSON.stringify(body) });
+  const item = { id: 'fixture', title: 'Synthetic teaching', transcript: 'Must not appear in inventory' };
+  assert.deepEqual(contentState(response(404, {}), 'meditation'), { state: 'empty', count: 0 });
+  assert.deepEqual(contentState(response(503, {}), 'meditation'), { state: 'unavailable', count: null });
+  assert.deepEqual(contentState(response(200, item), 'meditation'), { state: 'available', count: 1 });
+  assert.deepEqual(contentState(response(200, []), 'collection'), { state: 'empty', count: 0 });
+  assert.deepEqual(contentState(response(200, [item]), 'collection'), { state: 'available', count: 1 });
+  assert.deepEqual(contentState(response(200, { items: [item], total: 21 }), 'teachings'), { state: 'available', count: 21 });
+  assert.deepEqual(contentState(response(200, { items: [], total: 0 }), 'teachings'), { state: 'empty', count: 0 });
+  for (const value of [null, {}, [null], [{ id: 'fixture' }], [item, null]]) assert.equal(contentState(response(200, value), 'collection').state, 'invalid');
+  for (const value of [{ items: [], total: 1 }, { items: [item], total: -1 }, { items: [item], total: '1' }]) assert.equal(contentState(response(200, value), 'teachings').state, 'invalid');
+  assert.equal(contentState({ status: 200, body: 'not JSON' }, 'meditation').state, 'invalid');
+  assert.equal(contentState(response(404, []), 'collection').state, 'unavailable', 'only the meditation endpoint uses 404 for empty content');
+  assert.doesNotMatch(JSON.stringify(contentState(response(200, item), 'meditation')), /Synthetic|transcript|Must not/);
 });

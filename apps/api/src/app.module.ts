@@ -1,3 +1,4 @@
+import { EditorialModule } from './editorial/editorial.module';
 import { Database, database } from './common/database';
 import { saveProfile } from './account/profile-consent';
 import { LivingWordModule } from './livingword/livingword.module';
@@ -243,6 +244,7 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
     BibleReadingModule,
     PathsModule,
     LivingWordModule,
+    EditorialModule,
     SuggestionsModule,
     AccountModule,
     SearchModule,

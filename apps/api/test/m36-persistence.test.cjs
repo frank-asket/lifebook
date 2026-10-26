@@ -39,6 +39,9 @@ test('M3.6 database persistence, ownership, completion semantics, and encrypted 
       await reading.saveHistory('first', { locale: 'fr', chapterId: 'LUK.1' });
       await reading.saveHistory('first', { locale: 'en', chapterId: 'GEN.1' });
       await reading.saveHistory('first', { locale: 'fr', chapterId: 'LUK.1' });
+      // Rapid fixture writes can share a millisecond; give the resume-order assertion distinct timestamps.
+      await tx.bibleReadingHistory.updateMany({ where: { userId: first.id, locale: 'en' }, data: { updatedAt: new Date('2026-01-01T00:00:00Z') } });
+      await tx.bibleReadingHistory.updateMany({ where: { userId: first.id, locale: 'fr' }, data: { updatedAt: new Date('2026-01-01T00:00:01Z') } });
       assert.equal((await reading.history('first')).length, 2);
       assert.equal((await reading.continueReading('first')).chapterId, 'LUK.1');
       assert.deepEqual(await reading.history('second'), []);
