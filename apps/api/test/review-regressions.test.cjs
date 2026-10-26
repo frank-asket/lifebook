@@ -93,8 +93,9 @@ test('review regressions: quota reservation, stale AI writes, progress, care own
 
     // More than the old 500-message cap, with tied timestamps to exercise stable pagination.
     const at = new Date(Date.now() - 10000);
-    const messages = Array.from({ length: 503 }, (_, index) => {
-      const id = randomUUID();
+    // The service breaks createdAt ties by id, so sorted ids keep insertion order within each tied group.
+    const ids = Array.from({ length: 503 }, () => randomUUID()).sort();
+    const messages = ids.map((id, index) => {
       return { id, requestId: request.id, senderRole: 'member', createdAt: new Date(at.getTime() + Math.floor(index / 3)), ciphertext: encryptReflection(`Synthetic message ${index}`, `care:message:${users.member.id}:${request.id}:${id}`) };
     });
     await db.careMessage.createMany({ data: messages });
