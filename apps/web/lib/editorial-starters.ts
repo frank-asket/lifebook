@@ -1,0 +1,22 @@
+import meditations from '../../api/content/starter-meditations.json';
+import { newDraft, newLesson, type ContentDraft, type ContentKind } from './editorial';
+/** Original starter copy for pastoral review. Loading never saves or publishes. */
+export function starterDraft(kind: ContentKind, locale: 'en' | 'fr', index = 0): ContentDraft {
+  const french = locale === 'fr';
+  if (kind === 'meditations') {
+    const entry = meditations[index] ?? meditations[0];
+    const [title, scriptureReference, explanation, questions, guidedPrayer] = entry[locale];
+    return { ...newDraft(), slug: `starter-${entry.key}-${locale}`, locale, title: title as string, scriptureReference: scriptureReference as string, explanation: explanation as string, questions: (questions as string[]).join('\n'), guidedPrayer: guidedPrayer as string };
+  }
+  const lessons = (french ? [
+    ['Observer le passage', 'Luc 10.25–37', 'Lisez le passage et relevez les personnages, les questions et les actions. Jésus répond à un spécialiste de la Loi. Distinguez ce que le récit affirme de vos premières impressions.', 'Qui interroge Jésus et quelles questions sont posées ?\nQue fait chaque personnage ?'],
+    ['Comprendre dans le contexte', 'Luc 10.25–37', 'Relisez le dialogue et la parabole ensemble. Observez comment la question finale de Jésus déplace l’attention vers celui qui agit avec compassion. Ne faites pas du Samaritain un prétexte à une généralisation sur un peuple.', 'Comment Jésus reformule-t-il la question du prochain ?\nQuels détails montrent une compassion concrète ?'],
+    ['Répondre avec sagesse', 'Luc 10.25–37', 'Considérez l’appel final de Jésus à agir. Choisissez un geste de compassion adapté à votre situation, sans vous mettre en danger ni promettre de résoudre seul les besoins des autres.', 'Quel geste réaliste et sûr puis-je envisager ?\nDe quelle aide ai-je besoin pour le faire ?'],
+  ] : [
+    ['Observe the passage', 'Luke 10:25–37', 'Read the passage and note its people, questions and actions. Jesus is responding to an expert in the law. Distinguish what the narrative says from your first impressions.', 'Who questions Jesus, and what questions are asked?\nWhat does each person do?'],
+    ['Understand the context', 'Luke 10:25–37', 'Read the dialogue and parable together. Notice how Jesus’ final question shifts attention toward the person who acts with compassion. Do not use the Samaritan as a basis for generalizations about a people.', 'How does Jesus reframe the question of a neighbor?\nWhich details show practical compassion?'],
+    ['Respond wisely', 'Luke 10:25–37', 'Consider Jesus’ closing invitation to act. Choose a compassionate response suited to your situation, without putting yourself in danger or promising to meet another person’s needs alone.', 'What realistic, safe response could I consider?\nWhat support would help me act?'],
+  ]).map(([title, scriptureReference, explanation, questions]) => ({ ...newLesson(), title, scriptureReference, introduction: french ? 'Prenez le temps de lire le passage avant la réflexion.' : 'Take time to read the passage before reflecting.', historicalContext: french ? 'Ce dialogue se trouve dans le récit du ministère de Jésus selon Luc.' : 'This dialogue appears in Luke’s account of Jesus’ ministry.', exegesis: explanation, questions, guidedPrayer: french ? 'Seigneur, aide-moi à écouter ta Parole avec attention et à agir avec sagesse et compassion. Amen.' : 'Lord, help me attend carefully to your Word and respond with wisdom and compassion. Amen.', application: french ? 'Choisissez un petit pas concret, sans obligation de partager des informations personnelles.' : 'Choose one small practical step; sharing personal information is not required.', content: `${scriptureReference}\n\n${explanation}\n\n${questions}` }));
+  return { ...newDraft(), locale, slug: `${kind === 'studies' ? 'reading-luke-10' : 'exploring-scripture'}-${locale}`, title: kind === 'studies' ? (french ? 'Lire Luc 10 : observer, comprendre, répondre' : 'Reading Luke 10: observe, understand, respond') : (french ? 'Explorer les Écritures' : 'Exploring Scripture'), description: french ? 'Trois leçons pour pratiquer une lecture attentive et une réponse réfléchie. Brouillon à relire avant publication.' : 'Three lessons for attentive reading and thoughtful response. Draft for review before publication.', method: 'BOOK', lessons };
+}
+export const meditationStarterCount = meditations.length;

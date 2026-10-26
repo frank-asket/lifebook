@@ -11,7 +11,7 @@ const API = (options.api || 'https://lifebook-yhbx.onrender.com').replace(/\/+$/
 const WEB = (options.web || 'https://lifebook-inky.vercel.app').replace(/\/+$/, '');
 const MARKETING = (options.marketing || 'https://lifebook-marketing.vercel.app').replace(/\/+$/, '');
 
-const { get, json, validDate, validDailyWord, approvedLegalPage, verifiedContacts, reviewedDays } = require('./lib/launch-readiness.cjs');
+const { get, json, validDate, validDailyWord, approvedLegalPage, verifiedContacts, reviewedDays, contentState } = require('./lib/launch-readiness.cjs');
 const checkedDate = new Date().toISOString().slice(0, 10);
 const launchDate = options.date || checkedDate;
 if (!validDate(launchDate)) throw new Error('--date must be a real YYYY-MM-DD calendar date');
@@ -61,6 +61,7 @@ const gates = [
 ];
 
 const manual = [
+  ['Every feature included in the beta has approved, usable content and completed detail/playback acceptance; explicitly record excluded empty libraries', 'Engineering + pastoral reviewer'],
   ['Production Clerk identity transition rehearsed without orphaning existing LifeBook data; matching web/API keys and allowed origins', 'Engineering + product owner'],
   ['Invite-only access enabled on the production Clerk instance; no invitations sent until approvals pass', 'Product owner'],
   ['Scripture rights and AI-provider retention terms confirmed for the enabled features', 'Product owner'],
@@ -73,16 +74,29 @@ const manual = [
 ];
 
 (async () => {
+  // Availability is separate from approval and the nine launch gates; a working empty API is not a finished library.
+  const content = ['en', 'fr'].flatMap(locale => [
+    { feature: 'Published meditation', route: 'meditations/today', kind: 'meditation', locale },
+    { feature: 'Bible Study', route: 'bible-studies', kind: 'collection', locale },
+    { feature: 'LivingWord', route: 'livingword', kind: 'teachings', locale },
+  ]);
+  content.push({ feature: 'Learning paths', route: 'paths', kind: 'collection', locale: 'shared' });
+  const contentAvailability = Promise.all(content.map(async ({ feature, route, kind, locale }) => {
+    const response = await get(`${API}/${route}${locale === 'shared' ? '' : `?locale=${locale}`}`);
+    return { feature, locale, status: response.status, ...contentState(response, kind) };
+  }));
   const results = await Promise.all(gates.map(async gate => {
     try { const [passed, detail] = await gate.check(); return { id: gate.id, title: gate.title, owner: gate.owner || 'Engineering', passed, detail }; }
     catch { return { id: gate.id, title: gate.title, owner: gate.owner || 'Engineering', passed: false, detail: 'check failed; inspect the source/configuration locally' }; }
   }));
   const passed = results.filter(gate => gate.passed).length;
-  const report = { checkedAt: new Date().toISOString(), launchDate, automatedReady: passed === gates.length, passed, total: gates.length, gates: results, manualGatesToConfirm: manual.map(([title, owner]) => ({ title, owner })) };
+  const report = { checkedAt: new Date().toISOString(), launchDate, automatedReady: passed === gates.length, passed, total: gates.length, gates: results, contentAvailability: await contentAvailability, manualGatesToConfirm: manual.map(([title, owner]) => ({ title, owner })) };
   if (options.json) console.log(JSON.stringify(report, null, 2));
   else {
     console.log(`LifeBook M3.8 web launch check · ${report.checkedAt} · launch date ${launchDate}\n`);
     for (const gate of results) console.log(`${gate.passed ? '✔' : '✘'} ${gate.title}${gate.passed ? '' : `  [${gate.owner}]`}\n    ${gate.detail}`);
+    console.log('\nPublished content availability (does not prove approval, playback or feature completion):');
+    for (const item of report.contentAvailability) console.log(`  • ${item.feature} [${item.locale}]: ${item.state}${item.count === null ? '' : ` (${item.count})`} · HTTP ${item.status}`);
     console.log('\nManual gates (record evidence in docs/M3.8_WEB_BETA_ACCEPTANCE.md):');
     for (const [title, owner] of manual) console.log(`  • ${title}  [${owner}]`);
     console.log(`\n${passed} of ${gates.length} automated gates pass; ${manual.length} manual gates still require evidence. Automated success alone does not authorize launch.`);

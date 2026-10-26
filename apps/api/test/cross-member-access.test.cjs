@@ -26,6 +26,8 @@ function installClerkDouble() {
 // public: no sign-in. own: acts on B's own data (allowed; invariants still checked). a: names a record A owns,
 // so B must get 403 or 404. role: pastor/editor/moderator only, so a member gets 403.
 const ROUTES = {
+  'GET /teaching-discovery/sources': 'role', 'GET /teaching-discovery/videos': 'role',
+  'GET /editorial/:kind': 'role', 'GET /editorial/:kind/:id': 'role', 'POST /editorial/:kind': 'role', 'PUT /editorial/:kind/:id': 'role',
   'GET /bible-annotations': 'own', 'PUT /bible-annotations': 'own', 'DELETE /bible-annotations/:id': 'a', 'GET /bible-annotations/page': 'own', 'GET /bible-annotations/passage': 'own',
   'GET /bible-content/books': 'public', 'GET /bible-content/books/:bookId/chapters': 'public', 'GET /bible-content/chapters/:chapterId': 'public', 'GET /bible-content/passages/:passageId': 'public', 'GET /bible-content/search': 'public', 'GET /bible-content/translation': 'public', 'POST /bible-content/usage': 'public',
   'GET /bible-reading/continue': 'own', 'POST /bible-reading/enrollments/:id/complete-day': 'a', 'GET /bible-reading/history': 'own', 'PUT /bible-reading/history': 'own', 'GET /bible-reading/my-plans': 'own', 'GET /bible-reading/plans': 'public', 'GET /bible-reading/plans/:id': 'public', 'POST /bible-reading/plans/:id/enroll': 'own',
@@ -126,11 +128,13 @@ test('member B can never read, change or delete member A\'s data, on any route',
     assert.ok(before.size >= 12, `expected A's rows to be captured, found ${before.size}`);
 
     // Concrete requests for every route: A's IDs where a route names a record; valid bodies so a 400 cannot hide a missing check.
-    const fill = route => route.replace(':id/lessons/:lessonId', `${ids.path}/lessons/${ids.lesson}`).replace(':lessonId', ids.lesson).replace(':step', 'MEDITATE').replace(':slug', 'xm-none').replace(':passageId', 'JHN.1.1').replace(':chapterId', 'JHN.1').replace(':bookId', 'JHN')
+    const fill = route => route.replace(':kind', 'meditations').replace(':id/lessons/:lessonId', `${ids.path}/lessons/${ids.lesson}`).replace(':lessonId', ids.lesson).replace(':step', 'MEDITATE').replace(':slug', 'xm-none').replace(':passageId', 'JHN.1.1').replace(':chapterId', 'JHN.1').replace(':bookId', 'JHN')
       .replace(/^(\/prayers)\/:id/, `$1/${ids.prayer}`).replace(/^(\/bible-annotations)\/:id/, `$1/${ids.annotation}`).replace(/^(\/bible-reading\/enrollments)\/:id/, `$1/${ids.enrollment}`).replace(/^(\/bible-reading\/plans)\/:id/, `$1/${ids.plan}`)
       .replace(/^(\/daily-word\/sessions)\/:id/, `$1/${ids.session}`).replace(/^(\/care\/(requests|pastor\/cases|pastor\/queue))\/:id/, `$1/${ids.care}`).replace(/^(\/meditations)\/:id/, `$1/${ids.meditation}`).replace(/^(\/paths)\/:id/, `$1/${ids.path}`)
       .replace(/^(\/bible-studies\/lessons)\/:id/, `$1/${ids.studyLesson}`).replace(/^(\/bible-studies)\/:id/, `$1/${ids.series}`).replace(/^(\/(safeguarding\/reports|livingword\/editor|livingword))\/:id/, `$1/${ids.care}`);
     const BODIES = {
+      'POST /editorial/:kind': { slug: 'xm-editorial', title: 'Synthetic', locale: 'en', publishDate: '', scriptureReference: '', explanation: '', questions: [], guidedPrayer: '', publish: false, reviewConfirmed: false },
+      'PUT /editorial/:kind/:id': { slug: 'xm-editorial', title: 'Synthetic', locale: 'en', publishDate: '', scriptureReference: '', explanation: '', questions: [], guidedPrayer: '', publish: false, reviewConfirmed: false, revision: 'a'.repeat(64) },
       'PUT /prayers/:id': { body: 'B overwrites' }, 'PUT /prayers/:id/answer': { answered: false }, 'POST /prayers/:id/meditation': { consent: true }, 'POST /prayers': { body: 'B prayer' }, 'POST /prayers/delete-all': { confirm: 'DELETE_ALL_PRAYERS' },
       'PUT /bible-annotations': { passageId: 'JHN.1.1', locale: 'en', note: 'B note' }, 'PUT /bible-reading/history': { locale: 'en', chapterId: 'JHN.2' }, 'POST /bible-reading/enrollments/:id/complete-day': { day: 2 },
       'PUT /daily-word/sessions/:id/reflection': { content: 'B overwrites' }, 'POST /daily-word/sessions/today': { timezone: 'UTC' },

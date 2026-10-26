@@ -1,3 +1,4 @@
+import { publishedMeditations } from '../meditation/meditation-visibility';
 import { database } from '../common/database';
 import { BadRequestException, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { BibleContentService } from '../bible-content/bible-content.service';
@@ -53,7 +54,7 @@ export class SearchService implements OnModuleDestroy {
           .map(r => ({ id: r.id, title: r.title, subtitle: r.speaker, href: `/livingword/${r.id}` }));
       }),
       section('meditations', async () => {
-        const rows = await this.db.meditation.findMany({ where: { isPublished: true, locale, OR: [{ publishDate: null }, { publishDate: { lte: new Date() } }] }, select: { id: true, title: true, scriptureReference: true }, take: CANDIDATES });
+        const rows = await this.db.meditation.findMany({ where: { ...publishedMeditations(), locale }, select: { id: true, title: true, scriptureReference: true }, take: CANDIDATES });
         return rank(q, rows, r => ({ title: r.title, description: r.scriptureReference }), PER_SECTION).map(r => ({ id: r.id, title: r.title, subtitle: r.scriptureReference, href: `/meditation/${r.id}` }));
       }),
     ]);
