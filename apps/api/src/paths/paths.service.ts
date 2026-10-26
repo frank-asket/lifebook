@@ -28,7 +28,8 @@ export class PathsService implements OnModuleDestroy {
     const userId = await this.identity.userId(auth);
     const path = await this.details(id);
     if (!path.lessons.length) throw new BadRequestException('This pathway has no lessons yet');
-    await this.db.enrollment.upsert({ where: { userId_pathId: { userId, pathId: id } }, create: { userId, pathId: id }, update: {} });
+    // Prisma's upsert can fall back to find-then-create and race; ON CONFLICT DO NOTHING keeps concurrent enrolments harmless.
+    await this.db.enrollment.createMany({ data: [{ userId, pathId: id }], skipDuplicates: true });
     return this.state(auth, id);
   }
   async complete(auth: string | undefined, pathId: string, lessonId: string) {
