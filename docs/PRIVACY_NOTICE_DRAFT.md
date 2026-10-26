@@ -11,7 +11,7 @@ Items marked **[confirm]** need the product owner. Items marked **[gap]** are th
 - **Consent history, AI usage counts and safeguarding logs.**
 
 ## Who we are
-LifeBook **[confirm: legal entity, address, country of establishment, contact for privacy requests, DPO if any]**. Contact: hello@lifebook.app **[confirm it is monitored]**.
+LifeBook is operated by Franck Asket **[confirm: public business/contact address, country of establishment, legal capacity and any DPO details]**. Contact: lifebook.meditation@gmail.com (supplied by the operator).
 
 ## What we collect, and why
 

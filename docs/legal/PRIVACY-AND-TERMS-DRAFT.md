@@ -1,6 +1,6 @@
 # LifeBook privacy and terms: bilingual review draft
 
-Updated 25 October 2026. **Not approved for publication.** The support contact supplied by the owner is **lifebook.meditation@gmail.com**. No response-time promise is made.
+Updated 25 October 2026. **Not approved for publication.** The operator identified by the owner is **Franck Asket**; the public business/contact address and legal capacity remain to be confirmed. The support contact supplied by the owner is **lifebook.meditation@gmail.com**. No response-time promise is made.
 
 Before approval, the owner must supply the operating entity and address, confirm intended countries and ages, approve applicable legal bases and user rights, verify provider contracts and international transfers, and confirm actual production retention and backup deletion practices. This document describes product behavior visible in source; it does not establish those legal or operational facts.
 

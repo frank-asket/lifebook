@@ -1,87 +1,91 @@
 // M3.8 launch readiness, measured. Read-only: public URLs and files in this repo; no secrets, no database, no sign-in.
 //   pnpm --filter @lifebook/api build
-//   node apps/api/scripts/launch-check.cjs [--api <url>] [--web <url>] [--marketing <url>]
+//   node apps/api/scripts/launch-check.cjs [--date YYYY-MM-DD] [--json] [--api <url>] [--web <url>] [--marketing <url>]
 // Exit code 1 while any automated gate is open. Manual gates are listed so nothing is forgotten.
 const fs = require('node:fs');
 const path = require('node:path');
 const { apiRoot, repoRoot, parseOptions } = require('./lib/target.cjs');
 
-const options = parseOptions(process.argv.slice(2));
+const options = parseOptions(process.argv.slice(2), ['json']);
 const API = (options.api || 'https://lifebook-yhbx.onrender.com').replace(/\/+$/, '') + '/api/v1';
 const WEB = (options.web || 'https://lifebook-inky.vercel.app').replace(/\/+$/, '');
 const MARKETING = (options.marketing || 'https://lifebook-marketing.vercel.app').replace(/\/+$/, '');
 
-async function get(url) {
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(20000), redirect: 'follow' });
-    return { status: res.status, body: await res.text() };
-  } catch (error) { return { status: 0, body: '', error: error.message }; }
-}
-const json = text => { try { return JSON.parse(text); } catch { return null; } };
+const { get, json, validDate, validDailyWord, approvedLegalPage, verifiedContacts, reviewedDays } = require('./lib/launch-readiness.cjs');
+const checkedDate = new Date().toISOString().slice(0, 10);
+const launchDate = options.date || checkedDate;
+if (!validDate(launchDate)) throw new Error('--date must be a real YYYY-MM-DD calendar date');
 
 const gates = [
-  { id: 'api', title: 'Production API is up', check: async () => { const r = await get(`${API}/health`); return [r.status === 200, `health ${r.status}`]; } },
+  { id: 'api', title: 'Production API is up', check: async () => { const r = await get(`${API}/health`); return [r.status === 200, `health ${r.status}${r.attempts > 1 ? ' (required retry)' : ''}`]; } },
   { id: 'web', title: 'Web app and marketing site respond', check: async () => {
     const [w, m] = await Promise.all([get(WEB), get(MARKETING)]);
     return [w.status === 200 && m.status === 200, `web ${w.status}, marketing ${m.status}`];
   } },
   { id: 'scripture', title: 'Daily Word quotes the published translations', check: async () => {
-    const [en, fr] = await Promise.all(['en', 'fr'].map(l => get(`${API}/meditations/daily-word/today?locale=${l}`).then(r => json(r.body))));
-    const ok = /King James/.test(en?.verse?.translation ?? '') && /Darby/.test(fr?.verse?.translation ?? '');
-    return [ok, `en: ${en?.verse?.translation ?? '?'} · fr: ${fr?.verse?.translation ?? '?'}`];
+    const [en, fr] = await Promise.all(['en', 'fr'].map(locale => get(`${API}/meditations/daily-word/today?locale=${locale}`)));
+    const ok = validDailyWord(en, 'en') && validDailyWord(fr, 'fr');
+    return [ok, `en: ${json(en.body)?.verse?.translation ?? '?'} · fr: ${json(fr.body)?.verse?.translation ?? '?'}`];
   } },
   { id: 'clerk', title: 'Sign-in uses Clerk production keys', owner: 'Product owner', check: async () => {
     const r = await get(`${WEB}/sign-in`);
     const key = r.body.match(/pk_(live|test)_/)?.[1];
-    return [key === 'live', key ? `publishable key is pk_${key}_…` : 'no Clerk key found on /sign-in'];
+    return [r.status === 200 && key === 'live', key ? `publishable key is pk_${key}_…` : 'no Clerk key found on /sign-in'];
   } },
-  { id: 'privacy', title: 'Final privacy notice is published', owner: 'Product owner + adviser', check: async () => {
-    const r = await get(`${MARKETING}/privacy`);
-    const placeholder = /pre-launch privacy overview/i.test(r.body);
-    return [r.status === 200 && !placeholder, placeholder ? 'still the pre-launch placeholder' : `status ${r.status}`];
+  { id: 'privacy', title: 'Approved privacy and terms published in English and French', owner: 'Product owner + adviser', check: async () => {
+    const paths = ['/privacy', '/terms', '/fr/privacy', '/fr/terms'];
+    const responses = await Promise.all(paths.map(async pathname => ({ pathname, response: await get(`${MARKETING}${pathname}`) })));
+    const pending = responses.filter(({ response }) => !approvedLegalPage(response));
+    return [pending.length === 0, pending.length ? `not approved or unavailable: ${pending.map(({ pathname }) => pathname).join(', ')}` : 'all four legal pages explicitly marked approved'];
   } },
   { id: 'companion', title: 'Prayer topic library reviewed and live', owner: 'Pastoral reviewer', check: async () => {
     const lib = json(fs.readFileSync(path.join(apiRoot, 'content/prayer-topics.json'), 'utf8'));
     const r = await get(`${API}/prayer-companion/topics?locale=en`);
-    return [lib?.status === 'reviewed' && r.status === 200, `library ${lib?.status}, production endpoint ${r.status}`];
+    const published = json(r.body);
+    return [lib?.status === 'reviewed' && !!lib.review?.reviewedBy?.trim() && validDate(lib.review?.reviewedOn) && lib.review.reviewedOn <= checkedDate && r.status === 200 && published?.reviewed === true && Array.isArray(published?.topics) && published.topics.length > 0, `library ${lib?.status}, production endpoint ${r.status}`];
   } },
   { id: 'crisis', title: 'Crisis numbers verified locally', owner: 'Reviewer per country', check: async () => {
     const doc = fs.readFileSync(path.join(repoRoot, 'docs/M3.7_CRISIS_CONTACTS_DRAFT.md'), 'utf8');
-    const draft = /\*\*Status:\*\*\s*DRAFT/i.test(doc);
-    return [!draft, draft ? 'contacts document is still marked DRAFT' : 'marked verified'];
+    const verified = verifiedContacts(doc, checkedDate);
+    return [verified, verified ? 'named local reviewer and verification date recorded' : 'explicit VERIFIED status, named reviewer and real verification date still required'];
   } },
-  { id: 'daily-word', title: 'At least 30 reviewed Daily Word entries', owner: 'Writers + pastoral reviewer', check: async () => {
-    const { validateDailyWordLibrary, coverage } = require(path.join(apiRoot, 'dist/meditation/daily-word-library'));
-    const c = coverage(validateDailyWordLibrary(json(fs.readFileSync(path.join(apiRoot, 'content/daily-word-library.json'), 'utf8'))));
-    return [c.byStatus.reviewed >= 30, `${c.byStatus.reviewed} reviewed, ${c.byStatus.draft} draft`];
+  { id: 'daily-word', title: 'Reviewed Daily Word coverage for the first 30 launch days', owner: 'Product owner / pastoral reviewer', check: async () => {
+    const { validateDailyWordLibrary } = require(path.join(apiRoot, 'dist/meditation/daily-word-library'));
+    const result = reviewedDays(validateDailyWordLibrary(json(fs.readFileSync(path.join(apiRoot, 'content/daily-word-library.json'), 'utf8'))), launchDate);
+    return [!result.missing.length, `${result.reviewed}/${result.total} reviewed from ${launchDate}${result.missing.length ? `; first missing: ${result.missing.slice(0, 5).join(', ')}` : ''}`];
   } },
   { id: 'pastors', title: 'Pastors registered for the care pilot', owner: 'Product owner + engineering', check: async () => {
     const r = await get(`${API}/pastors`); const list = json(r.body);
-    return [Array.isArray(list) && list.length > 0, Array.isArray(list) ? `${list.length} listed` : `status ${r.status}`];
+    return [r.status === 200 && Array.isArray(list) && list.length > 0, Array.isArray(list) ? `${list.length} listed` : `status ${r.status}`];
   } },
 ];
 
 const manual = [
-  ['OpenAI key on Render and data-retention terms confirmed', 'Product owner'],
-  ['Hosting plan decided (Vercel free plan: 100 deploys a day, non-commercial use)', 'Product owner'],
-  ['"Delete my account" built and tested; data export or an accepted manual process', 'Engineering'],
-  ['Legacy unencrypted reflections encrypted in production (approved run)', 'Engineering, after approval'],
-  ['Care-data purge switched on in production (CARE_PURGE_SCHEDULE=on)', 'Engineering, after approval'],
-  ['Signed-in production smoke test passed (docs/M3.8_SMOKE_TEST.md)', 'Engineering'],
-  ['Real devices: iPhone Safari, Android Chrome, VoiceOver and TalkBack', 'Engineering + tester'],
+  ['Production Clerk identity transition rehearsed without orphaning existing LifeBook data; matching web/API keys and allowed origins', 'Engineering + product owner'],
+  ['Invite-only access enabled on the production Clerk instance; no invitations sent until approvals pass', 'Product owner'],
+  ['Scripture rights and AI-provider retention terms confirmed for the enabled features', 'Product owner'],
+  ['Hosting/domain plan confirmed, monitoring and rollback owner assigned, support inbox checked', 'Product owner'],
+  ['Account export and deletion verified with dedicated synthetic production accounts', 'Engineering'],
+  ['Legacy reflections: fresh count, recoverable backup, rehearsal and named approval before encryption; previous pause remains respected', 'Engineering + product owner'],
+  ['Care retention setting and successful purge logs verified; do not enable destructive runs without approval', 'Engineering + product owner'],
+  ['Signed-in production smoke test passed on the deployed candidate (docs/M3.8_SMOKE_TEST.md)', 'Engineering'],
+  ['Web on physical iPhone/Android: browser, large text, VoiceOver/TalkBack and second-account isolation; native-store acceptance tracked separately', 'Engineering + tester'],
 ];
 
 (async () => {
-  console.log(`LifeBook M3.8 launch check · ${new Date().toISOString().slice(0, 16)}Z\n`);
-  let open = 0;
-  for (const gate of gates) {
-    let ok = false, detail = '';
-    try { [ok, detail] = await gate.check(); } catch (error) { detail = `check failed: ${error.message}`; }
-    if (!ok) open++;
-    console.log(`${ok ? '✔' : '✘'} ${gate.title}${gate.owner && !ok ? `  [${gate.owner}]` : ''}\n    ${detail}`);
+  const results = await Promise.all(gates.map(async gate => {
+    try { const [passed, detail] = await gate.check(); return { id: gate.id, title: gate.title, owner: gate.owner || 'Engineering', passed, detail }; }
+    catch { return { id: gate.id, title: gate.title, owner: gate.owner || 'Engineering', passed: false, detail: 'check failed; inspect the source/configuration locally' }; }
+  }));
+  const passed = results.filter(gate => gate.passed).length;
+  const report = { checkedAt: new Date().toISOString(), launchDate, automatedReady: passed === gates.length, passed, total: gates.length, gates: results, manualGatesToConfirm: manual.map(([title, owner]) => ({ title, owner })) };
+  if (options.json) console.log(JSON.stringify(report, null, 2));
+  else {
+    console.log(`LifeBook M3.8 web launch check · ${report.checkedAt} · launch date ${launchDate}\n`);
+    for (const gate of results) console.log(`${gate.passed ? '✔' : '✘'} ${gate.title}${gate.passed ? '' : `  [${gate.owner}]`}\n    ${gate.detail}`);
+    console.log('\nManual gates (record evidence in docs/M3.8_WEB_BETA_ACCEPTANCE.md):');
+    for (const [title, owner] of manual) console.log(`  • ${title}  [${owner}]`);
+    console.log(`\n${passed} of ${gates.length} automated gates pass; ${manual.length} manual gates still require evidence. Automated success alone does not authorize launch.`);
   }
-  console.log('\nManual gates (tick in docs/M3.8_LAUNCH_PLAN.md):');
-  for (const [title, owner] of manual) console.log(`  • ${title}  [${owner}]`);
-  console.log(`\n${gates.length - open} of ${gates.length} automated gates pass; ${manual.length} manual gates to confirm.`);
-  process.exitCode = open ? 1 : 0;
+  process.exitCode = report.automatedReady ? 0 : 1;
 })();

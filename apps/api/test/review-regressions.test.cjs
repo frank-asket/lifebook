@@ -100,7 +100,8 @@ test('review regressions: quota reservation, stale AI writes, progress, care own
     await db.careMessage.createMany({ data: messages });
     let page = await care.mine('member', request.id);
     assert.equal(page.messages.length, 500);
-    assert.equal(page.messages.at(-1).text, 'Synthetic message 502', 'newest replies appear immediately');
+    const expected = [...messages].sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    assert.deepEqual(page.messages.map(message => message.id), expected.slice(-500).map(message => message.id), 'the newest window follows timestamp and UUID ordering, including tied timestamps');
     const seen = new Set(page.messages.map(m => m.id));
     const readAt = (await db.careRequest.findUnique({ where: { id: request.id } })).memberReadAt;
     while (page.nextCursor) {

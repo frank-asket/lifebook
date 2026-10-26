@@ -3,7 +3,7 @@
 **Statut : BROUILLON à faire relire par un juriste. Ce n’est pas un avis juridique et ce texte n’est pas à publier tel quel.** Rédigé par l’équipe technique à partir du fonctionnement réel de l’application, le 25 octobre 2026. Il traduit `PRIVACY_NOTICE_DRAFT.md` ; en cas d’écart, la version anglaise fait foi jusqu’à la relecture. Les mentions **[à confirmer]** relèvent du responsable du produit, les mentions **[à faire]** de ce que l’application ne fait pas encore.
 
 ## Qui sommes-nous
-LifeBook **[à confirmer : entité juridique, adresse, pays d’établissement, contact pour les demandes relatives aux données, DPO le cas échéant]**. Contact : hello@lifebook.app **[à confirmer : boîte suivie]**.
+LifeBook est exploité par Franck Asket **[à confirmer : adresse publique de contact, pays d’établissement, statut juridique et DPO le cas échéant]**. Contact fourni par le responsable : lifebook.meditation@gmail.com.
 
 ## Ce que nous collectons, et pourquoi
 
