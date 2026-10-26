@@ -2055,7 +2055,7 @@ progress::-moz-progress-bar { background: var(--purple); }
 @keyframes reader-menu-in { from { opacity: 0; transform: scale(.96); } }
 .reader-setting { display: grid; gap: 8px; }
 .reader-menu-panel { max-height: calc(100vh - 160px); overflow-y: auto; }
-.reader-menu-button { gap: 6px; padding: 0 10px; }
+.reader-menu-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; min-width: 44px; padding: 0 10px; }
 .reader-version-tag { font-size: 12px; font-weight: 800; letter-spacing: .02em; }
 .reader-versions { display: grid; gap: 2px; padding: 4px; border-radius: 12px; background: var(--soft); }
 .reader-versions button { display: grid; grid-template-columns: 3.4em 1fr auto; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 13px; text-align: left; }
@@ -2236,7 +2236,7 @@ p a.text-link, li a.text-link { display: inline; min-height: 0; }
 .search-item:focus-visible, .search-go:focus-visible { outline: 2px solid var(--purple); outline-offset: -2px; }
 
 /* Reading settings preview: the same sizes, spacing and typeface as the reader, so changes show before closing. */
-.reader-preview { --reader-size: 19px; --reader-leading: 1.9; margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--soft); max-height: 220px; overflow: hidden; }
+.reader-preview { --reader-size: 19px; --reader-leading: 1.9; margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--soft); }
 .reader-preview[data-size='s'] { --reader-size: 17px; }
 .reader-preview[data-size='l'] { --reader-size: 22px; }
 .reader-preview[data-size='xl'] { --reader-size: 25px; }
@@ -2256,7 +2256,7 @@ p a.text-link, li a.text-link { display: inline; min-height: 0; }
 .pastor-apply fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .pastor-apply legend { padding: 0; }
 .pastor-apply legend h2 { font-size: 19px; margin: 0; }
-.pastor-apply fieldset + fieldset { border-top: 1px solid var(--line); padding-top: 18px; }
+.pastor-apply fieldset + fieldset { padding-top: 18px; box-shadow: inset 0 1px 0 var(--line); }
 .field-hint { font-size: 12px; }
 .input-prefix { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .input-prefix > span { color: var(--muted); font-size: 13px; white-space: nowrap; }

@@ -53,7 +53,8 @@ for (const file of readdirSync(source).filter(f => f.endsWith('.usfm')).sort()) 
     if (marker === 'v' || v) {
       if (!v) throw new Error(`${id} ${chapters.length}: bad verse line`);
       flush();
-      if (breakNext || !paragraph) { paragraph = []; chapter.push(paragraph); breakNext = false; }
+      // In poetry each verse starts its own line, as API.Bible lays out the other versions.
+      if (breakNext || !paragraph || lastMarker === 'q1') { paragraph = []; chapter.push(paragraph); breakNext = false; }
       verse = [v[1], v[2]]; paragraph.push(verse); verses++;
       continue;
     }
