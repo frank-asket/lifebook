@@ -10,6 +10,7 @@ import { Button, Card, ErrorLine, Row, Screen } from '../../components/ui';
 import { calendarDay, lastSevenDays, passageLabel } from '../../../web/lib/scripture';
 import { DAILY_WORD_STEPS } from '../../../web/lib/daily-word-navigation';
 
+type HomeSummary = { prayer: { total: number; answered: number; awaiting: number }; studies: { id: string; title: string }[]; paths: { id: string; title: string }[] };
 type Reading = { locale: 'en' | 'fr'; chapterId: string; verse: number | null };
 
 export default function Today() {
@@ -21,23 +22,26 @@ export default function Today() {
   const [today, setToday] = useState<TodaySession | null>(null);
   const [recent, setRecent] = useState<TodaySession[] | null>(null);
   const [reading, setReading] = useState<Reading | null>(null);
+  const [summary, setSummary] = useState<HomeSummary | null>(null);
 
   // Refresh whenever the tab comes back into view, e.g. after finishing a prayer time.
   useFocusEffect(useCallback(() => {
-    if (!session.isSignedIn) { setToday(null); setRecent(null); setReading(null); return; }
+    if (!session.isSignedIn) { setToday(null); setRecent(null); setReading(null); setSummary(null); return; }
     let active = true;
     (async () => {
       const token = await session.getToken();
       if (!token || !active) return;
-      const [s, h, r] = await Promise.allSettled([
+      const [s, h, r, home] = await Promise.allSettled([
         api<TodaySession>(`/daily-word/sessions/today?timezone=${encodeURIComponent(timezone())}`, token),
         api<TodaySession[]>('/daily-word/sessions?limit=7', token),
         api<Reading | null>('/bible-reading/continue', token),
+        api<HomeSummary>('/me/home', token),
       ]);
       if (!active) return;
       if (s.status === 'fulfilled') setToday(s.value);
       if (h.status === 'fulfilled') setRecent(h.value);
       if (r.status === 'fulfilled') setReading(r.value);
+      if (home.status === 'fulfilled') setSummary(home.value); else setSummary(null);
     })();
     return () => { active = false; };
   }, [session.isSignedIn, session.getToken, date]));
@@ -87,6 +91,13 @@ export default function Today() {
       <Text style={{ color: c.muted, fontSize: 13, marginTop: 12 }}>{count === 0 ? t.today.fresh : count === 1 ? t.today.oneDay : t.today.days(count)}</Text>
     </Card> : null}
 
+    {summary ? <Card style={{ gap: 10 }}>
+      <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 17, fontWeight: '700' }}>{lang === 'fr' ? 'Poursuivre votre parcours' : 'Continue your journey'}</Text>
+      <Text style={{ color: c.muted }}>{lang === 'fr' ? `${summary.prayer.awaiting} prières en attente · ${summary.prayer.answered} exaucées` : `${summary.prayer.awaiting} awaiting prayers · ${summary.prayer.answered} answered`}</Text>
+      {summary.studies.length ? <Button kind="soft" title={lang === 'fr' ? 'Reprendre une étude biblique' : 'Resume Bible Study'} onPress={() => router.push('/bible-studies')} /> : null}
+      {summary.paths.length ? <Button kind="soft" title={lang === 'fr' ? 'Reprendre un parcours' : 'Resume discipleship'} onPress={() => router.push('/discipleship')} /> : null}
+      <Button kind="quiet" title={lang === 'fr' ? 'Ouvrir le journal de prière' : 'Open prayer journal'} onPress={() => router.navigate('/prayer')} />
+    </Card> : null}
     <Suggestions />
 
     <Row icon="book-outline" title={reading ? t.today.continueReading : t.today.readBible} subtitle={reading ? passageLabel(reading.chapterId, reading.locale, reading.verse) : t.today.readBibleSub} onPress={openReading} />
