@@ -82,6 +82,7 @@ export default function You() {
     </Card>
 
     <Row icon="headset-outline" title="LivingWord" subtitle={lang === 'fr' ? 'Enseignements audio et vidéo' : 'Audio and video teachings'} onPress={() => router.push('/livingword')} />
+    <Row icon="school-outline" title={lang === 'fr' ? 'Étude biblique' : 'Bible Study'} subtitle={lang === 'fr' ? 'Séries et leçons bibliques' : 'Scripture series and lessons'} onPress={() => router.push('/bible-studies')} />
     <Row icon="compass-outline" title={lang === 'fr' ? 'Mon parcours' : 'My Journey'} subtitle={lang === 'fr' ? 'Parcours et leçons à votre rythme' : 'Pathways and lessons at your own pace'} onPress={() => router.push('/discipleship')} />
     <SectionLabel>{t.you.reading}</SectionLabel>
     <Row icon="text-outline" title={t.you.readingRow} onPress={() => router.push('/reader-settings')} />
