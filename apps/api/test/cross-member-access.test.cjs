@@ -145,20 +145,6 @@ test('member B can never read, change or delete member A\'s data, on any route',
       'PUT /pastor-application': { displayName: 'B Pastor', slug: 'xm-b-pastor', bio: 'B bio', languages: ['en'], churchName: 'B Church', ministryRole: 'Pastor', country: 'GH', referenceName: 'B Ref', referenceContact: 'b-ref@example.invalid', trainingCourse: 'Course', trainingCompletedOn: '2026-10-01', codeOfConduct: true },
       'PUT /me/profile': { preferredLanguage: 'fr' }, 'POST /me/account/delete': { confirm: 'DELETE_MY_ACCOUNT' }, 'POST /bible-content/usage': {},
     };
-    const failures = [];
-    const order = Object.keys(ROUTES).sort((x, y) => (x === 'POST /me/account/delete') - (y === 'POST /me/account/delete'));
-    for (const key of order) {
-      const [method, route] = key.split(' '); const kind = ROUTES[key];
-      if (kind === 'public') continue;
-      const concrete = fill(route);
-      const anon = await call(null, method, concrete, BODIES[key]);
-      if (anon.status < 400 || anon.text.includes(MARK)) failures.push(`anonymous ${key} -> ${anon.status}`);
-      const b = await call('member-b', method, concrete, BODIES[key]);
-      if (b.text.includes(MARK) || A_IDS.some(id => b.text.includes(id) && !(kind === 'a' && b.status === 404))) failures.push(`B saw A's data on ${key} (${b.status})`);
-      if (kind === 'a' && ![403, 404].includes(b.status)) failures.push(`B on A's record ${key} -> ${b.status} ${b.text.slice(0, 120)} (expected 403 or 404)`);
-      if (kind === 'role' && b.status !== 403) failures.push(`member on role route ${key} -> ${b.status} ${b.text.slice(0, 120)} (expected 403)`);
-    }
-
     // A member's export must never contain another member's private prayer, care or reflection.
     // Use real HTTP controllers with the Clerk test double and real disposable PostgreSQL rows.
     const exportA = await call('member-a', 'GET', '/me/account/export');
@@ -174,6 +160,20 @@ test('member B can never read, change or delete member A\'s data, on any route',
       const response = await fetch(base + route, { headers: { Authorization: 'Bearer member-b' } });
       assert.equal(response.status, 200, `B can access own ${route}`);
       assert.equal(response.headers.get('cache-control'), 'no-store', `private ${route} must not be cached`);
+    }
+
+    const failures = [];
+    const order = Object.keys(ROUTES).sort((x, y) => (x === 'POST /me/account/delete') - (y === 'POST /me/account/delete'));
+    for (const key of order) {
+      const [method, route] = key.split(' '); const kind = ROUTES[key];
+      if (kind === 'public') continue;
+      const concrete = fill(route);
+      const anon = await call(null, method, concrete, BODIES[key]);
+      if (anon.status < 400 || anon.text.includes(MARK)) failures.push(`anonymous ${key} -> ${anon.status}`);
+      const b = await call('member-b', method, concrete, BODIES[key]);
+      if (b.text.includes(MARK) || A_IDS.some(id => b.text.includes(id) && !(kind === 'a' && b.status === 404))) failures.push(`B saw A's data on ${key} (${b.status})`);
+      if (kind === 'a' && ![403, 404].includes(b.status)) failures.push(`B on A's record ${key} -> ${b.status} ${b.text.slice(0, 120)} (expected 403 or 404)`);
+      if (kind === 'role' && b.status !== 403) failures.push(`member on role route ${key} -> ${b.status} ${b.text.slice(0, 120)} (expected 403)`);
     }
 
     // Nothing A owned changed, and A still reads exactly their own data.
