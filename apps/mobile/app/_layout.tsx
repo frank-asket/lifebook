@@ -38,6 +38,7 @@ function Navigation() {
       <Stack.Screen name="books" options={{ presentation: 'modal' }} />
       <Stack.Screen name="reading-plans" />
       <Stack.Screen name="discipleship" />
+      <Stack.Screen name="bible-studies" />
       <Stack.Screen name="livingword" />
       <Stack.Screen name="pastoral-care" options={{ gestureEnabled: false }} />
       <Stack.Screen name="account-privacy" options={{ gestureEnabled: false }} />
