@@ -159,6 +159,23 @@ test('member B can never read, change or delete member A\'s data, on any route',
       if (kind === 'role' && b.status !== 403) failures.push(`member on role route ${key} -> ${b.status} ${b.text.slice(0, 120)} (expected 403)`);
     }
 
+    // A member's export must never contain another member's private prayer, care or reflection.
+    // Use real HTTP controllers with the Clerk test double and real disposable PostgreSQL rows.
+    const exportA = await call('member-a', 'GET', '/me/account/export');
+    const exportB = await call('member-b', 'GET', '/me/account/export');
+    assert.equal(exportA.status, 200, 'A can export their own data');
+    assert.equal(exportB.status, 200, 'B can export their own data');
+    assert.ok(exportA.text.includes(MARK), 'A export includes A private content');
+    assert.ok(!exportB.text.includes(MARK), 'B export must omit A private content');
+    assert.equal((await fetch(base + '/me/account/export', {
+      headers: { Authorization: 'Bearer member-b' },
+    })).headers.get('cache-control'), 'no-store', 'private account exports must not be cached');
+    for (const route of ['/meditations/history/page', '/care/requests/page', '/prayers/page']) {
+      const response = await fetch(base + route, { headers: { Authorization: 'Bearer member-b' } });
+      assert.equal(response.status, 200, `B can access own ${route}`);
+      assert.equal(response.headers.get('cache-control'), 'no-store', `private ${route} must not be cached`);
+    }
+
     // Nothing A owned changed, and A still reads exactly their own data.
     const after = await snapshot();
     const changed = [...before].filter(row => !after.has(row)).map(row => row.slice(0, 140));
