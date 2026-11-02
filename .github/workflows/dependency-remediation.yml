@@ -1,11 +1,5 @@
 name: Dependency Lockfile Remediation
 on:
-  push:
-    branches:
-      - security/m05-remediate-transitive-advisories
-    paths:
-      - package.json
-      - .github/workflows/dependency-remediation.yml
   pull_request:
     paths:
       - package.json
@@ -13,7 +7,7 @@ on:
       - .github/workflows/dependency-remediation.yml
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   generate-lockfile:
     runs-on: ubuntu-latest
@@ -28,16 +22,6 @@ jobs:
           cache: pnpm
       - name: Resolve lockfile against patched transitive constraints
         run: pnpm install --lockfile-only --no-frozen-lockfile
-      - name: Commit regenerated lockfile on isolated remediation branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/security/m05-remediate-transitive-advisories'
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add pnpm-lock.yaml
-          if ! git diff --cached --quiet; then
-            git commit -m 'security: regenerate pnpm lockfile for patched dependencies'
-            git push origin HEAD:security/m05-remediate-transitive-advisories
-          fi
       - name: Upload reviewed lockfile for source-controlled commit
         uses: actions/upload-artifact@v4
         with:
