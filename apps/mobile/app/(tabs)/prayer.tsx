@@ -3,7 +3,7 @@ import { ActivityIndicator, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api, useApp, useSession } from '../../lib/app';
-import { Button, Card, ErrorLine, Row, Screen, SectionLabel } from '../../components/ui';
+import { Button, Card, ErrorLine, Row, Screen, SectionLabel, Segmented } from '../../components/ui';
 import { PrayerDetail } from '../../components/prayer-detail';
 import { Press } from '../../components/ui';
 import { requireToken } from '../../lib/api';
@@ -18,6 +18,7 @@ export default function Prayer() {
   const router = useRouter();
   const [items, setItems] = useState<PrayerSummary[] | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'awaiting' | 'answered'>('all');
   const [loadError, setLoadError] = useState('');
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -36,18 +37,11 @@ export default function Prayer() {
   const date = (v: string) => new Date(v).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short' });
 
   useFocusEffect(useCallback(() => {
-    async function signIn() {
-    if (authBusy) return;
-    setAuthBusy(true); setSignInError('');
-    try { await session.signIn(); }
-    catch { if (mounted.current) setSignInError(t.you.signInFailed); }
-    finally { if (mounted.current) setAuthBusy(false); }
-  }
   if (!session.isSignedIn) return;
     let active = true; setLoadError('');
-    requireToken(session.getToken).then(token => active ? api<{ items: PrayerSummary[]; nextCursor: string | null }>('/prayers/page', token) : null).then(page => { if (active && page) { setItems(page.items); setNextCursor(page.nextCursor); } }).catch(() => { if (active) setLoadError(t.prayer.error); });
+    requireToken(session.getToken).then(token => active ? api<{ items: PrayerSummary[]; nextCursor: string | null }>(`/prayers/page${filter === 'all' ? '' : `?status=${filter}`}`, token) : null).then(page => { if (active && page) { setItems(page.items); setNextCursor(page.nextCursor); } }).catch(() => { if (active) setLoadError(t.prayer.error); });
     return () => { active = false; };
-  }, [session.isSignedIn, session.getToken, reload, t.prayer.error]));
+  }, [session.isSignedIn, session.getToken, reload, filter, t.prayer.error]));
 
   useEffect(() => {
     if (!session.isSignedIn) return;
@@ -108,6 +102,7 @@ export default function Prayer() {
     </Card>
     {saved?.verse ? <PrayerVerse verse={saved.verse} /> : null}
     <SectionLabel>{t.prayer.journal}</SectionLabel>
+    <Segmented label={lang === 'fr' ? 'Filtrer les prières' : 'Filter prayers'} value={filter} onChange={setFilter} options={[{ value: 'all', label: lang === 'fr' ? 'Toutes' : 'All' }, { value: 'awaiting', label: lang === 'fr' ? 'En attente' : 'Awaiting' }, { value: 'answered', label: lang === 'fr' ? 'Exaucées' : 'Answered' }]} />
     {loadError ? <ErrorLine message={loadError} onRetry={() => setReload(n => n + 1)} />
       : !items ? <ActivityIndicator accessibilityLabel={lang === 'fr' ? 'Chargement…' : 'Loading…'} color={c.accent} />
       : !items.length ? <Text style={{ color: c.muted, fontSize: 15, paddingHorizontal: 4 }}>{t.prayer.empty}</Text>
@@ -116,7 +111,7 @@ export default function Prayer() {
           <Text style={{ color: c.muted, fontSize: 14, lineHeight: 20 }} numberOfLines={2}>{p.preview}</Text>
           {p.answeredAt ? <Text style={{ alignSelf: 'flex-start', marginTop: 4, color: c.deep, backgroundColor: c.soft, fontSize: 12, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, overflow: 'hidden' }}>{t.prayer.answered}</Text> : null}
         </Press>)}</Card>}
-    {items && !loadError ? <LoadMore cursor={nextCursor} fetchPage={async cursor => api<{ items: PrayerSummary[]; nextCursor: string | null }>(`/prayers/page?cursor=${encodeURIComponent(cursor)}`, await requireToken(session.getToken))} onLoaded={page => { setItems(rows => [...(rows ?? []), ...page.items.filter(p => !(rows ?? []).some(r => r.id === p.id))]); setNextCursor(page.nextCursor); }} /> : null}
+    {items && !loadError ? <LoadMore cursor={nextCursor} fetchPage={async cursor => api<{ items: PrayerSummary[]; nextCursor: string | null }>(`/prayers/page?cursor=${encodeURIComponent(cursor)}${filter === 'all' ? '' : `&status=${filter}`}`, await requireToken(session.getToken))} onLoaded={page => { setItems(rows => [...(rows ?? []), ...page.items.filter(p => !(rows ?? []).some(r => r.id === p.id))]); setNextCursor(page.nextCursor); }} /> : null}
     {selected ? <PrayerDetail key={selected} id={selected} onClose={() => setSelected(null)} onChanged={() => setReload(n => n + 1)} /> : null}
     <Row icon="chatbubble-ellipses-outline" title={t.prayer.pastor} badge={t.prayer.pilot} subtitle={t.prayer.pastorSub} onPress={() => router.push('/pastoral-care')} />
   </Screen>;
