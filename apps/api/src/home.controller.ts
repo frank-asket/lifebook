@@ -1,7 +1,7 @@
 import { Controller, Get, Header, Headers } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { database } from '../common/database';
-import { verifiedSubject } from '../common/identity';
+import { database } from './common/database';
+import { verifiedSubject } from './common/identity';
 
 @ApiTags('home')
 @ApiBearerAuth()
