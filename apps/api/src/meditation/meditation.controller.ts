@@ -119,6 +119,7 @@ export class MeditationController {
   }
 
   @Get('history')
+  @Header('Cache-Control', 'no-store')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get meditation completion history',
@@ -138,6 +139,7 @@ export class MeditationController {
    * bookmarked meditations.
    */
   @Get('saved')
+  @Header('Cache-Control', 'no-store')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get bookmarked meditations',
@@ -158,6 +160,7 @@ export class MeditationController {
    * and bookmark status.
    */
   @Get(':id/state')
+  @Header('Cache-Control', 'no-store')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get personal meditation state',
