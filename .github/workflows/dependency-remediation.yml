@@ -1,0 +1,32 @@
+name: Dependency Lockfile Remediation
+on:
+  pull_request:
+    paths:
+      - package.json
+      - pnpm-lock.yaml
+      - .github/workflows/dependency-remediation.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generate-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 9.15.4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Resolve lockfile against patched transitive constraints
+        run: pnpm install --lockfile-only --no-frozen-lockfile
+      - name: Upload reviewed lockfile for source-controlled commit
+        uses: actions/upload-artifact@v4
+        with:
+          name: remediated-pnpm-lock
+          path: pnpm-lock.yaml
+          retention-days: 7
+      - name: Inspect remaining high-severity advisories
+        run: pnpm audit --audit-level high
