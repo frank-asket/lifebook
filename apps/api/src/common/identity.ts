@@ -6,6 +6,11 @@ export async function verifiedSubject(auth?: string): Promise<string> {
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) throw new UnauthorizedException('Clerk authentication is not configured');
   const authorizedParties = (process.env.CLERK_AUTHORIZED_PARTIES || '').split(',').map(s => s.trim()).filter(Boolean);
+  // In production, never skip Clerk's authorized-party check due to a missing env var.
+  // This protects bearer tokens against unintended origins/clients when a service is misconfigured.
+  if (process.env.NODE_ENV === 'production' && authorizedParties.length === 0) {
+    throw new UnauthorizedException('Clerk authorized parties are not configured');
+  }
   try {
     const claims = await verifyToken(auth.slice(7).trim(), { secretKey, ...(authorizedParties.length ? { authorizedParties } : {}) });
     if (!claims.sub) throw new Error('Missing subject');
