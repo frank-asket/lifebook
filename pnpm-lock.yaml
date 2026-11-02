@@ -7,6 +7,11 @@ settings:
 overrides:
   next>postcss: 8.5.23
   '@nestjs/swagger>js-yaml': 5.4.1
+  body-parser: ^2.4.0
+  multer: ^2.5.0
+  decode-uri-component: ^0.5.1
+  node-forge: ^1.4.1
+  zod: ^4.6.6
 
 packageExtensionsChecksum: e57da7ec7a6af158386b87987cfd6106
 
@@ -117,7 +122,7 @@ importers:
         version: 7.29.10
       '@clerk/expo':
         specifier: 4.13.0
-        version: 4.13.0(@types/react@19.2.18)(bufferutil@4.1.0)(expo-auth-session@57.0.16(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3))(expo-constants@57.0.22)(expo-crypto@57.0.4(expo@57.0.30))(expo-secure-store@57.0.4(expo@57.0.30))(expo-web-browser@57.0.3(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)))(expo@57.0.30)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@3.25.76)
+        version: 4.13.0(@types/react@19.2.18)(bufferutil@4.1.0)(expo-auth-session@57.0.16(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3))(expo-constants@57.0.22)(expo-crypto@57.0.4(expo@57.0.30))(expo-secure-store@57.0.4(expo@57.0.30))(expo-web-browser@57.0.3(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)))(expo@57.0.30)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@4.6.7)
       '@expo/metro-runtime':
         specifier: ~57.0.17
         version: 57.0.17(@expo/log-box@57.0.4)(expo@57.0.30)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3)
@@ -2030,7 +2035,7 @@ packages:
     resolution: {integrity: sha512-Ofer5QUnuUdTFsBRwARMoWKOH1ND5ehwYhJ3OJ/BQO+StkwQjHw0XyVh4vDttzHB7QOFhPHa/o413PJ82gU/Tg==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: ^3.22.0 || ^4.0.0
+      zod: ^4.6.6
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -2041,7 +2046,7 @@ packages:
     resolution: {integrity: sha512-fk6Te+bojIFrMvMZrnOO+SxCB+RUksTGOzq/60ZRvs1L+BVzvi2bqt9L3W/17ZLdZsyM1FuYf65P5nlmoiH1Bg==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: ^3.22.0 || ^4.0.0
+      zod: ^4.6.6
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -2234,8 +2239,8 @@ packages:
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
 
-  body-parser@2.3.0:
-    resolution: {integrity: sha512-2cGmJupaNgg+QUwVLAucDuWuoMZ6EX9iHDRswZ5lsNYEmwPaRknMPCLZz07yTzVq/83p4o/wzbDZbBrTvGGTIw==}
+  body-parser@2.4.0:
+    resolution: {integrity: sha512-Ifk1KcLrxaGt1occQagQNFNNOqRt1LFuehEnHHzB8Z6cRgIxRU1TBaiIsUiCdA+gy5PL7Y1IX31DNKkRmxtXjQ==}
     engines: {node: '>=18'}
 
   bplist-creator@0.1.0:
@@ -2531,9 +2536,9 @@ packages:
       supports-color:
         optional: true
 
-  decode-uri-component@0.2.2:
-    resolution: {integrity: sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==}
-    engines: {node: '>=0.10'}
+  decode-uri-component@0.5.1:
+    resolution: {integrity: sha512-vWHQkXgg2cE3BB4rR0c+PYw9BCQzLoNIRMI7AunIkZst74tw/vpPp7VLoYtsR/cy1f55g3XDWUslfeCZjiZJyA==}
+    engines: {node: '>=14.16'}
 
   deepmerge@4.3.1:
     resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
@@ -3523,8 +3528,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  multer@2.4.0:
-    resolution: {integrity: sha512-7dqa0ZcFfzbefdTuIkzOSMvZWC0J7FLqBOjJUZvDCXShIURWKxAyTT1wHhnE5q19c7jOJf43IYYKjBmZVZmvhg==}
+  multer@2.5.0:
+    resolution: {integrity: sha512-BsqOzYGVq49JcW2IzoSAxeKYRevb+dGGPPWleOR8Lrlk4igwxu1/9pwSXlByhCb7MVZDrNJFC0IBP5/O5nLYRw==}
     engines: {node: '>= 10.16.0'}
 
   multitars@1.0.2:
@@ -3585,8 +3590,8 @@ packages:
   node-emoji@1.11.0:
     resolution: {integrity: sha512-wo2DpQkQp7Sjm2A0cq+sN7EHKO6Sl0ctXeBdFZrL9T9+UywORbufTcTZxom8YqpLQt/FqNMUkOpkZrJVYSKD3A==}
 
-  node-forge@1.4.0:
-    resolution: {integrity: sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==}
+  node-forge@1.4.2:
+    resolution: {integrity: sha512-rRtAR5XLJ8gCKd9du4qrKAsgCG1ObGP4gLeNJMa4vYSeq4bmBMOJk5IHkrviBV0q7uoAJlVd8HEQYQSVUb4FGQ==}
     engines: {node: '>= 6.13.0'}
 
   node-gyp-build@4.8.4:
@@ -4636,8 +4641,8 @@ packages:
     resolution: {integrity: sha512-U/PBtDf35ff0D8X8D0jfdzHYEPFxAI7jJlxZXwCSez5M3190m+QobIfh+sWDWSHMCWWJN2AWamkegn6vr6YBTw==}
     engines: {node: '>=18'}
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
   zustand@5.0.3:
     resolution: {integrity: sha512-14fwWQtU3pH4dE0dOpdMiWjddcH+QzKIgk1cl8epwSE7yag43k/AD/m4L6+K7DytAOr9gGBe3/EXj9g7cdostg==}
@@ -5199,15 +5204,15 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@base-org/account@2.0.1(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@3.25.76)':
+  '@base-org/account@2.0.1(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@4.6.7)':
     dependencies:
       '@noble/hashes': 1.4.0
       clsx: 1.2.1
       eventemitter3: 5.0.1
       idb-keyval: 6.2.1
-      ox: 0.6.9(typescript@6.0.3)(zod@3.25.76)
+      ox: 0.6.9(typescript@6.0.3)(zod@4.6.7)
       preact: 10.24.2
-      viem: 2.57.6(bufferutil@4.1.0)(typescript@6.0.3)(zod@3.25.76)
+      viem: 2.57.6(bufferutil@4.1.0)(typescript@6.0.3)(zod@4.6.7)
       zustand: 5.0.3(@types/react@19.2.18)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3))
     transitivePeerDependencies:
       - '@types/react'
@@ -5242,11 +5247,11 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/clerk-js@6.39.1(@types/react@19.2.18)(bufferutil@4.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@3.25.76)':
+  '@clerk/clerk-js@6.39.1(@types/react@19.2.18)(bufferutil@4.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@4.6.7)':
     dependencies:
-      '@base-org/account': 2.0.1(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@3.25.76)
+      '@base-org/account': 2.0.1(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@4.6.7)
       '@clerk/shared': 4.40.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@coinbase/wallet-sdk': 4.3.7(bufferutil@4.1.0)(typescript@6.0.3)(zod@3.25.76)
+      '@coinbase/wallet-sdk': 4.3.7(bufferutil@4.1.0)(typescript@6.0.3)(zod@4.6.7)
       '@stripe/stripe-js': 5.6.0
       '@swc/helpers': 0.5.21
       '@tanstack/query-core': 5.104.4
@@ -5277,9 +5282,9 @@ snapshots:
       react-dom: 19.3.1(react@19.3.1)
       tslib: 2.8.1
 
-  '@clerk/expo@4.13.0(@types/react@19.2.18)(bufferutil@4.1.0)(expo-auth-session@57.0.16(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3))(expo-constants@57.0.22)(expo-crypto@57.0.4(expo@57.0.30))(expo-secure-store@57.0.4(expo@57.0.30))(expo-web-browser@57.0.3(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)))(expo@57.0.30)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@3.25.76)':
+  '@clerk/expo@4.13.0(@types/react@19.2.18)(bufferutil@4.1.0)(expo-auth-session@57.0.16(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3))(expo-constants@57.0.22)(expo-crypto@57.0.4(expo@57.0.30))(expo-secure-store@57.0.4(expo@57.0.30))(expo-web-browser@57.0.3(expo@57.0.30)(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)))(expo@57.0.30)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@4.6.7)':
     dependencies:
-      '@clerk/clerk-js': 6.39.1(@types/react@19.2.18)(bufferutil@4.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@3.25.76)
+      '@clerk/clerk-js': 6.39.1(@types/react@19.2.18)(bufferutil@4.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@6.0.3)(use-sync-external-store@1.7.0(react@19.2.3))(zod@4.6.7)
       '@clerk/react': 6.17.8(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@clerk/shared': 4.40.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       base-64: 1.0.0
@@ -5360,13 +5365,13 @@ snapshots:
       - react
       - react-dom
 
-  '@coinbase/wallet-sdk@4.3.7(bufferutil@4.1.0)(typescript@6.0.3)(zod@3.25.76)':
+  '@coinbase/wallet-sdk@4.3.7(bufferutil@4.1.0)(typescript@6.0.3)(zod@4.6.7)':
     dependencies:
       '@noble/hashes': 1.8.0
       clsx: 1.2.1
       eventemitter3: 5.0.4
       preact: 10.29.8
-      viem: 2.57.6(bufferutil@4.1.0)(typescript@6.0.3)(zod@3.25.76)
+      viem: 2.57.6(bufferutil@4.1.0)(typescript@6.0.3)(zod@4.6.7)
     transitivePeerDependencies:
       - bufferutil
       - preact-render-to-string
@@ -5427,7 +5432,7 @@ snapshots:
       glob: 13.0.6
       lan-network: 0.2.1
       multitars: 1.0.2
-      node-forge: 1.4.0
+      node-forge: 1.4.2
       npm-package-arg: 11.0.3
       ora: 3.4.0
       picomatch: 4.0.4
@@ -5445,7 +5450,7 @@ snapshots:
       toqr: 0.1.1
       wrap-ansi: 7.0.0
       ws: 8.22.0(bufferutil@4.1.0)
-      zod: 3.25.76
+      zod: 4.6.7
     optionalDependencies:
       expo-router: 57.0.28(nniknlg5flofobiivrgyxkpc5m)
       react-native: 0.86.3(patch_hash=kt3lgvwkwm7vyb2ab424u7u2xa)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7)(bufferutil@4.1.0))(@types/react@19.2.18)(bufferutil@4.1.0)(react@19.2.3)
@@ -5464,7 +5469,7 @@ snapshots:
 
   '@expo/code-signing-certificates@0.0.6':
     dependencies:
-      node-forge: 1.4.0
+      node-forge: 1.4.2
 
   '@expo/config-plugins@57.0.10(typescript@6.0.3)':
     dependencies:
@@ -6145,7 +6150,7 @@ snapshots:
       '@nestjs/core': 11.2.7(@nestjs/common@11.2.7(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@11.2.7)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       cors: 2.8.6
       express: 5.2.1
-      multer: 2.4.0
+      multer: 2.5.0
       path-to-regexp: 8.4.2
       tslib: 2.8.1
     transitivePeerDependencies:
@@ -6851,15 +6856,15 @@ snapshots:
 
   '@zxcvbn-ts/language-common@3.0.4': {}
 
-  abitype@1.2.3(typescript@6.0.3)(zod@3.25.76):
+  abitype@1.2.3(typescript@6.0.3)(zod@4.6.7):
     optionalDependencies:
       typescript: 6.0.3
-      zod: 3.25.76
+      zod: 4.6.7
 
-  abitype@1.3.0(typescript@6.0.3)(zod@3.25.76):
+  abitype@1.3.0(typescript@6.0.3)(zod@4.6.7):
     optionalDependencies:
       typescript: 6.0.3
-      zod: 3.25.76
+      zod: 4.6.7
 
   abort-controller@3.0.0:
     dependencies:
@@ -7077,7 +7082,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  body-parser@2.3.0:
+  body-parser@2.4.0:
     dependencies:
       bytes: 3.1.2
       content-type: 2.1.0
@@ -7371,7 +7376,7 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  decode-uri-component@0.2.2: {}
+  decode-uri-component@0.5.1: {}
 
   deepmerge@4.3.1: {}
 
@@ -7740,7 +7745,7 @@ snapshots:
   express@5.2.1:
     dependencies:
       accepts: 2.0.0
-      body-parser: 2.3.0
+      body-parser: 2.4.0
       content-disposition: 1.1.0
       content-type: 1.0.5
       cookie: 0.7.2
@@ -8432,7 +8437,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  multer@2.4.0:
+  multer@2.5.0:
     dependencies:
       append-field: 1.0.0
       busboy: 1.6.0
@@ -8491,7 +8496,7 @@ snapshots:
     dependencies:
       lodash: 4.18.1
 
-  node-forge@1.4.0: {}
+  node-forge@1.4.2: {}
 
   node-gyp-build@4.8.4:
     optional: true
@@ -8565,7 +8570,7 @@ snapshots:
       strip-ansi: 6.0.1
       wcwidth: 1.0.1
 
-  ox@0.14.56(typescript@6.0.3)(zod@3.25.76):
+  ox@0.14.56(typescript@6.0.3)(zod@4.6.7):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -8573,21 +8578,21 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.2.3(typescript@6.0.3)(zod@3.25.76)
+      abitype: 1.2.3(typescript@6.0.3)(zod@4.6.7)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 6.0.3
     transitivePeerDependencies:
       - zod
 
-  ox@0.6.9(typescript@6.0.3)(zod@3.25.76):
+  ox@0.6.9(typescript@6.0.3)(zod@4.6.7):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.3.0(typescript@6.0.3)(zod@3.25.76)
+      abitype: 1.3.0(typescript@6.0.3)(zod@4.6.7)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 6.0.3
@@ -8689,7 +8694,7 @@ snapshots:
 
   query-string@7.1.3:
     dependencies:
-      decode-uri-component: 0.2.2
+      decode-uri-component: 0.5.1
       filter-obj: 1.1.0
       split-on-first: 1.1.0
       strict-uri-encode: 2.0.0
@@ -9414,15 +9419,15 @@ snapshots:
       - '@types/react'
       - '@types/react-dom'
 
-  viem@2.57.6(bufferutil@4.1.0)(typescript@6.0.3)(zod@3.25.76):
+  viem@2.57.6(bufferutil@4.1.0)(typescript@6.0.3)(zod@4.6.7):
     dependencies:
       '@noble/curves': 1.9.1
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.2.3(typescript@6.0.3)(zod@3.25.76)
+      abitype: 1.2.3(typescript@6.0.3)(zod@4.6.7)
       isows: 1.0.7(ws@8.21.0(bufferutil@4.1.0))
-      ox: 0.14.56(typescript@6.0.3)(zod@3.25.76)
+      ox: 0.14.56(typescript@6.0.3)(zod@4.6.7)
       ws: 8.21.0(bufferutil@4.1.0)
     optionalDependencies:
       typescript: 6.0.3
@@ -9559,7 +9564,7 @@ snapshots:
 
   yoctocolors-cjs@2.1.3: {}
 
-  zod@3.25.76: {}
+  zod@4.6.7: {}
 
   zustand@5.0.3(@types/react@19.2.18)(react@19.2.3)(use-sync-external-store@1.7.0(react@19.2.3)):
     optionalDependencies:
