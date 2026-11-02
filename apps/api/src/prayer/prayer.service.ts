@@ -63,11 +63,13 @@ export class PrayerService implements OnModuleDestroy {
   }
 
   /** The whole journal, 50 at a time, most recently changed first ("Load more"). */
-  async page(auth: string | undefined, cursor?: string) {
+  async page(auth: string | undefined, cursor?: string, status?: string) {
+    if (status && !['answered', 'awaiting'].includes(status)) throw new BadRequestException('Invalid prayer status');
     const userId = await this.userId(auth);
+    const where = { userId, ...(status === 'answered' ? { answeredAt: { not: null } } : status === 'awaiting' ? { answeredAt: null } : {}) };
     const { rows, nextCursor } = await pageOf(cursor,
-      async id => !!await this.db.prayerEntry.findFirst({ where: { id, userId }, select: { id: true } }),
-      window => this.db.prayerEntry.findMany({ where: { userId }, orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }], ...window }));
+      async id => !!await this.db.prayerEntry.findFirst({ where: { id, ...where }, select: { id: true } }),
+      window => this.db.prayerEntry.findMany({ where, orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }], ...window }));
     return { items: rows.map(row => this.summary(row)), nextCursor };
   }
   async get(auth: string | undefined, id: string) {
