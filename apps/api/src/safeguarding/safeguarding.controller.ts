@@ -11,9 +11,12 @@ function field(body: unknown, key: string): unknown {
 @ApiTags('safeguarding') @ApiBearerAuth() @Controller('safeguarding')
 export class SafeguardingController {
   constructor(private readonly safeguarding: SafeguardingService) {}
-  @Get('overview') overview(@Headers('authorization') auth?: string) { return this.safeguarding.overview(auth); }
-  @Get('reports') reports(@Headers('authorization') auth?: string) { return this.safeguarding.reports(auth); }
-  @Get('reports/:id') report(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.safeguarding.report(auth, id); }
+  @Get('overview')
+  @Header('Cache-Control', 'no-store') overview(@Headers('authorization') auth?: string) { return this.safeguarding.overview(auth); }
+  @Get('reports')
+  @Header('Cache-Control', 'no-store') reports(@Headers('authorization') auth?: string) { return this.safeguarding.reports(auth); }
+  @Get('reports/:id')
+  @Header('Cache-Control', 'no-store') report(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.safeguarding.report(auth, id); }
   @Post('reports/:id/acknowledge') @HttpCode(200) acknowledge(@Headers('authorization') auth: string | undefined, @Param('id') id: string) { return this.safeguarding.acknowledge(auth, id); }
   @Post('reports/:id/resolve') @HttpCode(200) resolve(@Headers('authorization') auth: string | undefined, @Param('id') id: string, @Body() body: unknown) { return this.safeguarding.resolve(auth, id, field(body, 'resolution')); }
   @Get('applications') @Header('Cache-Control', 'no-store') applications(@Headers('authorization') auth?: string) { return this.safeguarding.applications(auth); }
