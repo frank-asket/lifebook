@@ -23,7 +23,8 @@
       "@nestjs/swagger>js-yaml": "5.4.1",
       "body-parser": "^2.4.0",
       "multer": "^2.5.0",
-      "decode-uri-component": "^0.5.1"
+      "decode-uri-component": "^0.5.1",
+      "node-forge": "^1.4.1"
     },
     "packageExtensions": {
       "next@15": {
