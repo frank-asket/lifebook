@@ -10,7 +10,7 @@ import { Button, Card, ErrorLine, Row, Screen } from '../../components/ui';
 import { calendarDay, lastSevenDays, passageLabel } from '../../../web/lib/scripture';
 import { DAILY_WORD_STEPS } from '../../../web/lib/daily-word-navigation';
 
-type HomeSummary = { prayer: { total: number; answered: number; awaiting: number }; studies: { id: string; title: string }[]; paths: { id: string; title: string }[] };
+type HomeSummary = { prayer: { total: number; answered: number; awaiting: number }; studies: { id: string; title: string; completed: number; total: number; nextLesson: string | null }[]; paths: { id: string; title: string; completed: number; total: number; nextLesson: string | null }[] };
 type Reading = { locale: 'en' | 'fr'; chapterId: string; verse: number | null };
 
 export default function Today() {
@@ -94,8 +94,8 @@ export default function Today() {
     {summary ? <Card style={{ gap: 10 }}>
       <Text accessibilityRole="header" style={{ color: c.ink, fontSize: 17, fontWeight: '700' }}>{lang === 'fr' ? 'Poursuivre votre parcours' : 'Continue your journey'}</Text>
       <Text style={{ color: c.muted }}>{lang === 'fr' ? `${summary.prayer.awaiting} prières en attente · ${summary.prayer.answered} exaucées` : `${summary.prayer.awaiting} awaiting prayers · ${summary.prayer.answered} answered`}</Text>
-      {summary.studies.length ? <Button kind="soft" title={lang === 'fr' ? 'Reprendre une étude biblique' : 'Resume Bible Study'} onPress={() => router.push('/bible-studies')} /> : null}
-      {summary.paths.length ? <Button kind="soft" title={lang === 'fr' ? 'Reprendre un parcours' : 'Resume discipleship'} onPress={() => router.push('/discipleship')} /> : null}
+      {summary.studies.length ? <Button kind="soft" title={lang === 'fr' ? `Étude biblique · ${summary.studies[0].completed}/${summary.studies[0].total}` : `Bible Study · ${summary.studies[0].completed}/${summary.studies[0].total}`} onPress={() => router.push('/bible-studies')} /> : null}
+      {summary.paths.length ? <Button kind="soft" title={lang === 'fr' ? `Parcours · ${summary.paths[0].completed}/${summary.paths[0].total}` : `Journey · ${summary.paths[0].completed}/${summary.paths[0].total}`} onPress={() => router.push('/discipleship')} /> : null}
       <Button kind="quiet" title={lang === 'fr' ? 'Ouvrir le journal de prière' : 'Open prayer journal'} onPress={() => router.navigate('/prayer')} />
     </Card> : null}
     <Suggestions />
