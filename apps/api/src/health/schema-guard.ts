@@ -27,13 +27,24 @@ export class SchemaGuard {
   constructor(private readonly db: Db, private readonly expected = bundledMigrations(), private readonly ttlMs = 30_000) {}
 
   async state(now = Date.now()): Promise<SchemaState> {
-    if (process.env.SCHEMA_GUARD === 'off') return { state: 'unchecked' };
+    // Never permit a production rollout to bypass migration readiness via configuration.
+    if (process.env.SCHEMA_GUARD === 'off') {
+      if (process.env.NODE_ENV === 'production') return { state: 'unavailable' };
+      return { state: 'unchecked' };
+    }
     if (!this.expected.length) return { state: 'unavailable' };
     if (this.cached && now - this.cached.at < this.ttlMs) return this.cached.value;
     let value: SchemaState;
     try {
-      const rows = await this.db.$queryRaw<{ migration_name: string }[]>`SELECT migration_name FROM _prisma_migrations WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`;
-      const applied = new Set(rows.map(row => row.migration_name));
+      const rows = await this.db.$queryRaw<{ migration_name: string; finished_at: Date | null; rolled_back_at: Date | null }[]>`SELECT migration_name, finished_at, rolled_back_at FROM _prisma_migrations`;
+      // A failed, non-rolled-back migration blocks readiness even if older migrations exist.
+      if (rows.some(row => row.finished_at == null && row.rolled_back_at == null)) {
+        this.log.error('Database contains an unresolved failed or in-progress migration');
+        value = { state: 'unavailable' };
+        this.cached = { at: now, value };
+        return value;
+      }
+      const applied = new Set(rows.filter(row => row.finished_at != null && row.rolled_back_at == null).map(row => row.migration_name));
       const missing = this.expected.filter(name => !applied.has(name));
       value = missing.length ? { state: 'behind', pending: missing.length } : { state: 'current' };
       const report = missing.join(',');
