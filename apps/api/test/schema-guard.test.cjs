@@ -7,7 +7,7 @@ const { SchemaGuard, bundledMigrations } = require('../dist/health/schema-guard'
 
 const db = (names, fail = false) => {
   const calls = { n: 0 };
-  return { calls, $queryRaw: async () => { calls.n++; if (fail) throw Object.assign(new Error('connection refused'), { name: 'PrismaClientInitializationError' }); return names.map(migration_name => ({ migration_name })); } };
+  return { calls, $queryRaw: async () => { calls.n++; if (fail) throw Object.assign(new Error('connection refused'), { name: 'PrismaClientInitializationError' }); return names.map(entry => typeof entry === 'string' ? { migration_name: entry, finished_at: new Date('2026-10-01'), rolled_back_at: null } : entry); } };
 };
 
 test('the build ships every migration folder, in order', () => {
@@ -47,4 +47,29 @@ test('results are cached, and SCHEMA_GUARD=off disables the check', async () => 
 
 test('a missing migration bundle fails readiness', async () => {
   assert.deepEqual(await new SchemaGuard(db([]), []).state(), { state: 'unavailable' });
+});
+
+test('unresolved failed migration blocks readiness even when expected migrations succeeded', async () => {
+  const failed = { migration_name: 'new_failed', finished_at: null, rolled_back_at: null };
+  const state = await new SchemaGuard(db(['a', failed]), ['a']).state();
+  assert.deepEqual(state, { state: 'unavailable' });
+});
+
+test('rolled-back migration does not count as applied', async () => {
+  const rolledBack = { migration_name: 'a', finished_at: null, rolled_back_at: new Date('2026-10-01') };
+  assert.deepEqual(await new SchemaGuard(db([rolledBack]), ['a']).state(), { state: 'behind', pending: 1 });
+});
+
+test('production cannot disable schema readiness with SCHEMA_GUARD=off', async () => {
+  const before = { NODE_ENV: process.env.NODE_ENV, SCHEMA_GUARD: process.env.SCHEMA_GUARD };
+  try {
+    process.env.NODE_ENV = 'production';
+    process.env.SCHEMA_GUARD = 'off';
+    assert.deepEqual(await new SchemaGuard(db(['a']), ['a']).state(), { state: 'unavailable' });
+  } finally {
+    for (const [key, value] of Object.entries(before)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 });
