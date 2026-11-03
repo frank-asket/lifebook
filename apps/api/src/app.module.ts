@@ -1,3 +1,4 @@
+import { HomeController } from './home.controller';
 import { EditorialModule } from './editorial/editorial.module';
 import { Database, database } from './common/database';
 import { saveProfile } from './account/profile-consent';
@@ -272,6 +273,7 @@ if (!Number.isInteger(requestLimit) || requestLimit < 1 || requestLimit > 10000)
     HealthController,
     DevotionalsController,
     ProfileController,
+    HomeController,
   ],
 
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard },

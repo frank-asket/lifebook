@@ -15,6 +15,7 @@ import { DAILY_WORD_STEPS } from '../../lib/daily-word-navigation';
 import { parseLength } from '../../lib/prayer-time';
 import { calendarDay, greeting, lastSevenDays, type DayMark } from '../../lib/scripture';
 
+type HomeSummary = { prayer: { total: number; awaiting: number; answered: number }; studies: { id: string; title: string; locale: string }[]; paths: { id: string; title: string }[]; reading: { chapterId: string; locale: string } | null };
 type TodaySession = { journeyDate: string; status: 'IN_PROGRESS' | 'COMPLETED'; steps: { step: string }[] };
 
 export default function Dashboard() {
@@ -23,6 +24,8 @@ export default function Dashboard() {
   const { user } = useUser();
   const { getToken, isSignedIn } = useAuth();
   const { word, loading: wordLoading, error: wordError, date, retry: retryWord } = useDailyWord();
+  const [summary, setSummary] = useState<HomeSummary | null>(null);
+  const [summaryError, setSummaryError] = useState(false);
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [paths, setPaths] = useState<LearningPath[]>([]);
   const [today, setToday] = useState<TodaySession | null>(null);
@@ -33,13 +36,14 @@ export default function Dashboard() {
   const [retry, setRetry] = useState(0);
   useEffect(() => { setHour(new Date().getHours()); try { setMinutes(parseLength(localStorage.getItem('lifebook.prayerLength'))); } catch { /* storage unavailable */ } }, []);
   useEffect(() => {
-    let active = true; setError(''); setProfile(null); setPaths([]);
+    let active = true; setError(''); setProfile(null); setPaths([]); setSummaryError(false); setSummary(null);
     (async () => {
       const token = await getToken();
-      const [p, published] = await Promise.allSettled([api<ProfileResponse>('/me/profile', token), api<LearningPath[]>('/paths')]);
+      const [p, published, home] = await Promise.allSettled([api<ProfileResponse>('/me/profile', token), api<LearningPath[]>('/paths'), token ? api<HomeSummary>('/me/home', token) : Promise.reject(new Error('Sign in required'))]);
       if (!active) return;
       if (p.status === 'fulfilled') setProfile(p.value); else setError(tr('We could not load your preferences. Please try again.', 'Impossible de charger vos préférences. Réessayez.'));
       if (published.status === 'fulfilled') setPaths(published.value);
+      if (home.status === 'fulfilled') setSummary(home.value); else setSummaryError(true);
     })();
     return () => { active = false; };
   }, [getToken, language, retry]);
@@ -98,6 +102,14 @@ export default function Dashboard() {
       </div>
     </div>
 
+    <section className="home-paths" aria-labelledby="home-continue-title">
+      <div className="section-title"><h2 id="home-continue-title">{tr('Continue your journey', 'Poursuivre votre parcours')}</h2></div>
+      {summaryError ? <div className="alert reader-error" role="status">{tr('Your personal overview is unavailable.', 'Votre aperçu personnel est indisponible.')} <button className="btn btn-soft" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div> : !summary ? <p aria-busy="true">{tr('Loading your activities…', 'Chargement de vos activités…')}</p> : <div className="home-path-list">
+        <Link className="card home-link" href="/prayer"><span className="home-link-icon rose"><HeartHandshake size={20} aria-hidden="true" /></span><span><strong>{tr('Prayer Sanctuary', 'Sanctuaire de prière')}</strong><small>{tr(`${summary.prayer.awaiting} awaiting · ${summary.prayer.answered} answered`, `${summary.prayer.awaiting} en attente · ${summary.prayer.answered} exaucées`)}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>
+        {summary.studies.map(study => <Link className="card home-link" href={`/bible/${encodeURIComponent(study.id)}`} key={study.id}><span className="home-link-icon"><GraduationCap size={20} aria-hidden="true" /></span><span><strong>{study.title}</strong><small>{tr('Resume Bible Study', 'Reprendre l’étude biblique')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}
+        {summary.paths.map(path => <Link className="card home-link" href={`/discipleship/${encodeURIComponent(path.id)}`} key={path.id}><span className="home-link-icon"><GraduationCap size={20} aria-hidden="true" /></span><span><strong>{path.title}</strong><small>{tr('Resume discipleship', 'Reprendre le parcours')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}
+      </div>}
+    </section>
     <Suggestions />
 
     {paths.length > 0 && <section className="home-paths" aria-labelledby="home-paths-title">
