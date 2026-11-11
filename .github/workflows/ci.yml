@@ -35,6 +35,8 @@ jobs:
         with:
           node-version: '22'
           cache: pnpm
+      - name: Validate staging target isolation (offline, no secrets)
+        run: node --test apps/api/test/staging-target-validation.test.cjs
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @lifebook/api prisma:generate
       - run: pnpm --filter @lifebook/api exec prisma validate

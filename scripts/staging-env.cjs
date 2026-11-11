@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
 const { spawnSync } = require('node:child_process');
+const { assertStagingDatabases } = require('./staging-target-safety.cjs');
 
 const root = path.resolve(__dirname, '..');
 const file = path.join(root, '.env.staging');
@@ -49,7 +50,7 @@ function check() {
   const env = load(file);
   for (const name of required) console.log(`${env[name] ? 'set    ' : 'MISSING'} ${name}`);
   const production = projectRef(load(path.join(root, 'apps/api/.env')).DIRECT_URL);
-  for (const name of ['DATABASE_URL', 'DIRECT_URL']) if (env[name] && production && projectRef(env[name]) === production) throw new Error(`${name} points at the production database`);
+  if (env.DATABASE_URL && env.DIRECT_URL && production) assertStagingDatabases(env, load(path.join(root, 'apps/api/.env')).DIRECT_URL);
   return env;
 }
 
@@ -58,6 +59,7 @@ function migrate() {
   const production = projectRef(load(path.join(root, 'apps/api/.env')).DIRECT_URL);
   if (!env.DATABASE_URL || !env.DIRECT_URL) throw new Error('Set both staging database URLs first');
   if (!production) throw new Error('Cannot read the production project from apps/api/.env to rule it out');
+  assertStagingDatabases(env, load(path.join(root, 'apps/api/.env')).DIRECT_URL);
   console.log(`Target staging project: ${projectRef(env.DIRECT_URL)} (production ${production} excluded)`);
   const run = args => spawnSync('pnpm', ['--filter', '@lifebook/api', 'exec', 'prisma', ...args], { cwd: root, stdio: 'inherit', env: { ...process.env, DATABASE_URL: env.DATABASE_URL, DIRECT_URL: env.DIRECT_URL } }).status;
   if (run(['migrate', 'deploy']) !== 0) throw new Error('migrate deploy failed');
