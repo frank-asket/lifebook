@@ -145,6 +145,23 @@ test('member B can never read, change or delete member A\'s data, on any route',
       'PUT /pastor-application': { displayName: 'B Pastor', slug: 'xm-b-pastor', bio: 'B bio', languages: ['en'], churchName: 'B Church', ministryRole: 'Pastor', country: 'GH', referenceName: 'B Ref', referenceContact: 'b-ref@example.invalid', trainingCourse: 'Course', trainingCompletedOn: '2026-10-01', codeOfConduct: true },
       'PUT /me/profile': { preferredLanguage: 'fr' }, 'POST /me/account/delete': { confirm: 'DELETE_MY_ACCOUNT' }, 'POST /bible-content/usage': {},
     };
+    // A member's export must never contain another member's private prayer, care or reflection.
+    // Use real HTTP controllers with the Clerk test double and real disposable PostgreSQL rows.
+    const exportA = await call('member-a', 'GET', '/me/account/export');
+    const exportB = await call('member-b', 'GET', '/me/account/export');
+    assert.equal(exportA.status, 200, 'A can export their own data');
+    assert.equal(exportB.status, 200, 'B can export their own data');
+    assert.ok(exportA.text.includes(MARK), 'A export includes A private content');
+    assert.ok(!exportB.text.includes(MARK), 'B export must omit A private content');
+    assert.equal((await fetch(base + '/me/account/export', {
+      headers: { Authorization: 'Bearer member-b' },
+    })).headers.get('cache-control'), 'no-store', 'private account exports must not be cached');
+    for (const route of ['/meditations/history/page', '/care/requests/page', '/prayers/page']) {
+      const response = await fetch(base + route, { headers: { Authorization: 'Bearer member-b' } });
+      assert.equal(response.status, 200, `B can access own ${route}`);
+      assert.equal(response.headers.get('cache-control'), 'no-store', `private ${route} must not be cached`);
+    }
+
     const failures = [];
     const order = Object.keys(ROUTES).sort((x, y) => (x === 'POST /me/account/delete') - (y === 'POST /me/account/delete'));
     for (const key of order) {
