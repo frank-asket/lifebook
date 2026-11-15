@@ -65,6 +65,8 @@ A separate [EN/FR first-week content pack](content/EVANGELICAL_PILOT_CONTENT_PAC
 
 ## Read-only teaching discovery — v0.4.0.0
 
+Source follow-up (15 November 2026): [private teaching review drafts](content/TEACHING_REVIEW_DRAFTS.md) adds an explicit save-to-review action and original-note queue. It requires a new additive migration and has not been deployed. The v0.4.0.0 behavior below remains the currently deployed baseline until that release gate is completed.
+
 `/editorial/discover` is an opt-in MODERATOR/ADMIN tool backed by `/api/v1/teaching-discovery/sources` and `/api/v1/teaching-discovery/videos`. Configure server-only `YOUTUBE_API_KEY` and `YOUTUBE_APPROVED_CHANNEL_IDS` only after verifying the channel identities and intended use. Both are blank by default; this release approves no ministry and enables no production integration.
 
 The tool shows current metadata and original-source links from configured channels, up to 12 unique videos per page. Responses are not cached or stored as candidate records. Reported eligibility, captions and regional restrictions still need real review. Nothing imports, publishes, downloads, embeds or transcribes a sermon. No member prayer/reflection text is sent to YouTube. Provider-specific playback, source/rights publication fields, persisted review decisions and recommendations remain future work. See the discovery document for configuration, API behavior and limits.

@@ -12,6 +12,7 @@ function setup(mode = 'enabled') {
     '../../../lib/api': { ApiError, api: async (path, received, options) => {
       calls.push({ path, received, options });
       if (mode === 'forbidden') throw new ApiError('Forbidden', 403);
+      if (path === '/teaching-reviews') { if (mode === 'save-failed') throw new Error('Synthetic draft save failed'); return { id: 'review-draft' }; }
       if (path.endsWith('/sources')) return { enabled: mode !== 'disabled', sources: mode === 'disabled' ? [] : [{ id: channel, sourceUrl: `https://www.youtube.com/channel/${channel}` }] };
       if (mode === 'failed') throw new Error('Synthetic upstream error');
       return { items: [{ id: 'vid00000000', title: '<script>Synthetic title</script>', publisher: 'Synthetic ministry', channelId: channel, sourceUrl: 'https://www.youtube.com/watch?v=vid00000000', channelUrl: `https://www.youtube.com/channel/${channel}`, language: null, duration: 'PT10M', captionsAvailable: false, regionRestricted: true }], nextPageToken: 'next=', checkedAt: '2026-10-26T00:00:00Z', reviewRequired: true };
@@ -34,6 +35,21 @@ test('discovery results are read-only, credited source links with no embedded me
   await act(async () => renderer.root.findAllByType('button').find(node => node.props.children === 'Next page').props.onClick());
   assert.ok(calls.at(-1).path.includes('pageToken=next%3D'));
   await act(async () => renderer.unmount());
+});
+test('saving a discovery result sends only source identity and never publishes or copies metadata', async () => {
+  for (const mode of ['enabled', 'save-failed']) {
+    const { Page, calls } = setup(mode); let renderer;
+    await act(async () => { renderer = create(React.createElement(Page)); });
+    await act(async () => renderer.root.findByType('form').props.onSubmit({ preventDefault() {} }));
+    const save = renderer.root.findAllByType('button').find(node => node.props.children === 'Save review draft');
+    await act(async () => { save.props.onClick(); save.props.onClick(); });
+    const writes = calls.filter(call => call.options.method);
+    assert.equal(writes.length, 1, 'duplicate clicks do not create parallel drafts');
+    assert.deepEqual(JSON.parse(writes[0].options.body), { videoId: 'vid00000000', channelId: channel });
+    assert.equal(renderer.root.findAllByType('article').length, 1, 'results remain available after a failed save');
+    assert.match(JSON.stringify(renderer.toJSON()), mode === 'save-failed' ? /Synthetic draft save failed/ : /Nothing was published/);
+    await act(async () => renderer.unmount());
+  }
 });
 test('disabled and forbidden discovery cannot fetch videos; upstream failure leaves no candidate results', async () => {
   for (const mode of ['disabled', 'forbidden', 'failed']) {

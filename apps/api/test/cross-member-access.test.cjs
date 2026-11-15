@@ -26,6 +26,7 @@ function installClerkDouble() {
 // public: no sign-in. own: acts on B's own data (allowed; invariants still checked). a: names a record A owns,
 // so B must get 403 or 404. role: pastor/editor/moderator only, so a member gets 403.
 const ROUTES = {
+  'GET /teaching-reviews': 'role', 'POST /teaching-reviews': 'role', 'PUT /teaching-reviews/:id': 'role',
   'GET /teaching-discovery/sources': 'role', 'GET /teaching-discovery/videos': 'role',
   'GET /editorial/:kind': 'role', 'GET /editorial/:kind/:id': 'role', 'POST /editorial/:kind': 'role', 'PUT /editorial/:kind/:id': 'role',
   'GET /bible-annotations': 'own', 'PUT /bible-annotations': 'own', 'DELETE /bible-annotations/:id': 'a', 'GET /bible-annotations/page': 'own', 'GET /bible-annotations/passage': 'own',

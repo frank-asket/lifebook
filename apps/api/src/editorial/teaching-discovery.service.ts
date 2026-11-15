@@ -18,6 +18,16 @@ export class TeachingDiscoveryService {
     const { channels, key } = this.configuration();
     return { enabled: !!key && !!channels.length, sources: channels.map(id => ({ id, sourceUrl: `https://www.youtube.com/channel/${id}` })) };
   }
+  async verifyVideo(auth: string | undefined, channelId: string, videoId: string) {
+    await this.editorial.requireEditor(auth);
+    const { channels, key } = this.configuration();
+    if (typeof channelId !== 'string' || !CHANNEL.test(channelId) || !channels.includes(channelId) || typeof videoId !== 'string' || !VIDEO.test(videoId)) throw new BadRequestException('Choose a video from a configured channel');
+    if (!key) throw new ServiceUnavailableException('YouTube discovery is not configured');
+    const rows = await this.request('videos', { part: 'snippet,status,contentDetails', id: videoId }, key);
+    const video = rows.items.find(item => item.id === videoId);
+    if (!video || video.snippet?.channelId !== channelId || video.status?.privacyStatus !== 'public' || video.status?.embeddable !== true || video.status?.uploadStatus !== 'processed' || video.contentDetails?.contentRating?.ytRating === 'ytAgeRestricted') throw new BadRequestException('This video is no longer eligible for discovery');
+    return `https://www.youtube.com/watch?v=${videoId}`;
+  }
   private async request(resource: string, parameters: Record<string, string>, key: string): Promise<ResponseData> {
     const url = new URL(`https://www.googleapis.com/youtube/v3/${resource}`);
     for (const [name, value] of Object.entries({ ...parameters, key })) url.searchParams.set(name, value);
