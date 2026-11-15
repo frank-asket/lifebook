@@ -45,7 +45,7 @@ Publication fields, supplied source URLs and creator/approval overrides are reje
 
 Do not merge/deploy this build to production until the migration history/checksums are reviewed, a recoverable backup is confirmed, and the operator approves the named additive migration. The schema guard intentionally refuses readiness if the new migration is missing. Do not disable that guard, reset the database or amend applied migrations.
 
-The migration has only been rehearsed in an isolated synthetic local PostgreSQL database. No production migration, source publication, license assertion or player change is authorized by this document.
+The migration was rehearsed in an isolated synthetic local PostgreSQL database and on an isolated restore of the production backup; see the dated [release verification](TEACHING_REVIEW_RELEASE_VERIFICATION.md) for migration-history, backup and restore evidence. The production migration remains pending named approval. No production migration, source publication, license assertion or player change is authorized by this document.
 
 Later work: versioned rights/reviewer decisions, explicit approval tied to a specific source/version, provider-specific member publication, and tested web/Expo playback with third-party disclosure and source fallback. Recheck current YouTube/ministry requirements before publishing, embedding or introducing any metadata cache. Raw YouTube URLs must not be allowed through the direct-media host allowlist.
 
