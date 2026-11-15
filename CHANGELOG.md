@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.0.0] - 2026-11-15
+
+### Added
+- Add an editor-only private teaching review queue with English/French notes for speaker, attribution, permissions and pastoral review.
+- Recheck the configured YouTube source before saving, deduplicate repeated saves, and reject stale concurrent edits while retaining unsaved form notes.
+- Prepare an additive, RLS-enabled TeachingReviewDraft migration. Production requires reviewed migration history, a recoverable backup and named approval before merge/deployment.
+
+### Changed
+- Link teaching discovery to explicitly saved private drafts without downloading media, copying transcripts, approving rights or publishing teaching content.
+
 ## [0.4.0.0] - 2026-10-26
 
 ### Added
