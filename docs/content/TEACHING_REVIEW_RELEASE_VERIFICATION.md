@@ -14,9 +14,9 @@ Release candidate: v0.5.0.0, branch `codex/livingword-review-drafts`.
 
 ## Release status
 
-**Production migration has not been applied. Code must not merge until named approval and the migration are complete.** Main automatically deploys web/API; the schema guard must remain enabled.
+**The product owner approved the named migration and deployment on 15 November 2026. Production migration applied and verified successfully before code merge.** All 16 migrations are applied, existing data counts remain unchanged, Prisma reports no schema difference, and the new table has RLS enabled. Main automatically deploys web/API; the schema guard remains enabled.
 
-The product owner approved the v0.5.0.0 version bump. That approval is not database migration approval.
+The separate v0.5.0.0 version and named production migration/deployment approvals are recorded in the operator conversation. Backup hash and recoverability were rechecked immediately before application; production counts still matched the backup. Code deployment verification follows merge.
 
 ## Validation
 

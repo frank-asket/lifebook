@@ -1,6 +1,6 @@
 # Private teaching review drafts
 
-Implemented in source on 15 November 2026. Not deployed; the additive migration remains pending production review and approval.
+Implemented in source on 15 November 2026. Code deployment is pending. The additive migration was approved, applied and verified in production on 15 November 2026; see `TEACHING_REVIEW_RELEASE_VERIFICATION.md`.
 
 ## Scope and design
 
@@ -56,4 +56,4 @@ Later work: versioned rights/reviewer decisions, explicit approval tied to a spe
 - Full web suite: 57 passed. Web and marketing production builds passed.
 - All 16 migrations replayed on a fresh synthetic local PostgreSQL database, including the new table with RLS enabled. Applied production migration files were not modified.
 - The actual review component was visually checked using a synthetic desktop HTML preview with existing application CSS. This is not authenticated production or physical-device acceptance.
-- No production migration or deployment was performed for this feature. Mobile playback and public publication remain outside this change.
+- The named production migration was subsequently approved, applied and verified; code deployment verification follows merge. Mobile playback and public publication remain outside this change.
