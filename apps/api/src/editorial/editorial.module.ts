@@ -4,6 +4,8 @@ import { BibleReadingModule } from '../bible-reading/bible-reading.module';
 import { TeachingDiscoveryController } from './teaching-discovery.controller';
 import { TeachingDiscoveryService } from './teaching-discovery.service';
 import { EditorialService } from './editorial.service';
+import { TeachingReviewsController } from './teaching-reviews.controller';
+import { TeachingReviewsService } from './teaching-reviews.service';
 @ApiTags('editorial') @ApiBearerAuth()
 @Controller('editorial')
 export class EditorialController {
@@ -13,5 +15,5 @@ export class EditorialController {
   @Post(':kind') @Header('Cache-Control', 'no-store') create(@Headers('authorization') auth: string | undefined, @Param('kind') kind: string, @Body() body: unknown) { return this.editorial.save(auth, kind, undefined, body); }
   @Put(':kind/:id') @Header('Cache-Control', 'no-store') update(@Headers('authorization') auth: string | undefined, @Param('kind') kind: string, @Param('id') id: string, @Body() body: unknown) { return this.editorial.save(auth, kind, id, body); }
 }
-@Module({ imports: [BibleReadingModule], controllers: [EditorialController, TeachingDiscoveryController], providers: [EditorialService, TeachingDiscoveryService] })
+@Module({ imports: [BibleReadingModule], controllers: [EditorialController, TeachingDiscoveryController, TeachingReviewsController], providers: [EditorialService, TeachingDiscoveryService, TeachingReviewsService] })
 export class EditorialModule {}

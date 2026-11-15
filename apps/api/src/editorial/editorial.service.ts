@@ -13,6 +13,7 @@ export class EditorialService {
     const id = await this.identity.userId(auth);
     const user = await this.db.user.findUnique({ where: { id }, select: { role: true } });
     if (!user || !['MODERATOR', 'ADMIN'].includes(user.role)) throw new ForbiddenException('Only LifeBook moderators and administrators can edit content');
+    return id;
   }
   private async record(tx: Prisma.TransactionClient, kind: ContentKind, id: string) {
     const row = kind === 'meditations' ? await tx.meditation.findUnique({ where: { id } }) : kind === 'studies' ? await tx.studySeries.findUnique({ where: { id }, include: { lessons: { orderBy: { position: 'asc' } } } }) : await tx.learningPath.findUnique({ where: { id }, include: { lessons: { orderBy: { position: 'asc' } } } });

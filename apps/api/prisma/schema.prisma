@@ -141,6 +141,26 @@ model PrayerEntry {
 // LIVINGWORD — SERMONS
 // ============================================================
 
+// Private editorial bookmarks and original review notes; never served as Sermons.
+model TeachingReviewDraft {
+  id             String   @id @default(cuid())
+  sourceUrl      String   @unique
+  channelId      String
+  title          String   @default("")
+  speaker        String   @default("")
+  attribution    String   @default("")
+  rightsReference String  @default("")
+  reviewNotes    String   @default("")
+  locale         String   @default("en")
+  revision       Int      @default(1)
+  creatorId      String
+  updatedById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([updatedAt, id])
+}
+
 model Sermon {
   id          String    @id @default(cuid())
   title       String
