@@ -68,8 +68,21 @@ The authenticated dashboard carries the same palette and comfortable card/type r
 | Feedback | `.notice`, `.alert`, `.empty`, `.skeleton`, `.pill`, `.tag`, `.progress-track` / `.progress-fill` |
 | Scripture | `.reading`, `.verse-quote`, `.verse-ref`, `.small-verse`, `.scripture-attribution` |
 | Layout | `.grid` + `.cols-2/3/4`, `.stack`, `.two-up`, `.list-row` |
+| Bento | `.bento` + `.bento-2/3/4/6`, `.bento-tall`; tiles are `.card.bento-tile` with `.bento-head`, `.bento-foot`, `.bento-note`, `.bento-stats` / `.bento-stat`, `.bento-list`; `.bento-cell` wraps a component that renders its own card |
 
 Icons come from `lucide-react` only, at the stroke width used around them.
+
+## Bento grid (November 2026)
+
+Overview screens (the member home, the marketing "A closer look" section) use a bento grid: tiles of different sizes on one 6-column grid, so the most important item is visibly the largest.
+
+- **One hero tile.** On the home, Today's Word takes `.bento-4.bento-tall`; everything else is `.bento-2`. Scripture stays the largest thing on the screen. Do not give two tiles hero size.
+- **Rows add up to 6.** Use 4 + 2 or 2 + 2 + 2. `grid-auto-flow: dense` fills small gaps, but plan rows so it never has to reorder in a way that confuses keyboard order.
+- **Tiles are cards.** Use `.card.bento-tile` so tokens, borders, shadow and dark mode come for free. No per-tile background colours or gradients; tint inner chips with `--soft` / `--pink` only.
+- **Each tile states its own state.** A tile shows a skeleton while loading, a quiet message plus a retry button on error, and an invitation when empty. Never leave a hole in the grid.
+- **Container queries, not viewport queries, inside tiles.** `.bento-tile` (and marketing `.story-card`, container `story`) set `container-type: inline-size`, so contents react to the tile's width: stat pairs stack below 250px, and wide marketing cards put the illustration beside the copy from 600px.
+- **Collapse:** 6 columns → 2 at 1000px (marketing: 1040px) → 1 at 700px (marketing: 640px). `.bento-tall` drops its row span once the grid has two columns.
+- Stat numbers use Manrope 800 in `--deep` with `tabular-nums`, sized with `cqi` so they scale with the tile. Counts are facts (awaiting, answered), never streaks or rankings.
 
 ## Motion and feedback
 

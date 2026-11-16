@@ -34,6 +34,8 @@ export default function Dashboard() {
   const [hour, setHour] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
+  const [weekFailed, setWeekFailed] = useState(false);
+  const [weekRetry, setWeekRetry] = useState(0);
   useEffect(() => { setHour(new Date().getHours()); try { setMinutes(parseLength(localStorage.getItem('lifebook.prayerLength'))); } catch { /* storage unavailable */ } }, []);
   useEffect(() => {
     let active = true; setError(''); setProfile(null); setPaths([]); setSummaryError(false); setSummary(null);
@@ -49,7 +51,7 @@ export default function Dashboard() {
   }, [getToken, language, retry]);
   useEffect(() => {
     if (!isSignedIn || !date) return;
-    let active = true;
+    let active = true; setWeekFailed(false);
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     getToken().then(async token => {
       if (!token) return;
@@ -57,9 +59,9 @@ export default function Dashboard() {
       if (active) setToday(session);
       const history = await api<TodaySession[]>('/daily-word/sessions?limit=7', token);
       if (active) setRecent(history);
-    }).catch(() => undefined);
+    }).catch(() => { if (active) setWeekFailed(true); });
     return () => { active = false; };
-  }, [getToken, isSignedIn, date]);
+  }, [getToken, isSignedIn, date, weekRetry]);
 
   useEffect(() => { if (word) reportScripture(`word:${language}:${word.date}`, word.verse.fumsToken); }, [word, language]);
   const done = DAILY_WORD_STEPS.map(step => Boolean(today?.steps.some(s => s.step === step)));
@@ -74,8 +76,8 @@ export default function Dashboard() {
     {error && <div className="alert reader-error" role="alert"><span>{error}</span><button className="btn btn-soft" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div>}
     {profile && !profile.profile && <p className="notice home-notice">{tr('Your journey is yours to shape.', 'Votre parcours vous appartient.')} <Link className="text-link" href="/onboarding">{tr('Personalize LifeBook', 'Personnaliser LifeBook')} →</Link></p>}
 
-    <div className="home-grid">
-      <section className="card home-today" aria-labelledby="home-today-title">
+    <div className="bento bento-home">
+      <section className="card home-today bento-4 bento-tall" aria-labelledby="home-today-title">
         <div className="home-today-meta">
           <h2 id="home-today-title" className="eyebrow">{tr('Today’s Word', 'Parole du jour')}</h2>
           <span className="home-minutes">{completed ? <><Check size={14} aria-hidden="true" /> {tr('Done today', 'Fait aujourd’hui')}</> : tr(`About ${minutes} min`, `Environ ${minutes} min`)}</span>
@@ -91,31 +93,46 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <div className="home-side">
-        <ContinueReading locale={language} compact />
-        {recent && date && <WeekRhythm days={lastSevenDays(date, language, recent.map(s => s.journeyDate.slice(0, 10) === date && today ? today : s))} language={language} />}
-        <Link className="card home-link" href="/prayer">
-          <span className="home-link-icon rose"><HeartHandshake size={20} aria-hidden="true" /></span>
-          <span><strong>{tr('Prayer journal', 'Journal de prière')}</strong><small>{tr('Bring what is on your heart. Private and encrypted.', 'Confiez ce qui vous tient à cœur. Privé et chiffré.')}</small></span>
-          <ArrowRight size={16} aria-hidden="true" />
-        </Link>
-      </div>
+      <div className="bento-cell bento-2"><ContinueReading locale={language} compact /></div>
+      {recent && date ? <WeekRhythm days={lastSevenDays(date, language, recent.map(s => s.journeyDate.slice(0, 10) === date && today ? today : s))} language={language} />
+        : weekFailed ? <section className="card bento-tile bento-2" aria-labelledby="home-week-title"><div className="bento-head"><h2 id="home-week-title">{tr('Your week in the Word', 'Votre semaine dans la Parole')}</h2></div><p className="bento-note">{tr('Your week could not be loaded.', 'Impossible de charger votre semaine.')}</p><div className="bento-foot"><button className="btn btn-soft btn-sm" onClick={() => setWeekRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div></section>
+        : isSignedIn && <div className="card bento-tile bento-2" aria-busy="true"><span className="skeleton bento-skeleton short" /><span className="skeleton bento-skeleton" /><span className="skeleton bento-skeleton" /></div>}
+
+      <section className="card bento-tile bento-2" aria-labelledby="home-prayer-title">
+        <div className="bento-head"><h2 id="home-prayer-title">{tr('Prayer Sanctuary', 'Sanctuaire de prière')}</h2><span className="home-link-icon rose"><HeartHandshake size={18} aria-hidden="true" /></span></div>
+        {summaryError ? <p className="bento-note">{tr('Your prayers could not be counted right now.', 'Impossible de compter vos prières pour le moment.')}</p>
+          : !summary ? <div aria-busy="true"><span className="skeleton bento-skeleton" /><span className="skeleton bento-skeleton short" /></div>
+          : summary.prayer.total === 0 ? <p className="bento-note">{tr('Bring what is on your heart. Private and encrypted.', 'Confiez ce qui vous tient à cœur. Privé et chiffré.')}</p>
+          : <dl className="bento-stats">
+            <div className="bento-stat"><dt>{tr('Awaiting', 'En attente')}</dt><dd>{summary.prayer.awaiting}</dd></div>
+            <div className="bento-stat"><dt>{tr('Answered', 'Exaucées')}</dt><dd>{summary.prayer.answered}</dd></div>
+          </dl>}
+        <div className="bento-foot">
+          {summaryError && <button className="btn btn-soft btn-sm" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button>}
+          <Link className="btn btn-outline btn-sm" href="/prayer">{tr('Open prayer journal', 'Ouvrir le journal')} <ArrowRight size={14} aria-hidden="true" /></Link>
+        </div>
+      </section>
+
+      <section className="card bento-tile bento-2" aria-labelledby="home-continue-title">
+        <div className="bento-head"><h2 id="home-continue-title">{tr('Continue your journey', 'Poursuivre votre parcours')}</h2><span className="home-link-icon"><GraduationCap size={18} aria-hidden="true" /></span></div>
+        {summaryError ? <><p className="bento-note">{tr('Your personal overview is unavailable.', 'Votre aperçu personnel est indisponible.')}</p><div className="bento-foot"><button className="btn btn-soft btn-sm" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div></>
+          : !summary ? <div aria-busy="true"><span className="skeleton bento-skeleton" /><span className="skeleton bento-skeleton" /><span className="skeleton bento-skeleton short" /></div>
+          : summary.studies.length + summary.paths.length === 0 ? <><p className="bento-note">{tr('One small step is enough for today. Start a Bible study when you are ready.', 'Un petit pas suffit pour aujourd’hui. Commencez une étude biblique quand vous le souhaitez.')}</p><div className="bento-foot"><Link className="btn btn-outline btn-sm" href="/bible">{tr('Browse Bible studies', 'Voir les études bibliques')}</Link></div></>
+          : <ul className="bento-list">
+            {summary.studies.slice(0, 3).map(study => <li key={study.id}><Link href={`/bible/${encodeURIComponent(study.id)}`}><span>{study.title}<small>{tr('Bible Study', 'Étude biblique')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link></li>)}
+            {summary.paths.slice(0, Math.max(0, 4 - Math.min(3, summary.studies.length))).map(path => <li key={path.id}><Link href={`/discipleship/${encodeURIComponent(path.id)}`}><span>{path.title}<small>{tr('Discipleship', 'Parcours')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link></li>)}
+          </ul>}
+      </section>
+
+      <section className="card bento-tile bento-2" aria-labelledby="home-paths-title">
+        <div className="bento-head"><h2 id="home-paths-title">{tr('Discipleship pathways', 'Parcours de disciple')}</h2><span className="home-link-icon"><GraduationCap size={18} aria-hidden="true" /></span></div>
+        {paths.length > 0 ? <ul className="bento-list">{paths.slice(0, 3).map(p => <li key={p.id}><Link href={`/discipleship/${encodeURIComponent(p.id)}`}><span>{p.title}</span><ArrowRight size={16} aria-hidden="true" /></Link></li>)}</ul>
+          : <p className="bento-note">{tr('Explore the foundations of faith, one lesson at a time.', 'Explorez les fondements de la foi, une leçon après l’autre.')}</p>}
+        <div className="bento-foot"><Link className="btn btn-outline btn-sm" href="/discipleship">{tr('View all pathways', 'Voir tous les parcours')} <ArrowRight size={14} aria-hidden="true" /></Link></div>
+      </section>
     </div>
 
-    <section className="home-paths" aria-labelledby="home-continue-title">
-      <header className="home-section-intro"><h2 id="home-continue-title">{tr('Continue your journey', 'Poursuivre votre parcours')}</h2><p>{tr('Return to your prayers, studies and learning. One small step is enough for today.', 'Retrouvez vos prières, vos études et vos parcours. Un petit pas suffit pour aujourd’hui.')}</p></header>
-      {summaryError ? <div className="alert reader-error" role="status">{tr('Your personal overview is unavailable.', 'Votre aperçu personnel est indisponible.')} <button className="btn btn-soft" onClick={() => setRetry(n => n + 1)}>{tr('Try again', 'Réessayer')}</button></div> : !summary ? <p aria-busy="true">{tr('Loading your activities…', 'Chargement de vos activités…')}</p> : <div className="home-path-list">
-        <Link className="card home-link" href="/prayer"><span className="home-link-icon rose"><HeartHandshake size={20} aria-hidden="true" /></span><span><strong>{tr('Prayer Sanctuary', 'Sanctuaire de prière')}</strong><small>{tr(`${summary.prayer.awaiting} awaiting · ${summary.prayer.answered} answered`, `${summary.prayer.awaiting} en attente · ${summary.prayer.answered} exaucées`)}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>
-        {summary.studies.map(study => <Link className="card home-link" href={`/bible/${encodeURIComponent(study.id)}`} key={study.id}><span className="home-link-icon"><GraduationCap size={20} aria-hidden="true" /></span><span><strong>{study.title}</strong><small>{tr('Resume Bible Study', 'Reprendre l’étude biblique')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}
-        {summary.paths.map(path => <Link className="card home-link" href={`/discipleship/${encodeURIComponent(path.id)}`} key={path.id}><span className="home-link-icon"><GraduationCap size={20} aria-hidden="true" /></span><span><strong>{path.title}</strong><small>{tr('Resume discipleship', 'Reprendre le parcours')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}
-      </div>}
-    </section>
     <Suggestions />
-
-    {paths.length > 0 && <section className="home-paths" aria-labelledby="home-paths-title">
-      <div className="section-title"><h2 id="home-paths-title">{tr('Discipleship pathways', 'Parcours de disciple')}</h2><Link className="text-link" href="/discipleship">{tr('View all', 'Tout voir')} →</Link></div>
-      <div className="home-path-list">{paths.slice(0, 3).map(p => <Link className="card home-link" key={p.id} href="/discipleship"><span className="home-link-icon"><GraduationCap size={20} aria-hidden="true" /></span><span><strong>{p.title}</strong><small>{p.description || tr('Explore this pathway', 'Découvrir ce parcours')}</small></span><ArrowRight size={16} aria-hidden="true" /></Link>)}</div>
-    </section>}
     <Announcements />
   </Shell>;
 }
@@ -125,7 +142,7 @@ function WeekRhythm({ days, language }: { days: DayMark[]; language: 'en' | 'fr'
   const tr = (en: string, fr: string) => language === 'fr' ? fr : en;
   const count = days.filter(d => d.state !== 'none').length;
   const status = (d: DayMark) => d.state === 'done' ? tr('prayer time finished', 'temps de prière terminé') : d.state === 'started' ? tr('prayer time started', 'temps de prière commencé') : tr('no prayer time', 'pas de temps de prière');
-  return <section className="card home-week" aria-labelledby="home-week-title">
+  return <section className="card home-week bento-tile bento-2" aria-labelledby="home-week-title">
     <h2 id="home-week-title">{tr('Your week in the Word', 'Votre semaine dans la Parole')}</h2>
     <ol className="home-week-days">{days.map(d => <li key={d.date} className={`${d.state}${d.today ? ' today' : ''}`}>
       <span className="home-week-dot" aria-hidden="true">{d.state === 'done' && <Check size={13} />}</span>

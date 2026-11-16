@@ -2299,3 +2299,69 @@ p a.text-link, li a.text-link { display: inline; min-height: 0; }
 
 /* The document owns vertical scrolling; existing horizontal rails retain their local rules. */
 html { scrollbar-width: thin; scrollbar-color: var(--line) var(--bg); }
+
+/* ============================================================
+   BENTO GRID (November 2026)
+   A 6-column grid of tiles in different sizes. Tiles are ordinary .card surfaces, so they
+   inherit tokens and dark mode. Each tile is a size container, so what's inside adapts to
+   the tile's width rather than the viewport's.
+   ============================================================ */
+.bento { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-flow: row dense; gap: 16px; }
+.bento > * { min-width: 0; margin: 0; }
+.bento-2 { grid-column: span 2; }
+.bento-3 { grid-column: span 3; }
+.bento-4 { grid-column: span 4; }
+.bento-6 { grid-column: 1 / -1; }
+.bento-tall { grid-row: span 2; }
+.bento-tile { display: flex; flex-direction: column; container-type: inline-size; padding: clamp(20px, 2.2vw, 26px); }
+/* Holds a component that renders its own card (e.g. ContinueReading) and stretches it to fill the cell. */
+.bento-cell { display: grid; }
+.bento-cell > * { margin: 0; }
+.bento-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.bento-head h2 { margin: 0; font-size: 15px; line-height: 1.35; letter-spacing: -.012em; text-wrap: balance; }
+.bento-head .home-link-icon { flex-shrink: 0; width: 36px; height: 36px; border-radius: 11px; }
+.bento-foot { margin-top: auto; padding-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
+.bento-note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+.bento-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+/* dt follows dd in reading order ("Awaiting: 3"); column-reverse shows the number on top. */
+.bento-stat { display: flex; flex-direction: column-reverse; padding: 14px 16px; border-radius: 16px; background: var(--soft); }
+.bento-stat dd { margin: 0; font: 800 clamp(26px, 12cqi, 34px)/1.1 Manrope, sans-serif; letter-spacing: -.03em; color: var(--deep); font-variant-numeric: tabular-nums; }
+.bento-stat dt { margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--deep); }
+
+.bento-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.bento-list li + li { border-top: 1px solid var(--line); }
+.bento-list a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 8px 0; color: var(--ink); font-weight: 600; line-height: 1.4; touch-action: manipulation; }
+.bento-list a > span { min-width: 0; overflow-wrap: anywhere; }
+.bento-list a small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+.bento-list a > svg { margin-left: auto; flex-shrink: 0; color: var(--muted); transition: transform .18s var(--ease-out), color .18s; }
+.bento-list a:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; border-radius: 8px; }
+.bento-list a:active { opacity: .65; }
+@media (hover: hover) and (pointer: fine) {
+  .bento-list a:hover > svg { color: var(--purple); transform: translateX(2px); }
+}
+.bento-skeleton { display: block; height: 18px; margin: 6px 0; }
+.bento-skeleton.short { width: 55%; }
+
+/* Inside a narrow tile, stack the stat pair instead of squeezing the numbers. */
+@container (max-width: 250px) {
+  .bento-stats { grid-template-columns: 1fr; }
+}
+
+/* Dashboard placement: Today's Word leads; reading and rhythm sit beside it. */
+.bento-home .home-today { min-height: 360px; }
+.bento-home .home-week { display: flex; flex-direction: column; justify-content: center; }
+.bento-home .bento-cell .home-link { height: 100%; }
+
+@media (max-width: 1000px) {
+  .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bento-2, .bento-3 { grid-column: span 1; }
+  .bento-4, .bento-6 { grid-column: 1 / -1; }
+  .bento-tall { grid-row: auto; }
+  .bento-home .home-today { min-height: 0; }
+}
+@media (max-width: 700px) {
+  .bento { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .bento > * { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { .bento-list a > svg { transition: none; } }

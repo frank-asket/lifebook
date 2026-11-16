@@ -14,13 +14,13 @@ export function ProductStories({ locale }: { locale: Locale }) {
   return <section className="section product-stories" id="explore" aria-labelledby="explore-title">
     <div className="container">
       <header className="stories-heading"><div><p className="eyebrow">{fr ? 'Découvrez LifeBook' : 'A closer look at LifeBook'}</p><h2 id="explore-title">{fr ? 'Un espace pour chaque' : 'Space for every'}{' '}<em>{fr ? 'pas.' : 'step.'}</em></h2></div><p>{fr ? 'Commencez par la Bible et la prière. Nos bibliothèques de contenus grandissent au fil des relectures.' : 'Begin with Scripture and prayer. Our content libraries grow as each resource is reviewed.'}</p></header>
-      <div className="story-grid">{stories.map(story => <article className={`story-card story-${story.kind}`} key={story.kind}>
+      <div className="story-grid">{stories.map(story => <article className={`story-card story-${story.kind}`} key={story.kind}><div className="story-inner">
         <div className="story-card-head"><span className="story-symbol" aria-hidden="true">{story.icon}</span><span className={`status-chip chip-${story.feature.status}`}>{t.status[story.feature.status]}</span></div>
-        <h3>{story.name}</h3><p>{story.text}</p>
+        <div className="story-copy"><h3>{story.name}</h3><p>{story.text}</p></div>
         <div className="story-visual" aria-hidden="true">
           {story.kind === 'meditate' ? <><span className="story-caption">{t.screens.ref} · {t.screens.translation}</span><blockquote>{t.screens.verse}</blockquote><span className="story-caption">{story.parts.join(' · ')}</span></> : <><span className="story-caption">{fr ? 'Le cheminement' : 'The experience'}</span><ol>{story.parts.map((part, i) => <li key={part}><span className="story-step">{i + 1}</span>{part}{story.kind === 'livingword' && <LockIcon size={14} />}</li>)}</ol></>}
         </div>
-      </article>)}</div>
+      </div></article>)}</div>
       <p className="stories-footnote">{fr ? 'Exemples de parcours. Les contenus en préparation ne sont pas encore disponibles.' : 'Illustrations of the experience. Content marked as being prepared is not yet available.'} <a href="#features">{fr ? 'Voir toutes les fonctionnalités et leur statut' : 'See every feature and its status'} <ArrowIcon size={14} /></a></p>
     </div>
   </section>;
