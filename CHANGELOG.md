@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.2.0] - 2026-11-16
+
+### Changed
+- Present the member home as a bento grid: Today's Word leads as the largest tile, beside Continue reading and the week in the Word, above Prayer Sanctuary, journey and pathway tiles.
+- Show Prayer Sanctuary as awaiting and answered counts, with an invitation instead of zeros for members without prayers.
+- Lay out the marketing "A closer look" cards as an alternating wide/narrow bento; wide cards place their illustration beside the copy.
+- Open published discipleship pathways from the home page directly instead of the pathway list.
+- Add reusable `.bento` tiles to the web design system and document bento rules in DESIGN.md.
+- Document the optional `OPENAI_API_KEY` and `OPENAI_MODEL` variables in `.env.example`.
+
+### Fixed
+- Show a retry when the week in the Word cannot load, instead of hiding it silently.
+- Remove the duplicate Prayer journal link from the home page.
+
 ## [0.5.1.0] - 2026-11-16
 
 ### Changed
