@@ -9,3 +9,9 @@ export const appLinks = {
   prayer: `${base}/prayer`,
   livingword: `${base}/livingword`,
 };
+
+/** Pilot requests go to the operator; this does not create an account or promise admission. */
+export function pilotLink(locale: 'en' | 'fr') {
+  const subject = locale === 'fr' ? 'Demande de participation au pilote LifeBook' : 'LifeBook pilot participation request';
+  return `mailto:lifebook.meditation@gmail.com?subject=${encodeURIComponent(subject)}`;
+}

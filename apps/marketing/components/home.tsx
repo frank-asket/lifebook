@@ -1,11 +1,12 @@
 import { content, type Locale } from '../lib/content';
-import { appLinks } from '../lib/app-links';
+import { appLinks, pilotLink } from '../lib/app-links';
 import { ProductPreview } from './product-preview';
 import { JournalScreen, PastorScreen, Phone, ReaderScreen, StepScreen, TodayScreen } from './phone-screens';
 import { ArrowIcon, BookIcon, ChatIcon, LockIcon, SunIcon } from './icons';
 import { Accent } from './accent';
 import { InsideShowcase } from './inside-showcase';
 import { FeatureTabs } from './feature-tabs';
+import { ProductStories } from './product-stories';
 
 export function Home({ locale }: { locale: Locale }) {
   const t = content[locale];
@@ -20,14 +21,18 @@ export function Home({ locale }: { locale: Locale }) {
           <h1><Accent text={t.hero.title} /></h1>
           <p className="lead">{t.hero.lead}</p>
           <div className="actions">
-            <a className="button" href={appLinks.signUp}>{t.hero.primary} <ArrowIcon /></a>
-            <a className="button button-quiet" href="#how">{t.hero.secondary}</a>
+            <a className="button" href={pilotLink(locale)}>{t.hero.primary} <ArrowIcon /></a>
+            <a className="button button-quiet" href="#explore">{t.hero.secondary}</a>
           </div>
-          <p className="hero-note">{t.hero.note}</p>
+          <ul className="hero-assurances" aria-label={locale === 'fr' ? 'Votre expérience' : 'Your experience'}>
+            <li>{locale === 'fr' ? 'Français et anglais' : 'English and French'}</li><li>{locale === 'fr' ? 'À votre rythme' : 'At your own pace'}</li><li>{locale === 'fr' ? 'Sans classement' : 'No spiritual rankings'}</li>
+          </ul><p className="hero-note">{t.hero.note}</p>
         </div>
-        <ProductPreview t={t.preview} />
+        <ProductPreview t={t.preview} screens={t.screens} locale={locale} />
       </div>
     </section>
+
+    <ProductStories locale={locale} />
 
     <section className="section vision" id="why" aria-labelledby="why-title">
       <div className="container vision-grid">
@@ -125,7 +130,7 @@ export function Home({ locale }: { locale: Locale }) {
           <p className="eyebrow">{t.churches.eyebrow}</p>
           <h2 id="churches-title"><Accent text={t.churches.title} /></h2>
           <p className="section-lead">{t.churches.lead}</p>
-          <div className="actions"><a className="button" href={`mailto:hello@lifebook.app?subject=${encodeURIComponent(t.churches.subject)}`}>{t.churches.button} <ArrowIcon /></a></div>
+          <div className="actions"><a className="button" href={`mailto:lifebook.meditation@gmail.com?subject=${encodeURIComponent(t.churches.subject)}`}>{t.churches.button} <ArrowIcon /></a></div>
         </header>
         <ul className="church-list">{t.churches.items.map(([title, text, status], i) => <li key={title}>
           <span className="tile-icon">{churchIcons[i]}</span>
@@ -166,8 +171,8 @@ export function Home({ locale }: { locale: Locale }) {
         <h2 id="closing-title"><Accent text={t.cta.title} /></h2>
         <p>{t.cta.text}</p>
         <div className="actions">
-          <a className="button" href={appLinks.signUp}>{t.cta.button} <ArrowIcon /></a>
-          <a className="button button-quiet" href={appLinks.home}>{t.cta.open}</a>
+          <a className="button" href={pilotLink(locale)}>{t.cta.button} <ArrowIcon /></a>
+          <a className="button button-quiet" href={appLinks.signIn}>{t.cta.open}</a>
         </div>
       </div>
     </section>

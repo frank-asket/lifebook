@@ -14,14 +14,14 @@ Always use the variable, never the hex value. Dark mode redefines the same varia
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `--bg` | `#f7f7fb` | `#121019` | Page background |
+| `--bg` | `#faf8f5` | `#121019` | Page background |
 | `--paper` | `#fff` | `#1d1927` | Cards, panels, sidebar |
 | `--ink` | `#201b32` | `#f1edf8` | Body text, headings |
 | `--muted` | `#686176` | `#b9adc9` | Secondary text, labels (5.90:1 on `--paper`, 5.52:1 on `--bg`; keep ≥ 4.5:1) |
 | `--line` | `#ebe9f2` | `#3b334c` | Borders, dividers |
-| `--purple` | `#7252ca` | `#b79aee` | The single accent: primary actions, links, active state |
-| `--deep` | `#49328c` | `#d1bdf8` | Emphasis text on soft surfaces, stat numbers |
-| `--soft` | `#f0ebfc` | `#30263f` | Tinted surfaces, hover, selected |
+| `--purple` | `#77517e` | `#b79aee` | The single plum accent: primary actions, links, active state |
+| `--deep` | `#56375f` | `#d1bdf8` | Emphasis text on soft surfaces, stat numbers |
+| `--soft` | `#f0e9f2` | `#30263f` | Tinted surfaces, hover, selected |
 | `--pink`, `--teal` | pastel | muted | Feature-icon tints only |
 
 Rules:
@@ -31,6 +31,18 @@ Rules:
 - No inline `color` / `background` in TSX: put it in a class in `globals.css` so it can carry a dark override.
 - Meaningful icons need 3:1 against the chip or surface behind them (feature-icon tints: rose `#c85a9a`, mint `#269382`, gold `#ae7a2b`, lilac `#7b54cb`; `.empty svg` `#8d74c2`).
 - Text on a gradient is checked against its lightest stop. The purple panels (`.auth-visual`, `.lw-hero`) end at `#76589f` so white and the `#f4e6ff` / `#f4ecff` tints stay at 4.5:1 or above.
+
+## Product-led marketing (November 2026)
+
+The approved Fizens reference informs product presentation, not its finance branding. Use warm ivory surfaces, a single plum accent and existing Manrope/DM Sans/Georgia typography. Gold/dawn stays a decorative tint, never an additional action colour. Preserve existing dark-mode tokens.
+
+Runtime CSS remains canonical (Model B): `apps/web/app/globals.css` owns web tokens. Marketing maps the same light palette through `--bg`, `--accent` (web `--purple`), `--deep` and `--soft` in `apps/marketing/app/globals.css`; its `--tint` is `#f3eef2`. The marketing theme-colour metadata follows `--bg`.
+
+The marketing hero shows source-based phone illustrations, explicitly labelled as examples. Preview content is synthetic and Scripture retains its named translation. Feature cards must retain actual availability labels, including content awaiting review. No fabricated audience numbers, testimonials, licence approvals or App Store/Play Store availability claims.
+
+The primary marketing invitation requests pilot access by email to the operator. It does not register a participant or promise admission. Existing members sign in separately. Primary navigation has three sections: purpose, features and how it works; all other pages and sections remain reachable through the footer.
+
+The authenticated dashboard carries the same palette and comfortable card/type rhythm. Scripture remains dominant, and existing reading, prayer, progress, language and theme behavior is preserved.
 
 ## Typography
 
