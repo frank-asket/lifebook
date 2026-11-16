@@ -7,8 +7,13 @@ const starters = load('../../web/lib/editorial-starters.ts', { './editorial': li
 test('starter copy stays local and every EN/FR draft matches the validated editorial contract', () => {
   const { editorialInput } = require('../../api/dist/editorial/editorial-input');
   assert.equal(starters.meditationStarterCount, 7);
+  assert.equal(starters.studyStarterCount, 2);
+  const gospel = starters.starterDraft('studies', 'fr', 1);
+  assert.equal(gospel.method, 'THEMATIC');
+  assert.equal(gospel.lessons.map(l => l.scriptureReference).join(' | '), '1 Corinthiens 15.1–8 | Éphésiens 2.1–10 | Romains 12.1–13');
+  assert.notEqual(gospel.slug, starters.starterDraft('studies', 'fr', 0).slug, 'each study starter has its own slug');
   for (const kind of ['meditations', 'studies', 'paths']) for (const locale of ['en', 'fr']) {
-    for (let index = 0; index < (kind === 'meditations' ? 7 : 1); index++) {
+    for (let index = 0; index < (kind === 'meditations' ? 7 : kind === 'studies' ? starters.studyStarterCount : 1); index++) {
       const draft = starters.starterDraft(kind, locale, index);
       const payload = library.editorialPayload(kind, draft, false, false);
       assert.equal(editorialInput(kind, payload).publish, false);
