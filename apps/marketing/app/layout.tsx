@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { languages: { en: '/', fr: '/fr' } },
   robots: { index: true, follow: true },
 };
-export const viewport: Viewport = { themeColor: [{ media: '(prefers-color-scheme: light)', color: '#faf9fc' }, { media: '(prefers-color-scheme: dark)', color: '#121019' }] };
+export const viewport: Viewport = { themeColor: [{ media: '(prefers-color-scheme: light)', color: '#faf8f5' }, { media: '(prefers-color-scheme: dark)', color: '#121019' }] };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <html lang="en"><body>{children}</body></html>;

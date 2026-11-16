@@ -61,6 +61,7 @@ export function ReaderScreen({ s, sheet = true }: { s: S; sheet?: boolean }) {
     <div className="ps-body ps-reader">
       <p className="ps-chapter">{s.bookTitle}</p>
       <p className="ps-scripture">{s.bibleVerses.map(([n, text]) => <span key={n}><sup>{n}</sup>{text} </span>)}</p>
+      <p className="ps-ref">{s.translation}</p>
     </div>
     {sheet && <><div className="ps-scrim" />
     <div className="ps-sheet">

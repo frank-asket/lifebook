@@ -11,16 +11,16 @@ export type RoadmapStage = { title: string; lead: string; items: [string, string
 
 const en = {
   meta: { title: 'LifeBook — A quiet daily time with God', description: 'One Bible passage a day and five quiet steps to take it in: understand, be still, reflect, pray and live it. In English and French, with a private prayer journal and no streaks.' },
-  nav: { why: 'Why LifeBook', features: 'Features', how: 'How it works', roadmap: 'What’s coming', churches: 'For churches', inside: 'What’s inside', ease: 'Easy to use', promises: 'Our promises', faq: 'Questions', signIn: 'Sign in', start: 'Get started', menu: 'Menu', close: 'Close menu', other: 'Français', otherHref: '/fr', otherLang: 'fr' },
+  nav: { why: 'Why LifeBook', features: 'Features', how: 'How it works', roadmap: 'What’s coming', churches: 'For churches', inside: 'What’s inside', ease: 'Easy to use', promises: 'Our promises', faq: 'Questions', signIn: 'Sign in', start: 'Request pilot access', menu: 'Menu', close: 'Close menu', other: 'Français', otherHref: '/fr', otherLang: 'fr' },
   hero: {
-    eyebrow: 'Daily Scripture and prayer',
-    title: 'A quiet *daily time* with God.',
-    lead: 'Each day LifeBook gives you one passage and walks you through it, one screen at a time: understand it, be still with it, write what it stirs, pray, and carry it into your day.',
-    primary: 'Begin today', secondary: 'See how it works',
-    note: 'English and French · Works in any browser',
+    eyebrow: 'Scripture, prayer and a little space to grow',
+    title: 'Make room for *God’s Word.*',
+    lead: 'Read a passage. Find a quiet moment. Bring what is on your heart. LifeBook helps you build a daily rhythm with God, at your own pace.',
+    primary: 'Request pilot access', secondary: 'Explore LifeBook',
+    note: 'An invitation-only pilot for up to 10 adults, whatever your beliefs. Request access by email; we will reply with the next steps.',
   },
   preview: {
-    label: 'The LifeBook prayer time screen',
+    label: 'Illustrative LifeBook Bible Reader and home screens',
     step: 'Understand', verse: 'Thy word is a lamp unto my feet, and a light unto my path.', reference: 'Psalm 119:105', translation: 'King James Version',
     back: 'Back', next: 'Continue',
     stillStep: 'Meditate', stillTitle: 'Be still for a moment.', breathe: 'Breathe out', time: '1:12',
@@ -37,7 +37,7 @@ const en = {
     ] as [string, string][],
   },
   screens: {
-    note: 'Screens from LifeBook on a phone. It works in your phone’s browser today; the iPhone and Android apps are in development.',
+    note: 'Illustrative previews based on LifeBook’s screens, with example content. Use LifeBook in your phone’s browser; native iPhone and Android releases are still in testing.',
     date: 'Sunday 18 October', greet: 'Good morning', todayWord: 'Today’s Word', about: 'About 5 min', begin: 'Begin prayer time', week: 'Your week in the Word', days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], weekLine: '3 days with the Word this week.',
     tabs: ['Today', 'Bible', 'Prayer', 'You'], steps: ['Understand', 'Meditate', 'Reflect', 'Pray', 'Live the Word'],
     verse: 'But be ye doers of the word, and not hearers only, deceiving your own selves.', ref: 'James 1:22', translation: 'King James Version',
@@ -89,7 +89,7 @@ const en = {
   status: { live: 'Available', pilot: 'Pilot', content: 'Content on its way', review: 'In pastoral review', dev: 'In development' } as Record<Status, string>,
   features: {
     eyebrow: 'Features', title: 'Everything LifeBook does, and *what is on its way.*',
-    lead: 'Each feature shows where it stands today. Only those marked Available are open to everyone now.',
+    lead: 'Each feature shows where it stands today. Available features are for invited pilot participants; other content is still being prepared.',
     tabsLabel: 'Feature groups',
     groups: [
       { id: 'read', tab: 'Read & study', title: 'Read and study the Bible', lead: 'Scripture in your language, at your pace, with room to think.', items: [
@@ -178,10 +178,10 @@ const en = {
       ['Which languages and devices?', 'English and French. LifeBook works in the browser on any phone or computer. iPhone and Android apps are in development.'],
       ['Does it replace my church?', 'No. LifeBook is a companion for personal time with God, not a substitute for a church community, pastoral care or professional help.'],
       ['What can I use today?', 'Everything marked Available in Features works today in any browser: Today’s Word and the prayer time, the Bible in English and French with search, notes and reading plans, the private prayer journal, and your data controls. The rest is built and waiting for content, pastoral review or licences, as explained in What’s coming.'],
-      ['Can my church or ministry take part?', 'Yes, carefully. We are inviting verified pastors to the Ask a pastor pilot, and ministries to share approved teachings and help write and review content. Write to hello@lifebook.app.'],
+      ['Can my church or ministry take part?', 'Yes, carefully. We are inviting verified pastors to the Ask a pastor pilot, and ministries to share approved teachings and help write and review content. Write to lifebook.meditation@gmail.com.'],
     ] as [string, string][],
   },
-  cta: { title: 'Make room for *the Word* today.', text: 'One passage, a few quiet minutes, and space to respond.', button: 'Begin today', open: 'Open LifeBook' },
+  cta: { title: 'Make room for *the Word* today.', text: 'One passage, a few quiet minutes, and space to respond.', button: 'Request pilot access', open: 'Already invited? Sign in' },
   footer: { tagline: 'A quiet daily time with God, in Scripture and prayer.', explore: 'Explore', about: 'LifeBook', privacy: 'Privacy', terms: 'Terms', contact: 'Contact', rights: 'All rights reserved.', scripture: 'Scripture quotations: King James Version and J.N. Darby (public domain).' },
   skip: 'Skip to content',
 };
@@ -190,16 +190,16 @@ export type Content = typeof en;
 
 const fr: Content = {
   meta: { title: 'LifeBook — Un temps calme avec Dieu, chaque jour', description: 'Un passage biblique par jour et cinq étapes paisibles pour l’accueillir : comprendre, faire silence, réfléchir, prier et le vivre. En français et en anglais, avec un journal de prière privé et sans séries à tenir.' },
-  nav: { why: 'Pourquoi LifeBook', features: 'Fonctionnalités', how: 'Comment ça marche', roadmap: 'À venir', churches: 'Églises', inside: 'Ce qu’on y trouve', ease: 'Simple', promises: 'Nos engagements', faq: 'Questions', signIn: 'Se connecter', start: 'Commencer', menu: 'Menu', close: 'Fermer le menu', other: 'English', otherHref: '/', otherLang: 'en' },
+  nav: { why: 'Pourquoi LifeBook', features: 'Fonctionnalités', how: 'Comment ça marche', roadmap: 'À venir', churches: 'Églises', inside: 'Ce qu’on y trouve', ease: 'Simple', promises: 'Nos engagements', faq: 'Questions', signIn: 'Se connecter', start: 'Rejoindre le pilote', menu: 'Menu', close: 'Fermer le menu', other: 'English', otherHref: '/', otherLang: 'en' },
   hero: {
-    eyebrow: 'La Parole et la prière au quotidien',
-    title: 'Un temps *calme* avec Dieu, chaque jour.',
-    lead: 'Chaque jour, LifeBook vous propose un passage et vous accompagne, un écran à la fois : le comprendre, faire silence, écrire ce qu’il éveille en vous, prier, puis l’emporter dans votre journée.',
-    primary: 'Commencer aujourd’hui', secondary: 'Voir comment ça marche',
-    note: 'Français et anglais · Dans tout navigateur',
+    eyebrow: 'La Parole, la prière et un espace pour grandir',
+    title: 'Faites place à *la Parole de Dieu.*',
+    lead: 'Lisez un passage. Prenez un temps calme. Confiez ce qui vous tient à cœur. LifeBook vous accompagne dans un rythme quotidien avec Dieu, à votre mesure.',
+    primary: 'Rejoindre le pilote', secondary: 'Découvrir LifeBook',
+    note: 'Un pilote sur invitation pour 10 adultes maximum, quelles que soient leurs convictions. Demandez un accès par e-mail ; nous vous indiquerons la suite.',
   },
   preview: {
-    label: 'L’écran du temps de prière LifeBook',
+    label: 'Illustrations de la lecture biblique et de l’accueil LifeBook',
     step: 'Comprendre', verse: 'Ta parole est une lampe à mon pied, et une lumière à mon sentier.', reference: 'Psaume 119:105', translation: 'Bible J.N. Darby',
     back: 'Retour', next: 'Continuer',
     stillStep: 'Méditer', stillTitle: 'Faites silence un instant.', breathe: 'Expirez', time: '1:12',
@@ -216,7 +216,7 @@ const fr: Content = {
     ],
   },
   screens: {
-    note: 'Écrans de LifeBook sur téléphone. Il fonctionne dès aujourd’hui dans le navigateur de votre téléphone ; les applications iPhone et Android sont en préparation.',
+    note: 'Aperçus illustratifs des écrans LifeBook, avec du contenu d’exemple. Il fonctionne dès aujourd’hui dans le navigateur de votre téléphone ; les applications iPhone et Android sont en préparation.',
     date: 'dimanche 18 octobre', greet: 'Bonjour', todayWord: 'Parole du jour', about: 'Environ 5 min', begin: 'Commencer le temps de prière', week: 'Votre semaine dans la Parole', days: ['L', 'M', 'M', 'J', 'V', 'S', 'D'], weekLine: '3 jours avec la Parole cette semaine.',
     tabs: ['Aujourd’hui', 'Bible', 'Prière', 'Vous'], steps: ['Comprendre', 'Méditer', 'Réfléchir', 'Prier', 'Vivre la Parole'],
     verse: 'Mais mettez la parole en pratique, et ne l’écoutez pas seulement, vous séduisant vous-mêmes.', ref: 'Jacques 1:22', translation: 'Bible J.N. Darby',
@@ -268,7 +268,7 @@ const fr: Content = {
   status: { live: 'Disponible', pilot: 'Pilote', content: 'Contenu en préparation', review: 'En relecture pastorale', dev: 'En développement' },
   features: {
     eyebrow: 'Fonctionnalités', title: 'Tout ce que fait LifeBook, et *ce qui arrive.*',
-    lead: 'Chaque fonctionnalité indique où elle en est. Seules celles marquées Disponible sont ouvertes à tous aujourd’hui.',
+    lead: 'Chaque fonctionnalité indique où elle en est. Les fonctionnalités disponibles sont destinées aux participants invités au pilote ; les autres contenus sont encore en préparation.',
     tabsLabel: 'Groupes de fonctionnalités',
     groups: [
       { id: 'read', tab: 'Lire et étudier', title: 'Lire et étudier la Bible', lead: 'La Parole dans votre langue, à votre rythme, avec de la place pour réfléchir.', items: [
@@ -357,10 +357,10 @@ const fr: Content = {
       ['Quelles langues et quels appareils ?', 'Le français et l’anglais. LifeBook fonctionne dans le navigateur de tout téléphone ou ordinateur. Les applications iPhone et Android sont en préparation.'],
       ['Est-ce que cela remplace mon Église ?', 'Non. LifeBook accompagne votre temps personnel avec Dieu ; il ne remplace ni une communauté d’Église, ni un accompagnement pastoral, ni une aide professionnelle.'],
       ['Que puis-je utiliser aujourd’hui ?', 'Tout ce qui est marqué Disponible dans Fonctionnalités fonctionne dès aujourd’hui dans tout navigateur : la Parole du jour et le temps de prière, la Bible en français et en anglais avec la recherche, les notes et les plans de lecture, le journal de prière privé, et la maîtrise de vos données. Le reste est prêt et attend des contenus, une relecture pastorale ou des licences, comme expliqué dans À venir.'],
-      ['Mon Église ou mon ministère peut-il participer ?', 'Oui, avec soin. Nous invitons des pasteurs vérifiés au pilote « Demander un pasteur », et des ministères à partager des enseignements approuvés et à aider à écrire et relire les contenus. Écrivez à hello@lifebook.app.'],
+      ['Mon Église ou mon ministère peut-il participer ?', 'Oui, avec soin. Nous invitons des pasteurs vérifiés au pilote « Demander un pasteur », et des ministères à partager des enseignements approuvés et à aider à écrire et relire les contenus. Écrivez à lifebook.meditation@gmail.com.'],
     ],
   },
-  cta: { title: 'Faites de la place à *la Parole* aujourd’hui.', text: 'Un passage, quelques minutes de calme, et un espace pour répondre.', button: 'Commencer aujourd’hui', open: 'Ouvrir LifeBook' },
+  cta: { title: 'Faites de la place à *la Parole* aujourd’hui.', text: 'Un passage, quelques minutes de calme, et un espace pour répondre.', button: 'Rejoindre le pilote', open: 'Déjà invité ? Se connecter' },
   footer: { tagline: 'Un temps calme avec Dieu, chaque jour, dans la Parole et la prière.', explore: 'Découvrir', about: 'LifeBook', privacy: 'Confidentialité', terms: 'Conditions', contact: 'Contact', rights: 'Tous droits réservés.', scripture: 'Citations bibliques : King James Version et Bible J.N. Darby (domaine public).' },
   skip: 'Aller au contenu',
 };
