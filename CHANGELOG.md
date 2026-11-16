@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.4.0] - 2026-11-16
+
+### Added
+- Offer a second Bible Study starter in the editorial workspace: *The Gospel: receive, understand, respond* / *L’Évangile : recevoir, comprendre, répondre* (THEMATIC, three lessons, EN/FR), from series 3 of the pilot content pack. Choose it with the new **Starter study** picker. Loading it fills the form locally; nothing is saved, approved or published.
+- Each lesson includes a short historical-context note: new AI-assisted drafts for pastoral review, not taken from the pack.
+
 ## [0.5.3.0] - 2026-11-16
 
 ### Added

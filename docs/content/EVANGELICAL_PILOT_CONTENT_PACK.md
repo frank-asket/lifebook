@@ -196,7 +196,7 @@ The seven keys above were verified against the canonical file. These thematic re
 
 **Background reference:** Lausanne Covenant, Christian social responsibility section; not a claim of official curriculum approval.
 
-The existing Luke 10 three-lesson starter remains a separate BOOK study; BP-LUKE may be offered as further context only after its actual usage is reviewed.
+Since 16 November 2026 this series can be loaded in `/editorial` (Bible Studies → Starter study) as an unsaved local draft, with short added historical-context notes for review. Loading it saves and publishes nothing. The existing Luke 10 three-lesson starter remains a separate BOOK study; BP-LUKE may be offered as further context only after its actual usage is reviewed.
 
 ## 4. Learning path — Exploring Christianity / Explorer le christianisme
 

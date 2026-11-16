@@ -19,7 +19,7 @@ Private draft details are not returned in the public catalogs. Failed saves reta
 ## Starter content
 
 - Seven existing original meditation pairs (EN/FR) are reused from a canonical `apps/api/content/starter-meditations.json`. The existing operator seed reads this same file; its write behavior was not run or promoted to a safe production publisher.
-- One original three-lesson Bible Study in each language walks through Luke 10:25–37: observing, interpreting in context and responding wisely.
+- Two original three-lesson Bible Studies in each language, chosen with the **Starter study** picker: *Reading Luke 10* (BOOK; Luke 10:25–37: observing, interpreting in context and responding wisely) and, since 16 November 2026, *The Gospel: receive, understand, respond* (THEMATIC; 1 Corinthians 15:1–8, Ephesians 2:1–10, Romans 12:1–13), taken from series 3 of the [pilot content pack](content/EVANGELICAL_PILOT_CONTENT_PACK.md). Its short historical-context notes are new AI-assisted drafts that are not in the pack and need the same pastoral review.
 - One short learning path in each language provides the corresponding attentive-reading activities. Path content is text; typed cross-feature activity references and automatic cross-feature completion are not implemented by this batch.
 - LivingWord keeps its existing role-protected editor, approved-host/media rules, rights reference, attribution, transcript and explicit publication. Real permitted recordings must be supplied; no licensed media or invented rights claim is bundled.
 

@@ -16,7 +16,7 @@
   "dependencies": {
     "dotenv": "^18.0.7"
   },
-  "version": "0.5.3.0",
+  "version": "0.5.4.0",
   "pnpm": {
     "overrides": {
       "next>postcss": "8.5.23",
