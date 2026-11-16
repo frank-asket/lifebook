@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.1.0] - 2026-11-16
+
+### Changed
+- Present LifeBook with a product-led, bilingual marketing hero and labelled Bible Reader/home illustrations.
+- Add visual overviews for Meditation, Bible Study, LivingWord and Learning Paths while retaining their preparation status.
+- Simplify public navigation and route pilot requests to the approved support email, separately from sign-in.
+- Align light-mode marketing and web tokens around warm ivory and plum; clarify dashboard Scripture and continuation cards.
+
+### Fixed
+- Correct outdated marketing contact links and availability wording for the invitation-only pilot.
+- Preserve Scripture attribution in the illustrated Bible Reader and document shared design/behavior owners.
+
 ## [0.5.0.0] - 2026-11-15
 
 ### Added
