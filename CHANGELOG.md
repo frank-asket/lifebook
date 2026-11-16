@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3.0] - 2026-11-16
+
+### Added
+- Bring Bible Study to the Expo app: Bible tab → Bible studies. Browse published series in the reader's language, filter by topics, characters, books or doctrine, and search.
+- Read every lesson section (introduction, historical context, passage, theology, reflection questions, prayer, application) in published order. Signed-out members can read; signed-in members start a study and mark lessons complete explicitly, and progress appears only after the server accepts it.
+- Share Bible Study types and helpers between web and Expo in `apps/web/lib/bible-studies.ts`.
+
 ## [0.5.2.0] - 2026-11-16
 
 ### Changed

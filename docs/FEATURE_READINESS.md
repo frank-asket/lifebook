@@ -4,7 +4,7 @@ Source/public-endpoint audit: 26 October 2026. The local [content workspace batc
 
 ## Are all features done?
 
-No. Most core web/API features and many Expo equivalents are implemented. Launch acceptance is incomplete, several published libraries are empty, and Expo Bible Study is missing. The [current completion table](PRODUCT_COMPLETION_PLAN.md#current-feature-audit--26-october-2026) separates those issues from historical implementation batches.
+No. Most core web/API features and many Expo equivalents are implemented. Launch acceptance is incomplete, several published libraries are empty, and the Expo Bible Study screen (added 16 November 2026) still needs device acceptance. The [current completion table](PRODUCT_COMPLETION_PLAN.md#current-feature-audit--26-october-2026) separates those issues from historical implementation batches.
 
 | Experience | Public content observed | Meaning |
 | --- | --- | --- |
@@ -36,9 +36,9 @@ Before beta: review a starter schedule in both languages, then publish only thos
 
 On the web, open `/bible`, filter by **topic, biblical character, Bible book or Christian doctrine**, then open a series. The series contains ordered lessons. Each lesson can include a Scripture reference, introduction, historical context, passage explanation, theology, reflection questions, prayer and practical application. Start the study, choose a lesson, then explicitly mark it complete. Enrollment and completed lesson IDs are saved privately; reading a chapter or opening a lesson does not automatically complete it.
 
-Only `PUBLISHED` series appear in the selected language. There is no published EN/FR series at the inspected endpoints. The source supports lesson delivery and persistence, and the new local `/editorial` workspace provides the missing study editor. There is still no Expo study screen. Expo learning paths and reading plans are separate features and do not close this gap.
+Only `PUBLISHED` series appear in the selected language. There is no published EN/FR series at the inspected endpoints. The source supports lesson delivery and persistence, and the new local `/editorial` workspace provides the missing study editor. Since 16 November 2026 the Expo app has a matching Bible Study screen (Bible tab → Bible studies): type filters, search, every lesson section, explicit enrollment and completion, signed-out reading. It is covered by render tests but has not yet been checked on a device.
 
-Before beta: prepare and review at least one coherent series in each included language, publish through a reviewed operator process, then test enrollment, every lesson, completion, reload and account isolation. Complete Expo parity in the native milestone, or explicitly exclude Bible Study from the native candidate. Progress records activity, not a score for spiritual maturity or ministry eligibility.
+Before beta: prepare and review at least one coherent series in each included language, publish through a reviewed operator process, then test enrollment, every lesson, completion, reload and account isolation. Check the Expo screen on real iOS and Android devices with real lessons, or explicitly exclude Bible Study from the native candidate. Progress records activity, not a score for spiritual maturity or ministry eligibility.
 
 ## LivingWord
 
