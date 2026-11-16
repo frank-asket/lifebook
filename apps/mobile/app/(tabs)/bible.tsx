@@ -147,6 +147,7 @@ export default function Bible() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 }}>
         <Button kind="quiet" title={tr('Search Scripture', 'Rechercher dans la Bible')} onPress={() => router.push('/bible-search')} style={{ flexGrow: 1 }} />
         <Button kind="quiet" title={tr('Reading plans', 'Plans de lecture')} onPress={() => router.push('/reading-plans')} style={{ flexGrow: 1 }} />
+        <Button kind="quiet" title={tr('Bible studies', 'Études bibliques')} onPress={() => router.push('/bible-studies')} style={{ flexGrow: 1 }} />
         <Button kind="quiet" title={tr('Saved verses', 'Versets enregistrés')} onPress={() => router.push('/saved-verses')} style={{ flexGrow: 1 }} />
       </View>
       {error ? <ErrorLine message={error} onRetry={() => setAttempt(n => n + 1)} />
